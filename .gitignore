@@ -1,2 +1,4 @@
 # anything that was built
 build/*
+# Vim swap files
+**.swp
