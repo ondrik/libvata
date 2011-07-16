@@ -19,7 +19,10 @@ add_definitions(-march=core2)
 add_definitions(-mtune=core2)
 add_definitions(-msse2)
 add_definitions(-g)
+
+# uncomment for profiling
 #add_definitions(-pg)
+#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 
 find_package(Log4CPP REQUIRED)
 find_package(Loki REQUIRED)
