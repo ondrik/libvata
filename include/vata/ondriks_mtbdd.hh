@@ -21,10 +21,13 @@
 
 // VATA headers
 #include	<vata/variable_assignment.hh>
+#include	<vata/vata.hh>
 
 // Loki headers
 #include	<loki/SmartPtr.h>
 
+// Boost library headers
+#include <boost/functional/hash.hpp>
 
 namespace VATA
 {
@@ -311,8 +314,6 @@ public:   // public data types
 
 private: // private data members
 
-	// TODO: add something different than simple pointer (e.g. smart pointer
-	// with destructive copy
 	NodeType* root_;
 
 	DataType defaultValue_;
@@ -422,9 +423,9 @@ public:   // public methods
 	 */
 	OndriksMTBDD(const VariableAssignment& asgn,
 		const DataType& value, const DataType& defaultValue)
-		: root_(),
+		: root_(static_cast<NodeType*>(0)),
 			defaultValue_(defaultValue),
-			varOrdering_()
+			varOrdering_(static_cast<PermutationTable*>(0))
 	{
 		// create the variable permutation table (the variable ordering)
 		PermutationTable* varOrd = new PermutationTable(asgn.VariablesCount());
@@ -456,7 +457,7 @@ public:   // public methods
 	 */
 	OndriksMTBDD(const VariableAssignment& asgn, const DataType& value,
 		const DataType& defaultValue, const PermutationTablePtr& varOrdering)
-		:	root_(),
+		:	root_(static_cast<NodeType*>(0)),
 			defaultValue_(defaultValue),
 			varOrdering_(varOrdering)
 	{
@@ -585,10 +586,36 @@ public:   // Public data types
 
 	typedef typename MTBDDOutType::VarType VarType;
 
+private:  // Private data types
+
+	typedef std::pair<const Node1Type*, const Node2Type*> CacheAddressType;
+
+	/**
+	 * @brief  Hasher structure for a pair of keys
+	 *
+	 * This class is a hasher for a pair of keys.
+	 */
+	struct HasherBinary
+	{
+		size_t operator()(const CacheAddressType& key) const
+		{
+			size_t seed  = 0;
+			boost::hash_combine(seed, key.first);
+			boost::hash_combine(seed, key.second);
+			return seed;
+		}
+	};
+
+	typedef std::tr1::unordered_map<CacheAddressType, NodeOutType*, HasherBinary>
+		CacheHashTable;
+
 private:  // Private data members
 
 	const MTBDD1Type* mtbdd1_;
 	const MTBDD2Type* mtbdd2_;
+
+	CacheHashTable ht;
+
 
 private:  // Private methods
 
@@ -647,7 +674,13 @@ private:  // Private methods
 
 		using namespace VATA::Private::MTBDDPkg::MTBDDNodePkg;
 
-		// TODO: caching!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		CacheAddressType cacheAddress(node1, node2);
+		typename CacheHashTable::iterator itHt;
+		if ((itHt = ht.find(cacheAddress)) != ht.end())
+		{	// if the result is already known
+			assert(itHt->second != static_cast<NodeOutType*>(0));
+			return itHt->second;
+		}
 
 		VarType var;
 		NodeOutType* lowTree = static_cast<NodeOutType*>(0);
@@ -661,7 +694,7 @@ private:  // Private methods
 					NodeOutType* result = createLeaf(DataOperation(
 						getDataFromLeaf(node1), getDataFromLeaf(node2)));
 
-					// TODO: cache!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+					ht.insert(std::make_pair(cacheAddress, result));
 					return result;
 				}
 
@@ -698,14 +731,14 @@ private:  // Private methods
 
 		if (lowTree == highTree)
 		{	// in case both trees are isomorphic (when caching is enabled)
-			// TODO: cache!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			ht.insert(std::make_pair(cacheAddress, lowTree));
 			return lowTree;
 		}
 		else
 		{	// in case both trees are distinct
 			NodeOutType* result = createInternal(lowTree, highTree, var);
 
-			// TODO: cache!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+			ht.insert(std::make_pair(cacheAddress, result));
 			return result;
 		}
 	}
@@ -714,7 +747,8 @@ public:   // Public methods
 
 	AbstractApply2Functor()
 		: mtbdd1_(static_cast<MTBDD1Type*>(0)),
-			mtbdd2_(static_cast<MTBDD2Type*>(0))
+			mtbdd2_(static_cast<MTBDD2Type*>(0)),
+			ht()
 	{ }
 
 	MTBDDOutType operator()(const MTBDD1Type& mtbdd1, const MTBDD2Type& mtbdd2)
@@ -722,6 +756,9 @@ public:   // Public methods
 		// store the MTBDDs
 		mtbdd1_ = &mtbdd1;
 		mtbdd2_ = &mtbdd2;
+
+		// clear the cache
+		ht.clear();
 
 		if (mtbdd1_->GetVarOrdering() != mtbdd2_->GetVarOrdering())
 		{	// in case the MTBDDs have a different variable ordering
