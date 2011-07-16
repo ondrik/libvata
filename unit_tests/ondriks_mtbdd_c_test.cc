@@ -305,73 +305,6 @@ protected:// protected methods
 
 
 	/**
-	 * @brief  Converts container with leaf values to string
-	 *
-	 * This static method returns string representation of a container of leaf
-	 * values.
-	 *
-	 * @param[in]  leafCont  Container with leaves
-	 *
-	 * @returns  String representation of the container
-	 */
-//	static std::string leafContainerToString(const ASMTBDDCC::LeafContainer& leafCont)
-//	{
-//		std::string result;
-//
-//		for (ASMTBDDCC::LeafContainer::const_iterator itLeaf = leafCont.begin();
-//			itLeaf != leafCont.end(); ++itLeaf)
-//		{	// append all leaves
-//			result += ((itLeaf == leafCont.begin())? " " : ", ") +
-//				Convert::ToString(static_cast<unsigned>(**itLeaf));
-//		}
-//
-//		return result;
-//	}
-
-
-	/**
-	 * @brief  Equality comparer of leaves
-	 *
-	 * This static method compares two leaves and determines if they are equal.
-	 *
-	 * @param[in]  lhs  Left-hand side leaf
-	 * @param[in]  rhs  Right-hand side leaf
-	 *
-	 * @returns  Boolean value determining whether the leaves are equal
-	 */
-	inline static bool compareLeafValues(const DataType* lhs, const DataType* rhs)
-	{
-		return *lhs == *rhs;
-	}
-
-
-	/**
-	 * @brief  Equality comparer of leaf containers
-	 *
-	 * This static method compares two containers with leaf values and
-	 * determines if they are equal.
-	 *
-	 * @param[in]  lhs  Left-hand side container
-	 * @param[in]  rhs  Right-hand side container
-	 *
-	 * @returns  Boolean value determining whether the leaf containers are equal
-	 */
-//	static bool compareTwoLeafContainers(const ASMTBDDCC::LeafContainer& lhs,
-//		const ASMTBDDCC::LeafContainer& rhs)
-//	{
-//		const ASMTBDDCC::LeafContainer* left = &lhs;
-//		const ASMTBDDCC::LeafContainer* right = &rhs;
-//
-//		if (left->size() != right->size())
-//		{	// in case the sizes differ
-//			return false;
-//		}
-//
-//		return std::equal(left->begin(), left->end(), right->begin(), compareLeafValues);
-//	}
-
-
-	/**
 	 * @brief  Creates MTBDDs for test cases
 	 *
 	 * This method creates in given MTBDD new root with leaves according to the
@@ -466,102 +399,90 @@ BOOST_AUTO_TEST_CASE(setters_and_getters_test)
 	}
 }
 
-// BOOST_AUTO_TEST_CASE(large_diagram_test)
-// {
-// 	ASMTBDDCC* bdd = new CuddMTBDDCC();
-// 	bdd->SetBottomValue(0);
-// 
-// 	boost::mt19937 prnGen(PRNG_SEED);
-// 
-// 	// formulae that we wish to store in the BDD
-// 	ListOfTestCasesType testCases;
-// 
-// 	for (unsigned i = 0; i < LARGE_TEST_FORMULA_CASES; ++i)
-// 	{	// generate test cases
-// 		std::string formula;
-// 
-// 		for (unsigned j = 0; j < NUM_VARIABLES; ++j)
-// 		{
-// 			if (prnGen() % 4 != 0)
-// 			{
-// 				formula += (formula.empty()? "" : " * ") +
-// 					Convert::ToString((prnGen() % 2 == 0)? " " : "~")
-// 					+ "x" + Convert::ToString(j);
-// 			}
-// 		}
-// 
-// 		LeafType randomNum;
-// 		while ((randomNum = prnGen()) == 0) ;   // generate non-zero random number
-// 
-// 		formula += " = " + Convert::ToString(static_cast<unsigned>(randomNum));
-// 
-// 		testCases.push_back(formula);
-// 	}
-// 
-// 	// formulae that we want to check that are not in the BDD
-// 	ListOfTestCasesType failedCases;
-// 
-// 	for (unsigned i = 0; i < LARGE_TEST_FORMULA_CASES; ++i)
-// 	{	// generate failed test cases
-// 		std::string formula;
-// 
-// 		for (unsigned j = 0; j < NUM_VARIABLES; ++j)
-// 		{
-// 			if (prnGen() % 31 != 0)
-// 			{
-// 				formula += (formula.empty()? "" : " * ") +
-// 					Convert::ToString((prnGen() % 2 == 0)? " " : "~")
-// 					+ "x" + Convert::ToString(j);
-// 			}
-// 		}
-// 
-// 		formula += " = " + Convert::ToString(static_cast<unsigned>(1));
-// 
-// 		failedCases.push_back(formula);
-// 	}
-// 
-// 	RootType root = createMTBDDForTestCases(bdd, testCases);
-// 
-// 	for (ListOfTestCasesType::const_iterator itTests = testCases.begin();
-// 		itTests != testCases.end(); ++itTests)
-// 	{	// test that the test cases have been stored properly
-// #if DEBUG
-// 		BOOST_TEST_MESSAGE("Finding stored " + *itTests);
-// #endif
-// 		FormulaParser::ParserResultUnsignedType prsRes =
-// 			FormulaParser::ParseExpressionUnsigned(*itTests);
-// 		LeafType leafValue = static_cast<LeafType>(prsRes.first);
-// 		VariableAssignment asgn = varListToAsgn(prsRes.second);
-// 
-// 		ASMTBDDCC::LeafContainer res;
-// 		res.push_back(&leafValue);
-// 
-// 		BOOST_CHECK_MESSAGE(
-// 			compareTwoLeafContainers(bdd->GetValue(root, asgn), res),
-// 			*itTests + " != " + leafContainerToString(bdd->GetValue(root, asgn)));
-// 	}
-// 
-// 	for (ListOfTestCasesType::const_iterator itFailed = failedCases.begin();
-// 		itFailed != failedCases.end(); ++itFailed)
-// 	{	// for every test case that should fail
-// #if DEBUG
-// 		BOOST_TEST_MESSAGE("Finding failed " + *itFailed);
-// #endif
-// 		FormulaParser::ParserResultUnsignedType prsFailedRes =
-// 			FormulaParser::ParseExpressionUnsigned(*itFailed);
-// 		VariableAssignment asgn = varListToAsgn(prsFailedRes.second);
-// 
-// 		ASMTBDDCC::LeafContainer res;
-// 
-// 		BOOST_CHECK_MESSAGE(
-// 			compareTwoLeafContainers(bdd->GetValue(root, asgn), res),
-// 			*itFailed + " == " + leafContainerToString(bdd->GetValue(root, asgn)));
-// 	}
-// 
-// 	delete bdd;
-// }
-// 
-// 
+BOOST_AUTO_TEST_CASE(large_diagram_test)
+{
+	boost::mt19937 prnGen(PRNG_SEED);
+
+	// formulae that we wish to store in the BDD
+	ListOfTestCasesType testCases;
+
+	for (unsigned i = 0; i < LARGE_TEST_FORMULA_CASES; ++i)
+	{	// generate test cases
+		std::string formula;
+
+		for (unsigned j = 0; j < NUM_VARIABLES; ++j)
+		{
+			if (prnGen() % 4 != 0)
+			{
+				formula += (formula.empty()? "" : " * ") +
+					Convert::ToString((prnGen() % 2 == 0)? " " : "~")
+					+ "x" + Convert::ToString(j);
+			}
+		}
+
+		DataType randomNum;
+		while ((randomNum = prnGen()) == 0) ;   // generate non-zero random number
+
+		formula += " = " + Convert::ToString(static_cast<unsigned>(randomNum));
+
+		testCases.push_back(formula);
+	}
+
+	// formulae that we want to check that are not in the BDD
+	ListOfTestCasesType failedCases;
+
+	for (unsigned i = 0; i < LARGE_TEST_FORMULA_CASES; ++i)
+	{	// generate failed test cases
+		std::string formula;
+
+		for (unsigned j = 0; j < NUM_VARIABLES; ++j)
+		{
+			if (prnGen() % 31 != 0)
+			{
+				formula += (formula.empty()? "" : " * ") +
+					Convert::ToString((prnGen() % 2 == 0)? " " : "~")
+					+ "x" + Convert::ToString(j);
+			}
+		}
+
+		formula += " = " + Convert::ToString(static_cast<unsigned>(1));
+
+		failedCases.push_back(formula);
+	}
+
+	MTBDD bdd = createMTBDDForTestCases(testCases);
+
+	for (ListOfTestCasesType::const_iterator itTests = testCases.begin();
+		itTests != testCases.end(); ++itTests)
+	{	// test that the test cases have been stored properly
+		#if DEBUG
+			BOOST_TEST_MESSAGE("Finding stored " + *itTests);
+		#endif
+		FormulaParser::ParserResultUnsignedType prsRes =
+			FormulaParser::ParseExpressionUnsigned(*itTests);
+		DataType leafValue = static_cast<DataType>(prsRes.first);
+		VariableAssignment asgn = varListToAsgn(prsRes.second);
+
+		BOOST_CHECK_MESSAGE(bdd.GetValue(asgn) == leafValue,
+			*itTests + " != " + Convert::ToString(bdd.GetValue(asgn)));
+	}
+
+	for (ListOfTestCasesType::const_iterator itFailed = failedCases.begin();
+		itFailed != failedCases.end(); ++itFailed)
+	{	// for every test case that should fail
+		#if DEBUG
+			BOOST_TEST_MESSAGE("Finding failed " + *itFailed);
+		#endif
+		FormulaParser::ParserResultUnsignedType prsFailedRes =
+			FormulaParser::ParseExpressionUnsigned(*itFailed);
+		VariableAssignment asgn = varListToAsgn(prsFailedRes.second);
+
+		BOOST_CHECK_MESSAGE(bdd.GetValue(asgn) == bdd.GetDefaultValue(),
+			*itFailed + " == " + Convert::ToString(bdd.GetValue(asgn)));
+	}
+}
+
+
 // BOOST_AUTO_TEST_CASE(no_variables_formula)
 // {
 // 	const char* const TEST_VALUE = " = 42";
