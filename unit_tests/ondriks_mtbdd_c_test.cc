@@ -485,31 +485,22 @@ BOOST_AUTO_TEST_CASE(large_diagram_test)
 }
 
 
-// BOOST_AUTO_TEST_CASE(no_variables_formula)
-// {
-// 	const char* const TEST_VALUE = " = 42";
-// 
-// 	ASMTBDDCC* bdd = new CuddMTBDDCC();
-// 	bdd->SetBottomValue(0);
-// 	RootType root = bdd->CreateRoot();
-// 
-// 	FormulaParser::ParserResultUnsignedType prsRes =
-// 		FormulaParser::ParseExpressionUnsigned(TEST_VALUE);
-// 	LeafType leafValue = static_cast<LeafType>(prsRes.first);
-// 	VariableAssignment asgn = varListToAsgn(prsRes.second);
-// 	bdd->SetValue(root, asgn, leafValue);
-// 
-// 	ASMTBDDCC::LeafContainer res;
-// 	res.push_back(&leafValue);
-// 
-// 	BOOST_CHECK_MESSAGE(compareTwoLeafContainers(bdd->GetValue(root, asgn), res),
-// 		Convert::ToString(TEST_VALUE) + " != " +
-// 		leafContainerToString(bdd->GetValue(root, asgn)));
-// 
-// 	delete bdd;
-// }
-// 
-// 
+BOOST_AUTO_TEST_CASE(no_variables_formula)
+{
+	const char* const TEST_VALUE = " = 42";
+
+	FormulaParser::ParserResultUnsignedType prsRes =
+		FormulaParser::ParseExpressionUnsigned(TEST_VALUE);
+	DataType leafValue = static_cast<DataType>(prsRes.first);
+	VariableAssignment asgn = varListToAsgn(prsRes.second);
+	MTBDD bdd(asgn, leafValue, DEFAULT_DATA_VALUE);
+
+	BOOST_CHECK_MESSAGE(bdd.GetValue(asgn) == leafValue,
+		Convert::ToString(TEST_VALUE) + " != " +
+		Convert::ToString(bdd.GetValue(asgn)));
+}
+
+
 // BOOST_AUTO_TEST_CASE(multiple_independent_bdds)
 // {
 // 	ASMTBDDCC* bdd = new CuddMTBDDCC();
