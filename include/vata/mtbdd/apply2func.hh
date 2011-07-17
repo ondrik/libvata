@@ -92,6 +92,8 @@ private:  // Private data members
 
 	CacheHashTable ht;
 
+	static const char NODE1MASK = 0x01;  // 00000001
+	static const char NODE2MASK = 0x02;  // 00000010
 
 private:  // Private methods
 
@@ -101,44 +103,31 @@ private:  // Private methods
 
 	inline static char classifyCase(const Node1Type* node1, const Node2Type* node2)
 	{
+		// Assertions
+		assert(node1 != static_cast<Node1Type*>(0));
+		assert(node2 != static_cast<Node2Type*>(0));
+
+		char result = 0x00;
+
 		if (isInternal(node1))
 		{	// node1 is internal
-			VarType var1 = getVarFromInternal(node1);
-
-			if (isInternal(node2))
-			{	// node2 is also internal
-				VarType var2 = getVarFromInternal(node2);
-
-				if (var1 == var2)
-				{	// in case the variables match
-					return 'E';  // "Equal" variables
-				}
-				if (var1 > var2)
-				{
-					return 'B';  // node1 is "Bigger" than node2
-				}
-				else
-				{
-					assert(var1 < var2);
-					return 'S';  // node1 is "Smaller" than node2
-				}
-			}
-			else
-			{	// node2 is a leaf
-				assert(isLeaf(node2));
-				return 'B';  // node1 is "Bigger" than node2
+			if (isLeaf(node2) ||
+				(getVarFromInternal(node1) >= getVarFromInternal(node2)))
+			{
+				result |= NODE1MASK;	// branch node1
 			}
 		}
-		else if (isInternal(node2))
-		{	// node1 is a leaf
-			assert(isLeaf(node1));
-			return 'S';  // node1 is "Smaller" than node2
+
+		if (isInternal(node2))
+		{	// node2 is internal
+			if (isLeaf(node1) ||
+				(getVarFromInternal(node2) >= getVarFromInternal(node1)))
+			{
+				result |= NODE2MASK;	// branch node2
+			}
 		}
-		else
-		{	// for the terminal case
-			assert(isLeaf(node1) && isLeaf(node2));
-			return 'T';  // "Terminal" case
-		}
+
+		return result;
 	}
 
 	typename MTBDDOutType::NodeType* recDescend(
@@ -158,73 +147,55 @@ private:  // Private methods
 			return itHt->second;
 		}
 
-		VarType var;
-		NodeOutType* lowOutTree = static_cast<NodeOutType*>(0);
-		NodeOutType* highOutTree = static_cast<NodeOutType*>(0);
-
 		char relation = classifyCase(node1, node2);
-		switch (relation)
-		{
-			// for both leaves
-			case 'T': {
-					NodeOutType* result = createLeaf(ApplyOperation(
-						getDataFromLeaf(node1), getDataFromLeaf(node2)));
+		assert((relation & ~(NODE1MASK | NODE2MASK)) == 0x00);
 
-					ht.insert(std::make_pair(cacheAddress, result));
-					return result;
-				}
+		if (!relation)
+		{	// for the terminal case
+			NodeOutType* result = createLeaf(ApplyOperation(
+				getDataFromLeaf(node1), getDataFromLeaf(node2)));
 
-			// for internal nodes with the same variable
-			case 'E': {
-					var = getVarFromInternal(node1);
-					const Node1Type* low1Tree = getLowFromInternal(node1);
-					const Node2Type* low2Tree = getLowFromInternal(node2);
-					const Node1Type* high1Tree = getHighFromInternal(node1);
-					const Node2Type* high2Tree = getHighFromInternal(node2);
-
-					// Assertions for one condition of reduced MTBDDs
-					assert(low1Tree != high1Tree);
-					assert(low2Tree != high2Tree);
-
-					lowOutTree = recDescend(low1Tree, low2Tree);
-					highOutTree = recDescend(high1Tree, high2Tree);
-					break;
-				}
-
-			// for internal nodes with node1 above node2
-			case 'B': {
-					var = getVarFromInternal(node1);
-					const Node1Type* low1Tree = getLowFromInternal(node1);
-					const Node1Type* high1Tree = getHighFromInternal(node1);
-
-					// Assertion for one condition of reduced MTBDDs
-					assert(low1Tree != high1Tree);
-
-					lowOutTree = recDescend(low1Tree, node2);
-					highOutTree = recDescend(high1Tree, node2);
-					break;
-				}
-
-			// for internal nodes with node1 below node2
-			case 'S': {
-					var = getVarFromInternal(node2);
-					const Node2Type* low2Tree = getLowFromInternal(node2);
-					const Node2Type* high2Tree = getHighFromInternal(node2);
-
-					// Assertion for one condition of reduced MTBDDs
-					assert(low2Tree != high2Tree);
-
-					lowOutTree = recDescend(node1, low2Tree);
-					highOutTree = recDescend(node1, high2Tree);
-					break;
-				}
-
-			// this should never happen
-			default: {
-					assert(false);
-					break;
-				}
+			ht.insert(std::make_pair(cacheAddress, result));
+			return result;
 		}
+
+		// in case there is something to be branched
+		assert(relation);
+
+		VarType var;
+		const Node1Type* low1Tree = static_cast<Node1Type*>(0);
+		const Node2Type* low2Tree = static_cast<Node2Type*>(0);
+		const Node1Type* high1Tree = static_cast<Node1Type*>(0);
+		const Node2Type* high2Tree = static_cast<Node2Type*>(0);
+
+		if (relation & NODE1MASK)
+		{	// if node1 is to be branched
+			var = getVarFromInternal(node1);
+			low1Tree = getLowFromInternal(node1);
+			high1Tree = getHighFromInternal(node1);
+			assert(low1Tree != high1Tree);
+		}
+		else
+		{	// if node1 is not to be branched
+			low1Tree = node1;
+			high1Tree = node1;
+		}
+
+		if (relation & NODE2MASK)
+		{	// if node2 is to be branched
+			var = getVarFromInternal(node2);
+			low2Tree = getLowFromInternal(node2);
+			high2Tree = getHighFromInternal(node2);
+			assert(low2Tree != high2Tree);
+		}
+		else
+		{	// if node2 is not to be branched
+			low2Tree = node2;
+			high2Tree = node2;
+		}
+
+		NodeOutType* lowOutTree = recDescend(low1Tree, low2Tree);
+		NodeOutType* highOutTree = recDescend(high1Tree, high2Tree);
 
 		if (lowOutTree == highOutTree)
 		{	// in case both trees are isomorphic (when caching is enabled)
