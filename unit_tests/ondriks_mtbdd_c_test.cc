@@ -11,6 +11,7 @@
 // VATA headers
 #include <vata/convert.hh>
 #include <vata/mtbdd/apply1func.hh>
+#include <vata/mtbdd/apply2func.hh>
 #include <vata/mtbdd/ondriks_mtbdd.hh>
 #include <vata/mtbdd/var_asgn.hh>
 #include <vata/vata.hh>
