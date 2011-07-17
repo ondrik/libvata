@@ -74,6 +74,8 @@ const char* const STANDARD_FAIL_CASES[] =
 
 const unsigned char DEFAULT_DATA_VALUE = 0;
 
+const unsigned VAR_COUNT = 64;
+
 /**
  * Number of formulae for standard test cases that are to be not found in the
  * MTBDD
@@ -341,7 +343,7 @@ protected:// protected methods
 
 		CopyApply2Functor copyFunc;
 
-		MTBDD bdd(VariableAssignment(64), DEFAULT_DATA_VALUE, DEFAULT_DATA_VALUE);
+		MTBDD bdd(VariableAssignment(VAR_COUNT), DEFAULT_DATA_VALUE, DEFAULT_DATA_VALUE);
 
 		for (ListOfTestCasesType::const_iterator itTests = testCases.begin();
 			itTests != testCases.end(); ++itTests)
