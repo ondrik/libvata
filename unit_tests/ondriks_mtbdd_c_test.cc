@@ -9,9 +9,10 @@
  *****************************************************************************/
 
 // VATA headers
-#include <vata/variable_assignment.hh>
 #include <vata/convert.hh>
 #include <vata/ondriks_mtbdd.hh>
+#include <vata/variable_assignment.hh>
+#include <vata/vata.hh>
 
 using VATA::Private::MTBDDPkg::OndriksMTBDD;
 using VATA::Private::MTBDDPkg::AbstractApply1Functor;
