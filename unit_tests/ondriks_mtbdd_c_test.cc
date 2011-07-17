@@ -646,60 +646,51 @@ BOOST_AUTO_TEST_CASE(no_variables_formula)
 // 
 // 	delete bdd;
 // }
-// 
-// 
-// BOOST_AUTO_TEST_CASE(apply)
-// {
-// 	ASMTBDDCC* bdd = new CuddMTBDDCC();
-// 	bdd->SetBottomValue(0);
-// 
-// 	// load test cases
-// 	ListOfTestCasesType testCases;
-// 	ListOfTestCasesType failedCases;
-// 	loadStandardTests(testCases, failedCases);
-// 
-// 	RootType root = createMTBDDForTestCases(bdd, testCases);
-// 
-// 	// apply functor that squares values in leaves
-// 	class TimesApplyFunctor
-// 		: public ASMTBDDCC::AbstractApplyFunctorType
-// 	{
-// 	public:
-// 
-// 		virtual LeafType operator()(const LeafType& lhs, const LeafType& rhs)
-// 		{
-// 			return lhs * rhs;
-// 		}
-// 	};
-// 
-// 	TimesApplyFunctor func;
-// 
-// 	RootType timesRoot = bdd->Apply(root, root, &func);
-// 
-// 	for (ListOfTestCasesType::const_iterator itTests = testCases.begin();
-// 		itTests != testCases.end(); ++itTests)
-// 	{	// test that the test cases have been stored properly
-// #if DEBUG
-// 		BOOST_TEST_MESSAGE("Finding stored " + *itTests);
-// #endif
-// 		FormulaParser::ParserResultUnsignedType prsRes =
-// 			FormulaParser::ParseExpressionUnsigned(*itTests);
-// 		LeafType leafValue = static_cast<LeafType>(prsRes.first);
-// 		leafValue *= leafValue;
-// 		VariableAssignment asgn = varListToAsgn(prsRes.second);
-// 
-// 		ASMTBDDCC::LeafContainer res;
-// 		res.push_back(&leafValue);
-// 
-// 		BOOST_CHECK_MESSAGE(
-// 			compareTwoLeafContainers(bdd->GetValue(timesRoot, asgn), res),
-// 			*itTests + " != " + leafContainerToString(bdd->GetValue(timesRoot, asgn)));
-// 	}
-// 
-// 	delete bdd;
-// }
-// 
-// 
+
+
+BOOST_AUTO_TEST_CASE(apply)
+{
+	// load test cases
+	ListOfTestCasesType testCases;
+	ListOfTestCasesType failedCases;
+	loadStandardTests(testCases, failedCases);
+
+	MTBDD bdd = createMTBDDForTestCases(testCases);
+
+	// apply functor that squares values in leaves
+	class TimesApply2Functor
+		: public AbstractApply2Functor<DataType, DataType, DataType>
+	{
+	public:
+
+		virtual DataType ApplyOperation(const DataType& lhs, const DataType& rhs)
+		{
+			return lhs * rhs;
+		}
+	};
+
+	TimesApply2Functor func;
+
+	MTBDD timesBdd = func(bdd, bdd);
+
+	for (ListOfTestCasesType::const_iterator itTests = testCases.begin();
+		itTests != testCases.end(); ++itTests)
+	{	// test that the test cases have been stored properly
+		#if DEBUG
+			BOOST_TEST_MESSAGE("Finding stored " + *itTests);
+		#endif
+		FormulaParser::ParserResultUnsignedType prsRes =
+			FormulaParser::ParseExpressionUnsigned(*itTests);
+		DataType leafValue = static_cast<DataType>(prsRes.first);
+		leafValue *= leafValue;
+		VariableAssignment asgn = varListToAsgn(prsRes.second);
+
+		BOOST_CHECK_MESSAGE(timesBdd.GetValue(asgn) == leafValue,
+			*itTests + " != " + Convert::ToString(timesBdd.GetValue(asgn)));
+	}
+}
+
+
 // BOOST_AUTO_TEST_CASE(ternary_apply)
 // {
 // 	ASMTBDDCC* bdd = new CuddMTBDDCC();
