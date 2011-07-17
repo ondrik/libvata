@@ -10,8 +10,8 @@
 
 // VATA headers
 #include <vata/convert.hh>
-#include <vata/ondriks_mtbdd.hh>
-#include <vata/variable_assignment.hh>
+#include <vata/mtbdd/ondriks_mtbdd.hh>
+#include <vata/mtbdd/var_asgn.hh>
 #include <vata/vata.hh>
 
 using VATA::Private::MTBDDPkg::OndriksMTBDD;

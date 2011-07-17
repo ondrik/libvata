@@ -20,7 +20,7 @@
 #include  <tr1/unordered_set>
 
 // VATA headers
-#include	<vata/variable_assignment.hh>
+#include	<vata/mtbdd/var_asgn.hh>
 #include	<vata/vata.hh>
 
 // Loki headers
