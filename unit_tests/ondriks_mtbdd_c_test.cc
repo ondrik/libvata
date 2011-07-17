@@ -14,6 +14,7 @@
 #include <vata/ondriks_mtbdd.hh>
 
 using VATA::Private::MTBDDPkg::OndriksMTBDD;
+using VATA::Private::MTBDDPkg::AbstractApply1Functor;
 using VATA::Private::MTBDDPkg::AbstractApply2Functor;
 using VATA::Private::Convert;
 
@@ -593,59 +594,49 @@ BOOST_AUTO_TEST_CASE(no_variables_formula)
 // 
 // 	delete bdd;
 // }
-// 
-// 
-// BOOST_AUTO_TEST_CASE(monadic_apply)
-// {
-// 	ASMTBDDCC* bdd = new CuddMTBDDCC();
-// 	bdd->SetBottomValue(0);
-// 
-// 	// load test cases
-// 	ListOfTestCasesType testCases;
-// 	ListOfTestCasesType failedCases;
-// 	loadStandardTests(testCases, failedCases);
-// 
-// 	RootType root = createMTBDDForTestCases(bdd, testCases);
-// 
-// 	// apply functor that squares values in leaves
-// 	class SquareMonadicApplyFunctor
-// 		: public ASMTBDDCC::AbstractMonadicApplyFunctorType
-// 	{
-// 	public:
-// 
-// 		virtual LeafType operator()(const LeafType& val)
-// 		{
-// 			return val * val;
-// 		}
-// 	};
-// 
-// 	SquareMonadicApplyFunctor func;
-// 
-// 	RootType squaredRoot = bdd->MonadicApply(root, &func);
-// 
-// 	for (ListOfTestCasesType::const_iterator itTests = testCases.begin();
-// 		itTests != testCases.end(); ++itTests)
-// 	{	// test that the test cases have been stored properly
-// #if DEBUG
-// 		BOOST_TEST_MESSAGE("Finding stored " + *itTests);
-// #endif
-// 		FormulaParser::ParserResultUnsignedType prsRes =
-// 			FormulaParser::ParseExpressionUnsigned(*itTests);
-// 		LeafType leafValue = static_cast<LeafType>(prsRes.first);
-// 		leafValue *= leafValue;
-// 		VariableAssignment asgn = varListToAsgn(prsRes.second);
-// 
-// 		ASMTBDDCC::LeafContainer res;
-// 		res.push_back(&leafValue);
-// 
-// 		BOOST_CHECK_MESSAGE(
-// 			compareTwoLeafContainers(bdd->GetValue(squaredRoot, asgn), res),
-// 			*itTests + " != " + leafContainerToString(bdd->GetValue(squaredRoot, asgn)));
-// 	}
-// 
-// 
-// 	delete bdd;
-// }
+
+
+BOOST_AUTO_TEST_CASE(monadic_apply)
+{
+	// load test cases
+	ListOfTestCasesType testCases;
+	ListOfTestCasesType failedCases;
+	loadStandardTests(testCases, failedCases);
+
+	MTBDD bdd = createMTBDDForTestCases(testCases);
+
+	// apply functor that squares values in leaves
+	class SquareMonadicApplyFunctor
+		: public AbstractApply1Functor<DataType, DataType>
+	{
+	public:
+
+		virtual DataType ApplyOperation(const DataType& val)
+		{
+			return val * val;
+		}
+	};
+
+	SquareMonadicApplyFunctor func;
+
+	MTBDD squaredBdd = func(bdd);
+
+	for (ListOfTestCasesType::const_iterator itTests = testCases.begin();
+		itTests != testCases.end(); ++itTests)
+	{	// test that the test cases have been stored properly
+#if DEBUG
+		BOOST_TEST_MESSAGE("Finding stored " + *itTests);
+#endif
+		FormulaParser::ParserResultUnsignedType prsRes =
+			FormulaParser::ParseExpressionUnsigned(*itTests);
+		DataType leafValue = static_cast<DataType>(prsRes.first);
+		leafValue *= leafValue;
+		VariableAssignment asgn = varListToAsgn(prsRes.second);
+
+		BOOST_CHECK_MESSAGE(squaredBdd.GetValue(asgn) == leafValue,
+			*itTests + " != " + Convert::ToString(squaredBdd.GetValue(asgn)));
+	}
+}
 
 
 BOOST_AUTO_TEST_CASE(apply)
