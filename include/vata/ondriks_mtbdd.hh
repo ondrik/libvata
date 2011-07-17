@@ -683,8 +683,8 @@ private:  // Private methods
 		}
 
 		VarType var;
-		NodeOutType* lowTree = static_cast<NodeOutType*>(0);
-		NodeOutType* highTree = static_cast<NodeOutType*>(0);
+		NodeOutType* lowOutTree = static_cast<NodeOutType*>(0);
+		NodeOutType* highOutTree = static_cast<NodeOutType*>(0);
 
 		char relation = classifyCase(node1, node2);
 		switch (relation)
@@ -701,24 +701,45 @@ private:  // Private methods
 			// for internal nodes with the same variable
 			case 'E': {
 					var = getVarFromInternal(node1);
-					lowTree = recDescend(getLowFromInternal(node1), getLowFromInternal(node2));
-					highTree = recDescend(getHighFromInternal(node1), getHighFromInternal(node2));
+					const Node1Type* low1Tree = getLowFromInternal(node1);
+					const Node2Type* low2Tree = getLowFromInternal(node2);
+					const Node1Type* high1Tree = getHighFromInternal(node1);
+					const Node2Type* high2Tree = getHighFromInternal(node2);
+
+					// Assertions for one condition of reduced MTBDDs
+					assert(low1Tree != high1Tree);
+					assert(low2Tree != high2Tree);
+
+					lowOutTree = recDescend(low1Tree, low2Tree);
+					highOutTree = recDescend(high1Tree, high2Tree);
 					break;
 				}
 
 			// for internal nodes with node1 above node2
 			case 'B': {
 					var = getVarFromInternal(node1);
-					lowTree = recDescend(getLowFromInternal(node1), node2);
-					highTree = recDescend(getHighFromInternal(node1), node2);
+					const Node1Type* low1Tree = getLowFromInternal(node1);
+					const Node1Type* high1Tree = getHighFromInternal(node1);
+
+					// Assertion for one condition of reduced MTBDDs
+					assert(low1Tree != high1Tree);
+
+					lowOutTree = recDescend(low1Tree, node2);
+					highOutTree = recDescend(high1Tree, node2);
 					break;
 				}
 
 			// for internal nodes with node1 below node2
 			case 'S': {
 					var = getVarFromInternal(node2);
-					lowTree = recDescend(node1, getLowFromInternal(node2));
-					highTree = recDescend(node1, getHighFromInternal(node2));
+					const Node2Type* low2Tree = getLowFromInternal(node2);
+					const Node2Type* high2Tree = getHighFromInternal(node2);
+
+					// Assertion for one condition of reduced MTBDDs
+					assert(low2Tree != high2Tree);
+
+					lowOutTree = recDescend(node1, low2Tree);
+					highOutTree = recDescend(node1, high2Tree);
 					break;
 				}
 
@@ -729,14 +750,14 @@ private:  // Private methods
 				}
 		}
 
-		if (lowTree == highTree)
+		if (lowOutTree == highOutTree)
 		{	// in case both trees are isomorphic (when caching is enabled)
-			ht.insert(std::make_pair(cacheAddress, lowTree));
-			return lowTree;
+			ht.insert(std::make_pair(cacheAddress, lowOutTree));
+			return lowOutTree;
 		}
 		else
 		{	// in case both trees are distinct
-			NodeOutType* result = createInternal(lowTree, highTree, var);
+			NodeOutType* result = createInternal(lowOutTree, highOutTree, var);
 
 			ht.insert(std::make_pair(cacheAddress, result));
 			return result;
