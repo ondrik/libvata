@@ -691,7 +691,7 @@ private:  // Private methods
 		{
 			// for both leaves
 			case 'T': {
-					NodeOutType* result = createLeaf(DataOperation(
+					NodeOutType* result = createLeaf(ApplyOperation(
 						getDataFromLeaf(node1), getDataFromLeaf(node2)));
 
 					ht.insert(std::make_pair(cacheAddress, result));
@@ -792,14 +792,14 @@ public:   // Public methods
 			mtbdd2_->getRoot());
 
 		// compute the new default value
-		DataOutType defaultValue = DataOperation(mtbdd1_->GetDefaultValue(),
+		DataOutType defaultValue = ApplyOperation(mtbdd1_->GetDefaultValue(),
 			mtbdd2_->GetDefaultValue());
 
 		// wrap it all up
 		return MTBDDOutType(root, defaultValue, mtbdd1_->GetVarOrdering());
 	}
 
-	virtual DataOutType DataOperation(
+	virtual DataOutType ApplyOperation(
 		const Data1Type& data1, const Data2Type& data2) = 0;
 
 protected:// Protected methods

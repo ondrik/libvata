@@ -328,7 +328,7 @@ protected:// protected methods
 		{
 		public:
 
-			virtual DataType DataOperation(const DataType& data1, const DataType& data2)
+			virtual DataType ApplyOperation(const DataType& data1, const DataType& data2)
 			{
 				if (data2 == getMTBDD2().GetDefaultValue())
 				{
