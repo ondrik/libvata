@@ -92,9 +92,7 @@ private:  // Private methods
 		// Assertions
 		assert(node1 != static_cast<Node1Type*>(0));
 
-		using namespace VATA::Private::MTBDDPkg::MTBDDNodePkg;
-
-		if (isLeaf(node1))
+		if (IsLeaf(node1))
 		{	// for the terminal case
 			CacheAddressType cacheAddress(node1);
 			typename CacheHashTable::iterator itHt;
@@ -105,7 +103,7 @@ private:  // Private methods
 			}
 			else
 			{	// if the result isn't known
-				NodeOutType* result = createLeaf(ApplyOperation(getDataFromLeaf(node1)));
+				NodeOutType* result = CreateLeaf(ApplyOperation(GetDataFromLeaf(node1)));
 
 				// cache
 				ht.insert(std::make_pair(cacheAddress, result));
@@ -118,15 +116,15 @@ private:  // Private methods
 			// apply only performs a DFS on the graph. Given that caching is used
 			// for leaves, the condition for reduced MTBDDs is bound to hold.
 
-			assert(isInternal(node1));
+			assert(IsInternal(node1));
 
-			const Node1Type* low1Tree = getLowFromInternal(node1);
-			const Node1Type* high1Tree = getHighFromInternal(node1);
+			const Node1Type* low1Tree = GetLowFromInternal(node1);
+			const Node1Type* high1Tree = GetHighFromInternal(node1);
 
 			// Assertions for one condition of reduced MTBDDs
 			assert(low1Tree != high1Tree);
 
-			VarType var = getVarFromInternal(node1);
+			VarType var = GetVarFromInternal(node1);
 			NodeOutType* lowOutTree = recDescend(low1Tree);
 			NodeOutType* highOutTree = recDescend(high1Tree);
 
@@ -136,7 +134,7 @@ private:  // Private methods
 			}
 			else
 			{	// in case both trees are distinct
-				return createInternal(lowOutTree, highOutTree, var);
+				return CreateInternal(lowOutTree, highOutTree, var);
 			}
 		}
 	}

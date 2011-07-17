@@ -106,19 +106,19 @@ private:  // Private methods
 
 		char result = 0x00;
 
-		if (isInternal(node1))
+		if (IsInternal(node1))
 		{	// node1 is internal
-			if (isLeaf(node2) ||
-				(getVarFromInternal(node1) >= getVarFromInternal(node2)))
+			if (IsLeaf(node2) ||
+				(GetVarFromInternal(node1) >= GetVarFromInternal(node2)))
 			{
 				result |= NODE1MASK;	// branch node1
 			}
 		}
 
-		if (isInternal(node2))
+		if (IsInternal(node2))
 		{	// node2 is internal
-			if (isLeaf(node1) ||
-				(getVarFromInternal(node2) >= getVarFromInternal(node1)))
+			if (IsLeaf(node1) ||
+				(GetVarFromInternal(node2) >= GetVarFromInternal(node1)))
 			{
 				result |= NODE2MASK;	// branch node2
 			}
@@ -134,8 +134,6 @@ private:  // Private methods
 		assert(node1 != static_cast<Node1Type*>(0));
 		assert(node2 != static_cast<Node2Type*>(0));
 
-		using namespace VATA::Private::MTBDDPkg::MTBDDNodePkg;
-
 		CacheAddressType cacheAddress(node1, node2);
 		typename CacheHashTable::iterator itHt;
 		if ((itHt = ht.find(cacheAddress)) != ht.end())
@@ -149,8 +147,8 @@ private:  // Private methods
 
 		if (!relation)
 		{	// for the terminal case
-			NodeOutType* result = createLeaf(ApplyOperation(
-				getDataFromLeaf(node1), getDataFromLeaf(node2)));
+			NodeOutType* result = CreateLeaf(ApplyOperation(
+				GetDataFromLeaf(node1), GetDataFromLeaf(node2)));
 
 			ht.insert(std::make_pair(cacheAddress, result));
 			return result;
@@ -167,9 +165,9 @@ private:  // Private methods
 
 		if (relation & NODE1MASK)
 		{	// if node1 is to be branched
-			var = getVarFromInternal(node1);
-			low1Tree = getLowFromInternal(node1);
-			high1Tree = getHighFromInternal(node1);
+			var = GetVarFromInternal(node1);
+			low1Tree = GetLowFromInternal(node1);
+			high1Tree = GetHighFromInternal(node1);
 			assert(low1Tree != high1Tree);
 		}
 		else
@@ -180,9 +178,9 @@ private:  // Private methods
 
 		if (relation & NODE2MASK)
 		{	// if node2 is to be branched
-			var = getVarFromInternal(node2);
-			low2Tree = getLowFromInternal(node2);
-			high2Tree = getHighFromInternal(node2);
+			var = GetVarFromInternal(node2);
+			low2Tree = GetLowFromInternal(node2);
+			high2Tree = GetHighFromInternal(node2);
 			assert(low2Tree != high2Tree);
 		}
 		else
@@ -201,7 +199,7 @@ private:  // Private methods
 		}
 		else
 		{	// in case both trees are distinct
-			NodeOutType* result = createInternal(lowOutTree, highOutTree, var);
+			NodeOutType* result = CreateInternal(lowOutTree, highOutTree, var);
 
 			ht.insert(std::make_pair(cacheAddress, result));
 			return result;
