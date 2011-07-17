@@ -31,21 +31,21 @@ find_package(Boost 1.42.0 COMPONENTS unit_test_framework REQUIRED)
 include_directories(../include)
 
 add_library(tests
-  log_fixture.cc
-  formula_parser.cc
+	log_fixture.cc
+	formula_parser.cc
 )
 
 set(TESTS
-  "ondriks_mtbdd_c_test"
+	"ondriks_mtbdd_c_test"
 )
 foreach (TEST ${TESTS})
-  add_executable(${TEST} ${TEST}.cc)
+	add_executable(${TEST} ${TEST}.cc)
 
-  target_link_libraries(${TEST} vatalib)
-  target_link_libraries(${TEST} tests)
-  target_link_libraries(${TEST} ${LOG4CPP_LIBRARIES})
-  target_link_libraries(${TEST} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+	target_link_libraries(${TEST} vatalib)
+	target_link_libraries(${TEST} tests)
+	target_link_libraries(${TEST} ${LOG4CPP_LIBRARIES})
+	target_link_libraries(${TEST} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 	target_link_libraries(${TEST} ${LOKI_LIBRARY})
 
-  add_test(${TEST} ${CMAKE_CURRENT_BINARY_DIR}/${TEST})
+	add_test(${TEST} ${CMAKE_CURRENT_BINARY_DIR}/${TEST})
 endforeach(TEST)
