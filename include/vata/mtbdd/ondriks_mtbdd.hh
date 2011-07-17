@@ -63,6 +63,9 @@ class VATA::MTBDDPkg::OndriksMTBDD
 	template <typename, typename, typename>
 	friend class AbstractApply2Functor;
 
+	template <typename, typename, typename, typename>
+	friend class AbstractApply3Functor;
+
 public:   // public data types
 
 	typedef Data DataType;
