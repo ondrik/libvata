@@ -502,98 +502,79 @@ BOOST_AUTO_TEST_CASE(no_variables_formula)
 }
 
 
-// BOOST_AUTO_TEST_CASE(multiple_independent_bdds)
-// {
-// 	ASMTBDDCC* bdd = new CuddMTBDDCC();
-// 	bdd->SetBottomValue(0);
-// 
-// 	// load test cases for the first BDD
-// 	ListOfTestCasesType testCases1;
-// 	ListOfTestCasesType failedCases1;
-// 	loadStandardTests(testCases1, failedCases1);
-// 
-// 	// load test cases for the second BDD
-// 	ListOfTestCasesType testCases2;
-// 	ListOfTestCasesType failedCases2;
-// 	loadStandardTests(failedCases2, testCases2);
-// 
-// 	RootType root1 = createMTBDDForTestCases(bdd, testCases1);
-// 	RootType root2 = createMTBDDForTestCases(bdd, testCases2);
-// 
-// 	for (ListOfTestCasesType::const_iterator itTests = testCases1.begin();
-// 		itTests != testCases1.end(); ++itTests)
-// 	{	// test that the test cases have been stored properly
-// #if DEBUG
-// 		BOOST_TEST_MESSAGE("Finding stored " + *itTests);
-// #endif
-// 		FormulaParser::ParserResultUnsignedType prsRes =
-// 			FormulaParser::ParseExpressionUnsigned(*itTests);
-// 		LeafType leafValue = static_cast<LeafType>(prsRes.first);
-// 		VariableAssignment asgn = varListToAsgn(prsRes.second);
-// 
-// 		ASMTBDDCC::LeafContainer res;
-// 		res.push_back(&leafValue);
-// 
-// 		BOOST_CHECK_MESSAGE(
-// 			compareTwoLeafContainers(bdd->GetValue(root1, asgn), res),
-// 			*itTests + " != " + leafContainerToString(bdd->GetValue(root1, asgn)));
-// 	}
-// 
-// 	for (ListOfTestCasesType::const_iterator itTests = testCases2.begin();
-// 		itTests != testCases2.end(); ++itTests)
-// 	{	// test that the test cases have been stored properly
-// #if DEBUG
-// 		BOOST_TEST_MESSAGE("Finding stored " + *itTests);
-// #endif
-// 		FormulaParser::ParserResultUnsignedType prsRes =
-// 			FormulaParser::ParseExpressionUnsigned(*itTests);
-// 		LeafType leafValue = static_cast<LeafType>(prsRes.first);
-// 		VariableAssignment asgn = varListToAsgn(prsRes.second);
-// 
-// 		ASMTBDDCC::LeafContainer res;
-// 		res.push_back(&leafValue);
-// 
-// 		BOOST_CHECK_MESSAGE(
-// 			compareTwoLeafContainers(bdd->GetValue(root2, asgn), res),
-// 			*itTests + " != " + leafContainerToString(bdd->GetValue(root2, asgn)));
-// 	}
-// 
-// 	for (ListOfTestCasesType::const_iterator itFailed = failedCases1.begin();
-// 		itFailed != failedCases1.end(); ++itFailed)
-// 	{	// for every test case that should fail
-// #if DEBUG
-// 		BOOST_TEST_MESSAGE("Finding failed " + *itFailed);
-// #endif
-// 		FormulaParser::ParserResultUnsignedType prsFailedRes =
-// 			FormulaParser::ParseExpressionUnsigned(*itFailed);
-// 		VariableAssignment asgn = varListToAsgn(prsFailedRes.second);
-// 
-// 		ASMTBDDCC::LeafContainer res;
-// 
-// 		BOOST_CHECK_MESSAGE(
-// 			compareTwoLeafContainers(bdd->GetValue(root1, asgn), res),
-// 			*itFailed + " == " + leafContainerToString(bdd->GetValue(root1, asgn)));
-// 	}
-// 
-// 	for (ListOfTestCasesType::const_iterator itFailed = failedCases2.begin();
-// 		itFailed != failedCases2.end(); ++itFailed)
-// 	{	// for every test case that should fail
-// #if DEBUG
-// 		BOOST_TEST_MESSAGE("Finding failed " + *itFailed);
-// #endif
-// 		FormulaParser::ParserResultUnsignedType prsFailedRes =
-// 			FormulaParser::ParseExpressionUnsigned(*itFailed);
-// 		VariableAssignment asgn = varListToAsgn(prsFailedRes.second);
-// 
-// 		ASMTBDDCC::LeafContainer res;
-// 
-// 		BOOST_CHECK_MESSAGE(
-// 			compareTwoLeafContainers(bdd->GetValue(root2, asgn), res),
-// 			*itFailed + " == " + leafContainerToString(bdd->GetValue(root2, asgn)));
-// 	}
-// 
-// 	delete bdd;
-// }
+BOOST_AUTO_TEST_CASE(multiple_independent_bdds)
+{
+	// load test cases for the first BDD
+	ListOfTestCasesType testCases1;
+	ListOfTestCasesType failedCases1;
+	loadStandardTests(testCases1, failedCases1);
+
+	// load test cases for the second BDD
+	ListOfTestCasesType testCases2;
+	ListOfTestCasesType failedCases2;
+	loadStandardTests(failedCases2, testCases2);
+
+	MTBDD bdd1 = createMTBDDForTestCases(testCases1);
+	MTBDD bdd2 = createMTBDDForTestCases(testCases2);
+
+	for (ListOfTestCasesType::const_iterator itTests = testCases1.begin();
+		itTests != testCases1.end(); ++itTests)
+	{	// test that the test cases have been stored properly
+		#if DEBUG
+			BOOST_TEST_MESSAGE("Finding stored " + *itTests);
+		#endif
+		FormulaParser::ParserResultUnsignedType prsRes =
+			FormulaParser::ParseExpressionUnsigned(*itTests);
+		DataType leafValue = static_cast<DataType>(prsRes.first);
+		VariableAssignment asgn = varListToAsgn(prsRes.second);
+
+		BOOST_CHECK_MESSAGE(bdd1.GetValue(asgn) == leafValue,
+			*itTests + " != " + Convert::ToString(bdd2.GetValue(asgn)));
+	}
+
+	for (ListOfTestCasesType::const_iterator itTests = testCases2.begin();
+		itTests != testCases2.end(); ++itTests)
+	{	// test that the test cases have been stored properly
+		#if DEBUG
+			BOOST_TEST_MESSAGE("Finding stored " + *itTests);
+		#endif
+		FormulaParser::ParserResultUnsignedType prsRes =
+			FormulaParser::ParseExpressionUnsigned(*itTests);
+		DataType leafValue = static_cast<DataType>(prsRes.first);
+		VariableAssignment asgn = varListToAsgn(prsRes.second);
+
+		BOOST_CHECK_MESSAGE(bdd2.GetValue(asgn) == leafValue,
+			*itTests + " != " + Convert::ToString(bdd2.GetValue(asgn)));
+	}
+
+	for (ListOfTestCasesType::const_iterator itFailed = failedCases1.begin();
+		itFailed != failedCases1.end(); ++itFailed)
+	{	// for every test case that should fail
+		#if DEBUG
+			BOOST_TEST_MESSAGE("Finding failed " + *itFailed);
+		#endif
+		FormulaParser::ParserResultUnsignedType prsFailedRes =
+			FormulaParser::ParseExpressionUnsigned(*itFailed);
+		VariableAssignment asgn = varListToAsgn(prsFailedRes.second);
+
+		BOOST_CHECK_MESSAGE(bdd1.GetValue(asgn) == bdd1.GetDefaultValue(),
+			*itFailed + " == " + Convert::ToString(bdd1.GetValue(asgn)));
+	}
+
+	for (ListOfTestCasesType::const_iterator itFailed = failedCases2.begin();
+		itFailed != failedCases2.end(); ++itFailed)
+	{	// for every test case that should fail
+		#if DEBUG
+			BOOST_TEST_MESSAGE("Finding failed " + *itFailed);
+		#endif
+		FormulaParser::ParserResultUnsignedType prsFailedRes =
+			FormulaParser::ParseExpressionUnsigned(*itFailed);
+		VariableAssignment asgn = varListToAsgn(prsFailedRes.second);
+
+		BOOST_CHECK_MESSAGE(bdd2.GetValue(asgn) == bdd2.GetDefaultValue(),
+			*itFailed + " == " + Convert::ToString(bdd2.GetValue(asgn)));
+	}
+}
 
 
 BOOST_AUTO_TEST_CASE(monadic_apply)
