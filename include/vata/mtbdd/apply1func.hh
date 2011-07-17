@@ -24,16 +24,13 @@
 
 namespace VATA
 {
-	namespace Private
+	namespace MTBDDPkg
 	{
-		namespace MTBDDPkg
-		{
-			template <
-				typename Data1,
-				typename DataOut
-			>
-			class AbstractApply1Functor;
-		}
+		template <
+			typename Data1,
+			typename DataOut
+		>
+		class AbstractApply1Functor;
 	}
 }
 
@@ -42,7 +39,7 @@ template <
 	typename Data1,
 	typename DataOut
 >
-class VATA::Private::MTBDDPkg::AbstractApply1Functor
+class VATA::MTBDDPkg::AbstractApply1Functor
 {
 public:   // Public data types
 

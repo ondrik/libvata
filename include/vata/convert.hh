@@ -24,7 +24,7 @@
 
 
 // insert class to proper namespace
-namespace VATA { namespace Private { class Convert; } }
+namespace VATA { class Convert; }
 
 
 /**
@@ -33,7 +33,7 @@ namespace VATA { namespace Private { class Convert; } }
  *  This is a static class that constains useful methods for various
  *  conversions.
  */
-class VATA::Private::Convert
+class VATA::Convert
 {
 private:
 
@@ -382,20 +382,17 @@ public:
 
 namespace VATA
 {
-	namespace Private
-	{
-		/**
-		 * @brief  Converts an object to string (unsigned char specialization)
-		 *
-		 * Static method for conversion of unsigned char into a string
-		 *
-		 * @param[in]  n  The unsigned char for the conversion
-		 *
-		 * @returns  The string representation of the unsigned char
-		 */
-		template <>
-		std::string Convert::ToString<unsigned char>(const unsigned char& n);
-	}
+	/**
+	 * @brief  Converts an object to string (unsigned char specialization)
+	 *
+	 * Static method for conversion of unsigned char into a string
+	 *
+	 * @param[in]  n  The unsigned char for the conversion
+	 *
+	 * @returns  The string representation of the unsigned char
+	 */
+	template <>
+	std::string Convert::ToString<unsigned char>(const unsigned char& n);
 }
 
 #endif

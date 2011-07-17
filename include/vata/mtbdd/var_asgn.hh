@@ -22,7 +22,7 @@
 // insert class into correct namespace
 namespace VATA
 {
-	namespace Private
+	namespace MTBDDPkg
 	{
 		struct VariableAssignment;
 	}
@@ -38,7 +38,7 @@ namespace VATA
  * Assigned values can be one of '0', '1' and 'X', where 'X' means <em>don't
  * care</em>.
  */
-struct VATA::Private::VariableAssignment
+struct VATA::MTBDDPkg::VariableAssignment
 {
 public:   // Public data types
 

@@ -14,7 +14,7 @@
 #include <vata/convert.hh>
 #include <vata/vata.hh>
 
-using VATA::Private::Convert;
+using VATA::Convert;
 
 FormulaParser::ParserResultBooleanType
 	FormulaParser::ParseExpressionBoolean(std::string input)

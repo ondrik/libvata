@@ -16,10 +16,10 @@
 #include <vata/mtbdd/var_asgn.hh>
 #include <vata/vata.hh>
 
-using VATA::Private::MTBDDPkg::OndriksMTBDD;
-using VATA::Private::MTBDDPkg::AbstractApply1Functor;
-using VATA::Private::MTBDDPkg::AbstractApply2Functor;
-using VATA::Private::Convert;
+using VATA::MTBDDPkg::OndriksMTBDD;
+using VATA::MTBDDPkg::AbstractApply1Functor;
+using VATA::MTBDDPkg::AbstractApply2Functor;
+using VATA::Convert;
 
 
 // Boost headers
@@ -164,7 +164,7 @@ public:   // public types
 	 *
 	 * Type for variable assignment used in the test.
 	 */
-	typedef VATA::Private::VariableAssignment VariableAssignment;
+	typedef VATA::MTBDDPkg::VariableAssignment VariableAssignment;
 
 	/**
 	 * @brief  Ondrik's MTBDD type

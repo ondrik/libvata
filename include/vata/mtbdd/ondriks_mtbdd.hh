@@ -31,7 +31,7 @@
 
 namespace VATA
 {
-	namespace Private
+	namespace MTBDDPkg
 	{
 		namespace MTBDDPkg
 		{
@@ -292,7 +292,7 @@ namespace VATA
 template <
 	typename Data
 >
-class VATA::Private::MTBDDPkg::OndriksMTBDD
+class VATA::MTBDDPkg::OndriksMTBDD
 {
 	template <typename, typename>
 	friend class AbstractApply1Functor;
