@@ -87,7 +87,7 @@ private:  // Private methods
 	AbstractApply1Functor& operator=(const AbstractApply1Functor&);
 
 
-	typename MTBDDOutType::NodeType* recDescend(const Node1Type* node1)
+	NodeOutType* recDescend(const Node1Type* node1)
 	{
 		// Assertions
 		assert(node1 != static_cast<Node1Type*>(0));
@@ -155,7 +155,7 @@ public:   // Public methods
 		ht.clear();
 
 		// recursively descend the MTBDD and generate a new one
-		typename MTBDDOutType::NodeType* root = recDescend(mtbdd1_->getRoot());
+		NodeOutType* root = recDescend(mtbdd1_->getRoot());
 
 		// compute the new default value
 		DataOutType defaultValue = ApplyOperation(mtbdd1_->GetDefaultValue());

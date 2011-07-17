@@ -230,8 +230,7 @@ public:   // Public methods
 		}
 
 		// recursively descend the MTBDD and generate a new one
-		typename MTBDDOutType::NodeType* root = recDescend(mtbdd1_->getRoot(),
-			mtbdd2_->getRoot());
+		NodeOutType* root = recDescend(mtbdd1_->getRoot(), mtbdd2_->getRoot());
 
 		// compute the new default value
 		DataOutType defaultValue = ApplyOperation(mtbdd1_->GetDefaultValue(),
