@@ -604,9 +604,9 @@ private:  // Private data types
 	 *
 	 * This class is a hasher for a pair of keys.
 	 */
-	struct HasherBinary
+	struct Hasher2
 	{
-		size_t operator()(const CacheAddressType& key) const
+		inline size_t operator()(const CacheAddressType& key) const
 		{
 			size_t seed  = 0;
 			boost::hash_combine(seed, key.first);
@@ -615,7 +615,7 @@ private:  // Private data types
 		}
 	};
 
-	typedef std::tr1::unordered_map<CacheAddressType, NodeOutType*, HasherBinary>
+	typedef std::tr1::unordered_map<CacheAddressType, NodeOutType*, Hasher2>
 		CacheHashTable;
 
 private:  // Private data members
