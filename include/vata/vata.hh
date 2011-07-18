@@ -21,7 +21,7 @@
 
 #define VATA_LOG_CATEGORY_NAME "VATA"
 
-#define VATA_LOGGER_PREFIX (std::string(__FILE__ ":" + VATA::Private::Convert::ToString(__LINE__) + ": "))
+#define VATA_LOGGER_PREFIX (std::string(__FILE__ ":" + VATA::Convert::ToString(__LINE__) + ": "))
 
 #define VATA_LOGGER_LOG_MESSAGE(severity, msg) (log4cpp::Category::getInstance(VATA_LOG_CATEGORY_NAME).severity((VATA_LOGGER_PREFIX) + (msg)))
 
