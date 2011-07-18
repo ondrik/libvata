@@ -11,6 +11,9 @@
 #ifndef _VATA_CONVERT_HH_
 #define _VATA_CONVERT_HH_
 
+// VATA headers
+#include <vata/vata.hh>
+
 // Standard library headers
 #include <cassert>
 #include <list>

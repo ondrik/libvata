@@ -11,6 +11,10 @@
 #ifndef _VATA_ONDRIKS_MTBDD_HH_
 #define _VATA_ONDRIKS_MTBDD_HH_
 
+// VATA headers
+#include	<vata/vata.hh>
+#include	<vata/mtbdd/mtbdd_node.hh>
+#include	<vata/mtbdd/var_asgn.hh>
 
 // Standard library headers
 #include	<cassert>
@@ -18,11 +22,6 @@
 #include	<stdexcept>
 #include	<vector>
 #include  <tr1/unordered_set>
-
-// VATA headers
-#include	<vata/mtbdd/mtbdd_node.hh>
-#include	<vata/mtbdd/var_asgn.hh>
-#include	<vata/vata.hh>
 
 // Loki headers
 #include	<loki/SmartPtr.h>

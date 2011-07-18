@@ -14,6 +14,9 @@
 // VATA headers
 #include <vata/vata.hh>
 
+// Standard library headers
+#include	<cassert>
+#include	<stdint.h>
 
 namespace VATA
 {
@@ -74,8 +77,12 @@ public:  // Public methods
 	{
 		internal.low = parLow;
 		internal.high = parHigh;
-		internal.var = parVar;
 		internal.refcnt = parRefcnt;
+			
+		// I know what I'm doing!!!
+		GCC_DIAG_OFF(uninitialized)
+		internal.var = parVar;
+		GCC_DIAG_ON(uninitialized)
 	}
 
 	MTBDDNode(const DataType& parData, const RefCntType& parRefcnt)

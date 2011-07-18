@@ -11,12 +11,12 @@
 #ifndef _VATA_APPLY3FUNC_HH_
 #define _VATA_APPLY3FUNC_HH_
 
+// VATA headers
+#include	<vata/vata.hh>
+#include	<vata/mtbdd/ondriks_mtbdd.hh>
+
 // Standard library headers
 #include  <tr1/unordered_set>
-
-// VATA headers
-#include	<vata/mtbdd/ondriks_mtbdd.hh>
-#include	<vata/vata.hh>
 
 // Boost library headers
 #include <boost/functional/hash.hpp>

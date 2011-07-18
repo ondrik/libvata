@@ -11,6 +11,8 @@
 #ifndef _VATA_VARIABLE_ASSIGNMENT_HH_
 #define _VATA_VARIABLE_ASSIGNMENT_HH_
 
+// VATA headers
+#include <vata/vata.hh>
 
 // Standard library headers
 #include <cassert>
