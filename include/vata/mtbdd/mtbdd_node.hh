@@ -317,16 +317,13 @@ namespace VATA
 			assert(node != static_cast<NodeType*>(0));
 
 			if (IsLeaf(node))
-			{
+			{	// in case we wish to delete a leaf
 				delete NodeType::leafToNode(node);
 			}
-			else if (IsInternal(node))
-			{
-				delete NodeType::internalToNode(node);
-			}
 			else
-			{
-				throw std::runtime_error("Invalid type of MTBDD node.");
+			{	// in case we wish to delete an internal node
+				assert(IsInternal(node));
+				delete NodeType::internalToNode(node);
 			}
 		}
 	}
