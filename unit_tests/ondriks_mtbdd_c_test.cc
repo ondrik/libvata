@@ -610,9 +610,9 @@ BOOST_AUTO_TEST_CASE(monadic_apply)
 	for (ListOfTestCasesType::const_iterator itTests = testCases.begin();
 		itTests != testCases.end(); ++itTests)
 	{	// test that the test cases have been stored properly
-#if DEBUG
-		BOOST_TEST_MESSAGE("Finding stored " + *itTests);
-#endif
+		#if DEBUG
+			BOOST_TEST_MESSAGE("Finding stored " + *itTests);
+		#endif
 		FormulaParser::ParserResultUnsignedType prsRes =
 			FormulaParser::ParseExpressionUnsigned(*itTests);
 		DataType leafValue = static_cast<DataType>(prsRes.first);
