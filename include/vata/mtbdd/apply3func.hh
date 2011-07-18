@@ -14,6 +14,7 @@
 // VATA headers
 #include	<vata/vata.hh>
 #include	<vata/mtbdd/ondriks_mtbdd.hh>
+#include	<vata/util/triple.hh>
 
 // Standard library headers
 #include  <tr1/unordered_set>
@@ -66,54 +67,13 @@ public:   // Public data types
 
 private:  // Private data types
 
-	template <
-		typename T1,
-		typename T2,
-		typename T3
-	>
-	struct triple
-	{
-		T1 first;
-		T2 second;
-		T3 third;
 
-		triple(const T1& parFirst, const T2& parSecond,
-			const T3& parThird)
-			: first(parFirst),
-				second(parSecond),
-				third(parThird)
-		{ }
-
-		inline bool operator==(const triple& rhs) const
-		{
-			return ((first == rhs.first) && (second == rhs.second) &&
-				(third == rhs.third));
-		}
-
-	};
-
-	typedef triple<const Node1Type*, const Node2Type*, const Node3Type*>
+	typedef VATA::Util::Triple<const Node1Type*, const Node2Type*, const Node3Type*>
 		CacheAddressType;
 
-	/**
-	 * @brief  Hasher structure for a triple of keys
-	 *
-	 * This class is a hasher for a triple of keys.
-	 */
-	struct Hasher3
-	{
-		inline size_t operator()(const CacheAddressType& key) const
-		{
-			size_t seed  = 0;
-			boost::hash_combine(seed, key.first);
-			boost::hash_combine(seed, key.second);
-			boost::hash_combine(seed, key.third);
-			return seed;
-		}
-	};
+	typedef std::tr1::unordered_map<CacheAddressType, NodeOutType*,
+		typename CacheAddressType::Hasher> CacheHashTable;
 
-	typedef std::tr1::unordered_map<CacheAddressType, NodeOutType*, Hasher3>
-		CacheHashTable;
 
 private:  // Private data members
 
