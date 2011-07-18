@@ -29,8 +29,9 @@ namespace VATA
  *
  * Union for MTBDD node. It holds either data (for leaf (or sink)
  * nodes), or pointers to low and high nodes together with variable
- * name (for internal nodes). The type of the node (leaf or internal) is
- * determined using the pointer to the node: if the address is even, then
+ * name (for internal nodes). In addition, it contains a counter of the
+ * number of references to the node. The type of the node (leaf or internal)
+ * is determined using the pointer to the node: if the address is even, then
  * the node is internal, if it is odd, then it is leaf.
  *
  * @tparam  Data  The type of data to be stored into leaf nodes
@@ -45,6 +46,7 @@ public:   // Public data types
 
 	typedef Data DataType;
 	typedef uintptr_t VarType;
+	typedef uintptr_t RefCntType;
 
 private:  // Private disjunct data
 
@@ -53,22 +55,31 @@ private:  // Private disjunct data
 		MTBDDNode* low;
 		MTBDDNode* high;
 		VarType var;
+		RefCntType refcnt;
 	} internal;
 
-	DataType data;
+	struct
+	{
+		DataType data;
+		RefCntType refcnt;
+	} leaf;
 
 public:  // Public methods
 
-	MTBDDNode(MTBDDNode* parLow, MTBDDNode* parHigh, VarType parVar)
+	MTBDDNode(MTBDDNode* parLow, MTBDDNode* parHigh, const VarType& parVar,
+		const RefCntType& parRefcnt)
 	{
 		internal.low = parLow;
 		internal.high = parHigh;
 		internal.var = parVar;
+		internal.refcnt = parRefcnt;
 	}
 
-	explicit MTBDDNode(const DataType& parData)
-		: data(parData)
-	{ }
+	MTBDDNode(const DataType& parData, const RefCntType& parRefcnt)
+	{
+		leaf.data = parData;
+		leaf.refcnt = parRefcnt;
+	}
 
 private:  // Private methods
 
@@ -202,7 +213,7 @@ namespace VATA
 			assert(node != static_cast<NodeType*>(0));
 			assert(IsLeaf(node));
 
-			return NodeType::leafToNode(node)->data;
+			return NodeType::leafToNode(node)->leaf.data;
 		}
 
 		template <typename NodeType>
@@ -262,7 +273,7 @@ namespace VATA
 			typedef MTBDDNode<DataType> NodeType;
 
 			// TODO: create allocator						
-			NodeType* newNode = new NodeType(data);
+			NodeType* newNode = new NodeType(data, 1);
 
 			return NodeType::makeLeaf(newNode);
 		}
@@ -276,7 +287,7 @@ namespace VATA
 			assert(high != static_cast<NodeType*>(0));
 
 			// TODO: create allocator
-			NodeType* newNode = new NodeType(low, high, var);
+			NodeType* newNode = new NodeType(low, high, var, 1);
 
 			return NodeType::makeInternal(newNode);
 		}
