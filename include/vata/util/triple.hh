@@ -14,6 +14,10 @@
 // VATA headers
 #include	<vata/vata.hh>
 
+// Boost library headers
+#include <boost/functional/hash.hpp>
+
+
 namespace VATA
 {
 	namespace Util
