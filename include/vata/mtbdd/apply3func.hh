@@ -288,7 +288,6 @@ public:   // Public methods
 	MTBDDOutType operator()(const MTBDD1Type& mtbdd1,
 		const MTBDD2Type& mtbdd2, const MTBDD3Type& mtbdd3)
 	{
-		assert(false);
 		// store the MTBDDs
 		mtbdd1_ = &mtbdd1;
 		mtbdd2_ = &mtbdd2;
@@ -297,7 +296,8 @@ public:   // Public methods
 		// clear the cache
 		ht.clear();
 
-		if (mtbdd1_->GetVarOrdering() != mtbdd2_->GetVarOrdering())
+		if ((mtbdd1_->GetVarOrdering() != mtbdd2_->GetVarOrdering()) ||
+			(mtbdd1_->GetVarOrdering() != mtbdd3_->GetVarOrdering()))
 		{	// in case the MTBDDs have a different variable ordering
 			assert(false);
 			// TODO
