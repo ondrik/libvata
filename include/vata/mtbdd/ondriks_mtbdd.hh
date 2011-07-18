@@ -113,13 +113,16 @@ private:  // private methods
 		const DataType& value, const DataType& defaultValue,
 		const PermutationTablePtr& varOrdering)
 	{
+		// the leaf with the desired value
+		NodeType* leaf = CreateLeaf(value);
+
 		if (value == defaultValue)
 		{	// in case an MTBDD with a single leaf is desired
-			return CreateLeaf(value);
+			RecursivelyIncrementRefCnt(leaf);
+			return leaf;
 		}
 
-		// bottom leaves
-		NodeType* leaf = CreateLeaf(value);
+		// the sink leaf
 		NodeType* sink = CreateLeaf(defaultValue);
 
 		// working node
@@ -141,13 +144,15 @@ private:  // private methods
 
 		if (node == leaf)
 		{	// in case the MTBDD is with a single leaf
-			DeleteNode(sink);
+			assert(IsLeaf(leaf));
+			DeleteLeafNode(sink);
 		}
+
+		// increment all counters in the DAG
+		RecursivelyIncrementRefCnt(node);
 
 		return node;
 	}
-
-protected:// Protected methods
 
 	OndriksMTBDD(NodeType* root, const DataType& defaultValue,
 		const PermutationTablePtr& varOrdering)
@@ -163,6 +168,41 @@ protected:// Protected methods
 	const NodeType* getRoot() const
 	{
 		return root_;
+	}
+
+	void recursivelyDeleteMTBDDNode(NodeType* node)
+	{
+		// Assertions
+		assert(node != static_cast<NodeType*>(0));
+
+		if (IsLeaf(node))
+		{	// for leaves
+			if (DecrementLeafRefCnt(node) == 0)
+			{	// this reference to node is the last
+				DeleteLeafNode(node);
+			}
+		}
+		else
+		{	// for internal nodes
+			assert(IsInternal(node));
+
+			recursivelyDeleteMTBDDNode(GetLowFromInternal(node));
+			recursivelyDeleteMTBDDNode(GetHighFromInternal(node));
+
+			if (DecrementInternalRefCnt(node) == 0)
+			{	// this reference to node is the last
+				DeleteInternalNode(node);
+			}
+		}
+	}
+
+	inline void deleteMTBDD()
+	{
+		if (root_ != static_cast<NodeType*>(0))
+		{
+			recursivelyDeleteMTBDDNode(root_);
+			root_ = static_cast<NodeType*>(0);
+		}
 	}
 
 
@@ -251,7 +291,7 @@ public:   // public methods
 		if (&mtbdd == this)
 			return *this;
 
-		DeleteMTBDDdag(root_);
+		deleteMTBDD();
 
 		root_ = mtbdd.root_;
 
@@ -316,10 +356,7 @@ public:   // public methods
 
 	~OndriksMTBDD()
 	{
-		if (root_ != static_cast<NodeType*>(0))
-		{
-			DeleteMTBDDdag(root_);
-		}
+		deleteMTBDD();
 	}
 };
 

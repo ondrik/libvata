@@ -11,6 +11,9 @@
 #ifndef _VATA_MTBDD_NODE_HH_
 #define _VATA_MTBDD_NODE_HH_
 
+// VATA headers
+#include <vata/vata.hh>
+
 
 namespace VATA
 {
@@ -138,19 +141,40 @@ private:  // Private methods
 		return node;
 	}
 
-	static void traverseMTBDDdagAndCollectNodes(MTBDDNode* node,
-			std::tr1::unordered_set<MTBDDNode*>& ht)
+	static inline const RefCntType& getLeafRefCnt(const MTBDDNode* node)
 	{
 		// Assertions
 		assert(node != static_cast<MTBDDNode*>(0));
+		assert(IsLeaf(node));
 
-		ht.insert(node);
+		return leafToNode(node)->leaf.refcnt;
+	}
 
-		if (IsInternal(node))
-		{
-			traverseMTBDDdagAndCollectNodes(GetLowFromInternal(node), ht);
-			traverseMTBDDdagAndCollectNodes(GetHighFromInternal(node), ht);
-		}
+	static inline const RefCntType& getInternalRefCnt(const MTBDDNode* node)
+	{
+		// Assertions
+		assert(node != static_cast<MTBDDNode*>(0));
+		assert(IsInternal(node));
+
+		return internalToNode(node)->internal.refcnt;
+	}
+
+	static inline void incrementLeafRefCnt(MTBDDNode* node)
+	{
+		// Assertions
+		assert(node != static_cast<MTBDDNode*>(0));
+		assert(IsLeaf(node));
+
+		++(leafToNode(node)->leaf.refcnt);
+	}
+
+	static inline void incrementInternalRefCnt(MTBDDNode* node)
+	{
+		// Assertions
+		assert(node != static_cast<MTBDDNode*>(0));
+		assert(IsInternal(node));
+
+		++(internalToNode(node)->internal.refcnt);
 	}
 
 	template <typename NodeType>
@@ -184,7 +208,21 @@ private:  // Private methods
 		NodeType* low, NodeType* high, const typename NodeType::VarType& var);
 
 	template <typename NodeType>
-	friend void DeleteNode(NodeType* node);
+	friend void DeleteLeafNode(NodeType* node);
+
+	template <typename NodeType>
+	friend void DeleteInternalNode(NodeType* node);
+
+	template <typename NodeType>
+	friend inline void RecursivelyIncrementRefCnt(NodeType* node);
+
+	template <typename NodeType>
+	friend const typename NodeType::RefCntType& DecrementLeafRefCnt(
+		NodeType* node);
+
+	template <typename NodeType>
+	friend const typename NodeType::RefCntType& DecrementInternalRefCnt(
+		NodeType* node);
 };
 
 namespace VATA
@@ -273,7 +311,7 @@ namespace VATA
 			typedef MTBDDNode<DataType> NodeType;
 
 			// TODO: create allocator						
-			NodeType* newNode = new NodeType(data, 1);
+			NodeType* newNode = new NodeType(data, 0);
 
 			return NodeType::makeLeaf(newNode);
 		}
@@ -287,44 +325,77 @@ namespace VATA
 			assert(high != static_cast<NodeType*>(0));
 
 			// TODO: create allocator
-			NodeType* newNode = new NodeType(low, high, var, 1);
+			NodeType* newNode = new NodeType(low, high, var, 0);
 
 			return NodeType::makeInternal(newNode);
 		}
 
 		template <typename NodeType>
-		void DeleteMTBDDdag(NodeType* root)
-		{
-			// Assertions
-			assert(root != static_cast<NodeType*>(0));
-
-			typedef std::tr1::unordered_set<NodeType*> NodeHashTable;
-
-			NodeHashTable ht;
-			NodeType::traverseMTBDDdagAndCollectNodes(root, ht);
-
-			for (typename NodeHashTable::iterator iNodes = ht.begin();
-				iNodes != ht.end(); ++iNodes)
-			{	// delete all nodes
-				DeleteNode(*iNodes);
-			}
-		}
-
-		template <typename NodeType>
-		inline void DeleteNode(NodeType* node)
+		inline void RecursivelyIncrementRefCnt(NodeType* node)
 		{
 			// Assertions
 			assert(node != static_cast<NodeType*>(0));
 
 			if (IsLeaf(node))
-			{	// in case we wish to delete a leaf
-				delete NodeType::leafToNode(node);
+			{
+				NodeType::incrementLeafRefCnt(node);
 			}
 			else
-			{	// in case we wish to delete an internal node
+			{
 				assert(IsInternal(node));
-				delete NodeType::internalToNode(node);
+
+				RecursivelyIncrementRefCnt(GetLowFromInternal(node));
+				RecursivelyIncrementRefCnt(GetHighFromInternal(node));
+
+				NodeType::incrementInternalRefCnt(node);
 			}
+		}
+
+
+		template <typename NodeType>
+		inline const typename NodeType::RefCntType& DecrementLeafRefCnt(
+			NodeType* node)
+		{
+			// Assertions
+			assert(node != static_cast<NodeType*>(0));
+			assert(IsLeaf(node));
+			assert(NodeType::getLeafRefCnt(node) > 0);
+
+			return --(NodeType::leafToNode(node)->leaf.refcnt);
+		}
+
+		template <typename NodeType>
+		inline const typename NodeType::RefCntType& DecrementInternalRefCnt(
+			NodeType* node)
+		{
+			// Assertions
+			assert(node != static_cast<NodeType*>(0));
+			assert(IsInternal(node));
+			assert(NodeType::getInternalRefCnt(node) > 0);
+
+			return --(NodeType::internalToNode(node)->internal.refcnt);
+		}
+
+		template <typename NodeType>
+		inline void DeleteLeafNode(NodeType* node)
+		{
+			// Assertions
+			assert(node != static_cast<NodeType*>(0));
+			assert(IsLeaf(node));
+			assert(NodeType::getLeafRefCnt(node) == 0);
+
+			delete NodeType::leafToNode(node);
+		}
+
+		template <typename NodeType>
+		inline void DeleteInternalNode(NodeType* node)
+		{
+			// Assertions
+			assert(node != static_cast<NodeType*>(0));
+			assert(IsInternal(node));
+			assert(NodeType::getInternalRefCnt(node) == 0);
+
+			delete NodeType::internalToNode(node);
 		}
 	}
 }
