@@ -131,7 +131,7 @@ private:  // private methods
 
 		if (value == defaultValue)
 		{	// in case an MTBDD with a single leaf is desired
-			RecursivelyIncrementRefCnt(leaf);
+			IncrementRefCnt(leaf);
 			return leaf;
 		}
 
@@ -158,12 +158,14 @@ private:  // private methods
 		if (node == leaf)
 		{	// in case the MTBDD is with a single leaf
 			assert(IsLeaf(leaf));
-			DeleteLeafNode(sink);
+
+			if (GetLeafRefCnt(sink) == 0)
+			{	// in case there is no one pointing to the sink
+				disposeOfLeafNode(sink);
+			}
 		}
 
-		// increment all counters in the DAG
-		RecursivelyIncrementRefCnt(node);
-
+		IncrementRefCnt(node);
 		return node;
 	}
 
@@ -183,7 +185,42 @@ private:  // private methods
 		return root_;
 	}
 
-	void recursivelyDeleteMTBDDNode(NodeType* node)
+	static void disposeOfLeafNode(NodeType* node)
+	{
+		// Assertions
+		assert(node != static_cast<NodeType*>(0));
+		assert(IsLeaf(node));
+
+		if (leafCache_.erase(GetDataFromLeaf(node)) != 1)
+		{	// in case the leaf was not cached
+			throw std::runtime_error(
+				"Deleting a leaf which is not in the leaf cache!");
+		}
+
+		DeleteLeafNode(node);
+	}
+
+	static void disposeOfInternalNode(NodeType* node)
+	{
+		// Assertions
+		assert(node != static_cast<NodeType*>(0));
+		assert(IsInternal(node));
+
+		InternalAddressType addr(GetLowFromInternal(node),
+			GetHighFromInternal(node), GetVarFromInternal(node));
+		if (internalCache_.erase(addr) != 1)
+		{	// in case the internal was not cached
+			throw std::runtime_error(
+				"Deleting an internal which is not in the internal cache!");
+		}
+
+		recursivelyDeleteMTBDDNode(GetLowFromInternal(node));
+		recursivelyDeleteMTBDDNode(GetHighFromInternal(node));
+
+		DeleteInternalNode(node);
+	}
+
+	static void recursivelyDeleteMTBDDNode(NodeType* node)
 	{
 		// Assertions
 		assert(node != static_cast<NodeType*>(0));
@@ -192,33 +229,16 @@ private:  // private methods
 		{	// for leaves
 			if (DecrementLeafRefCnt(node) == 0)
 			{	// this reference to node is the last
-				if (leafCache_.erase(GetDataFromLeaf(node)) != 1)
-				{	// in case the leaf was not cached
-					throw std::runtime_error(
-						"Deleting a leaf which is not in the leaf cache!");
-				}
-
-				DeleteLeafNode(node);
+				disposeOfLeafNode(node);
 			}
 		}
 		else
 		{	// for internal nodes
 			assert(IsInternal(node));
 
-			recursivelyDeleteMTBDDNode(GetLowFromInternal(node));
-			recursivelyDeleteMTBDDNode(GetHighFromInternal(node));
-
 			if (DecrementInternalRefCnt(node) == 0)
 			{	// this reference to node is the last
-				InternalAddressType addr(GetLowFromInternal(node),
-					GetHighFromInternal(node), GetVarFromInternal(node));
-				if (internalCache_.erase(addr) != 1)
-				{	// in case the internal was not cached
-					throw std::runtime_error(
-						"Deleting an internal which is not in the internal cache!");
-				}
-
-				DeleteInternalNode(node);
+				disposeOfInternalNode(node);
 			}
 		}
 	}
@@ -265,6 +285,8 @@ private:  // private methods
 		else
 		{	// if the internal doesn't exist
 			result = CreateInternal(low, high, var);
+			IncrementRefCnt(low);
+			IncrementRefCnt(high);
 			internalCache_.insert(std::make_pair(addr, result));
 		}
 

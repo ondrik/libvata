@@ -78,7 +78,7 @@ public:  // Public methods
 		internal.low = parLow;
 		internal.high = parHigh;
 		internal.refcnt = parRefcnt;
-			
+
 		// I know what I'm doing!!!
 		GCC_DIAG_OFF(uninitialized)
 		internal.var = parVar;
@@ -148,15 +148,6 @@ private:  // Private methods
 		return node;
 	}
 
-	static inline const RefCntType& getLeafRefCnt(const MTBDDNode* node)
-	{
-		// Assertions
-		assert(node != static_cast<MTBDDNode*>(0));
-		assert(IsLeaf(node));
-
-		return leafToNode(node)->leaf.refcnt;
-	}
-
 	static inline const RefCntType& getInternalRefCnt(const MTBDDNode* node)
 	{
 		// Assertions
@@ -221,7 +212,10 @@ private:  // Private methods
 	friend void DeleteInternalNode(NodeType* node);
 
 	template <typename NodeType>
-	friend inline void RecursivelyIncrementRefCnt(NodeType* node);
+	friend const typename NodeType::VarType& GetLeafRefCnt(const NodeType* node);
+
+	template <typename NodeType>
+	friend void IncrementRefCnt(NodeType* node);
 
 	template <typename NodeType>
 	friend const typename NodeType::RefCntType& DecrementLeafRefCnt(
@@ -338,7 +332,7 @@ namespace VATA
 		}
 
 		template <typename NodeType>
-		inline void RecursivelyIncrementRefCnt(NodeType* node)
+		inline void IncrementRefCnt(NodeType* node)
 		{
 			// Assertions
 			assert(node != static_cast<NodeType*>(0));
@@ -350,12 +344,19 @@ namespace VATA
 			else
 			{
 				assert(IsInternal(node));
-
-				RecursivelyIncrementRefCnt(GetLowFromInternal(node));
-				RecursivelyIncrementRefCnt(GetHighFromInternal(node));
-
 				NodeType::incrementInternalRefCnt(node);
 			}
+		}
+
+
+		template <typename NodeType>
+		inline const typename NodeType::VarType& GetLeafRefCnt(const NodeType* node)
+		{
+			// Assertions
+			assert(node != static_cast<NodeType*>(0));
+			assert(IsLeaf(node));
+
+			return NodeType::leafToNode(node)->leaf.refcnt;
 		}
 
 
@@ -366,7 +367,7 @@ namespace VATA
 			// Assertions
 			assert(node != static_cast<NodeType*>(0));
 			assert(IsLeaf(node));
-			assert(NodeType::getLeafRefCnt(node) > 0);
+			assert(GetLeafRefCnt(node) > 0);
 
 			return --(NodeType::leafToNode(node)->leaf.refcnt);
 		}
@@ -389,7 +390,7 @@ namespace VATA
 			// Assertions
 			assert(node != static_cast<NodeType*>(0));
 			assert(IsLeaf(node));
-			assert(NodeType::getLeafRefCnt(node) == 0);
+			assert(GetLeafRefCnt(node) == 0);
 
 			delete NodeType::leafToNode(node);
 		}

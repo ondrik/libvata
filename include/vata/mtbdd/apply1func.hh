@@ -157,7 +157,7 @@ public:   // Public methods
 
 		// recursively descend the MTBDD and generate a new one
 		NodeOutType* root = recDescend(mtbdd1_->getRoot());
-		RecursivelyIncrementRefCnt(root);
+		IncrementRefCnt(root);
 
 		// compute the new default value
 		DataOutType defaultValue = ApplyOperation(mtbdd1_->GetDefaultValue());
