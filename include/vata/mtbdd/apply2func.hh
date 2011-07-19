@@ -147,7 +147,7 @@ private:  // Private methods
 
 		if (!relation)
 		{	// for the terminal case
-			NodeOutType* result = CreateLeaf(ApplyOperation(
+			NodeOutType* result = MTBDDOutType::spawnLeaf(ApplyOperation(
 				GetDataFromLeaf(node1), GetDataFromLeaf(node2)));
 
 			ht.insert(std::make_pair(cacheAddress, result));
@@ -199,7 +199,8 @@ private:  // Private methods
 		}
 		else
 		{	// in case both trees are distinct
-			NodeOutType* result = CreateInternal(lowOutTree, highOutTree, var);
+			NodeOutType* result =
+				MTBDDOutType::spawnInternal(lowOutTree, highOutTree, var);
 
 			ht.insert(std::make_pair(cacheAddress, result));
 			return result;
