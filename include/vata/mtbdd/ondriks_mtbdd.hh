@@ -15,6 +15,7 @@
 #include	<vata/vata.hh>
 #include	<vata/mtbdd/mtbdd_node.hh>
 #include	<vata/mtbdd/var_asgn.hh>
+#include	<vata/util/triple.hh>
 
 // Standard library headers
 #include	<cassert>
@@ -73,7 +74,17 @@ public:   // public data types
 	typedef std::vector<typename NodeType::VarType> PermutationTable;
 	typedef Loki::SmartPtr<PermutationTable> PermutationTablePtr;
 
-private: // private data members
+private:  // private data types
+
+	typedef VATA::Util::Triple<const NodeType*, const NodeType*, VarType>
+		InternalAddressType;
+
+	typedef std::tr1::unordered_map<InternalAddressType, NodeType*,
+		typename InternalAddressType::Hasher> InternalCacheType;
+
+	typedef std::tr1::unordered_map<DataType, NodeType*> LeafCacheType;
+
+private:  // private data members
 
 	NodeType* root_;
 
@@ -87,6 +98,9 @@ private: // private data members
 	 * labelled with variable 0 is directly above a leaf.
 	 */
 	PermutationTablePtr varOrdering_;
+
+	static LeafCacheType leafCache_;
+	static InternalCacheType internalCache_;
 
 
 private:  // private methods
@@ -113,7 +127,7 @@ private:  // private methods
 		const PermutationTablePtr& varOrdering)
 	{
 		// the leaf with the desired value
-		NodeType* leaf = CreateLeaf(value);
+		NodeType* leaf = spawnLeaf(value);
 
 		if (value == defaultValue)
 		{	// in case an MTBDD with a single leaf is desired
@@ -122,7 +136,7 @@ private:  // private methods
 		}
 
 		// the sink leaf
-		NodeType* sink = CreateLeaf(defaultValue);
+		NodeType* sink = spawnLeaf(defaultValue);
 
 		// working node
 		NodeType* node = leaf;
@@ -132,11 +146,11 @@ private:  // private methods
 			VarType var =	(*varOrdering)[i];
 			if (asgn.GetIthVariableValue(var) == VariableAssignment::ONE)
 			{	// in case the variable is 1
-				node = CreateInternal(sink, node, var);
+				node = spawnInternal(sink, node, var);
 			}
 			else if (asgn.GetIthVariableValue(var) == VariableAssignment::ZERO)
 			{	// in case the variable is 0
-				node = CreateInternal(node, sink, var);
+				node = spawnInternal(node, sink, var);
 			}
 			// otherwise don't care about the variable
 		}
@@ -178,6 +192,12 @@ private:  // private methods
 		{	// for leaves
 			if (DecrementLeafRefCnt(node) == 0)
 			{	// this reference to node is the last
+				if (leafCache_.erase(GetDataFromLeaf(node)) != 1)
+				{	// in case the leaf was not cached
+					throw std::runtime_error(
+						"Deleting a leaf which is not in the leaf cache!");
+				}
+
 				DeleteLeafNode(node);
 			}
 		}
@@ -190,6 +210,14 @@ private:  // private methods
 
 			if (DecrementInternalRefCnt(node) == 0)
 			{	// this reference to node is the last
+				InternalAddressType addr(GetLowFromInternal(node),
+					GetHighFromInternal(node), GetVarFromInternal(node));
+				if (internalCache_.erase(addr) != 1)
+				{	// in case the internal was not cached
+					throw std::runtime_error(
+						"Deleting an internal which is not in the internal cache!");
+				}
+
 				DeleteInternalNode(node);
 			}
 		}
@@ -204,6 +232,45 @@ private:  // private methods
 		}
 	}
 
+	static inline NodeType* spawnLeaf(const DataType& data)
+	{
+		NodeType* result = static_cast<NodeType*>(0);
+
+		typename LeafCacheType::const_iterator itLC;
+		if ((itLC = leafCache_.find(data)) != leafCache_.end())
+		{	// in case given leaf is already cached
+			result = itLC->second;
+		}
+		else
+		{	// if the leaf doesn't exist
+			result = CreateLeaf(data);
+			leafCache_.insert(std::make_pair(data, result));
+		}
+
+		assert(result != static_cast<NodeType*>(0));
+		return result;
+	}
+
+	static inline NodeType* spawnInternal(
+		NodeType* low, NodeType* high, const VarType& var)
+	{
+		NodeType* result = static_cast<NodeType*>(0);
+
+		InternalAddressType addr(low, high, var);
+		typename InternalCacheType::const_iterator itIC;
+		if ((itIC = internalCache_.find(addr)) != internalCache_.end())
+		{	// in case given internal is already cached
+			result = itIC->second;
+		}
+		else
+		{	// if the internal doesn't exist
+			result = CreateInternal(low, high, var);
+			internalCache_.insert(std::make_pair(addr, result));
+		}
+
+		assert(result != static_cast<NodeType*>(0));
+		return result;
+	}
 
 public:   // public methods
 
@@ -358,5 +425,13 @@ public:   // public methods
 		deleteMTBDD();
 	}
 };
+
+template <typename Data>
+typename VATA::MTBDDPkg::OndriksMTBDD<Data>::LeafCacheType
+	VATA::MTBDDPkg::OndriksMTBDD<Data>::leafCache_;
+
+template <typename Data>
+typename VATA::MTBDDPkg::OndriksMTBDD<Data>::InternalCacheType
+	VATA::MTBDDPkg::OndriksMTBDD<Data>::internalCache_;
 
 #endif
