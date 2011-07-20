@@ -11,10 +11,10 @@
 #include "formula_parser.hh"
 
 // VATA headers
-#include <vata/convert.hh>
+#include <vata/util/convert.hh>
 #include <vata/vata.hh>
 
-using VATA::Convert;
+using VATA::Util::Convert;
 
 FormulaParser::ParserResultBooleanType
 	FormulaParser::ParseExpressionBoolean(std::string input)

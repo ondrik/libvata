@@ -9,12 +9,12 @@
  *****************************************************************************/
 
 // VATA headers
-#include <vata/convert.hh>
+#include <vata/util/convert.hh>
 
 
 namespace VATA
 {
-	namespace Private
+	namespace Util
 	{
 		template <>
 		std::string Convert::ToString<unsigned char>(const unsigned char& n)
