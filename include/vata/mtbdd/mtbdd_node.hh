@@ -89,7 +89,7 @@ private:  // private methods
 	static inline LeafType* nodeToLeaf(MTBDDNodePtr& node)
 	{
 		// Assertions
-		assert(node.addr_ != 0);
+		assert(!IsNull(node));
 		assert(IsLeaf(node));
 
 		return reinterpret_cast<LeafType*>(node.addr_ ^ 1);
@@ -98,7 +98,7 @@ private:  // private methods
 	static inline const LeafType* nodeToLeaf(const MTBDDNodePtr& node)
 	{
 		// Assertions
-		assert(node.addr_ != 0);
+		assert(!IsNull(node));
 		assert(IsLeaf(node));
 
 		return nodeToLeaf(const_cast<MTBDDNodePtr&>(node));
@@ -107,7 +107,7 @@ private:  // private methods
 	static inline InternalType* nodeToInternal(MTBDDNodePtr& node)
 	{
 		// Assertions
-		assert(node.addr_ != 0);
+		assert(!IsNull(node));
 		assert(IsInternal(node));
 
 		return reinterpret_cast<InternalType*>(node.addr_);
@@ -116,7 +116,7 @@ private:  // private methods
 	static inline const InternalType* nodeToInternal(const MTBDDNodePtr& node)
 	{
 		// Assertions
-		assert(node.addr_ != 0);
+		assert(!IsNull(node));
 		assert(IsInternal(node));
 
 		return nodeToInternal(const_cast<MTBDDNodePtr&>(node));
@@ -125,7 +125,7 @@ private:  // private methods
 	static inline const RefCntType& getInternalRefCnt(const MTBDDNodePtr& node)
 	{
 		// Assertions
-		assert(node.addr_ != 0);
+		assert(!IsNull(node));
 		assert(IsInternal(node));
 
 		return nodeToInternal(node)->GetRefCnt();
@@ -134,7 +134,7 @@ private:  // private methods
 	static inline void incrementLeafRefCnt(MTBDDNodePtr node)
 	{
 		// Assertions
-		assert(node.addr_ != 0);
+		assert(!IsNull(node));
 		assert(IsLeaf(node));
 
 		nodeToLeaf(node)->IncrementRefCnt();
@@ -143,7 +143,7 @@ private:  // private methods
 	static inline void incrementInternalRefCnt(MTBDDNodePtr node)
 	{
 		// Assertions
-		assert(node != 0);
+		assert(!IsNull(node));
 		assert(IsInternal(node));
 
 		nodeToInternal(node)->IncrementRefCnt();
