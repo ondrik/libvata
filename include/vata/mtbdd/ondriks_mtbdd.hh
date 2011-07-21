@@ -22,7 +22,7 @@
 #include	<stdint.h>
 #include	<stdexcept>
 #include	<vector>
-#include  <tr1/unordered_set>
+#include  <tr1/unordered_map>
 
 // Loki headers
 #include	<loki/SmartPtr.h>
