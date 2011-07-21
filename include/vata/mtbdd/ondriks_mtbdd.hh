@@ -73,12 +73,10 @@ public:   // public data types
 private:  // private data types
 
 	typedef MTBDDNodePtr<DataType> NodePtrType;
-	typedef typename NodePtrType::LeafType LeafType;
-	typedef typename NodePtrType::InternalType InternalType;
 
 public:   // public data types
 
-	typedef typename NodePtrType::InternalType::VarType VarType;
+	typedef typename NodePtrType::VarType VarType;
 	typedef std::vector<VarType> PermutationTable;
 	typedef Loki::SmartPtr<PermutationTable> PermutationTablePtr;
 
@@ -319,7 +317,7 @@ public:   // public methods
 	 */
 	OndriksMTBDD(const VariableAssignment& asgn,
 		const DataType& value, const DataType& defaultValue)
-		: root_(static_cast<InternalType*>(0)),
+		: root_(static_cast<uintptr_t>(0)),
 			defaultValue_(defaultValue),
 			varOrdering_(static_cast<PermutationTable*>(0))
 	{
@@ -353,7 +351,7 @@ public:   // public methods
 	 */
 	OndriksMTBDD(const VariableAssignment& asgn, const DataType& value,
 		const DataType& defaultValue, const PermutationTablePtr& varOrdering)
-		:	root_(static_cast<InternalType*>(0)),
+		:	root_(static_cast<uintptr_t>(0)),
 			defaultValue_(defaultValue),
 			varOrdering_(varOrdering)
 	{

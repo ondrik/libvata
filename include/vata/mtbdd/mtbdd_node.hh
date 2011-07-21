@@ -22,6 +22,19 @@
 #include <boost/functional/hash.hpp>
 
 
+namespace
+{
+	template <
+		typename Data
+	>
+	struct InternalNode;
+
+	template <
+		typename Data
+	>
+	struct LeafNode;
+}
+
 namespace VATA
 {
 	namespace MTBDDPkg
@@ -30,16 +43,6 @@ namespace VATA
 			typename Data
 		>
 		struct MTBDDNodePtr;
-
-		template <
-			typename Data
-		>
-		struct InternalNode;
-
-		template <
-			typename Data
-		>
-		struct LeafNode;
 	}
 }
 
@@ -50,13 +53,16 @@ template <
 >
 struct VATA::MTBDDPkg::MTBDDNodePtr
 {
-public:   // public data members
+public:   // public data types
 
 	typedef Data DataType;
-	typedef InternalNode<Data> InternalType;
-	typedef LeafNode<Data> LeafType;
 	typedef uintptr_t RefCntType;
 	typedef uintptr_t VarType;
+
+private:  // private data types
+
+	typedef InternalNode<DataType> InternalType;
+	typedef LeafNode<DataType> LeafType;
 
 private:  // private data members
 
@@ -229,175 +235,126 @@ public:
 };
 
 
-template <
-	typename Data
->
-struct VATA::MTBDDPkg::InternalNode
+namespace
 {
-public:   // public data types
-
-	typedef Data DataType;
-	typedef MTBDDNodePtr<DataType> NodePtrType;
-	typedef typename NodePtrType::RefCntType RefCntType;
-	typedef typename NodePtrType::VarType VarType;
-
-private:  // private data members
-
-	NodePtrType low_;
-	NodePtrType high_;
-	VarType var_;
-	RefCntType refcnt_;
-
-public:   // public methods
-
-	InternalNode(NodePtrType low, NodePtrType high, const VarType& var,
-		const RefCntType& refcnt)
-		: low_(low),
-			high_(high),
-			var_(var),
-			refcnt_(refcnt)
+	template <
+		typename Data
+	>
+	struct InternalNode
 	{
-		// Assertions
-		assert(!IsNull(low));
-		assert(!IsNull(high));
-	}
+	public:   // public data types
 
-	inline const VarType& GetVar() const
+		typedef Data DataType;
+		typedef VATA::MTBDDPkg::MTBDDNodePtr<DataType> NodePtrType;
+		typedef typename NodePtrType::RefCntType RefCntType;
+		typedef typename NodePtrType::VarType VarType;
+
+	private:  // private data members
+
+		NodePtrType low_;
+		NodePtrType high_;
+		VarType var_;
+		RefCntType refcnt_;
+
+	public:   // public methods
+
+		// I know what I'm doing!!
+		GCC_DIAG_OFF(uninitialized)
+		InternalNode(NodePtrType low, NodePtrType high, const VarType& var,
+			const RefCntType& refcnt)
+			: low_(low),
+				high_(high),
+				var_(var),
+				refcnt_(refcnt)
+		{
+			// Assertions
+			assert(!IsNull(low));
+			assert(!IsNull(high));
+		}
+		GCC_DIAG_ON(uninitialized)
+
+		inline const VarType& GetVar() const
+		{
+			return var_;
+		}
+
+		inline const NodePtrType& GetLow() const
+		{
+			return low_;
+		}
+
+		inline const NodePtrType& GetHigh() const
+		{
+			return high_;
+		}
+
+		inline const RefCntType& GetRefCnt() const
+		{
+			return refcnt_;
+		}
+
+		inline void IncrementRefCnt()
+		{
+			++refcnt_;
+		}
+
+		inline const RefCntType& DecrementRefCnt()
+		{
+			// Assertions
+			assert(refcnt_ > 0);
+
+			return --refcnt_;
+		}
+	};
+
+
+	template <
+		typename Data
+	>
+	struct LeafNode
 	{
-		return var_;
-	}
+	public:   // public data members
 
-	inline const NodePtrType& GetLow() const
-	{
-		return low_;
-	}
+		typedef Data DataType;
+		typedef VATA::MTBDDPkg::MTBDDNodePtr<DataType> NodePtr;
+		typedef typename NodePtr::RefCntType RefCntType;
 
-	inline const NodePtrType& GetHigh() const
-	{
-		return high_;
-	}
+	private:  // private data members
 
-	inline const RefCntType& GetRefCnt() const
-	{
-		return refcnt_;
-	}
+		DataType data_;
+		RefCntType refcnt_;
 
-	inline void IncrementRefCnt()
-	{
-		++refcnt_;
-	}
+	public:   // public methods
 
-	inline const RefCntType& DecrementRefCnt()
-	{
-		// Assertions
-		assert(refcnt_ > 0);
+		LeafNode(const DataType& data, const RefCntType& refcnt)
+			: data_(data),
+				refcnt_(refcnt)
+		{ }
 
-		return --refcnt_;
-	}
-};
+		inline const DataType& GetData() const
+		{
+			return data_;
+		}
 
+		inline const RefCntType& GetRefCnt() const
+		{
+			return refcnt_;
+		}
 
-template <
-	typename Data
->
-struct VATA::MTBDDPkg::LeafNode
-{
-public:   // public data members
+		inline void IncrementRefCnt()
+		{
+			++refcnt_;
+		}
 
-	typedef Data DataType;
-	typedef MTBDDNodePtr<DataType> NodePtr;
-	typedef typename NodePtr::RefCntType RefCntType;
+		inline const RefCntType& DecrementRefCnt()
+		{
+			// Assertions
+			assert(refcnt_ > 0);
 
-private:  // private data members
-
-	DataType data_;
-	RefCntType refcnt_;
-
-public:   // public methods
-
-	LeafNode(const DataType& data, const RefCntType& refcnt)
-		: data_(data),
-			refcnt_(refcnt)
-	{ }
-
-	inline const DataType& GetData() const
-	{
-		return data_;
-	}
-
-	inline const RefCntType& GetRefCnt() const
-	{
-		return refcnt_;
-	}
-
-	inline void IncrementRefCnt()
-	{
-		++refcnt_;
-	}
-
-	inline const RefCntType& DecrementRefCnt()
-	{
-		// Assertions
-		assert(refcnt_ > 0);
-
-		return --refcnt_;
-	}
-};
-
-
-
-
-
-
-//	template <typename NodeType>
-//	friend void DeleteMTBDDdag(NodeType* root);
-//
-//	template <typename NodeType>
-//	friend const typename NodeType::VarType& GetVarFromInternal(
-//		const NodeType* node);
-//
-//	template <typename NodeType>
-//	friend NodeType* GetLowFromInternal(NodeType* node);
-//
-//	template <typename NodeType>
-//	friend const NodeType* GetLowFromInternal(const NodeType* node);
-//
-//	template <typename NodeType>
-//	friend NodeType* GetHighFromInternal(NodeType* node);
-//
-//	template <typename NodeType>
-//	friend const NodeType* GetHighFromInternal(const NodeType* node);
-//
-//	template <typename NodeType>
-//	friend const typename NodeType::DataType& GetDataFromLeaf(
-//		const NodeType* node);
-//
-//	template <typename DataType>
-//	friend MTBDDNode<DataType>* CreateLeaf(const DataType& data);
-//
-//	template <typename NodeType>
-//	friend NodeType* CreateInternal(
-//		NodeType* low, NodeType* high, const typename NodeType::VarType& var);
-//
-//	template <typename NodeType>
-//	friend void DeleteLeafNode(NodeType* node);
-//
-//	template <typename NodeType>
-//	friend void DeleteInternalNode(NodeType* node);
-//
-//	template <typename NodeType>
-//	friend const typename NodeType::VarType& GetLeafRefCnt(const NodeType* node);
-//
-//	template <typename NodeType>
-//	friend void IncrementRefCnt(NodeType* node);
-//
-//	template <typename NodeType>
-//	friend const typename NodeType::RefCntType& DecrementLeafRefCnt(
-//		NodeType* node);
-//
-//	template <typename NodeType>
-//	friend const typename NodeType::RefCntType& DecrementInternalRefCnt(
-//		NodeType* node);
+			return --refcnt_;
+		}
+	};
+}
 
 
 namespace VATA
@@ -500,7 +457,7 @@ namespace VATA
 			assert(!IsNull(low));
 			assert(!IsNull(high));
 
-			typedef InternalNode<typename NodePtrType::DataType> InternalType;
+			typedef typename NodePtrType::InternalType InternalType;
 
 			// TODO: create allocator
 			InternalType* newNode = new InternalType(low, high, var, 0);
