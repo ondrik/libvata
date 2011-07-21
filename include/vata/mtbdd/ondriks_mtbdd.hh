@@ -86,9 +86,10 @@ private:  // private data types
 		InternalAddressType;
 
 	typedef std::tr1::unordered_map<InternalAddressType, NodePtrType,
-		typename InternalAddressType::Hasher> InternalCacheType;
+		boost::hash<InternalAddressType> > InternalCacheType;
 
-	typedef std::tr1::unordered_map<DataType, NodePtrType> LeafCacheType;
+	typedef std::tr1::unordered_map<DataType, NodePtrType,
+		boost::hash<DataType> > LeafCacheType;
 
 private:  // private data members
 
