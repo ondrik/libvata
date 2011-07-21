@@ -37,7 +37,9 @@ add_library(tests
 
 set(TESTS
 	"ondriks_mtbdd_c_test"
+	"bdd_tree_aut_test"
 )
+
 foreach (TEST ${TESTS})
 	add_executable(${TEST} ${TEST}.cc)
 
