@@ -58,20 +58,20 @@ public:   // Public data types
 	typedef OndriksMTBDD<Data3Type> MTBDD3Type;
 	typedef OndriksMTBDD<DataOutType> MTBDDOutType;
 
-	typedef typename MTBDD1Type::NodeType Node1Type;
-	typedef typename MTBDD2Type::NodeType Node2Type;
-	typedef typename MTBDD3Type::NodeType Node3Type;
-	typedef typename MTBDDOutType::NodeType NodeOutType;
+	typedef typename MTBDD1Type::NodePtrType Node1PtrType;
+	typedef typename MTBDD2Type::NodePtrType Node2PtrType;
+	typedef typename MTBDD3Type::NodePtrType Node3PtrType;
+	typedef typename MTBDDOutType::NodePtrType NodeOutPtrType;
 
 	typedef typename MTBDDOutType::VarType VarType;
 
 private:  // Private data types
 
 
-	typedef VATA::Util::Triple<const Node1Type*, const Node2Type*, const Node3Type*>
+	typedef VATA::Util::Triple<Node1PtrType, Node2PtrType, Node3PtrType>
 		CacheAddressType;
 
-	typedef std::tr1::unordered_map<CacheAddressType, NodeOutType*,
+	typedef std::tr1::unordered_map<CacheAddressType, NodeOutPtrType,
 		typename CacheAddressType::Hasher> CacheHashTable;
 
 
@@ -94,13 +94,13 @@ private:  // Private methods
 	AbstractApply3Functor& operator=(const AbstractApply3Functor&);
 
 
-	inline static char classifyCase(const Node1Type* node1,
-		const Node2Type* node2, const Node3Type* node3)
+	inline static char classifyCase(Node1PtrType node1,
+		Node2PtrType node2, Node3PtrType node3)
 	{
 		// Assertions
-		assert(node1 != static_cast<Node1Type*>(0));
-		assert(node2 != static_cast<Node2Type*>(0));
-		assert(node3 != static_cast<Node3Type*>(0));
+		assert(!IsNull(node1));
+		assert(!IsNull(node2));
+		assert(!IsNull(node3));
 
 		char result = 0x00;
 
@@ -140,19 +140,19 @@ private:  // Private methods
 		return result;
 	}
 
-	NodeOutType* recDescend(const Node1Type* node1, const Node2Type* node2,
-		const Node3Type* node3)
+	NodeOutPtrType recDescend(Node1PtrType node1, Node2PtrType node2,
+		Node3PtrType node3)
 	{
 		// Assertions
-		assert(node1 != static_cast<Node1Type*>(0));
-		assert(node2 != static_cast<Node2Type*>(0));
-		assert(node3 != static_cast<Node3Type*>(0));
+		assert(!IsNull(node1));
+		assert(!IsNull(node2));
+		assert(!IsNull(node3));
 
 		CacheAddressType cacheAddress(node1, node2, node3);
 		typename CacheHashTable::iterator itHt;
 		if ((itHt = ht.find(cacheAddress)) != ht.end())
 		{	// if the result is already known
-			assert(itHt->second != static_cast<NodeOutType*>(0));
+			assert(!IsNull(itHt->second));
 			return itHt->second;
 		}
 
@@ -161,7 +161,7 @@ private:  // Private methods
 
 		if (!relation)
 		{	// for the terminal case
-			NodeOutType* result = MTBDDOutType::spawnLeaf(ApplyOperation(
+			NodeOutPtrType result = MTBDDOutType::spawnLeaf(ApplyOperation(
 				GetDataFromLeaf(node1), GetDataFromLeaf(node2), GetDataFromLeaf(node3)));
 
 			ht.insert(std::make_pair(cacheAddress, result));
@@ -172,12 +172,12 @@ private:  // Private methods
 		assert(relation);
 
 		VarType var;
-		const Node1Type* low1Tree = static_cast<Node1Type*>(0);
-		const Node2Type* low2Tree = static_cast<Node2Type*>(0);
-		const Node3Type* low3Tree = static_cast<Node3Type*>(0);
-		const Node1Type* high1Tree = static_cast<Node1Type*>(0);
-		const Node2Type* high2Tree = static_cast<Node2Type*>(0);
-		const Node3Type* high3Tree = static_cast<Node3Type*>(0);
+		Node1PtrType low1Tree = 0;
+		Node2PtrType low2Tree = 0;
+		Node3PtrType low3Tree = 0;
+		Node1PtrType high1Tree = 0;
+		Node2PtrType high2Tree = 0;
+		Node3PtrType high3Tree = 0;
 
 		if (relation & NODE1MASK)
 		{	// if node1 is to be branched
@@ -218,8 +218,8 @@ private:  // Private methods
 			high3Tree = node3;
 		}
 
-		NodeOutType* lowOutTree = recDescend(low1Tree, low2Tree, low3Tree);
-		NodeOutType* highOutTree = recDescend(high1Tree, high2Tree, high3Tree);
+		NodeOutPtrType lowOutTree = recDescend(low1Tree, low2Tree, low3Tree);
+		NodeOutPtrType highOutTree = recDescend(high1Tree, high2Tree, high3Tree);
 
 		if (lowOutTree == highOutTree)
 		{	// in case both trees are isomorphic (when caching is enabled)
@@ -228,7 +228,7 @@ private:  // Private methods
 		}
 		else
 		{	// in case both trees are distinct
-			NodeOutType* result =
+			NodeOutPtrType result =
 				MTBDDOutType::spawnInternal(lowOutTree, highOutTree, var);
 
 			ht.insert(std::make_pair(cacheAddress, result));
@@ -265,7 +265,7 @@ public:   // Public methods
 		}
 
 		// recursively descend the MTBDD and generate a new one
-		NodeOutType* root = recDescend(mtbdd1_->getRoot(), mtbdd2_->getRoot(),
+		NodeOutPtrType root = recDescend(mtbdd1_->getRoot(), mtbdd2_->getRoot(),
 			mtbdd3_->getRoot());
 		IncrementRefCnt(root);
 

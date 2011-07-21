@@ -53,15 +53,15 @@ public:   // Public data types
 	typedef OndriksMTBDD<Data2Type> MTBDD2Type;
 	typedef OndriksMTBDD<DataOutType> MTBDDOutType;
 
-	typedef typename MTBDD1Type::NodeType Node1Type;
-	typedef typename MTBDD2Type::NodeType Node2Type;
-	typedef typename MTBDDOutType::NodeType NodeOutType;
+	typedef typename MTBDD1Type::NodePtrType Node1PtrType;
+	typedef typename MTBDD2Type::NodePtrType Node2PtrType;
+	typedef typename MTBDDOutType::NodePtrType NodeOutPtrType;
 
 	typedef typename MTBDDOutType::VarType VarType;
 
 private:  // Private data types
 
-	typedef std::pair<const Node1Type*, const Node2Type*> CacheAddressType;
+	typedef std::pair<Node1PtrType, Node2PtrType> CacheAddressType;
 
 	/**
 	 * @brief  Hasher structure for a pair of keys
@@ -79,7 +79,7 @@ private:  // Private data types
 		}
 	};
 
-	typedef std::tr1::unordered_map<CacheAddressType, NodeOutType*, Hasher2>
+	typedef std::tr1::unordered_map<CacheAddressType, NodeOutPtrType, Hasher2>
 		CacheHashTable;
 
 private:  // Private data members
@@ -98,11 +98,12 @@ private:  // Private methods
 	AbstractApply2Functor& operator=(const AbstractApply2Functor&);
 
 
-	inline static char classifyCase(const Node1Type* node1, const Node2Type* node2)
+	inline static char classifyCase(const Node1PtrType& node1,
+		const Node2PtrType& node2)
 	{
 		// Assertions
-		assert(node1 != static_cast<Node1Type*>(0));
-		assert(node2 != static_cast<Node2Type*>(0));
+		assert(!IsNull(node1));
+		assert(!IsNull(node2));
 
 		char result = 0x00;
 
@@ -127,18 +128,17 @@ private:  // Private methods
 		return result;
 	}
 
-	typename MTBDDOutType::NodeType* recDescend(
-		const Node1Type* node1, const Node2Type* node2)
+	NodeOutPtrType recDescend(const Node1PtrType& node1, const Node2PtrType& node2)
 	{
 		// Assertions
-		assert(node1 != static_cast<Node1Type*>(0));
-		assert(node2 != static_cast<Node2Type*>(0));
+		assert(!IsNull(node1));
+		assert(!IsNull(node2));
 
 		CacheAddressType cacheAddress(node1, node2);
 		typename CacheHashTable::iterator itHt;
 		if ((itHt = ht.find(cacheAddress)) != ht.end())
 		{	// if the result is already known
-			assert(itHt->second != static_cast<NodeOutType*>(0));
+			assert(!IsNull(itHt->second));
 			return itHt->second;
 		}
 
@@ -147,7 +147,7 @@ private:  // Private methods
 
 		if (!relation)
 		{	// for the terminal case
-			NodeOutType* result = MTBDDOutType::spawnLeaf(ApplyOperation(
+			NodeOutPtrType result = MTBDDOutType::spawnLeaf(ApplyOperation(
 				GetDataFromLeaf(node1), GetDataFromLeaf(node2)));
 
 			ht.insert(std::make_pair(cacheAddress, result));
@@ -158,10 +158,10 @@ private:  // Private methods
 		assert(relation);
 
 		VarType var;
-		const Node1Type* low1Tree = static_cast<Node1Type*>(0);
-		const Node2Type* low2Tree = static_cast<Node2Type*>(0);
-		const Node1Type* high1Tree = static_cast<Node1Type*>(0);
-		const Node2Type* high2Tree = static_cast<Node2Type*>(0);
+		Node1PtrType low1Tree = 0;
+		Node2PtrType low2Tree = 0;
+		Node1PtrType high1Tree = 0;
+		Node2PtrType high2Tree = 0;
 
 		if (relation & NODE1MASK)
 		{	// if node1 is to be branched
@@ -189,8 +189,8 @@ private:  // Private methods
 			high2Tree = node2;
 		}
 
-		NodeOutType* lowOutTree = recDescend(low1Tree, low2Tree);
-		NodeOutType* highOutTree = recDescend(high1Tree, high2Tree);
+		NodeOutPtrType lowOutTree = recDescend(low1Tree, low2Tree);
+		NodeOutPtrType highOutTree = recDescend(high1Tree, high2Tree);
 
 		if (lowOutTree == highOutTree)
 		{	// in case both trees are isomorphic (when caching is enabled)
@@ -199,7 +199,7 @@ private:  // Private methods
 		}
 		else
 		{	// in case both trees are distinct
-			NodeOutType* result =
+			NodeOutPtrType result =
 				MTBDDOutType::spawnInternal(lowOutTree, highOutTree, var);
 
 			ht.insert(std::make_pair(cacheAddress, result));
@@ -231,7 +231,7 @@ public:   // Public methods
 		}
 
 		// recursively descend the MTBDD and generate a new one
-		NodeOutType* root = recDescend(mtbdd1_->getRoot(), mtbdd2_->getRoot());
+		NodeOutPtrType root = recDescend(mtbdd1_->getRoot(), mtbdd2_->getRoot());
 		IncrementRefCnt(root);
 
 		// compute the new default value

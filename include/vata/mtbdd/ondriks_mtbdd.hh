@@ -69,24 +69,32 @@ class VATA::MTBDDPkg::OndriksMTBDD
 public:   // public data types
 
 	typedef Data DataType;
-	typedef MTBDDNode<DataType> NodeType;
-	typedef typename NodeType::VarType VarType;
-	typedef std::vector<typename NodeType::VarType> PermutationTable;
+
+private:  // private data types
+
+	typedef MTBDDNodePtr<DataType> NodePtrType;
+	typedef typename NodePtrType::LeafType LeafType;
+	typedef typename NodePtrType::InternalType InternalType;
+
+public:   // public data types
+
+	typedef typename NodePtrType::InternalType::VarType VarType;
+	typedef std::vector<VarType> PermutationTable;
 	typedef Loki::SmartPtr<PermutationTable> PermutationTablePtr;
 
 private:  // private data types
 
-	typedef VATA::Util::Triple<const NodeType*, const NodeType*, VarType>
+	typedef VATA::Util::Triple<NodePtrType, NodePtrType, VarType>
 		InternalAddressType;
 
-	typedef std::tr1::unordered_map<InternalAddressType, NodeType*,
+	typedef std::tr1::unordered_map<InternalAddressType, NodePtrType,
 		typename InternalAddressType::Hasher> InternalCacheType;
 
-	typedef std::tr1::unordered_map<DataType, NodeType*> LeafCacheType;
+	typedef std::tr1::unordered_map<DataType, NodePtrType> LeafCacheType;
 
 private:  // private data members
 
-	NodeType* root_;
+	NodePtrType root_;
 
 	DataType defaultValue_;
 
@@ -122,12 +130,12 @@ private:  // private methods
 	 *
 	 * @return  The constructed MTBDD
 	 */
-	static NodeType* constructMTBDD(const VariableAssignment& asgn,
+	static NodePtrType constructMTBDD(const VariableAssignment& asgn,
 		const DataType& value, const DataType& defaultValue,
 		const PermutationTablePtr& varOrdering)
 	{
 		// the leaf with the desired value
-		NodeType* leaf = spawnLeaf(value);
+		NodePtrType leaf = spawnLeaf(value);
 
 		if (value == defaultValue)
 		{	// in case an MTBDD with a single leaf is desired
@@ -136,10 +144,10 @@ private:  // private methods
 		}
 
 		// the sink leaf
-		NodeType* sink = spawnLeaf(defaultValue);
+		NodePtrType sink = spawnLeaf(defaultValue);
 
 		// working node
-		NodeType* node = leaf;
+		NodePtrType node = leaf;
 
 		for (size_t i = 0; i < varOrdering->size(); ++i)
 		{	// construct the MTBDD according to the variable ordering
@@ -169,26 +177,26 @@ private:  // private methods
 		return node;
 	}
 
-	OndriksMTBDD(NodeType* root, const DataType& defaultValue,
+	OndriksMTBDD(NodePtrType root, const DataType& defaultValue,
 		const PermutationTablePtr& varOrdering)
 		: root_(root),
 			defaultValue_(defaultValue),
 			varOrdering_(varOrdering)
 	{
 		// Assertions
-		assert(root_ != static_cast<NodeType*>(0));
+		assert(!IsNull(root_));
 	}
 
 
-	const NodeType* getRoot() const
+	NodePtrType getRoot() const
 	{
 		return root_;
 	}
 
-	static void disposeOfLeafNode(NodeType* node)
+	static void disposeOfLeafNode(NodePtrType node)
 	{
 		// Assertions
-		assert(node != static_cast<NodeType*>(0));
+		assert(!IsNull(node));
 		assert(IsLeaf(node));
 
 		if (leafCache_.erase(GetDataFromLeaf(node)) != 1)
@@ -200,10 +208,10 @@ private:  // private methods
 		DeleteLeafNode(node);
 	}
 
-	static void disposeOfInternalNode(NodeType* node)
+	static void disposeOfInternalNode(NodePtrType node)
 	{
 		// Assertions
-		assert(node != static_cast<NodeType*>(0));
+		assert(!IsNull(node));
 		assert(IsInternal(node));
 
 		InternalAddressType addr(GetLowFromInternal(node),
@@ -220,10 +228,10 @@ private:  // private methods
 		DeleteInternalNode(node);
 	}
 
-	static void recursivelyDeleteMTBDDNode(NodeType* node)
+	static void recursivelyDeleteMTBDDNode(NodePtrType node)
 	{
 		// Assertions
-		assert(node != static_cast<NodeType*>(0));
+		assert(!IsNull(node));
 
 		if (IsLeaf(node))
 		{	// for leaves
@@ -245,16 +253,16 @@ private:  // private methods
 
 	inline void deleteMTBDD()
 	{
-		if (root_ != static_cast<NodeType*>(0))
+		if (!IsNull(root_))
 		{
 			recursivelyDeleteMTBDDNode(root_);
-			root_ = static_cast<NodeType*>(0);
+			root_ = 0;
 		}
 	}
 
-	static inline NodeType* spawnLeaf(const DataType& data)
+	static inline NodePtrType spawnLeaf(const DataType& data)
 	{
-		NodeType* result = static_cast<NodeType*>(0);
+		NodePtrType result = 0;
 
 		typename LeafCacheType::const_iterator itLC;
 		if ((itLC = leafCache_.find(data)) != leafCache_.end())
@@ -267,14 +275,14 @@ private:  // private methods
 			leafCache_.insert(std::make_pair(data, result));
 		}
 
-		assert(result != static_cast<NodeType*>(0));
+		assert(!IsNull(result));
 		return result;
 	}
 
-	static inline NodeType* spawnInternal(
-		NodeType* low, NodeType* high, const VarType& var)
+	static inline NodePtrType spawnInternal(
+		NodePtrType low, NodePtrType high, const VarType& var)
 	{
-		NodeType* result = static_cast<NodeType*>(0);
+		NodePtrType result = 0;
 
 		InternalAddressType addr(low, high, var);
 		typename InternalCacheType::const_iterator itIC;
@@ -290,7 +298,7 @@ private:  // private methods
 			internalCache_.insert(std::make_pair(addr, result));
 		}
 
-		assert(result != static_cast<NodeType*>(0));
+		assert(!IsNull(result));
 		return result;
 	}
 
@@ -311,7 +319,7 @@ public:   // public methods
 	 */
 	OndriksMTBDD(const VariableAssignment& asgn,
 		const DataType& value, const DataType& defaultValue)
-		: root_(static_cast<NodeType*>(0)),
+		: root_(static_cast<InternalType*>(0)),
 			defaultValue_(defaultValue),
 			varOrdering_(static_cast<PermutationTable*>(0))
 	{
@@ -345,7 +353,7 @@ public:   // public methods
 	 */
 	OndriksMTBDD(const VariableAssignment& asgn, const DataType& value,
 		const DataType& defaultValue, const PermutationTablePtr& varOrdering)
-		:	root_(static_cast<NodeType*>(0)),
+		:	root_(static_cast<InternalType*>(0)),
 			defaultValue_(defaultValue),
 			varOrdering_(varOrdering)
 	{
@@ -365,16 +373,15 @@ public:   // public methods
 			varOrdering_(mtbdd.varOrdering_)
 	{
 		// Assertions
-		assert(root_ != static_cast<NodeType*>(0));
+		assert(!IsNull(root_));
 
-		// destroy the original MTBDD
-		const_cast<OndriksMTBDD&>(mtbdd).root_ = static_cast<NodeType*>(0);
+		IncrementRefCnt(root_);
 	}
 
 	OndriksMTBDD& operator=(const OndriksMTBDD& mtbdd)
 	{
 		// Assertions
-		assert(root_ != static_cast<NodeType*>(0));
+		assert(!IsNull(root_));
 
 		if (&mtbdd == this)
 			return *this;
@@ -382,9 +389,7 @@ public:   // public methods
 		deleteMTBDD();
 
 		root_ = mtbdd.root_;
-
-		// destroy the original MTBDD
-		const_cast<OndriksMTBDD&>(mtbdd).root_ = static_cast<NodeType*>(0);
+		IncrementRefCnt(root_);
 
 		defaultValue_ = mtbdd.defaultValue_;
 		varOrdering_ = mtbdd.varOrdering_;
@@ -423,7 +428,7 @@ public:   // public methods
 	 */
 	const DataType& GetValue(const VariableAssignment& asgn) const
 	{
-		NodeType* node = root_;
+		NodePtrType node = root_;
 
 		while (!IsLeaf(node))
 		{	// try to proceed according to the assignment

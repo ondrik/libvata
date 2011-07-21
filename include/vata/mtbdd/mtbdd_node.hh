@@ -18,6 +18,10 @@
 #include	<cassert>
 #include	<stdint.h>
 
+// Boost headers
+#include <boost/functional/hash.hpp>
+
+
 namespace VATA
 {
 	namespace MTBDDPkg
@@ -25,385 +29,577 @@ namespace VATA
 		template <
 			typename Data
 		>
-		union MTBDDNode;
+		struct MTBDDNodePtr;
+
+		template <
+			typename Data
+		>
+		struct InternalNode;
+
+		template <
+			typename Data
+		>
+		struct LeafNode;
 	}
 }
 
 
-/**
- * @brief  MTBDD node
- *
- * Union for MTBDD node. It holds either data (for leaf (or sink)
- * nodes), or pointers to low and high nodes together with variable
- * name (for internal nodes). In addition, it contains a counter of the
- * number of references to the node. The type of the node (leaf or internal)
- * is determined using the pointer to the node: if the address is even, then
- * the node is internal, if it is odd, then it is leaf.
- *
- * @tparam  Data  The type of data to be stored into leaf nodes
- */
-template
-<
+
+template <
 	typename Data
 >
-union VATA::MTBDDPkg::MTBDDNode
+struct VATA::MTBDDPkg::MTBDDNodePtr
 {
-public:   // Public data types
+public:   // public data members
 
 	typedef Data DataType;
-	typedef uintptr_t VarType;
+	typedef InternalNode<Data> InternalType;
+	typedef LeafNode<Data> LeafType;
 	typedef uintptr_t RefCntType;
+	typedef uintptr_t VarType;
 
-private:  // Private disjunct data
+private:  // private data members
 
-	struct
-	{
-		MTBDDNode* low;
-		MTBDDNode* high;
-		VarType var;
-		RefCntType refcnt;
-	} internal;
+	uintptr_t addr_;
 
-	struct
-	{
-		DataType data;
-		RefCntType refcnt;
-	} leaf;
+private:  // private methods
 
-public:  // Public methods
-
-	MTBDDNode(MTBDDNode* parLow, MTBDDNode* parHigh, const VarType& parVar,
-		const RefCntType& parRefcnt)
-	{
-		internal.low = parLow;
-		internal.high = parHigh;
-		internal.refcnt = parRefcnt;
-
-		// I know what I'm doing!!!
-		GCC_DIAG_OFF(uninitialized)
-		internal.var = parVar;
-		GCC_DIAG_ON(uninitialized)
-	}
-
-	MTBDDNode(const DataType& parData, const RefCntType& parRefcnt)
-	{
-		leaf.data = parData;
-		leaf.refcnt = parRefcnt;
-	}
-
-private:  // Private methods
-
-	static inline MTBDDNode* makeLeaf(MTBDDNode* node)
+	static inline MTBDDNodePtr makeLeaf(LeafType* node)
 	{
 		// Assertions
-		assert(node != static_cast<MTBDDNode*>(0));
+		assert(node != static_cast<LeafType*>(0));
 
-		return reinterpret_cast<MTBDDNode*>(
-			reinterpret_cast<uintptr_t>(node) | 1);
+		return (reinterpret_cast<uintptr_t>(node) | 1);
 	}
 
-	static inline MTBDDNode* makeInternal(MTBDDNode* node)
+	static inline MTBDDNodePtr makeInternal(InternalType* node)
 	{
 		// Assertions
-		assert(node != static_cast<MTBDDNode*>(0));
+		assert(node != static_cast<InternalType*>(0));
 
-		return node;
+		return static_cast<MTBDDNodePtr>(node);
 	}
 
-	static inline MTBDDNode* leafToNode(MTBDDNode* node)
+	static inline LeafType* nodeToLeaf(MTBDDNodePtr& node)
 	{
 		// Assertions
-		assert(node != static_cast<MTBDDNode*>(0));
+		assert(node.addr_ != 0);
 		assert(IsLeaf(node));
 
-		return reinterpret_cast<MTBDDNode*>(
-			reinterpret_cast<uintptr_t>(node) ^ 1);
+		return reinterpret_cast<LeafType*>(node.addr_ ^ 1);
 	}
 
-	static inline const MTBDDNode* leafToNode(const MTBDDNode* node)
+	static inline const LeafType* nodeToLeaf(const MTBDDNodePtr& node)
 	{
 		// Assertions
-		assert(node != static_cast<MTBDDNode*>(0));
+		assert(node.addr_ != 0);
 		assert(IsLeaf(node));
 
-		return reinterpret_cast<MTBDDNode*>(
-			reinterpret_cast<uintptr_t>(node) ^ 1);
+		return nodeToLeaf(const_cast<MTBDDNodePtr&>(node));
 	}
 
-	static inline MTBDDNode* internalToNode(MTBDDNode* node)
+	static inline InternalType* nodeToInternal(MTBDDNodePtr& node)
 	{
 		// Assertions
-		assert(node != static_cast<MTBDDNode*>(0));
+		assert(node.addr_ != 0);
 		assert(IsInternal(node));
 
-		return node;
+		return reinterpret_cast<InternalType*>(node.addr_);
 	}
 
-	static inline const MTBDDNode* internalToNode(const MTBDDNode* node)
+	static inline const InternalType* nodeToInternal(const MTBDDNodePtr& node)
 	{
 		// Assertions
-		assert(node != static_cast<MTBDDNode*>(0));
+		assert(node.addr_ != 0);
 		assert(IsInternal(node));
 
-		return node;
+		return nodeToInternal(const_cast<MTBDDNodePtr&>(node));
 	}
 
-	static inline const RefCntType& getInternalRefCnt(const MTBDDNode* node)
+	static inline const RefCntType& getInternalRefCnt(const MTBDDNodePtr& node)
 	{
 		// Assertions
-		assert(node != static_cast<MTBDDNode*>(0));
+		assert(node.addr_ != 0);
 		assert(IsInternal(node));
 
-		return internalToNode(node)->internal.refcnt;
+		return nodeToInternal(node)->GetRefCnt();
 	}
 
-	static inline void incrementLeafRefCnt(MTBDDNode* node)
+	static inline void incrementLeafRefCnt(MTBDDNodePtr node)
 	{
 		// Assertions
-		assert(node != static_cast<MTBDDNode*>(0));
+		assert(node.addr_ != 0);
 		assert(IsLeaf(node));
 
-		++(leafToNode(node)->leaf.refcnt);
+		nodeToLeaf(node)->IncrementRefCnt();
 	}
 
-	static inline void incrementInternalRefCnt(MTBDDNode* node)
+	static inline void incrementInternalRefCnt(MTBDDNodePtr node)
 	{
 		// Assertions
-		assert(node != static_cast<MTBDDNode*>(0));
+		assert(node != 0);
 		assert(IsInternal(node));
 
-		++(internalToNode(node)->internal.refcnt);
+		nodeToInternal(node)->IncrementRefCnt();
 	}
 
-	template <typename NodeType>
-	friend void DeleteMTBDDdag(NodeType* root);
+public:
 
-	template <typename NodeType>
-	friend const typename NodeType::VarType& GetVarFromInternal(
-		const NodeType* node);
+	MTBDDNodePtr(const uintptr_t addr)
+		: addr_(addr)
+	{ }
 
-	template <typename NodeType>
-	friend NodeType* GetLowFromInternal(NodeType* node);
+	explicit MTBDDNodePtr(const LeafType* leaf)
+		: addr_(static_cast<uintptr_t>(leaf))
+	{ }
 
-	template <typename NodeType>
-	friend const NodeType* GetLowFromInternal(const NodeType* node);
+	explicit MTBDDNodePtr(const InternalType* internal)
+		: addr_(reinterpret_cast<uintptr_t>(internal))
+	{ }
 
-	template <typename NodeType>
-	friend NodeType* GetHighFromInternal(NodeType* node);
+	inline bool operator==(const MTBDDNodePtr& rhs) const
+	{
+		return addr_ == rhs.addr_;
+	}
 
-	template <typename NodeType>
-	friend const NodeType* GetHighFromInternal(const NodeType* node);
-
-	template <typename NodeType>
-	friend const typename NodeType::DataType& GetDataFromLeaf(
-		const NodeType* node);
+	inline bool operator!=(const MTBDDNodePtr& rhs) const
+	{
+		return !operator==(rhs);
+	}
 
 	template <typename DataType>
-	friend MTBDDNode<DataType>* CreateLeaf(const DataType& data);
+	friend MTBDDNodePtr<DataType> CreateLeaf(const DataType& data);
 
-	template <typename NodeType>
-	friend NodeType* CreateInternal(
-		NodeType* low, NodeType* high, const typename NodeType::VarType& var);
+	template <typename NodePtrType>
+	friend NodePtrType CreateInternal(NodePtrType low, NodePtrType high,
+		const typename NodePtrType::VarType& var);
 
-	template <typename NodeType>
-	friend void DeleteLeafNode(NodeType* node);
+	template <typename NodePtrType>
+	friend void DeleteLeafNode(NodePtrType node);
 
-	template <typename NodeType>
-	friend void DeleteInternalNode(NodeType* node);
+	template <typename NodePtrType>
+	friend void DeleteInternalNode(NodePtrType node);
 
-	template <typename NodeType>
-	friend const typename NodeType::VarType& GetLeafRefCnt(const NodeType* node);
+	template <typename NodePtrType>
+	friend bool IsNull(NodePtrType node);
 
-	template <typename NodeType>
-	friend void IncrementRefCnt(NodeType* node);
+	template <typename NodePtrType>
+	friend bool IsLeaf(const NodePtrType& node);
 
-	template <typename NodeType>
-	friend const typename NodeType::RefCntType& DecrementLeafRefCnt(
-		NodeType* node);
+	template <typename NodePtrType>
+	friend bool IsInternal(const NodePtrType& node);
 
-	template <typename NodeType>
-	friend const typename NodeType::RefCntType& DecrementInternalRefCnt(
-		NodeType* node);
+	template <typename NodePtrType>
+	friend const typename NodePtrType::VarType& GetVarFromInternal(
+		NodePtrType& node);
+
+	template <typename NodePtrType>
+	friend NodePtrType GetLowFromInternal(NodePtrType& node);
+
+	template <typename NodePtrType>
+	friend NodePtrType GetLowFromInternal(const NodePtrType& node);
+
+	template <typename NodePtrType>
+	friend NodePtrType GetHighFromInternal(NodePtrType& node);
+
+	template <typename NodePtrType>
+	friend NodePtrType GetHighFromInternal(const NodePtrType& node);
+
+	template <typename NodePtrType>
+	friend const typename NodePtrType::DataType& GetDataFromLeaf(
+		const NodePtrType& node);
+
+	template <typename NodePtrType>
+	friend const typename NodePtrType::VarType& GetLeafRefCnt(
+		const NodePtrType node);
+
+	template <typename NodePtrType>
+	friend void IncrementRefCnt(NodePtrType node);
+
+	template <typename NodePtrType>
+	friend const typename NodePtrType::RefCntType& DecrementLeafRefCnt(
+		NodePtrType node);
+
+	template <typename NodePtrType>
+	friend const typename NodePtrType::RefCntType& DecrementInternalRefCnt(
+		NodePtrType node);
+
+	template <typename NodePtrType>
+	friend size_t hash_value(const NodePtrType& node);
 };
+
+
+template <
+	typename Data
+>
+struct VATA::MTBDDPkg::InternalNode
+{
+public:   // public data types
+
+	typedef Data DataType;
+	typedef MTBDDNodePtr<DataType> NodePtrType;
+	typedef typename NodePtrType::RefCntType RefCntType;
+	typedef typename NodePtrType::VarType VarType;
+
+private:  // private data members
+
+	NodePtrType low_;
+	NodePtrType high_;
+	VarType var_;
+	RefCntType refcnt_;
+
+public:   // public methods
+
+	InternalNode(NodePtrType low, NodePtrType high, const VarType& var,
+		const RefCntType& refcnt)
+		: low_(low),
+			high_(high),
+			var_(var),
+			refcnt_(refcnt)
+	{
+		// Assertions
+		assert(!IsNull(low));
+		assert(!IsNull(high));
+	}
+
+	inline const VarType& GetVar() const
+	{
+		return var_;
+	}
+
+	inline const NodePtrType& GetLow() const
+	{
+		return low_;
+	}
+
+	inline const NodePtrType& GetHigh() const
+	{
+		return high_;
+	}
+
+	inline const RefCntType& GetRefCnt() const
+	{
+		return refcnt_;
+	}
+
+	inline void IncrementRefCnt()
+	{
+		++refcnt_;
+	}
+
+	inline const RefCntType& DecrementRefCnt()
+	{
+		// Assertions
+		assert(refcnt_ > 0);
+
+		return --refcnt_;
+	}
+};
+
+
+template <
+	typename Data
+>
+struct VATA::MTBDDPkg::LeafNode
+{
+public:   // public data members
+
+	typedef Data DataType;
+	typedef MTBDDNodePtr<DataType> NodePtr;
+	typedef typename NodePtr::RefCntType RefCntType;
+
+private:  // private data members
+
+	DataType data_;
+	RefCntType refcnt_;
+
+public:   // public methods
+
+	LeafNode(const DataType& data, const RefCntType& refcnt)
+		: data_(data),
+			refcnt_(refcnt)
+	{ }
+
+	inline const DataType& GetData() const
+	{
+		return data_;
+	}
+
+	inline const RefCntType& GetRefCnt() const
+	{
+		return refcnt_;
+	}
+
+	inline void IncrementRefCnt()
+	{
+		++refcnt_;
+	}
+
+	inline const RefCntType& DecrementRefCnt()
+	{
+		// Assertions
+		assert(refcnt_ > 0);
+
+		return --refcnt_;
+	}
+};
+
+
+
+
+
+
+//	template <typename NodeType>
+//	friend void DeleteMTBDDdag(NodeType* root);
+//
+//	template <typename NodeType>
+//	friend const typename NodeType::VarType& GetVarFromInternal(
+//		const NodeType* node);
+//
+//	template <typename NodeType>
+//	friend NodeType* GetLowFromInternal(NodeType* node);
+//
+//	template <typename NodeType>
+//	friend const NodeType* GetLowFromInternal(const NodeType* node);
+//
+//	template <typename NodeType>
+//	friend NodeType* GetHighFromInternal(NodeType* node);
+//
+//	template <typename NodeType>
+//	friend const NodeType* GetHighFromInternal(const NodeType* node);
+//
+//	template <typename NodeType>
+//	friend const typename NodeType::DataType& GetDataFromLeaf(
+//		const NodeType* node);
+//
+//	template <typename DataType>
+//	friend MTBDDNode<DataType>* CreateLeaf(const DataType& data);
+//
+//	template <typename NodeType>
+//	friend NodeType* CreateInternal(
+//		NodeType* low, NodeType* high, const typename NodeType::VarType& var);
+//
+//	template <typename NodeType>
+//	friend void DeleteLeafNode(NodeType* node);
+//
+//	template <typename NodeType>
+//	friend void DeleteInternalNode(NodeType* node);
+//
+//	template <typename NodeType>
+//	friend const typename NodeType::VarType& GetLeafRefCnt(const NodeType* node);
+//
+//	template <typename NodeType>
+//	friend void IncrementRefCnt(NodeType* node);
+//
+//	template <typename NodeType>
+//	friend const typename NodeType::RefCntType& DecrementLeafRefCnt(
+//		NodeType* node);
+//
+//	template <typename NodeType>
+//	friend const typename NodeType::RefCntType& DecrementInternalRefCnt(
+//		NodeType* node);
+
 
 namespace VATA
 {
 	namespace MTBDDPkg
 	{
-		template <typename NodeType>
-		inline bool IsLeaf(const NodeType* node)
+		template <typename NodePtrType>
+		inline bool IsLeaf(const NodePtrType& node)
 		{
-			assert(node != static_cast<NodeType*>(0));
-			return (reinterpret_cast<uintptr_t>(node) % 2);
+			assert(node.addr_ != 0);
+			return (node.addr_ % 2);
 		}
 
-		template <typename NodeType>
-		inline bool IsInternal(const NodeType* node)
+		template <typename NodePtrType>
+		inline bool IsInternal(const NodePtrType& node)
 		{
-			assert(node != static_cast<NodeType*>(0));
+			assert(node.addr_ != 0);
 			return !(IsLeaf(node));
 		}
 
-		template <typename NodeType>
-		inline const typename NodeType::DataType& GetDataFromLeaf(
-			const NodeType* node)
+		template <typename NodePtrType>
+		inline const typename NodePtrType::DataType& GetDataFromLeaf(
+			const NodePtrType& node)
 		{
 			// Assertions
-			assert(node != static_cast<NodeType*>(0));
+			assert(!IsNull(node));
 			assert(IsLeaf(node));
 
-			return NodeType::leafToNode(node)->leaf.data;
+			return NodePtrType::nodeToLeaf(node)->GetData();
 		}
 
-		template <typename NodeType>
-		inline const typename NodeType::VarType& GetVarFromInternal(
-			const NodeType* node)
+		template <typename NodePtrType>
+		inline const typename NodePtrType::VarType& GetVarFromInternal(
+			NodePtrType& node)
 		{
 			// Assertions
-			assert(node != static_cast<NodeType*>(0));
+			assert(!IsNull(node));
 			assert(IsInternal(node));
 
-			return NodeType::internalToNode(node)->internal.var;
+			return NodePtrType::nodeToInternal(node)->GetVar();
 		}
 
-		template <typename NodeType>
-		inline const NodeType* GetLowFromInternal(const NodeType* node)
+		template <typename NodePtrType>
+		inline NodePtrType GetLowFromInternal(const NodePtrType& node)
 		{
 			// Assertions
-			assert(node != static_cast<NodeType*>(0));
+			assert(!IsNull(node));
 			assert(IsInternal(node));
 
-			return NodeType::internalToNode(node)->internal.low;
+			return NodePtrType::nodeToInternal(node)->GetLow();
 		}
 
-		template <typename NodeType>
-		inline NodeType* GetLowFromInternal(NodeType* node)
+		template <typename NodePtrType>
+		inline NodePtrType GetLowFromInternal(NodePtrType& node)
 		{
 			// Assertions
-			assert(node != static_cast<NodeType*>(0));
+			assert(!IsNull(node));
 			assert(IsInternal(node));
 
-			return NodeType::internalToNode(node)->internal.low;
+			return NodePtrType::nodeToInternal(node)->GetLow();
 		}
 
-		template <typename NodeType>
-		inline const NodeType* GetHighFromInternal(const NodeType* node)
+		template <typename NodePtrType>
+		inline NodePtrType GetHighFromInternal(const NodePtrType& node)
 		{
 			// Assertions
-			assert(node != static_cast<NodeType*>(0));
+			assert(!IsNull(node));
 			assert(IsInternal(node));
 
-			return NodeType::internalToNode(node)->internal.high;
+			return NodePtrType::nodeToInternal(node)->GetHigh();
 		}
 
-		template <typename NodeType>
-		inline NodeType* GetHighFromInternal(NodeType* node)
+		template <typename NodePtrType>
+		inline NodePtrType GetHighFromInternal(NodePtrType& node)
 		{
 			// Assertions
-			assert(node != static_cast<NodeType*>(0));
+			assert(!IsNull(node));
 			assert(IsInternal(node));
 
-			return NodeType::internalToNode(node)->internal.high;
+			return NodePtrType::nodeToInternal(node)->GetHigh();
 		}
 
 		template <typename DataType>
-		inline MTBDDNode<DataType>* CreateLeaf(const DataType& data)
+		inline MTBDDNodePtr<DataType> CreateLeaf(const DataType& data)
 		{
-			typedef MTBDDNode<DataType> NodeType;
+			typedef MTBDDNodePtr<DataType> NodePtrType;
+			typedef typename NodePtrType::LeafType LeafType;
 
 			// TODO: create allocator						
-			NodeType* newNode = new NodeType(data, 0);
+			LeafType* newNode = new LeafType(data, 0);
 
-			return NodeType::makeLeaf(newNode);
+			return NodePtrType::makeLeaf(newNode);
 		}
 
-		template <typename NodeType>
-		inline NodeType* CreateInternal(
-			NodeType* low, NodeType* high, const typename NodeType::VarType& var)
+		template <typename NodePtrType>
+		inline NodePtrType CreateInternal(NodePtrType low, NodePtrType high,
+			const typename NodePtrType::VarType& var)
 		{
 			// Assertions
-			assert(low != static_cast<NodeType*>(0));
-			assert(high != static_cast<NodeType*>(0));
+			assert(!IsNull(low));
+			assert(!IsNull(high));
+
+			typedef InternalNode<typename NodePtrType::DataType> InternalType;
 
 			// TODO: create allocator
-			NodeType* newNode = new NodeType(low, high, var, 0);
+			InternalType* newNode = new InternalType(low, high, var, 0);
 
-			return NodeType::makeInternal(newNode);
+			return NodePtrType::makeInternal(newNode);
 		}
 
-		template <typename NodeType>
-		inline void IncrementRefCnt(NodeType* node)
+		template <typename NodePtrType>
+		inline void IncrementRefCnt(NodePtrType node)
 		{
 			// Assertions
-			assert(node != static_cast<NodeType*>(0));
+			assert(!IsNull(node));
 
 			if (IsLeaf(node))
 			{
-				NodeType::incrementLeafRefCnt(node);
+				NodePtrType::incrementLeafRefCnt(node);
 			}
 			else
 			{
 				assert(IsInternal(node));
-				NodeType::incrementInternalRefCnt(node);
+				NodePtrType::incrementInternalRefCnt(node);
 			}
 		}
 
 
-		template <typename NodeType>
-		inline const typename NodeType::VarType& GetLeafRefCnt(const NodeType* node)
+		template <typename NodePtrType>
+		inline const typename NodePtrType::VarType& GetLeafRefCnt(
+			const NodePtrType node)
 		{
 			// Assertions
-			assert(node != static_cast<NodeType*>(0));
+			assert(!IsNull(node));
 			assert(IsLeaf(node));
 
-			return NodeType::leafToNode(node)->leaf.refcnt;
+			return NodePtrType::nodeToLeaf(node)->GetRefCnt();
 		}
 
 
-		template <typename NodeType>
-		inline const typename NodeType::RefCntType& DecrementLeafRefCnt(
-			NodeType* node)
+		template <typename NodePtrType>
+		inline const typename NodePtrType::RefCntType& DecrementLeafRefCnt(
+			NodePtrType node)
 		{
 			// Assertions
-			assert(node != static_cast<NodeType*>(0));
+			assert(!IsNull(node));
 			assert(IsLeaf(node));
 			assert(GetLeafRefCnt(node) > 0);
 
-			return --(NodeType::leafToNode(node)->leaf.refcnt);
+			return NodePtrType::nodeToLeaf(node)->DecrementRefCnt();
 		}
 
-		template <typename NodeType>
-		inline const typename NodeType::RefCntType& DecrementInternalRefCnt(
-			NodeType* node)
+
+		template <typename NodePtrType>
+		inline const typename NodePtrType::RefCntType& DecrementInternalRefCnt(
+			NodePtrType node)
 		{
 			// Assertions
-			assert(node != static_cast<NodeType*>(0));
+			assert(!IsNull(node));
 			assert(IsInternal(node));
-			assert(NodeType::getInternalRefCnt(node) > 0);
+			assert(NodePtrType::getInternalRefCnt(node) > 0);
 
-			return --(NodeType::internalToNode(node)->internal.refcnt);
+			return NodePtrType::nodeToInternal(node)->DecrementRefCnt();
 		}
 
-		template <typename NodeType>
-		inline void DeleteLeafNode(NodeType* node)
+
+		template <typename NodePtrType>
+		inline void DeleteLeafNode(NodePtrType node)
 		{
 			// Assertions
-			assert(node != static_cast<NodeType*>(0));
+			assert(!IsNull(node));
 			assert(IsLeaf(node));
 			assert(GetLeafRefCnt(node) == 0);
 
-			delete NodeType::leafToNode(node);
+			delete NodePtrType::nodeToLeaf(node);
 		}
 
-		template <typename NodeType>
-		inline void DeleteInternalNode(NodeType* node)
+		template <typename NodePtrType>
+		inline void DeleteInternalNode(NodePtrType node)
 		{
 			// Assertions
-			assert(node != static_cast<NodeType*>(0));
+			assert(!IsNull(node));
 			assert(IsInternal(node));
-			assert(NodeType::getInternalRefCnt(node) == 0);
+			assert(NodePtrType::getInternalRefCnt(node) == 0);
 
-			delete NodeType::internalToNode(node);
+			delete NodePtrType::nodeToInternal(node);
+		}
+
+		template <typename NodePtrType>
+		inline bool IsNull(NodePtrType node)
+		{
+			return node.addr_ == 0;
+		}
+
+		template <typename NodePtrType>
+		inline size_t hash_value(const NodePtrType& node)
+		{
+			// Assertions
+			assert(!IsNull(node));
+
+			boost::hash<uintptr_t> hasher;
+			return hasher(node.addr_);
 		}
 	}
 }

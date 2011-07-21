@@ -49,30 +49,25 @@ public:   // Public data types
 	typedef OndriksMTBDD<Data1Type> MTBDD1Type;
 	typedef OndriksMTBDD<DataOutType> MTBDDOutType;
 
-	typedef typename MTBDD1Type::NodeType Node1Type;
-	typedef typename MTBDDOutType::NodeType NodeOutType;
+	typedef typename MTBDD1Type::NodePtrType Node1PtrType;
+	typedef typename MTBDDOutType::NodePtrType NodeOutPtrType;
 
 	typedef typename MTBDDOutType::VarType VarType;
 
 private:  // Private data types
 
-	typedef const Node1Type* CacheAddressType;
+	typedef Node1PtrType CacheAddressType;
 
-	/**
-	 * @brief  Hasher structure for a single key
-	 *
-	 * This class is a hasher for a single key.
-	 */
-	struct Hasher1
-	{
-		inline size_t operator()(const CacheAddressType& key) const
-		{
-			return boost::hash_value(key);
-		}
-	};
+	// TODO: add some description of the use of boost::hash
+	//   from http://www.boost.org/doc/libs/1_34_0/doc/html/hash/custom.html
+	//
+	//boost::hash is implemented by calling the function hash_value. The
+	//namespace isn't specified so that it can detect overloads via argument
+	//dependant lookup. So if there is a free function hash_value in the same
+	//namespace as a custom type, it will get called. 
 
-	typedef std::tr1::unordered_map<CacheAddressType, NodeOutType*, Hasher1>
-		CacheHashTable;
+	typedef std::tr1::unordered_map<CacheAddressType, NodeOutPtrType,
+		boost::hash<CacheAddressType> > CacheHashTable;
 
 private:  // Private data members
 
@@ -87,10 +82,10 @@ private:  // Private methods
 	AbstractApply1Functor& operator=(const AbstractApply1Functor&);
 
 
-	NodeOutType* recDescend(const Node1Type* node1)
+	NodeOutPtrType recDescend(const Node1PtrType& node1)
 	{
 		// Assertions
-		assert(node1 != static_cast<Node1Type*>(0));
+		assert(!IsNull(node1));
 
 		if (IsLeaf(node1))
 		{	// for the terminal case
@@ -98,12 +93,12 @@ private:  // Private methods
 			typename CacheHashTable::iterator itHt;
 			if ((itHt = ht.find(cacheAddress)) != ht.end())
 			{	// if the result is already known
-				assert(itHt->second != static_cast<NodeOutType*>(0));
+				assert(!IsNull(itHt->second));
 				return itHt->second;
 			}
 			else
 			{	// if the result isn't known
-				NodeOutType* result = MTBDDOutType::spawnLeaf(
+				NodeOutPtrType result = MTBDDOutType::spawnLeaf(
 					ApplyOperation(GetDataFromLeaf(node1)));
 
 				// cache
@@ -119,15 +114,15 @@ private:  // Private methods
 
 			assert(IsInternal(node1));
 
-			const Node1Type* low1Tree = GetLowFromInternal(node1);
-			const Node1Type* high1Tree = GetHighFromInternal(node1);
+			Node1PtrType low1Tree = GetLowFromInternal(node1);
+			Node1PtrType high1Tree = GetHighFromInternal(node1);
 
 			// Assertions for one condition of reduced MTBDDs
 			assert(low1Tree != high1Tree);
 
 			VarType var = GetVarFromInternal(node1);
-			NodeOutType* lowOutTree = recDescend(low1Tree);
-			NodeOutType* highOutTree = recDescend(high1Tree);
+			NodeOutPtrType lowOutTree = recDescend(low1Tree);
+			NodeOutPtrType highOutTree = recDescend(high1Tree);
 
 			if (lowOutTree == highOutTree)
 			{	// in case both trees are isomorphic (when caching is enabled)
@@ -156,7 +151,7 @@ public:   // Public methods
 		ht.clear();
 
 		// recursively descend the MTBDD and generate a new one
-		NodeOutType* root = recDescend(mtbdd1_->getRoot());
+		NodeOutPtrType root = recDescend(mtbdd1_->getRoot());
 		IncrementRefCnt(root);
 
 		// compute the new default value
