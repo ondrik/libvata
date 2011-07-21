@@ -377,6 +377,19 @@ public:   // public methods
 		IncrementRefCnt(root_);
 	}
 
+	explicit OndriksMTBDD(const DataType& value)
+		: root_(spawnLeaf(value)),
+			defaultValue_(value),
+			varOrdering_(static_cast<PermutationTable*>(0))
+	{
+		// Assertions
+		assert(!IsNull(root_));
+
+		// TODO: do something about variable ordering
+
+		IncrementRefCnt(root_);
+	}
+
 	OndriksMTBDD& operator=(const OndriksMTBDD& mtbdd)
 	{
 		// Assertions
