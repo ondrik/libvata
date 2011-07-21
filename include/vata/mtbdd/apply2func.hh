@@ -63,24 +63,8 @@ private:  // Private data types
 
 	typedef std::pair<Node1PtrType, Node2PtrType> CacheAddressType;
 
-	/**
-	 * @brief  Hasher structure for a pair of keys
-	 *
-	 * This class is a hasher for a pair of keys.
-	 */
-	struct Hasher2
-	{
-		inline size_t operator()(const CacheAddressType& key) const
-		{
-			size_t seed  = 0;
-			boost::hash_combine(seed, key.first);
-			boost::hash_combine(seed, key.second);
-			return seed;
-		}
-	};
-
-	typedef std::tr1::unordered_map<CacheAddressType, NodeOutPtrType, Hasher2>
-		CacheHashTable;
+	typedef std::tr1::unordered_map<CacheAddressType, NodeOutPtrType,
+		boost::hash<CacheAddressType> > CacheHashTable;
 
 private:  // Private data members
 
