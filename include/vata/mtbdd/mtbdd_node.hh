@@ -230,8 +230,8 @@ public:
 	friend const typename NodePtrType::RefCntType& DecrementInternalRefCnt(
 		NodePtrType node);
 
-	template <typename NodePtrType>
-	friend size_t hash_value(const NodePtrType& node);
+	template <typename T>
+	friend size_t hash_value(const MTBDDNodePtr<T>& node);
 };
 
 
@@ -549,8 +549,8 @@ namespace VATA
 			return node.addr_ == 0;
 		}
 
-		template <typename NodePtrType>
-		inline size_t hash_value(const NodePtrType& node)
+		template <typename Data>
+		inline size_t hash_value(const MTBDDNodePtr<Data>& node)
 		{
 			// Assertions
 			assert(!IsNull(node));
