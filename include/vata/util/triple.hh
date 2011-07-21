@@ -54,24 +54,25 @@ struct VATA::Util::Triple
 		return ((first == rhs.first) && (second == rhs.second) &&
 			(third == rhs.third));
 	}
+};
 
-	/**
-	 * @brief  Hasher structure for a triple of keys
-	 *
-	 * This class is a hasher for a triple of keys.
-	 */
-	struct Hasher
+namespace VATA
+{
+	namespace Util
 	{
-		inline size_t operator()(const Triple& key) const
+		template <typename T1, typename T2, typename T3>
+		inline size_t hash_value(const Triple<T1, T2, T3>& key)
 		{
-			size_t seed  = 0;
+			std::size_t seed = 0;
 			boost::hash_combine(seed, key.first);
 			boost::hash_combine(seed, key.second);
 			boost::hash_combine(seed, key.third);
 			return seed;
 		}
-	};
-};
+	}
+}
+
+
 
 
 #endif
