@@ -38,7 +38,15 @@ public:   // methods
 
 	std::string Serialize(const AutType& aut)
 	{
-		return "";
+		std::string result;
+
+		result += "Ops\n";
+		result += "Automaton A\n";
+		result += "States\n";
+		result += "Final States\n";
+		result += "Transitions\n";
+
+		return result;
 	}
 
 };
