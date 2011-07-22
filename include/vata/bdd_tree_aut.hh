@@ -122,7 +122,7 @@ private:  // private methods
 
 public:   // public methods
 
-	BDDTreeAut()
+	explicit BDDTreeAut(const std::string& params)
 		: states_(),
 			finalStates_(),
 			mtbddMap_(MTBDD(StateSet()))
@@ -138,6 +138,14 @@ public:   // public methods
 	{
 		// Assertions
 		assert(isValid());
+	}
+
+	inline bool HasEmptyStateSet() const
+	{
+		// Assertions
+		assert(isValid());
+
+		return states_.empty();
 	}
 
 };
