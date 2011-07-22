@@ -23,6 +23,7 @@ using VATA::Serialization::TimbukSerializer;
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE BDDTreeAut
 #include <boost/test/unit_test.hpp>
+#include <boost/algorithm/string.hpp>
 
 // testing headers
 #include "log_fixture.hh"
@@ -60,7 +61,19 @@ const char* AUT_A2 =
 class BDDTreeAutFixture : public LogFixture
 {
 
+protected:  // methods
 
+	bool areAutomataEqual(const std::string& lhs, const std::string& rhs) const
+	{
+		typedef std::vector<std::string> StringVector;
+
+		StringVector splitLhs;
+
+		boost::split(splitLhs, lhs, boost::algorithm::is_any_of("\n"),
+			boost::algorithm::token_compress_on);
+
+		return false;
+	}
 };
 
 
@@ -82,7 +95,7 @@ BOOST_AUTO_TEST_CASE(import_export)
 
 	std::string aut1Out = serializer.Serialize(*aut1);
 
-	BOOST_CHECK_MESSAGE(AUT_A1 == aut1Out,
+	BOOST_CHECK_MESSAGE(areAutomataEqual(AUT_A1, aut1Out),
 		"Expected serialization output is: \n" + std::string(AUT_A1) +
 		"\n\ngot:\n" + aut1Out);
 
