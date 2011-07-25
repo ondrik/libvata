@@ -13,37 +13,59 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/util/triple.hh>
 
 namespace VATA
 {
 	namespace Parsing
 	{
-		template <
-			class Aut
-		>
 		class TimbukParser;
 	}
 }
 
 
-template <
-	class Aut
->
+
+
+
 class VATA::Parsing::TimbukParser
 {
 public:   // data types
 
-	typedef Aut AutType;
+	struct ReturnType
+	{
+	public:   // data types
+
+		typedef std::pair<std::string, unsigned> Symbol;
+		typedef std::string State;
+		typedef std::vector<State> StateTuple;
+		typedef VATA::Util::Triple<StateTuple, Symbol, State> Transition;
+
+		typedef std::vector<Symbol> SymbolList;
+		typedef std::vector<State> StateList;
+		typedef std::vector<Transition> TransitionList;
+
+	public:   // data members
+
+		std::string name;
+		SymbolList symbols;
+		StateList states;
+		StateList finalStates;
+		TransitionList transitions;
+
+	public:   // methods
+
+		ReturnType()
+			: name(),
+				symbols(),
+				states(),
+				finalStates(),
+				transitions()
+		{ }
+	};
 
 public:   // methods
 
-	AutType& LoadAut(AutType& aut, const std::string& str)
-	{
-		// Assertions
-		assert(aut.HasEmptyStateSet());
-
-		return aut;
-	}
+	ReturnType ParseString(const std::string& str);
 
 };
 
