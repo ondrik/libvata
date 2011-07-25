@@ -5,22 +5,37 @@ set(CMAKE_COLOR_MAKEFILE ON)
 
 project(vata)
 
-add_definitions(-std=c++98)
-add_definitions(-pedantic-errors)
-add_definitions(-Wextra)
-add_definitions(-Wall)
-add_definitions(-Wfloat-equal)
-add_definitions(-Wctor-dtor-privacy)
-add_definitions(-Weffc++)
-add_definitions(-Wold-style-cast)
-add_definitions(-Woverloaded-virtual)
-add_definitions(-finline-functions)
-add_definitions(-fdiagnostics-show-option)
-add_definitions(-O2)
-add_definitions(-march=core2)
-add_definitions(-mtune=core2)
-add_definitions(-msse2)
-add_definitions(-g)
+set(flex_bison_compiler_flags_list
+  -std=c++98
+  -pedantic-errors
+  -Wextra
+  -Wall
+  -Wfloat-equal
+  -Wctor-dtor-privacy
+  -Weffc++
+  -Woverloaded-virtual
+  -finline-functions
+  -fdiagnostics-show-option
+  -O2
+  -march=core2
+  -mtune=core2
+  -msse2
+  -g
+)
+
+set(vata_compiler_add_flags_list
+  -Wold-style-cast
+)
+
+set(flex_bison_compiler_flags "")
+foreach(param ${flex_bison_compiler_flags_list})
+  set(flex_bison_compiler_flags "${flex_bison_compiler_flags} ${param}")
+endforeach(param)
+
+set(vata_compiler_flags ${flex_bison_compiler_flags})
+foreach(param ${vata_compiler_add_flags_list})
+  set(vata_compiler_flags "${vata_compiler_flags} ${param}")
+endforeach(param)
 
 # uncomment for profiling
 #add_definitions(-pg)
@@ -28,16 +43,46 @@ add_definitions(-g)
 
 find_package(Log4CPP REQUIRED)
 find_package(Loki REQUIRED)
+find_package(FLEX REQUIRED)
+find_package(BISON REQUIRED)
 
 include_directories(../include)
 
+flex_target(timbuk_scanner timbuk.l ${CMAKE_CURRENT_BINARY_DIR}/timbuk.l.cc)
+bison_target(timbuk_parser timbuk.y ${CMAKE_CURRENT_BINARY_DIR}/timbuk.y.cc)
+add_flex_bison_dependency(timbuk_scanner timbuk_parser)
+
 add_library(vatalib STATIC
   convert.cc
+  timbuk_parser.cc
+  ${FLEX_timbuk_scanner_OUTPUTS}
+  ${BISON_timbuk_parser_OUTPUTS}
 )
-set_target_properties(vatalib PROPERTIES
-   OUTPUT_NAME vata
-   CLEAN_DIRECT_OUTPUT 1
+
+set(scanner_parser_files
+  ${FLEX_timbuk_scanner_OUTPUTS}
+  ${BISON_timbuk_parser_OUTPUTS}
 )
+
+get_target_property(vatalib_sources vatalib SOURCES)
+
+foreach(src ${vatalib_sources})
+
+  unset(is_scanner_parser_file)
+  foreach (checked_file ${scanner_parser_files})
+    if (${src} STREQUAL ${checked_file})
+      set(is_scanner_parser_file 1)
+    endif()
+  endforeach()
+
+  if (is_scanner_parser_file)
+    set_source_files_properties(
+      ${src} PROPERTIES COMPILE_FLAGS ${flex_bison_compiler_flags})
+  else()
+    set_source_files_properties(
+      ${src} PROPERTIES COMPILE_FLAGS ${vata_compiler_flags})
+  endif()
+endforeach()
 
 #add_executable(vata vata.cc)
 
