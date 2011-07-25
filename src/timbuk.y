@@ -1,10 +1,31 @@
+/*****************************************************************************
+ *  Vojnar's Army Tree Automata Library
+ *
+ *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
+ *
+ *  Description:
+ *    The Bison grammar for Timbuk format parser
+ *
+ *****************************************************************************/
+
 %{
 #include <vata/parsing/timbuk_parser.hh>
+#include <vata/util/convert.hh>
 
 GCC_DIAG_OFF(write-strings)
 
+#define YYDEBUG 1
+
 int yylex();
-void yyerror(VATA::Parsing::TimbukParser::ReturnType*, char* msg);
+extern int yylineno;
+
+using VATA::Util::Convert;
+
+void yyerror(VATA::Parsing::TimbukParser::ReturnType*, char* msg)
+{
+	throw std::runtime_error("Parser error at line " +
+		Convert::ToString(yylineno) + ": " + std::string(msg));
+}
 %}
 
 %locations
@@ -30,17 +51,22 @@ void yyerror(VATA::Parsing::TimbukParser::ReturnType*, char* msg);
 
 %%
 
-start:
+start: OPERATIONS start
+	| AUTOMATON start
+	| STATES start
+	| FINAL_STATES start
+	| TRANSITIONS start
+	| NUMBER start
+	| IDENTIFIER start
+	| COLON start
+	| LPAR start
+	| RPAR start
+	| ARROW start
+	| END_OF_FILE
+
 
 
 
 
 
 %%
-
-GCC_DIAG_ON(write-strings)
-
-void yyerror(VATA::Parsing::TimbukParser::ReturnType*, char* msg)
-{
-  assert(false);
-}

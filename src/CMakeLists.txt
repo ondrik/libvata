@@ -55,6 +55,7 @@ add_flex_bison_dependency(timbuk_scanner timbuk_parser)
 add_library(vatalib STATIC
   convert.cc
   timbuk_parser.cc
+  fake_file.cc
   ${FLEX_timbuk_scanner_OUTPUTS}
   ${BISON_timbuk_parser_OUTPUTS}
 )

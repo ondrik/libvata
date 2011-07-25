@@ -12,7 +12,9 @@
 %option yylineno
 
 %{
+#include <vata/vata.hh>
 #include "timbuk.y.hh"
+
 GCC_DIAG_OFF(unused-function)
 %}
 
@@ -45,5 +47,3 @@ IDENT        {IDENTCHAR}+
 <<EOF>>         {return END_OF_FILE;}
 
 %%
-
-GCC_DIAG_ON(unused-function)
