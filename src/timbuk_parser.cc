@@ -13,27 +13,45 @@
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/util/fake_file.hh>
 
-extern FILE* yyin;
+using VATA::Parsing::TimbukParser;
+
+void yyrestart(FILE*);
 extern int yydebug;
-int yyparse(VATA::Parsing::TimbukParser::ReturnType*);
+int yyparse(VATA::Parsing::TimbukParser::ReturnType&);
 
+void yylex_destroy();
 
-VATA::Parsing::TimbukParser::ReturnType
-	VATA::Parsing::TimbukParser::ParseString(const std::string& str)
+TimbukParser::ReturnType TimbukParser::ParseString(const std::string& str)
 {
 	ReturnType timbukParse;
 
-	yydebug = 1;
+//	yydebug = 1;
 
 	VATA::Util::FakeFile fakeFile;
-	yyin = fakeFile.OpenRead(str);
+	yyrestart(fakeFile.OpenRead(str));
 
-	if (yyparse(&timbukParse))
+	try
 	{
+		yyparse(timbukParse);
 	}
-	else
+	catch (std::exception& ex)
 	{
+		yylex_destroy();
+		throw std::runtime_error("Error: \'" + std::string(ex.what()) +
+			"\' while parsing \n" + str);
 	}
+
+	yylex_destroy();
 
 	return timbukParse;
+}
+
+
+bool TimbukParser::ReturnType::operator==(const ReturnType& rhs) const
+{
+	return name == rhs.name &&
+		symbols == rhs.symbols &&
+		states == rhs.states &&
+		finalStates == rhs.finalStates &&
+		transitions == rhs.transitions;
 }

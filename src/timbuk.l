@@ -12,13 +12,16 @@
 %option yylineno
 
 %{
+
+// VATA headers
 #include <vata/vata.hh>
+#include <vata/util/convert.hh>
+
+// Bison header
 #include "timbuk.y.hh"
 
 GCC_DIAG_OFF(unused-function)
 %}
-
-
 
 DIGIT        [0-9]
 IDENTCHAR    [a-zA-Z_]|{DIGIT}
@@ -35,11 +38,14 @@ IDENT        {IDENTCHAR}+
 "Final States"  {return FINAL_STATES;}  
 "Transitions"   {return TRANSITIONS;}
 
-{NUMBER}        {return NUMBER;}
-{IDENT}         {return IDENTIFIER;}
+{NUMBER}        {yylval.ivalue =
+                   VATA::Util::Convert::FromString<unsigned>(yytext);
+                   return NUMBER;}
+{IDENT}         {yylval.svalue = strdup(yytext); return IDENTIFIER;}
 {WHITE}
 
 ":"             {return COLON;}
+","             {return COMMA;}
 "("             {return LPAR;}
 ")"             {return RPAR;}
 "->"            {return ARROW;}
