@@ -54,6 +54,32 @@ struct VATA::Util::Triple
 		return ((first == rhs.first) && (second == rhs.second) &&
 			(third == rhs.third));
 	}
+
+	bool operator<(const Triple& rhs) const
+	{
+		// lexicographic comparison
+		if (first < rhs.first)
+		{
+			return true;
+		}
+		else if (first > rhs.first)
+		{
+			return false;
+		}
+
+		assert(first == rhs.first);
+		if (second < rhs.second)
+		{
+			return true;
+		}
+		else if (second > rhs.second)
+		{
+			return false;
+		}
+
+		assert(second == rhs.second);
+		return third < rhs.third;
+	}
 };
 
 namespace VATA
@@ -71,8 +97,5 @@ namespace VATA
 		}
 	}
 }
-
-
-
 
 #endif
