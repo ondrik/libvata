@@ -52,6 +52,11 @@ FILE* FakeFile::OpenWrite()
 
 FILE* FakeFile::OpenRead(std::string str)
 {
+	if (str.empty())
+	{
+		throw std::runtime_error("An attempt to create a file descriptor for an empty string");
+	}
+
 	if (hasBeenOpened_)
 	{	// in case the stream has already been opened
 		throw std::runtime_error("Opening memory stream more than once");
