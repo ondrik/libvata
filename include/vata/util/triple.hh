@@ -13,6 +13,7 @@
 
 // VATA headers
 #include	<vata/vata.hh>
+#include	<vata/util/convert.hh>
 
 // Boost library headers
 #include <boost/functional/hash.hpp>
@@ -79,6 +80,15 @@ struct VATA::Util::Triple
 
 		assert(second == rhs.second);
 		return third < rhs.third;
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, const Triple& trip)
+	{
+		os << "(" << Convert::ToString(trip.first) << ", " <<
+			Convert::ToString(trip.second) << ", " <<
+			Convert::ToString(trip.third) << ")";
+
+		return os;
 	}
 };
 
