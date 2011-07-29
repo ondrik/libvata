@@ -89,11 +89,11 @@ BOOST_AUTO_TEST_CASE(correct_format)
 
 	for (size_t i = 0; i < CORRECT_TEST_CASES_SIZE; ++i)
 	{
-		TimbukParser::ReturnType aut = parser.ParseString(CORRECT_TEST_CASES[i]);
-		std::string dumpedStr = Convert::ToString(aut);
-		TimbukParser::ReturnType secondTimeParsed = parser.ParseString(dumpedStr);
+		TimbukParser::AutDescription desc = parser.ParseString(CORRECT_TEST_CASES[i]);
+		std::string dumpedStr = Convert::ToString(desc);
+		TimbukParser::AutDescription secondTimeParsed = parser.ParseString(dumpedStr);
 
-		BOOST_CHECK_MESSAGE(aut == secondTimeParsed, "Error while checking " +
+		BOOST_CHECK_MESSAGE(desc == secondTimeParsed, "Error while checking " +
 			std::string(CORRECT_TEST_CASES[i]));
 	}
 }
