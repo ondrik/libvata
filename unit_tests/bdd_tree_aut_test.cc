@@ -18,12 +18,12 @@ using VATA::BDDTreeAut;
 using VATA::Util::Convert;
 using VATA::Parsing::TimbukParser;
 using VATA::Serialization::TimbukSerializer;
+using VATA::Util::AutDescription;
 
 // Boost headers
 #define BOOST_TEST_DYN_LINK
 #define BOOST_TEST_MODULE BDDTreeAut
 #include <boost/test/unit_test.hpp>
-#include <boost/algorithm/string.hpp>
 
 // testing headers
 #include "log_fixture.hh"
@@ -59,27 +59,7 @@ const char* AUT_A2 =
  * Fixture for test of BDDTreeAut with characters as leaves.
  */
 class BDDTreeAutFixture : public LogFixture
-{
-
-protected:  // methods
-
-	bool areAutomataEqual(const std::string& lhs, const std::string& rhs) const
-	{
-		typedef std::vector<std::string> StringVector;
-
-		StringVector splitLhs;
-		boost::split(splitLhs, lhs, boost::algorithm::is_any_of("\n"),
-			boost::algorithm::token_compress_on);
-		VATA_LOGGER_INFO("LHS: " + Convert::ToString(splitLhs));
-
-		StringVector splitRhs;
-		boost::split(splitRhs, rhs, boost::algorithm::is_any_of("\n"),
-			boost::algorithm::token_compress_on);
-		VATA_LOGGER_INFO("RHS: " + Convert::ToString(splitRhs));
-
-		return false;
-	}
-};
+{ };
 
 
 /******************************************************************************
@@ -98,13 +78,13 @@ BOOST_AUTO_TEST_CASE(import_export)
 
 	aut1.LoadFromString(parser, AUT_A1);
 
-	std::string desc = aut1.DumpToString(serializer);
+	std::string aut1Out = aut1.DumpToString(serializer);
 
-//	std::string aut1Out = serializer.Serialize(*aut1);
-//
-//	BOOST_CHECK_MESSAGE(areAutomataEqual(AUT_A1, aut1Out),
-//		"Expected serialization output is: \n" + std::string(AUT_A1) +
-//		"\n\ngot:\n" + aut1Out);
+	AutDescription descOrig = parser.ParseString(AUT_A1);
+	AutDescription descOut = parser.ParseString(aut1Out);
+
+	BOOST_CHECK_MESSAGE(descOrig == descOut, "Error while checking \n" +
+		std::string(AUT_A1) + "\n\nGot:\n" + aut1Out);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
