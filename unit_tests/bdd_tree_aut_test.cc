@@ -34,19 +34,25 @@ using VATA::Util::AutDescription;
  ******************************************************************************/
 
 const char* AUT_A1 =
-	"Ops a:0 b:1 c:2\n"
+	"Ops \n"
 	"Automaton A1\n"
 	"States\n"
 	"Final States\n"
-	"Transitions\n";
+	"Transitions\n"
+	;
 
 const char* AUT_A2 =
-	"Ops \n"
+	"Ops a:0 b:1 c:2\n"
 	"Automaton A2\n"
-	"States\n"
-	"Final States\n"
-	"Transitions\n";
+	"States p\n"
+	"Final States p\n"
+	"Transitions\n"
+	"a -> p\n"
+	;
 
+const char* IMPORT_EXPORT_TEST_CASES[] = {AUT_A1, AUT_A2};
+const size_t IMPORT_EXPORT_TEST_CASES_SIZE = (sizeof(IMPORT_EXPORT_TEST_CASES) /
+	sizeof(const char*));
 
 
 /******************************************************************************
@@ -74,17 +80,21 @@ BOOST_AUTO_TEST_CASE(import_export)
 	TimbukParser parser;
 	TimbukSerializer serializer;
 
-	BDDTreeAut aut1;
+	for (size_t i = 0; i < IMPORT_EXPORT_TEST_CASES_SIZE; ++i)
+	{
+		BDDTreeAut aut1;
 
-	aut1.LoadFromString(parser, AUT_A1);
+		BDDTreeAut::StringToStateDict stateDict;
+		aut1.LoadFromString(parser, IMPORT_EXPORT_TEST_CASES[i], &stateDict);
 
-	std::string aut1Out = aut1.DumpToString(serializer);
+		std::string autOut = aut1.DumpToString(serializer, &stateDict);
 
-	AutDescription descOrig = parser.ParseString(AUT_A1);
-	AutDescription descOut = parser.ParseString(aut1Out);
+		AutDescription descOrig = parser.ParseString(IMPORT_EXPORT_TEST_CASES[i]);
+		AutDescription descOut = parser.ParseString(autOut);
 
-	BOOST_CHECK_MESSAGE(descOrig == descOut, "Error while checking \n" +
-		std::string(AUT_A1) + "\n\nGot:\n" + aut1Out);
+		BOOST_CHECK_MESSAGE(descOrig == descOut, "Error while checking \n" +
+			std::string(IMPORT_EXPORT_TEST_CASES[i]) + "\n\nGot:\n" + autOut);
+	}
 }
 
 BOOST_AUTO_TEST_SUITE_END()
