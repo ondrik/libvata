@@ -13,35 +13,44 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/serialization/abstr_serializer.hh>
 
 namespace VATA
 {
 	namespace Serialization
 	{
-		template <
-			class Aut
-		>
 		class TimbukSerializer;
 	}
 }
 
-template <
-	class Aut
->
-class VATA::Serialization::TimbukSerializer
+class VATA::Serialization::TimbukSerializer :
+	public VATA::Serialization::AbstrSerializer
 {
 public:   // data types
 
-	typedef Aut AutType;
+	typedef VATA::Util::AutDescription AutDescription;
+
+private:  // data members
+
+	std::string name_;
 
 public:   // methods
 
-	std::string Serialize(const AutType& aut)
+	TimbukSerializer() :
+		name_("anonymous")
+	{ }
+
+	inline void SetName(const std::string& name)
+	{
+		name_ = name;
+	}
+
+	virtual std::string Serialize(const AutDescription& desc)
 	{
 		std::string result;
 
 		result += "Ops\n";
-		result += "Automaton A\n";
+		result += "Automaton " + name_ + "\n";
 		result += "States\n";
 		result += "Final States\n";
 		result += "Transitions\n";
