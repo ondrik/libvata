@@ -222,9 +222,12 @@ public:   // public methods
 		assert(isValid());
 	}
 
-	virtual void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str);
+	virtual void LoadFromString(VATA::Parsing::AbstrParser& parser,
+		const std::string& str,
+		StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0));
 
-	virtual std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer);
+	virtual std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
+		StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0));
 
 	inline StateType AddState()
 	{

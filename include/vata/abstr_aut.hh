@@ -14,6 +14,8 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/parsing/abstr_parser.hh>
+#include <vata/serialization/abstr_serializer.hh>
+#include <vata/util/two_way_dict.hh>
 
 namespace VATA
 {
@@ -23,13 +25,18 @@ namespace VATA
 
 class VATA::AbstrAut
 {
+public:   // data types
+
+	typedef VATA::Util::TwoWayDict<std::string, StateType> StringToStateDict;
+
 public:   // methods
 
 	virtual void LoadFromString(VATA::Parsing::AbstrParser& parser,
-		const std::string& str) = 0;
+		const std::string& str,
+		StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0)) = 0;
 
-	virtual std::string DumpToString(
-		VATA::Serialization::AbstrSerializer& serializer) = 0;
+	virtual std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
+		StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0)) = 0;
 
 	virtual ~AbstrAut()
 	{	}

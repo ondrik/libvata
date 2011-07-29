@@ -32,24 +32,48 @@ void BDDTreeAut::copyStates(const BDDTreeAut& src)
 }
 
 
-void BDDTreeAut::LoadFromString(AbstrParser& parser, const std::string& str)
+void BDDTreeAut::LoadFromString(AbstrParser& parser, const std::string& str,
+	StringToStateDict* pStateDict)
 {
 	// Assertions
 	assert(hasEmptyStateSet());
 
-	// TODO: enable output of (two-way) translation map
+	bool delStateDict = false;
+	if (pStateDict == static_cast<StringToStateDict*>(0))
+	{	// in case we do not wish to retain the string-to-state dictionary
+		delStateDict = true;
+		pStateDict = new StringToStateDict();
+	}
 
-	typedef std::tr1::unordered_map<std::string, StateType> StringToStateMap;
-
-	StringToStateMap transMap;
 	AutDescription desc = parser.ParseString(str);
 
-	for (AutDescription::StateSet::const_iterator itStates = desc.states.begin();
-		itStates != desc.states.end(); ++itStates)
-	{
-		StateType inState = AddState();
-		states_.push_back(inState);
-		transMap.insert(std::make_pair(*itStates, inState));
+	for (AutDescription::TransitionSet::const_iterator itTr =
+		desc.transitions.begin(); itTr != desc.transitions.end(); ++itTr)
+	{	// traverse the transitions
+		const std::vector<std::string>& children = itTr->first;
+		const std::string& symbolStr = itTr->second;
+		const std::string& parentStr = itTr->third;
+
+		StateType parent;
+
+		StringToStateDict::ConstIteratorFwd itSt;
+		if ((itSt = pStateDict->FindFwd(parentStr)) != pStateDict->EndFwd())
+		{	// in case the state name is known
+			parent = itSt->second;
+		}
+		else
+		{	// in case there is no translation for the state name
+			parent = AddState();
+			states_.push_back(parent);
+			pStateDict->Insert(std::make_pair(parentStr, parent));
+		}
+
+
+	}
+
+	if (delStateDict)
+	{	// in case we do not need the dictionary
+		delete pStateDict;
 	}
 
 	assert(isValid());
@@ -57,12 +81,42 @@ void BDDTreeAut::LoadFromString(AbstrParser& parser, const std::string& str)
 
 
 std::string BDDTreeAut::DumpToString(
-	VATA::Serialization::AbstrSerializer& serializer)
+	VATA::Serialization::AbstrSerializer& serializer,
+	StringToStateDict* pStateDict)
 {
+	bool translateStates = false;
+	if (pStateDict != static_cast<StringToStateDict*>(0))
+	{	// in case there is provided dictionary
+		translateStates = true;
+	}
+
 	AutDescription desc;
 
-//		desc.states = states_;
-//		desc.finalStates = finalStates_;
+	for (StateVector::const_iterator itSt = states_.begin();
+		itSt != states_.end(); ++itSt)
+	{	// copy states
+		if (translateStates)
+		{	// if there is a dictionary, use it
+			desc.states.insert(pStateDict->TranslateBwd(*itSt));
+		}
+		else
+		{	// if there is not a dictionary, generate strings
+			desc.states.insert(Convert::ToString(*itSt));
+		}
+	}
+
+	for (StateVector::const_iterator itSt = finalStates_.begin();
+		itSt != finalStates_.end(); ++itSt)
+	{	// copy final states
+		if (translateStates)
+		{	// if there is a dictionary, use it
+			desc.finalStates.insert(pStateDict->TranslateBwd(*itSt));
+		}
+		else
+		{	// if there is not a dictionary, generate strings
+			desc.finalStates.insert(Convert::ToString(*itSt));
+		}
+	}
 
 	return serializer.Serialize(desc);
 }
