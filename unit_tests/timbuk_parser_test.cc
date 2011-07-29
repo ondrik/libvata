@@ -70,12 +70,7 @@ const size_t FAILING_TEST_CASES_SIZE = (sizeof(FAILING_TEST_CASES) /
  * Fixture for test of TimbukParser
  */
 class TimbukParserFixture : public LogFixture
-{
-
-protected:  // methods
-
-
-};
+{ };
 
 
 /******************************************************************************
