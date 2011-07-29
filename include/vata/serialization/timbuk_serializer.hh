@@ -45,19 +45,7 @@ public:   // methods
 		name_ = name;
 	}
 
-	virtual std::string Serialize(const AutDescription& desc)
-	{
-		std::string result;
-
-		result += "Ops\n";
-		result += "Automaton " + name_ + "\n";
-		result += "States\n";
-		result += "Final States\n";
-		result += "Transitions\n";
-
-		return result;
-	}
-
+	virtual std::string Serialize(const AutDescription& desc);
 };
 
 #endif
