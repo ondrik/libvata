@@ -48,6 +48,18 @@ void BDDTreeAut::LoadFromString(AbstrParser& parser, const std::string& str,
 
 	AutDescription desc = parser.ParseString(str);
 
+	for (AutDescription::StateSet::const_iterator itFst =
+		desc.finalStates.begin(); itFst != desc.finalStates.end(); ++itFst)
+	{	// traverse final states
+		if (pStateDict->FindFwd(*itFst) == pStateDict->EndFwd())
+		{	// in case the state name is not known
+			StateType state = AddState();
+			states_.push_back(state);
+			finalStates_.push_back(state);
+			pStateDict->Insert(std::make_pair(*itFst, state));
+		}
+	}
+
 	for (AutDescription::TransitionSet::const_iterator itTr =
 		desc.transitions.begin(); itTr != desc.transitions.end(); ++itTr)
 	{	// traverse the transitions
