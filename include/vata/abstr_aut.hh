@@ -13,6 +13,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/parsing/abstr_parser.hh>
 
 namespace VATA
 {
@@ -22,8 +23,13 @@ namespace VATA
 
 class VATA::AbstrAut
 {
+public:   // methods
 
-public:   // public methods
+	virtual void LoadFromString(VATA::Parsing::AbstrParser& parser,
+		const std::string& str) = 0;
+
+	virtual std::string DumpToString(
+		VATA::Serialization::AbstrSerializer& serializer) = 0;
 
 	virtual ~AbstrAut()
 	{	}
