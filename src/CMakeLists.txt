@@ -42,7 +42,7 @@ endforeach(param)
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 
 find_package(Log4CPP REQUIRED)
-find_package(Loki REQUIRED)
+#find_package(Loki REQUIRED)               # no longer necessary
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 
@@ -56,6 +56,7 @@ add_library(vatalib STATIC
   convert.cc
   timbuk_parser.cc
   fake_file.cc
+  bdd_tree_aut.cc
   ${FLEX_timbuk_scanner_OUTPUTS}
   ${BISON_timbuk_parser_OUTPUTS}
 )

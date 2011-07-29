@@ -22,10 +22,8 @@
 #include	<stdint.h>
 #include	<stdexcept>
 #include	<vector>
+#include  <tr1/memory>
 #include  <tr1/unordered_map>
-
-// Loki headers
-#include	<loki/SmartPtr.h>
 
 // Boost library headers
 #include <boost/functional/hash.hpp>
@@ -78,7 +76,7 @@ public:   // public data types
 
 	typedef typename NodePtrType::VarType VarType;
 	typedef std::vector<VarType> PermutationTable;
-	typedef Loki::SmartPtr<PermutationTable> PermutationTablePtr;
+	typedef std::tr1::shared_ptr<PermutationTable> PermutationTablePtr;
 
 private:  // private data types
 
@@ -330,7 +328,7 @@ public:   // public methods
 			(*varOrd)[i] = i;
 		}
 
-		varOrdering_ = varOrd;
+		varOrdering_.reset(varOrd);
 
 		// create the MTBDD
 		root_ = constructMTBDD(asgn, value, defaultValue_, varOrdering_);

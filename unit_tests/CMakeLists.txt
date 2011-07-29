@@ -25,7 +25,7 @@ add_definitions(-g)
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 
 find_package(Log4CPP REQUIRED)
-find_package(Loki REQUIRED)
+#find_package(Loki REQUIRED)                # no longer necessary
 find_package(Boost 1.42.0 COMPONENTS unit_test_framework REQUIRED)
 
 include_directories(../include)
