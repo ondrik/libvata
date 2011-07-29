@@ -13,17 +13,18 @@
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/util/fake_file.hh>
 
+using VATA::Parsing::AbstrParser;
 using VATA::Parsing::TimbukParser;
 
 void yyrestart(FILE*);
 extern int yydebug;
-int yyparse(VATA::Parsing::TimbukParser::ReturnType&);
+int yyparse(VATA::Parsing::TimbukParser::AutDescription&);
 
 void yylex_destroy();
 
-TimbukParser::ReturnType TimbukParser::ParseString(const std::string& str)
+AbstrParser::AutDescription TimbukParser::ParseString(const std::string& str)
 {
-	ReturnType timbukParse;
+	AutDescription timbukParse;
 
 //	yydebug = 1;
 
@@ -47,7 +48,7 @@ TimbukParser::ReturnType TimbukParser::ParseString(const std::string& str)
 }
 
 
-bool TimbukParser::ReturnType::operator==(const ReturnType& rhs) const
+bool TimbukParser::AutDescription::operator==(const AutDescription& rhs) const
 {
 	return name == rhs.name &&
 		symbols == rhs.symbols &&
