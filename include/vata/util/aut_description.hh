@@ -55,63 +55,6 @@ public:   // methods
 	{ }
 
 	bool operator==(const AutDescription& rhs) const;
-
-	friend std::ostream& operator<<(std::ostream& os, const AutDescription& retType)
-	{
-		os << "Ops ";
-		for (AutDescription::SymbolSet::const_iterator itSymb = retType.symbols.begin();
-			itSymb != retType.symbols.end(); ++itSymb)
-		{
-			os << itSymb->first << ":" << VATA::Util::Convert::ToString(itSymb->second) << " ";
-		}
-
-		os << "\n";
-		os << "Automaton " << retType.name;
-
-		os << "\n";
-		os << "States ";
-		for (AutDescription::StateSet::const_iterator itSt = retType.states.begin();
-			itSt != retType.states.end(); ++itSt)
-		{
-			os << *itSt << " ";
-		}
-
-		os << "\n";
-		os << "Final States ";
-		for (AutDescription::StateSet::const_iterator itFst = retType.finalStates.begin();
-			itFst != retType.finalStates.end(); ++itFst)
-		{
-			os << *itFst << " ";
-		}
-
-		os << "\n";
-		os << "Transitions\n";
-		for (AutDescription::TransitionSet::const_iterator itTran = retType.transitions.begin();
-			itTran != retType.transitions.end(); ++itTran)
-		{
-			os << itTran->second;
-			if (!(itTran->first.empty()))
-			{
-				os << "(";
-				os << itTran->first[0];
-				for (size_t i = 1; i < itTran->first.size(); ++i)
-				{
-					os << ", ";
-					os << itTran->first[i];
-				}
-
-				os << ")";
-			}
-
-			os << " -> ";
-			os << itTran->third;
-
-			os << "\n";
-		}
-
-		return os;
-	}
 };
-
 
 #endif
