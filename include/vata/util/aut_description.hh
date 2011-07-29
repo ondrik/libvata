@@ -46,15 +46,18 @@ public:   // data members
 
 public:   // methods
 
-	AutDescription()
-		: name(),
-			symbols(),
-			states(),
-			finalStates(),
-			transitions()
+	AutDescription() :
+		name(),
+		symbols(),
+		states(),
+		finalStates(),
+		transitions()
 	{ }
 
-	bool operator==(const AutDescription& rhs) const;
+	inline bool operator==(const AutDescription& rhs) const
+	{
+		return (finalStates == rhs.finalStates) && (transitions == rhs.transitions);
+	}
 };
 
 #endif
