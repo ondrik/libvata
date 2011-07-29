@@ -62,14 +62,14 @@ AutDescription::StateTuple global_tuple;
 %union TokenType
 {
   char* svalue;
-  unsigned ivalue;
 }
 
 %type <svalue> IDENTIFIER
-%type <ivalue> NUMBER
+%type <svalue> NUMBER
 
 %type<svalue> automaton_name
 %type<svalue> state
+%type<svalue> ident
 
 %%
 
@@ -84,15 +84,18 @@ start: OPERATIONS operation_list
   }
   ;
 
-operation_list: IDENTIFIER COLON NUMBER operation_list
+operation_list: ident COLON NUMBER operation_list
 	{
-		timbukParse.symbols.insert(std::make_pair($1, $3));
+		timbukParse.symbols.insert(std::make_pair($1,
+			Convert::FromString<unsigned>($3)));
+                   
 		free($1);
+		free($3);
 	}
   |
   ;
 
-automaton_name: IDENTIFIER
+automaton_name: ident
   ;
 
 state_list: state state_list
@@ -111,18 +114,18 @@ final_state_list: state final_state_list
   |
   ;
 
-state: IDENTIFIER COLON NUMBER
+state: ident COLON NUMBER
 	{
 		$$ = $1;
 	}
-  | IDENTIFIER
+  | ident
   ;
 
 transition_list: transition transition_list
   |
   ;
 
-transition: IDENTIFIER LPAR transition_states RPAR ARROW state
+transition: ident LPAR transition_states RPAR ARROW state
 	{
 		std::reverse(global_tuple.begin(), global_tuple.end());
 		timbukParse.transitions.insert(
@@ -130,7 +133,7 @@ transition: IDENTIFIER LPAR transition_states RPAR ARROW state
 		free($1);
 		free($6);
 	}
-	| IDENTIFIER ARROW state
+	| ident ARROW state
 	{
 		timbukParse.transitions.insert(
 			AutDescription::Transition(AutDescription::StateTuple(), $1, $3));
@@ -139,17 +142,22 @@ transition: IDENTIFIER LPAR transition_states RPAR ARROW state
 	}
   ;
 
-transition_states: IDENTIFIER COMMA transition_states
+transition_states: ident COMMA transition_states
 	{
 		global_tuple.push_back($1);
 		free($1);
 	}
-	| IDENTIFIER
+	| ident
 	{
 		global_tuple.clear();
 		global_tuple.push_back($1);
 		free($1);
 	}
 	;
+
+ident: IDENTIFIER
+	| NUMBER
+	;
+
 
 %%

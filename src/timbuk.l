@@ -38,9 +38,7 @@ IDENT        {IDENTCHAR}+
 "Final States"  {return FINAL_STATES;}  
 "Transitions"   {return TRANSITIONS;}
 
-{NUMBER}        {yylval.ivalue =
-                   VATA::Util::Convert::FromString<unsigned>(yytext);
-                   return NUMBER;}
+{NUMBER}        {yylval.svalue = strdup(yytext); return NUMBER;}
 {IDENT}         {yylval.svalue = strdup(yytext); return IDENTIFIER;}
 {WHITE}
 
