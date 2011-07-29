@@ -13,6 +13,8 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/util/aut_description.hh>
+
 
 namespace VATA
 {
