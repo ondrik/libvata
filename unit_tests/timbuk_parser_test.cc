@@ -11,9 +11,11 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/parsing/timbuk_parser.hh>
+#include <vata/serialization/timbuk_serializer.hh>
 #include <vata/util/convert.hh>
 
 using VATA::Parsing::TimbukParser;
+using VATA::Serialization::TimbukSerializer;
 using VATA::Util::Convert;
 
 // Boost headers
@@ -86,14 +88,15 @@ BOOST_FIXTURE_TEST_SUITE(suite, TimbukParserFixture)
 BOOST_AUTO_TEST_CASE(correct_format)
 {
 	TimbukParser parser;
+	TimbukSerializer serializer;
 
 	for (size_t i = 0; i < CORRECT_TEST_CASES_SIZE; ++i)
 	{
 		TimbukParser::AutDescription desc = parser.ParseString(CORRECT_TEST_CASES[i]);
-		std::string dumpedStr = Convert::ToString(desc);
+		std::string dumpedStr = serializer.Serialize(desc);
 		TimbukParser::AutDescription secondTimeParsed = parser.ParseString(dumpedStr);
 
-		BOOST_CHECK_MESSAGE(desc == secondTimeParsed, "Error while checking " +
+		BOOST_CHECK_MESSAGE(desc == secondTimeParsed, "Error while checking \n" +
 			std::string(CORRECT_TEST_CASES[i]));
 	}
 }
