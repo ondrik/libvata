@@ -31,7 +31,6 @@ class VATA::BDDTreeAut
 {
 public:   // public data types
 
-	typedef uint32_t StateType;
 	typedef VATA::MTBDDPkg::VariableAssignment SymbolType;
 
 private:  // private data types

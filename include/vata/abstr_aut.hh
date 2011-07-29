@@ -27,6 +27,8 @@ class VATA::AbstrAut
 {
 public:   // data types
 
+	typedef uint32_t StateType;
+
 	typedef VATA::Util::TwoWayDict<std::string, StateType> StringToStateDict;
 
 public:   // methods
