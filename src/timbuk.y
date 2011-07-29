@@ -26,19 +26,19 @@ extern int yylineno;
 
 using VATA::Util::Convert;
 
-void yyerror(VATA::Parsing::TimbukParser::ReturnType&, char* msg)
+void yyerror(VATA::Parsing::TimbukParser::AutDescription&, char* msg)
 {
 	throw std::runtime_error("Parser error at line " +
 		Convert::ToString(yylineno) + ": " + std::string(msg));
 }
 
-VATA::Parsing::TimbukParser::ReturnType::StateTuple global_tuple;
+VATA::Parsing::TimbukParser::AutDescription::StateTuple global_tuple;
 %}
 
 %locations
 %error-verbose
 
-%parse-param {VATA::Parsing::TimbukParser::ReturnType& timbukParse}
+%parse-param {VATA::Parsing::TimbukParser::AutDescription& timbukParse}
 
 %token OPERATIONS    "Ops"
 %token AUTOMATON     "Automaton"
@@ -124,15 +124,15 @@ transition: IDENTIFIER LPAR transition_states RPAR ARROW state
 	{
 		std::reverse(global_tuple.begin(), global_tuple.end());
 		timbukParse.transitions.insert(
-			VATA::Parsing::TimbukParser::ReturnType::Transition(global_tuple, $1, $6));
+			VATA::Parsing::TimbukParser::AutDescription::Transition(global_tuple, $1, $6));
 		free($1);
 		free($6);
 	}
 	| IDENTIFIER ARROW state
 	{
 		timbukParse.transitions.insert(
-			VATA::Parsing::TimbukParser::ReturnType::Transition(
-				VATA::Parsing::TimbukParser::ReturnType::StateTuple(), $1, $3));
+			VATA::Parsing::TimbukParser::AutDescription::Transition(
+				VATA::Parsing::TimbukParser::AutDescription::StateTuple(), $1, $3));
 		free($1);
 		free($3);
 	}
