@@ -15,6 +15,7 @@
 using VATA::BDDTreeAut;
 using VATA::Parsing::AbstrParser;
 using VATA::Util::AutDescription;
+using VATA::Util::Convert;
 
 
 void BDDTreeAut::copyStates(const BDDTreeAut& src)
@@ -130,4 +131,17 @@ bool BDDTreeAut::haveDisjointStateSets(const BDDTreeAut& lhs,
 	assert(lhs.isValid());
 
 	assert(false);
+}
+
+
+BDDTreeAut::~BDDTreeAut()
+{
+	// Assertions
+	assert(isValid());
+
+	for (StateVector::iterator itSt = states_.begin();
+		itSt != states_.end(); ++itSt)
+	{	// release all states
+		transTable_->DecrementStateRefCnt(*itSt);
+	}
 }

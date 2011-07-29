@@ -244,17 +244,7 @@ public:   // public methods
 		assert(false);
 	}
 
-	~BDDTreeAut()
-	{
-		// Assertions
-		assert(isValid());
-
-		for (StateVector::iterator itSt = states_.begin();
-			itSt != states_.end(); ++itSt)
-		{	// release all states
-			transTable_->DecrementStateRefCnt(*itSt);
-		}
-	}
+	~BDDTreeAut();
 };
 
 #endif
