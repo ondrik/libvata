@@ -4,7 +4,7 @@
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
  *  Description:
- *    File with VariableAssignment structure.
+ *    File with VarAsgn structure.
  *
  *****************************************************************************/
 
@@ -26,7 +26,7 @@ namespace VATA
 {
 	namespace MTBDDPkg
 	{
-		struct VariableAssignment;
+		struct VarAsgn;
 	}
 }
 
@@ -40,10 +40,9 @@ namespace VATA
  * Assigned values can be one of '0', '1' and 'X', where 'X' means <em>don't
  * care</em>.
  */
-struct VATA::MTBDDPkg::VariableAssignment
+struct VATA::MTBDDPkg::VarAsgn
 {
 public:   // Public data types
-
 
 	enum
 	{
@@ -52,7 +51,7 @@ public:   // Public data types
 		DONT_CARE = 0x03
 	};
 
-	typedef std::vector<VariableAssignment> AssignmentList;
+	typedef std::vector<VarAsgn> AssignmentList;
 
 private:  // Private data types
 
@@ -143,32 +142,12 @@ private:  // Private methods
 		return (index * BitsPerVariable) % BitsInChar;
 	}
 
-	static void getAllSymbols(VariableAssignment& var,
-		std::vector<VariableAssignment>& vec, size_t pos)
-	{
-		if (pos == var.VariablesCount())
-		{
-			vec.push_back(var);
-		}
-		else
-		{
-			if (var.GetIthVariableValue(pos) == DONT_CARE)
-			{	// in case we fork
-				var.SetIthVariableValue(pos, ZERO);
-				getAllSymbols(var, vec, pos + 1);
-				var.SetIthVariableValue(pos, ONE);
-				getAllSymbols(var, vec, pos + 1);
-			}
-			else
-			{
-				getAllSymbols(var, vec, pos + 1);
-			}
-		}
-	}
+	static void getAllSymbols(VarAsgn& var,
+		std::vector<VarAsgn>& vec, size_t pos);
 
 public:   // Public methods
 
-	explicit VariableAssignment(size_t size)
+	explicit VarAsgn(size_t size)
 		: variablesCount_(size),
 			vars_(numberOfChars(size))
 	{
@@ -178,7 +157,7 @@ public:   // Public methods
 		}
 	}
 
-	VariableAssignment(size_t size, size_t n)
+	VarAsgn(size_t size, size_t n)
 		: variablesCount_(size),
 			vars_(numberOfChars(size))
 	{
@@ -197,34 +176,7 @@ public:   // Public methods
 	 *
 	 * @param[in]  value  The string with the value of variables
 	 */
-	explicit VariableAssignment(const std::string& value)
-		: variablesCount_(value.length()),
-			vars_(numberOfChars(value.length()))
-	{
-		for (size_t i = 0; i < value.length(); ++i)
-		{	// load the string into the array of variables
-			char val = 0;
-			switch (value[i])
-			{
-				case '0': val = ZERO;      break;
-				case '1': val = ONE;       break;
-				case 'X': val = DONT_CARE; break;
-				default: throw std::runtime_error("Invalid input value!");
-			}
-
-			// prepare the mask
-			char mask = (DefaultMask << getIndexInsideChar(i)) ^ static_cast<char>(-1);
-
-			// mask out bits at given position by the mask
-			vars_[getIndexOfChar(i)] &= mask;
-
-			// prepare new value of given bits
-			val <<= getIndexInsideChar(i);
-
-			// insert the value of given bits
-			vars_[getIndexOfChar(i)] |= val;
-		}
-	}
+	explicit VarAsgn(const std::string& value);
 
 
 	/**
@@ -245,18 +197,11 @@ public:   // Public methods
 	}
 
 
-	void SetIthVariableValue(size_t i, char value)
+	inline void SetIthVariableValue(size_t i, char value)
 	{
 		// Assertions
 		assert(i < VariablesCount());
-
-		switch (value)
-		{
-			case ZERO:      break;
-			case ONE:       break;
-			case DONT_CARE: break;
-			default:        throw std::runtime_error("Invalid input value!");
-		}
+		assert((value == ZERO) || (value == ONE) || (value == DONT_CARE));
 
 		// prepare the mask
 		char mask = (DefaultMask << getIndexInsideChar(i)) ^ static_cast<char>(-1);
@@ -271,21 +216,7 @@ public:   // Public methods
 		vars_[getIndexOfChar(i)] |= value;
 	}
 
-	void AddVariablesUpTo(size_t maxVariableIndex)
-	{
-		size_t newVariablesCount = maxVariableIndex + 1;
-		if (newVariablesCount > VariablesCount())
-		{
-			size_t oldVariablesCount = variablesCount_;
-			variablesCount_ = newVariablesCount;
-			vars_.resize(numberOfChars(newVariablesCount));
-
-			for (size_t i = oldVariablesCount; i < newVariablesCount; ++i)
-			{
-				SetIthVariableValue(i, DONT_CARE);
-			}
-		}
-	}
+	void AddVariablesUpTo(size_t maxVariableIndex);
 
 
 	/**
@@ -310,23 +241,7 @@ public:   // Public methods
 	 *
 	 * @returns  The string representation of the variable assignment
 	 */
-	std::string ToString() const
-	{
-		std::string result;
-
-		for (size_t i = 0; i < VariablesCount(); ++i)
-		{	// append all variables to the string
-			switch (GetIthVariableValue(i))
-			{
-				case ZERO:      result += '0'; break;
-				case ONE:       result += '1'; break;
-				case DONT_CARE: result += 'X'; break;
-				default: throw std::runtime_error("Invalid bit value!");
-			}
-		}
-
-		return result;
-	}
+	std::string ToString() const;
 
 
 	/**
@@ -340,54 +255,22 @@ public:   // Public methods
 	 *
 	 * @returns  The list of all assignments to given variables
 	 */
-	static AssignmentList GetAllAssignments(size_t variablesCount)
+	static AssignmentList GetAllAssignments(size_t variablesCount);
+
+
+	VarAsgn& operator++();
+
+	inline VarAsgn operator++(int)
 	{
-		std::string str;
-		for (size_t i = 0; i < variablesCount; ++i)
-		{	// for all variables
-			str += 'X';
-		}
+		VarAsgn result(*this);
 
-		AssignmentList lst;
-		lst.push_back(VariableAssignment(str));
-		return lst;
-	}
-
-
-	VariableAssignment& operator++()
-	{
-		for (size_t i = 0; i < VariablesCount(); ++i)
-		{	// for each variable
-			char value = GetIthVariableValue(i);
-			if (value == ZERO)
-			{	// in case we can stop here
-				SetIthVariableValue(i, ONE);
-				return *this;
-			}
-			else if (value == ONE)
-			{	// we change to zero and continue to search zero
-				SetIthVariableValue(i, ZERO);
-			}
-			else
-			{	// otherwise
-				throw std::runtime_error(
-					"An attempt to increment assignment with invalid states");
-			}
-		}
-
-		return *this;
-	}
-
-	inline std::vector<VariableAssignment> GetVectorOfConcreteSymbols() const
-	{
-		std::vector<VariableAssignment> result;
-
-		VariableAssignment newVar = *this;
-
-		getAllSymbols(newVar, result, 0);
+		++(*this);
 
 		return result;
 	}
+
+
+	std::vector<VarAsgn> GetVectorOfConcreteSymbols() const;
 
 
 	/**
@@ -403,13 +286,13 @@ public:   // Public methods
 	 * @returns  Modified output stream
 	 */
 	friend std::ostream& operator<<(std::ostream& os,
-		const VariableAssignment& asgn)
+		const VarAsgn& asgn)
 	{
 		return (os << asgn.ToString());
 	}
 
-	friend bool operator<(const VariableAssignment& lhs,
-		const VariableAssignment& rhs)
+	friend bool operator<(const VarAsgn& lhs,
+		const VarAsgn& rhs)
 	{
 		if ((lhs.VariablesCount() < rhs.VariablesCount()) ||
 			rhs.VariablesCount() < lhs.VariablesCount())
@@ -430,8 +313,7 @@ public:   // Public methods
 						case ZERO: continue; break;
 						case ONE: return true; break;
 						case DONT_CARE: return true; break;
-						default: throw std::runtime_error("Invalid variable assignment value");
-							break;
+						default: assert(false); break;   // fail gracefully
 					}
 					break;
 
@@ -441,8 +323,7 @@ public:   // Public methods
 						case ZERO: return false; break;
 						case ONE: continue; break;
 						case DONT_CARE: return false; break;
-						default: throw std::runtime_error("Invalid variable assignment value");
-							break;
+						default: assert(false); break;   // fail gracefully
 					}
 					break;
 
@@ -452,13 +333,11 @@ public:   // Public methods
 						case ZERO: return false; break;
 						case ONE: return true; break;
 						case DONT_CARE: continue; break;
-						default: throw std::runtime_error("Invalid variable assignment value");
-							break;
+						default: assert(false); break;   // fail gracefully
 					}
 					break;
 
-				default: throw std::runtime_error("Invalid variable assignment value");
-					break;
+					default: assert(false); break;     // fail gracefully
 			}
 		}
 
@@ -467,9 +346,9 @@ public:   // Public methods
 
 public:   // Public static methods
 
-	static VariableAssignment GetUniversalSymbol()
+	static VarAsgn GetUniversalSymbol()
 	{
-		return VariableAssignment(0);
+		return VarAsgn(0);
 	}
 };
 
