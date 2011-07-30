@@ -166,7 +166,7 @@ public:   // public types
 	 *
 	 * Type for variable assignment used in the test.
 	 */
-	typedef VATA::MTBDDPkg::VariableAssignment VariableAssignment;
+	typedef VATA::MTBDDPkg::VarAsgn VarAsgn;
 
 	/**
 	 * @brief  Ondrik's MTBDD type
@@ -295,17 +295,16 @@ protected:// protected methods
 	 *
 	 * @returns  Variable assignment data structure
 	 */
-	VariableAssignment varListToAsgn(
-		const FormulaParser::VariableListType& varList)
+	VarAsgn varListToAsgn(const FormulaParser::VariableListType& varList)
 	{
-		VariableAssignment asgn(NUM_VARIABLES);
+		VarAsgn asgn(NUM_VARIABLES);
 
 		for (FormulaParser::VariableListType::const_iterator itVar =
 			varList.begin(); itVar != varList.end(); ++itVar)
 		{	// for each variable in the list, change the corresponding assignment
 			size_t index = translateVarNameToIndex(itVar->first);
 			asgn.SetIthVariableValue(index, (itVar->second)?
-				VariableAssignment::ONE : VariableAssignment::ZERO);
+				VarAsgn::ONE : VarAsgn::ZERO);
 		}
 
 		return asgn;
@@ -349,7 +348,7 @@ protected:// protected methods
 
 		CopyApply2Functor copyFunc;
 
-		MTBDD bdd(VariableAssignment(VAR_COUNT), DEFAULT_DATA_VALUE, DEFAULT_DATA_VALUE);
+		MTBDD bdd(VarAsgn(VAR_COUNT), DEFAULT_DATA_VALUE, DEFAULT_DATA_VALUE);
 
 		for (ListOfTestCasesType::const_iterator itTests = testCases.begin();
 			itTests != testCases.end(); ++itTests)
@@ -357,7 +356,7 @@ protected:// protected methods
 			FormulaParser::ParserResultUnsignedType prsRes =
 				FormulaParser::ParseExpressionUnsigned(*itTests);
 			DataType leafValue = static_cast<DataType>(prsRes.first);
-			VariableAssignment asgn = varListToAsgn(prsRes.second);
+			VarAsgn asgn = varListToAsgn(prsRes.second);
 
 			MTBDD tmp(asgn, leafValue, DEFAULT_DATA_VALUE, bdd.GetVarOrdering());
 			bdd = copyFunc(bdd, tmp);
@@ -389,7 +388,7 @@ BOOST_AUTO_TEST_CASE(setters_and_getters_test)
 		FormulaParser::ParserResultUnsignedType prsRes =
 			FormulaParser::ParseExpressionUnsigned(testCases[i]);
 		DataType leafValue = static_cast<DataType>(prsRes.first);
-		VariableAssignment asgn = varListToAsgn(prsRes.second);
+		VarAsgn asgn = varListToAsgn(prsRes.second);
 
 		BOOST_CHECK_MESSAGE(bdd.GetValue(asgn) == leafValue,
 			testCases[i] + " != " + Convert::ToString(bdd.GetValue(asgn)));
@@ -399,7 +398,7 @@ BOOST_AUTO_TEST_CASE(setters_and_getters_test)
 		{	// for every test case that should fail
 			FormulaParser::ParserResultUnsignedType prsFailedRes =
 				FormulaParser::ParseExpressionUnsigned(*itFailed);
-			VariableAssignment failedAsgn = varListToAsgn(prsFailedRes.second);
+			VarAsgn failedAsgn = varListToAsgn(prsFailedRes.second);
 
 			BOOST_CHECK_MESSAGE(bdd.GetValue(failedAsgn) == bdd.GetDefaultValue(),
 				testCases[i] + " == " + Convert::ToString(bdd.GetValue(failedAsgn)));
@@ -469,7 +468,7 @@ BOOST_AUTO_TEST_CASE(large_diagram_test)
 		FormulaParser::ParserResultUnsignedType prsRes =
 			FormulaParser::ParseExpressionUnsigned(*itTests);
 		DataType leafValue = static_cast<DataType>(prsRes.first);
-		VariableAssignment asgn = varListToAsgn(prsRes.second);
+		VarAsgn asgn = varListToAsgn(prsRes.second);
 
 		BOOST_CHECK_MESSAGE(bdd.GetValue(asgn) == leafValue,
 			*itTests + " != " + Convert::ToString(bdd.GetValue(asgn)));
@@ -483,7 +482,7 @@ BOOST_AUTO_TEST_CASE(large_diagram_test)
 		#endif
 		FormulaParser::ParserResultUnsignedType prsFailedRes =
 			FormulaParser::ParseExpressionUnsigned(*itFailed);
-		VariableAssignment asgn = varListToAsgn(prsFailedRes.second);
+		VarAsgn asgn = varListToAsgn(prsFailedRes.second);
 
 		BOOST_CHECK_MESSAGE(bdd.GetValue(asgn) == bdd.GetDefaultValue(),
 			*itFailed + " == " + Convert::ToString(bdd.GetValue(asgn)));
@@ -498,7 +497,7 @@ BOOST_AUTO_TEST_CASE(no_variables_formula)
 	FormulaParser::ParserResultUnsignedType prsRes =
 		FormulaParser::ParseExpressionUnsigned(TEST_VALUE);
 	DataType leafValue = static_cast<DataType>(prsRes.first);
-	VariableAssignment asgn = varListToAsgn(prsRes.second);
+	VarAsgn asgn = varListToAsgn(prsRes.second);
 	MTBDD bdd(asgn, leafValue, DEFAULT_DATA_VALUE);
 
 	BOOST_CHECK_MESSAGE(bdd.GetValue(asgn) == leafValue,
@@ -531,7 +530,7 @@ BOOST_AUTO_TEST_CASE(multiple_independent_bdds)
 		FormulaParser::ParserResultUnsignedType prsRes =
 			FormulaParser::ParseExpressionUnsigned(*itTests);
 		DataType leafValue = static_cast<DataType>(prsRes.first);
-		VariableAssignment asgn = varListToAsgn(prsRes.second);
+		VarAsgn asgn = varListToAsgn(prsRes.second);
 
 		BOOST_CHECK_MESSAGE(bdd1.GetValue(asgn) == leafValue,
 			*itTests + " != " + Convert::ToString(bdd2.GetValue(asgn)));
@@ -546,7 +545,7 @@ BOOST_AUTO_TEST_CASE(multiple_independent_bdds)
 		FormulaParser::ParserResultUnsignedType prsRes =
 			FormulaParser::ParseExpressionUnsigned(*itTests);
 		DataType leafValue = static_cast<DataType>(prsRes.first);
-		VariableAssignment asgn = varListToAsgn(prsRes.second);
+		VarAsgn asgn = varListToAsgn(prsRes.second);
 
 		BOOST_CHECK_MESSAGE(bdd2.GetValue(asgn) == leafValue,
 			*itTests + " != " + Convert::ToString(bdd2.GetValue(asgn)));
@@ -560,7 +559,7 @@ BOOST_AUTO_TEST_CASE(multiple_independent_bdds)
 		#endif
 		FormulaParser::ParserResultUnsignedType prsFailedRes =
 			FormulaParser::ParseExpressionUnsigned(*itFailed);
-		VariableAssignment asgn = varListToAsgn(prsFailedRes.second);
+		VarAsgn asgn = varListToAsgn(prsFailedRes.second);
 
 		BOOST_CHECK_MESSAGE(bdd1.GetValue(asgn) == bdd1.GetDefaultValue(),
 			*itFailed + " == " + Convert::ToString(bdd1.GetValue(asgn)));
@@ -574,7 +573,7 @@ BOOST_AUTO_TEST_CASE(multiple_independent_bdds)
 		#endif
 		FormulaParser::ParserResultUnsignedType prsFailedRes =
 			FormulaParser::ParseExpressionUnsigned(*itFailed);
-		VariableAssignment asgn = varListToAsgn(prsFailedRes.second);
+		VarAsgn asgn = varListToAsgn(prsFailedRes.second);
 
 		BOOST_CHECK_MESSAGE(bdd2.GetValue(asgn) == bdd2.GetDefaultValue(),
 			*itFailed + " == " + Convert::ToString(bdd2.GetValue(asgn)));
@@ -617,7 +616,7 @@ BOOST_AUTO_TEST_CASE(monadic_apply)
 			FormulaParser::ParseExpressionUnsigned(*itTests);
 		DataType leafValue = static_cast<DataType>(prsRes.first);
 		leafValue *= leafValue;
-		VariableAssignment asgn = varListToAsgn(prsRes.second);
+		VarAsgn asgn = varListToAsgn(prsRes.second);
 
 		BOOST_CHECK_MESSAGE(squaredBdd.GetValue(asgn) == leafValue,
 			*itTests + " != " + Convert::ToString(squaredBdd.GetValue(asgn)));
@@ -660,7 +659,7 @@ BOOST_AUTO_TEST_CASE(apply)
 			FormulaParser::ParseExpressionUnsigned(*itTests);
 		DataType leafValue = static_cast<DataType>(prsRes.first);
 		leafValue *= leafValue;
-		VariableAssignment asgn = varListToAsgn(prsRes.second);
+		VarAsgn asgn = varListToAsgn(prsRes.second);
 
 		BOOST_CHECK_MESSAGE(timesBdd.GetValue(asgn) == leafValue,
 			*itTests + " != " + Convert::ToString(timesBdd.GetValue(asgn)));
@@ -704,7 +703,7 @@ BOOST_AUTO_TEST_CASE(ternary_apply)
 			FormulaParser::ParseExpressionUnsigned(*itTests);
 		DataType leafValue = static_cast<DataType>(prsRes.first);
 		leafValue = leafValue * leafValue * leafValue;
-		VariableAssignment asgn = varListToAsgn(prsRes.second);
+		VarAsgn asgn = varListToAsgn(prsRes.second);
 
 		BOOST_CHECK_MESSAGE(timesBdd.GetValue(asgn) == leafValue,
 			*itTests + " != " + Convert::ToString(timesBdd.GetValue(asgn)));
