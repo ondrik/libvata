@@ -156,6 +156,12 @@ private:  // private methods
 		return states_.empty();
 	}
 
+	void loadFromAutDescExplicit(const AutDescription& desc,
+		StringToStateDict* pStateDict);
+
+	void loadFromAutDescSymbolic(const AutDescription& desc,
+		StringToStateDict* pStateDict);
+
 	static bool haveDisjointStateSets(const BDDTreeAut& lhs, const BDDTreeAut& rhs);
 
 	// TODO: put this somewhere else
@@ -223,7 +229,8 @@ public:   // public methods
 
 	virtual void LoadFromString(VATA::Parsing::AbstrParser& parser,
 		const std::string& str,
-		StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0));
+		StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0),
+		const std::string& params = "");
 
 	virtual std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
 		StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0));

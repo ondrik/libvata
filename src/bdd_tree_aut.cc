@@ -33,8 +33,6 @@ void BDDTreeAut::copyStates(const BDDTreeAut& src)
 }
 
 
-void BDDTreeAut::LoadFromString(AbstrParser& parser, const std::string& str,
-	StringToStateDict* pStateDict)
 {
 	// Assertions
 	assert(hasEmptyStateSet());
@@ -81,7 +79,79 @@ void BDDTreeAut::LoadFromString(AbstrParser& parser, const std::string& str,
 			pStateDict->Insert(std::make_pair(parentStr, parent));
 		}
 
+		// translate children
+		StateTuple children;
+		for (AutDescription::StateTuple::const_iterator itTup = childrenStr.begin();
+			itTup != childrenStr.end(); ++itTup)
+		{	// for all children states
+			StateType child;
+			StringToStateDict::ConstIteratorFwd itSt;
+			if ((itSt = pStateDict->FindFwd(*itTup)) != pStateDict->EndFwd())
+			{	// in case the state name is known
+				parent = itSt->second;
+			}
+			else
+			{	// in case there is no translation for the state name
+				child = AddState();
+				states_.push_back(parent);
+				pStateDict->Insert(std::make_pair(*itTup, child));
+			}
 
+			children.push_back(child);
+		}
+
+		// translate the symbol
+		SymbolType symbol(0);
+		StringToSymbolDict::ConstIteratorFwd itSym;
+		if ((itSym = symbolDict_.FindFwd(symbolStr)) != symbolDict_.EndFwd())
+		{	// in case the state name is known
+			symbol = itSym->second;
+		}
+		else
+		{	// in case there is no translation for the state name
+			symbol = addSymbol();
+			symbolDict_.Insert(std::make_pair(symbolStr, symbol));
+		}
+
+		addSimplyTransition(children, symbol, parent);
+	}
+
+	assert(isValid());
+}
+
+
+void BDDTreeAut::loadFromAutDescSymbolic(const AutDescription& desc,
+	StringToStateDict* pStateDict)
+{
+	// Assertions
+	assert(hasEmptyStateSet());
+
+	assert(false);
+
+	assert(isValid());
+}
+
+
+void BDDTreeAut::LoadFromString(AbstrParser& parser, const std::string& str,
+	StringToStateDict* pStateDict, const std::string& params)
+{
+	// Assertions
+	assert(hasEmptyStateSet());
+
+	bool delStateDict = false;
+	if (pStateDict == static_cast<StringToStateDict*>(0))
+	{	// in case we do not wish to retain the string-to-state dictionary
+		delStateDict = true;
+		pStateDict = new StringToStateDict();
+	}
+
+	if (params == "symbolic")
+	{
+		loadFromAutDescSymbolic(parser.ParseString(str), pStateDict);
+	}
+	else
+	{
+		loadFromAutDescExplicit(parser.ParseString(str), pStateDict);
 	}
 
 	if (delStateDict)

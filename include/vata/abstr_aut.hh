@@ -35,7 +35,8 @@ public:   // methods
 
 	virtual void LoadFromString(VATA::Parsing::AbstrParser& parser,
 		const std::string& str,
-		StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0)) = 0;
+		StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0),
+		const std::string& params = "") = 0;
 
 	virtual std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
 		StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0)) = 0;
