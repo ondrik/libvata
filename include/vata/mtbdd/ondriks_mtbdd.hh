@@ -127,7 +127,7 @@ private:  // private methods
 	 *
 	 * @return  The constructed MTBDD
 	 */
-	static NodePtrType constructMTBDD(const VariableAssignment& asgn,
+	static NodePtrType constructMTBDD(const VarAsgn& asgn,
 		const DataType& value, const DataType& defaultValue,
 		const PermutationTablePtr& varOrdering)
 	{
@@ -149,11 +149,11 @@ private:  // private methods
 		for (size_t i = 0; i < varOrdering->size(); ++i)
 		{	// construct the MTBDD according to the variable ordering
 			VarType var =	(*varOrdering)[i];
-			if (asgn.GetIthVariableValue(var) == VariableAssignment::ONE)
+			if (asgn.GetIthVariableValue(var) == VarAsgn::ONE)
 			{	// in case the variable is 1
 				node = spawnInternal(sink, node, var);
 			}
-			else if (asgn.GetIthVariableValue(var) == VariableAssignment::ZERO)
+			else if (asgn.GetIthVariableValue(var) == VarAsgn::ZERO)
 			{	// in case the variable is 0
 				node = spawnInternal(node, sink, var);
 			}
@@ -175,10 +175,10 @@ private:  // private methods
 	}
 
 	OndriksMTBDD(NodePtrType root, const DataType& defaultValue,
-		const PermutationTablePtr& varOrdering)
-		: root_(root),
-			defaultValue_(defaultValue),
-			varOrdering_(varOrdering)
+		const PermutationTablePtr& varOrdering) :
+		root_(root),
+		defaultValue_(defaultValue),
+		varOrdering_(varOrdering)
 	{
 		// Assertions
 		assert(!IsNull(root_));
@@ -198,8 +198,7 @@ private:  // private methods
 
 		if (leafCache_.erase(GetDataFromLeaf(node)) != 1)
 		{	// in case the leaf was not cached
-			throw std::runtime_error(
-				"Deleting a leaf which is not in the leaf cache!");
+			assert(false);     // fail gracefully
 		}
 
 		DeleteLeafNode(node);
@@ -215,8 +214,7 @@ private:  // private methods
 			GetHighFromInternal(node), GetVarFromInternal(node));
 		if (internalCache_.erase(addr) != 1)
 		{	// in case the internal was not cached
-			throw std::runtime_error(
-				"Deleting an internal which is not in the internal cache!");
+			assert(false);   // fail gracefully
 		}
 
 		recursivelyDeleteMTBDDNode(GetLowFromInternal(node));
@@ -314,11 +312,11 @@ public:   // public methods
 	 * @param  defaultValue  Value to be set for all assignments other than @p
 	 *                       asgn
 	 */
-	OndriksMTBDD(const VariableAssignment& asgn,
-		const DataType& value, const DataType& defaultValue)
-		: root_(static_cast<uintptr_t>(0)),
-			defaultValue_(defaultValue),
-			varOrdering_(static_cast<PermutationTable*>(0))
+	OndriksMTBDD(const VarAsgn& asgn,
+		const DataType& value, const DataType& defaultValue) :
+		root_(static_cast<uintptr_t>(0)),
+		defaultValue_(defaultValue),
+		varOrdering_(static_cast<PermutationTable*>(0))
 	{
 		// create the variable permutation table (the variable ordering)
 		PermutationTable* varOrd = new PermutationTable(asgn.VariablesCount());
@@ -348,17 +346,13 @@ public:   // public methods
 	 *                       asgn
 	 * @param  varOrdering   Ordering of variables
 	 */
-	OndriksMTBDD(const VariableAssignment& asgn, const DataType& value,
-		const DataType& defaultValue, const PermutationTablePtr& varOrdering)
-		:	root_(static_cast<uintptr_t>(0)),
-			defaultValue_(defaultValue),
-			varOrdering_(varOrdering)
+	OndriksMTBDD(const VarAsgn& asgn, const DataType& value,
+		const DataType& defaultValue, const PermutationTablePtr& varOrdering) :
+		root_(static_cast<uintptr_t>(0)),
+		defaultValue_(defaultValue),
+		varOrdering_(varOrdering)
 	{
-		if (asgn.VariablesCount() > varOrdering->size())
-		{
-			throw std::runtime_error(
-				"Variable assignment contains variables with an unknown ordering");
-		}
+		assert(asgn.VariablesCount() > varOrdering->size());
 
 		// create the MTBDD
 		root_ = constructMTBDD(asgn, value, defaultValue_, varOrdering_);
@@ -436,7 +430,7 @@ public:   // public methods
 	 *
 	 * @return  Value corresponding to variable assignment @p asgn
 	 */
-	const DataType& GetValue(const VariableAssignment& asgn) const
+	const DataType& GetValue(const VarAsgn& asgn) const
 	{
 		NodePtrType node = root_;
 
@@ -444,7 +438,7 @@ public:   // public methods
 		{	// try to proceed according to the assignment
 			const VarType& var = GetVarFromInternal(node);
 
-			if (asgn.GetIthVariableValue(var) == VariableAssignment::ONE)
+			if (asgn.GetIthVariableValue(var) == VarAsgn::ONE)
 			{	// if one
 				node = GetHighFromInternal(node);
 			}
