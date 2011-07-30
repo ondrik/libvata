@@ -77,6 +77,16 @@ private:  // data types
 
 			return --refcnt_;
 		}
+
+		inline const MTBDD& GetMTBDD() const
+		{
+			return bdd_;
+		}
+
+		inline void SetMTBDD(const MTBDD& bdd)
+		{
+			bdd_ = bdd;
+		}
 	};
 
 	typedef std::tr1::unordered_map<StateType, StateCell> StateHashTable;
@@ -107,12 +117,24 @@ public:   // methods
 
 	inline const MTBDD& GetMtbdd(const StateType& state) const
 	{
-		assert(false);
+		typename StateHashTable::const_iterator itHt;
+		if ((itHt = stateCellMap_.find(state)) == stateCellMap_.end())
+		{	// in case we are trying to access some nonsense
+			assert(false);      // fail gracefully
+		}
+
+		return (itHt->second).GetMTBDD();
 	}
 
-	inline void SetMtbdd(const StateType& state, const MTBDD& bdd) const
+	inline void SetMtbdd(const StateType& state, const MTBDD& bdd)
 	{
-		assert(false);
+		typename StateHashTable::iterator itHt;
+		if ((itHt = stateCellMap_.find(state)) == stateCellMap_.end())
+		{	// in case we are trying to access some nonsense
+			assert(false);      // fail gracefully
+		}
+
+		(itHt->second).SetMTBDD(bdd);
 	}
 
 	inline void IncrementStateRefCnt(const StateType& state)
