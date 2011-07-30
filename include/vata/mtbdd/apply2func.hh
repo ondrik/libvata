@@ -193,10 +193,10 @@ private:  // Private methods
 
 public:   // Public methods
 
-	AbstractApply2Functor()
-		: mtbdd1_(static_cast<MTBDD1Type*>(0)),
-			mtbdd2_(static_cast<MTBDD2Type*>(0)),
-			ht()
+	AbstractApply2Functor() :
+		mtbdd1_(static_cast<MTBDD1Type*>(0)),
+		mtbdd2_(static_cast<MTBDD2Type*>(0)),
+		ht()
 	{ }
 
 	MTBDDOutType operator()(const MTBDD1Type& mtbdd1, const MTBDD2Type& mtbdd2)
