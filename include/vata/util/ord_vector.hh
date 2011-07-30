@@ -87,16 +87,16 @@ private:  // Private methods
 
 public:   // Public methods
 
-	OrdVector()
-		: vec_()
+	OrdVector() :
+		vec_()
 	{
 		// Assertions
 		assert(vectorIsSorted());
 	}
 
 
-	explicit OrdVector(const VectorType& vec)
-		: vec_(vec)
+	explicit OrdVector(const VectorType& vec) :
+		vec_(vec)
 	{
 		// sort
 		std::sort(vec_.begin(), vec_.end());
@@ -105,6 +105,13 @@ public:   // Public methods
 		typename VectorType::iterator it = std::unique(vec_.begin(), vec_.end());
 		vec_.resize(it - vec_.begin());
 
+		// Assertions
+		assert(vectorIsSorted());
+	}
+
+	explicit OrdVector(const Key& key) :
+		vec_(1, key)
+	{
 		// Assertions
 		assert(vectorIsSorted());
 	}
