@@ -53,11 +53,12 @@ bison_target(timbuk_parser timbuk.y ${CMAKE_CURRENT_BINARY_DIR}/timbuk.y.cc)
 add_flex_bison_dependency(timbuk_scanner timbuk_parser)
 
 add_library(vatalib STATIC
+  bdd_tree_aut.cc
   convert.cc
+  fake_file.cc
   timbuk_parser.cc
   timbuk_serializer.cc
-  fake_file.cc
-  bdd_tree_aut.cc
+  var_asgn.cc
   ${FLEX_timbuk_scanner_OUTPUTS}
   ${BISON_timbuk_parser_OUTPUTS}
 )
