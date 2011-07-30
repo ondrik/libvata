@@ -208,11 +208,11 @@ public:   // Public methods
 		// clear the cache
 		ht.clear();
 
-		if (mtbdd1_->GetVarOrdering() != mtbdd2_->GetVarOrdering())
-		{	// in case the MTBDDs have a different variable ordering
-			assert(false);
-			// TODO
-		}
+//		if (mtbdd1_->GetVarOrdering() != mtbdd2_->GetVarOrdering())
+//		{	// in case the MTBDDs have a different variable ordering
+//			assert(false);
+//			// TODO
+//		}
 
 		// recursively descend the MTBDD and generate a new one
 		NodeOutPtrType root = recDescend(mtbdd1_->getRoot(), mtbdd2_->getRoot());
