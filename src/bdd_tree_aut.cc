@@ -18,6 +18,20 @@ using VATA::Util::AutDescription;
 using VATA::Util::Convert;
 
 
+// static class data member
+BDDTreeAut::StringToSymbolDict BDDTreeAut::symbolDict_;
+
+
+BDDTreeAut::SymbolType BDDTreeAut::addSymbol()
+{
+	const size_t MAX_SYMBOL_SIZE = 64;
+
+	static SymbolType nextSymbol(MAX_SYMBOL_SIZE, 0);
+
+	return nextSymbol++;
+}
+
+
 void BDDTreeAut::copyStates(const BDDTreeAut& src)
 {
 	// Assertions
@@ -33,18 +47,27 @@ void BDDTreeAut::copyStates(const BDDTreeAut& src)
 }
 
 
+void BDDTreeAut::addSimplyTransition(const StateTuple& children, const SymbolType& symbol,
+	const StateType& parent)
+{
+	// Assertions
+	assert(isValid());
+
+	UnionApplyFunctor unioner;
+
+	const MTBDD& oldMtbdd = getMtbdd(parent);
+	MTBDD addedMtbdd(symbol, StateTupleSet(children), StateTupleSet());
+	setMtbdd(parent, unioner(oldMtbdd, addedMtbdd));
+
+	assert(isValid());
+}
+
+
+void BDDTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
+	StringToStateDict* pStateDict)
 {
 	// Assertions
 	assert(hasEmptyStateSet());
-
-	bool delStateDict = false;
-	if (pStateDict == static_cast<StringToStateDict*>(0))
-	{	// in case we do not wish to retain the string-to-state dictionary
-		delStateDict = true;
-		pStateDict = new StringToStateDict();
-	}
-
-	AutDescription desc = parser.ParseString(str);
 
 	for (AutDescription::StateSet::const_iterator itFst =
 		desc.finalStates.begin(); itFst != desc.finalStates.end(); ++itFst)
@@ -61,12 +84,12 @@ void BDDTreeAut::copyStates(const BDDTreeAut& src)
 	for (AutDescription::TransitionSet::const_iterator itTr =
 		desc.transitions.begin(); itTr != desc.transitions.end(); ++itTr)
 	{	// traverse the transitions
-		const std::vector<std::string>& children = itTr->first;
+		const AutDescription::StateTuple& childrenStr = itTr->first;
 		const std::string& symbolStr = itTr->second;
-		const std::string& parentStr = itTr->third;
+		const AutDescription::State& parentStr = itTr->third;
 
+		// translate the parent state
 		StateType parent;
-
 		StringToStateDict::ConstIteratorFwd itSt;
 		if ((itSt = pStateDict->FindFwd(parentStr)) != pStateDict->EndFwd())
 		{	// in case the state name is known

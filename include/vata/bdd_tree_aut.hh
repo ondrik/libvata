@@ -31,7 +31,7 @@ class VATA::BDDTreeAut
 {
 public:   // public data types
 
-	typedef VATA::MTBDDPkg::VariableAssignment SymbolType;
+	typedef VATA::MTBDDPkg::VarAsgn SymbolType;
 
 private:  // private data types
 
@@ -47,70 +47,31 @@ private:  // private data types
 
 	typedef std::tr1::shared_ptr<TransitionTable> TransitionTablePtr;
 
-//	struct StateContainer
-//	{
-//	private:  // data members
-//
-//		MTBDD bdd_;
-//		size_t refcnt_;
-//
-//	private:  // methods
-//
-//		StateContainer()
-//			: bdd_(StateSet()),
-//				refcnt_(1)
-//		{ }
-//
-//		static inline StateType ToStateType(StateContainer* sc)
-//		{
-//			// Assertions
-//			assert(sc != static_cast<StateContainer*>(0));
-//
-//			return reinterpret_cast<StateType>(sc);
-//		}
-//
-//		static inline StateContainer* ToContainer(StateType st)
-//		{
-//			// Assertions
-//			assert(st != 0);
-//
-//			return reinterpret_cast<StateContainer*>(st);
-//		}
-//
-//	public:   // methods
-//
-//		static inline StateContainer* Create()
-//		{
-//			return new StateContainer();
-//		}
-//
-//		static inline void IncrementRefCnt(StateType st)
-//		{
-//			// Assertions
-//			assert(st != 0);
-//			assert(ToContainer(st)->refcnt_ > 0);
-//
-//			++(ToContainer(st)->refcnt_);
-//		}
-//
-//		static inline void DecrementRefCnt(StateType st)
-//		{
-//			// Assertions
-//			assert(st != 0);
-//			assert(ToContainer(st)->refcnt_ > 0);
-//
-//			if (--(ToContainer(st)->refcnt_) == 0)
-//			{	// in case there is no one else having this state
-//				delete ToContainer(st);
-//			}
-//		}
-//	};
+	typedef VATA::Util::AutDescription AutDescription;
+
+	typedef VATA::Util::TwoWayDict<std::string, SymbolType> StringToSymbolDict;
+
+	class UnionApplyFunctor :
+		public VATA::MTBDDPkg::AbstractApply2Functor<StateTupleSet,
+		StateTupleSet, StateTupleSet>
+	{
+	public:
+
+		virtual StateTupleSet ApplyOperation(const StateTupleSet& lhs,
+			const StateTupleSet& rhs)
+		{
+			return lhs.Union(rhs);
+		}
+	};
+
 
 private:  // private data members
 
 	StateVector states_;
 	StateVector finalStates_;
 	TransitionTablePtr transTable_;
+
+	static StringToSymbolDict symbolDict_;
 
 private:  // private methods
 
@@ -131,6 +92,8 @@ private:  // private methods
 	}
 
 	void copyStates(const BDDTreeAut& src);
+
+	static SymbolType addSymbol();
 
 	inline const MTBDD& getMtbdd(const StateType& state) const
 	{
@@ -162,6 +125,9 @@ private:  // private methods
 	void loadFromAutDescSymbolic(const AutDescription& desc,
 		StringToStateDict* pStateDict);
 
+	void addSimplyTransition(const StateTuple& children, const SymbolType& symbol,
+		const StateType& parent);
+
 	static bool haveDisjointStateSets(const BDDTreeAut& lhs, const BDDTreeAut& rhs);
 
 	// TODO: put this somewhere else
@@ -172,16 +138,6 @@ private:  // private methods
 //		assert(lhs.isValid());
 //		assert(rhs.isValid());
 //		assert(haveDisjointStateSets(lhs, rhs));
-//
-//		class UnionApplyFunctor
-//			: public VATA::MTBDDPkg::AbstractApply2Functor<StateTupleSet, StateTupleSet, StateTupleSet>
-//		{
-//		public:
-//			virtual StateTupleSet ApplyOperation(const StateTupleSet& lhs, const StateTupleSet& rhs)
-//			{
-//				return lhs.Union(rhs);
-//			}
-//		};
 //
 //		BDDTreeAut* result = new BDDTreeAut(lhs);
 //		result->copyStates(rhs);
@@ -246,7 +202,13 @@ public:   // public methods
 	void AddTransition(const StateTuple& children, const SymbolType& sym,
 		const StateType& state)
 	{
+		// Assertions
 		assert(isValid());
+
+
+
+
+
 
 		assert(false);
 	}
