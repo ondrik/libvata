@@ -126,6 +126,12 @@ private:  // private methods
 	void loadFromAutDescSymbolic(const AutDescription& desc,
 		StringToStateDict* pStateDict);
 
+	AutDescription dumpToAutDescExplicit(
+		const StringToStateDict* pStateDict) const;
+
+	AutDescription dumpToAutDescSymbolic(
+		const StringToStateDict* pStateDict) const;
+
 	void addSimplyTransition(const StateTuple& children, const SymbolType& symbol,
 		const StateType& parent);
 
@@ -190,7 +196,8 @@ public:   // public methods
 		const std::string& params = "");
 
 	virtual std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
-		StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0));
+		const StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0),
+		const std::string& params = "") const;
 
 	inline StateType AddState()
 	{

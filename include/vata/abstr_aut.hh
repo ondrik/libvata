@@ -39,7 +39,8 @@ public:   // methods
 		const std::string& params = "") = 0;
 
 	virtual std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
-		StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0)) = 0;
+		const StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0),
+		const std::string& params = "") const = 0;
 
 	virtual ~AbstrAut()
 	{	}

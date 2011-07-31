@@ -11,6 +11,7 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_tree_aut.hh>
+#include <vata/mtbdd/void_apply2func.hh>
 
 using VATA::BDDTreeAut;
 using VATA::Parsing::AbstrParser;
@@ -55,8 +56,8 @@ void BDDTreeAut::addSimplyTransition(const StateTuple& children, const SymbolTyp
 
 	UnionApplyFunctor unioner;
 
-	const MTBDD& oldMtbdd = getMtbdd(parent);
-	MTBDD addedMtbdd(symbol, StateTupleSet(children), StateTupleSet());
+	const TransMTBDD& oldMtbdd = getMtbdd(parent);
+	TransMTBDD addedMtbdd(symbol, StateTupleSet(children), StateTupleSet());
 	setMtbdd(parent, unioner(oldMtbdd, addedMtbdd));
 
 	assert(isValid());
@@ -198,19 +199,7 @@ std::string BDDTreeAut::DumpToString(
 
 	AutDescription desc;
 
-	for (StateVector::const_iterator itSt = states_.begin();
-		itSt != states_.end(); ++itSt)
-	{	// copy states
-		if (translateStates)
-		{	// if there is a dictionary, use it
-			desc.states.insert(pStateDict->TranslateBwd(*itSt));
-		}
-		else
-		{	// if there is not a dictionary, generate strings
-			desc.states.insert(Convert::ToString(*itSt));
-		}
-	}
-
+	// copy final states
 	for (StateVector::const_iterator itSt = finalStates_.begin();
 		itSt != finalStates_.end(); ++itSt)
 	{	// copy final states
@@ -222,6 +211,87 @@ std::string BDDTreeAut::DumpToString(
 		{	// if there is not a dictionary, generate strings
 			desc.finalStates.insert(Convert::ToString(*itSt));
 		}
+	}
+
+	CondColApplyFunctor collector;
+
+	// copy states, transitions and symbols
+	for (StateVector::const_iterator itSt = states_.begin();
+		itSt != states_.end(); ++itSt)
+	{	// for all states
+		const StateType& state = *itSt;
+		std::string stateStr;
+
+		// copy the state
+		if (translateStates)
+		{	// if there is a dictionary, use it
+			stateStr = pStateDict->TranslateBwd(state);
+		}
+		else
+		{	// if there is not a dictionary, generate strings
+			stateStr = Convert::ToString(state);
+		}
+
+		desc.states.insert(stateStr);
+
+		const TransMTBDD& transMtbdd = getMtbdd(state);
+
+		for (StringToSymbolDict::ConstIteratorFwd itSym = symbolDict_.BeginFwd();
+			itSym != symbolDict_.EndFwd(); ++itSym)
+		{	// iterate over all known symbols
+			const std::string& symbol = itSym->first;
+			BDD symbolBdd(itSym->second, true, false);
+
+			collector.Clear();
+			collector(transMtbdd, symbolBdd);
+
+			for (CondColApplyFunctor::AccumulatorType::const_iterator itCol =
+				collector.GetAccumulator().begin();
+				itCol != collector.GetAccumulator().end(); ++itCol)
+			{	// for each state tuple for which there is a transition
+				const StateTuple& tuple = *itCol;
+
+				std::vector<std::string> tupleStr;
+				for (StateTuple::const_iterator itTup = tuple.begin();
+					itTup != tuple.end(); ++itTup)
+				{	// for each element in the tuple
+					if (translateStates)
+					{	// if there is a dictionary, use it
+						tupleStr.push_back(pStateDict->TranslateBwd(state));
+					}
+					else
+					{	// if there is not a dictionary, generate strings
+						tupleStr.push_back(Convert::ToString(state));
+					}
+				}
+
+				desc.transitions.insert(AutDescription::Transition(tupleStr, symbol,
+					stateStr));
+			}
+		}
+	}
+
+	return desc;
+}
+
+AutDescription BDDTreeAut::dumpToAutDescSymbolic(
+	const StringToStateDict* pStateDict) const
+{
+	assert(false);
+}
+
+std::string BDDTreeAut::DumpToString(
+	VATA::Serialization::AbstrSerializer& serializer,
+	const StringToStateDict* pStateDict, const std::string& params) const
+{
+	AutDescription desc;
+	if (params == "symbolic")
+	{
+		desc = dumpToAutDescSymbolic(pStateDict);
+	}
+	else
+	{
+		desc = dumpToAutDescExplicit(pStateDict);
 	}
 
 	return serializer.Serialize(desc);
