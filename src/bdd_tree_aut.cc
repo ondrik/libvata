@@ -112,7 +112,7 @@ void BDDTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
 			StringToStateDict::ConstIteratorFwd itSt;
 			if ((itSt = pStateDict->FindFwd(*itTup)) != pStateDict->EndFwd())
 			{	// in case the state name is known
-				parent = itSt->second;
+				child = itSt->second;
 			}
 			else
 			{	// in case there is no translation for the state name
@@ -288,11 +288,11 @@ AutDescription BDDTreeAut::dumpToAutDescExplicit(
 				{	// for each element in the tuple
 					if (translateStates)
 					{	// if there is a dictionary, use it
-						tupleStr.push_back(pStateDict->TranslateBwd(state));
+						tupleStr.push_back(pStateDict->TranslateBwd(*itTup));
 					}
 					else
 					{	// if there is not a dictionary, generate strings
-						tupleStr.push_back(Convert::ToString(state));
+						tupleStr.push_back(Convert::ToString(*itTup));
 					}
 				}
 
