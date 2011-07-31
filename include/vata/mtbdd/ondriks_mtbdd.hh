@@ -36,6 +36,24 @@ namespace VATA
 			typename Data
 		>
 		class OndriksMTBDD;
+
+		template <typename, typename>
+		class AbstractApply1Functor;
+
+		template <typename, typename, typename>
+		class AbstractApply2Functor;
+
+		template <typename, typename, typename, typename>
+		class AbstractApply3Functor;
+
+		template <typename>
+		class AbstractVoidApply1Functor;
+
+		template <typename, typename>
+		class AbstractVoidApply2Functor;
+
+		template <typename, typename, typename>
+		class AbstractVoidApply3Functor;
 	}
 }
 
@@ -63,6 +81,15 @@ class VATA::MTBDDPkg::OndriksMTBDD
 
 	template <typename, typename, typename, typename>
 	friend class AbstractApply3Functor;
+
+	template <typename>
+	friend class AbstractVoidApply1Functor;
+
+	template <typename, typename>
+	friend class AbstractVoidApply2Functor;
+
+	template <typename, typename, typename>
+	friend class AbstractVoidApply3Functor;
 
 public:   // public data types
 
