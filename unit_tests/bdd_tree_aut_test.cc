@@ -92,8 +92,10 @@ BOOST_AUTO_TEST_CASE(import_export)
 		AutDescription descOrig = parser.ParseString(IMPORT_EXPORT_TEST_CASES[i]);
 		AutDescription descOut = parser.ParseString(autOut);
 
-		BOOST_CHECK_MESSAGE(descOrig == descOut, "Error while checking \n" +
-			std::string(IMPORT_EXPORT_TEST_CASES[i]) + "\n\nGot:\n" + autOut);
+		BOOST_CHECK_MESSAGE(descOrig == descOut,
+			"\n\nExpecting:\n===========\n" +
+			std::string(IMPORT_EXPORT_TEST_CASES[i]) +
+			"===========\n\nGot:\n===========\n" + autOut + "\n===========");
 	}
 }
 
