@@ -158,7 +158,7 @@ public:   // Public methods
 		DataOutType defaultValue = ApplyOperation(mtbdd1_->GetDefaultValue());
 
 		// wrap it all up
-		return MTBDDOutType(root, defaultValue, mtbdd1_->GetVarOrdering());
+		return MTBDDOutType(root, defaultValue);
 	}
 
 	virtual DataOutType ApplyOperation(const Data1Type& data1) = 0;

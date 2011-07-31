@@ -95,15 +95,6 @@ private:  // private data members
 
 	DataType defaultValue_;
 
-	/**
-	 * @brief  Permutation table representing variable ordering
-	 *
-	 * The table gives variable ordering. Semantics is that at index @p i there
-	 * is the @p i -th variable. The ordering is bottom-up, i.e., MTBDD node
-	 * labelled with variable 0 is directly above a leaf.
-	 */
-	PermutationTablePtr varOrdering_;
-
 	static LeafCacheType leafCache_;
 	static InternalCacheType internalCache_;
 
@@ -114,22 +105,19 @@ private:  // private methods
 	/**
 	 * @brief  Function for constructing an MTBDD
 	 *
-	 * This function is used for constructing a new MTBDD according to the given
-	 * variable ordering @p varOrdering, such that the variable assignment @p
-	 * asgn is set to @p value and all other assignments are set to @p
-	 * defaultValue.
+	 * This function is used for constructing a new MTBDD, such that the
+	 * variable assignment @p asgn is set to @p value and all other assignments
+	 * are set to @p defaultValue.
 	 *
 	 * @param  asgn          Variable assignment to be set to @p value
 	 * @param  value         Value to be set for assignment @p asgn
 	 * @param  defaultValue  Value to be set for all assignments other than @p
 	 *                       asgn
-	 * @param  varOrdering   Ordering of variables
 	 *
 	 * @return  The constructed MTBDD
 	 */
 	static NodePtrType constructMTBDD(const VarAsgn& asgn,
-		const DataType& value, const DataType& defaultValue,
-		const PermutationTablePtr& varOrdering)
+		const DataType& value, const DataType& defaultValue)
 	{
 		// the leaf with the desired value
 		NodePtrType leaf = spawnLeaf(value);
@@ -146,9 +134,9 @@ private:  // private methods
 		// working node
 		NodePtrType node = leaf;
 
-		for (size_t i = 0; i < varOrdering->size(); ++i)
+		for (size_t i = 0; i < asgn.VariablesCount(); ++i)
 		{	// construct the MTBDD according to the variable ordering
-			VarType var =	(*varOrdering)[i];
+			VarType var =	i;
 			if (asgn.GetIthVariableValue(var) == VarAsgn::ONE)
 			{	// in case the variable is 1
 				node = spawnInternal(sink, node, var);
@@ -174,11 +162,9 @@ private:  // private methods
 		return node;
 	}
 
-	OndriksMTBDD(NodePtrType root, const DataType& defaultValue,
-		const PermutationTablePtr& varOrdering) :
+	OndriksMTBDD(NodePtrType root, const DataType& defaultValue) :
 		root_(root),
-		defaultValue_(defaultValue),
-		varOrdering_(varOrdering)
+		defaultValue_(defaultValue)
 	{
 		// Assertions
 		assert(!IsNull(root_));
@@ -301,67 +287,29 @@ public:   // public methods
 
 
 	/**
-	 * @brief  Constructor with default variable ordering
-	 *
-	 * This constructor creates a new MTBDD with the default variable ordering,
-	 * such that the variable assignment @p asgn is set to @p value and all
-	 * other assignments are set to @p defaultValue.
-	 *
-	 * @param  asgn          Variable assignment to be set to @p value
-	 * @param  value         Value to be set for assignment @p asgn
-	 * @param  defaultValue  Value to be set for all assignments other than @p
-	 *                       asgn
-	 */
-	OndriksMTBDD(const VarAsgn& asgn,
-		const DataType& value, const DataType& defaultValue) :
-		root_(static_cast<uintptr_t>(0)),
-		defaultValue_(defaultValue),
-		varOrdering_(static_cast<PermutationTable*>(0))
-	{
-		// create the variable permutation table (the variable ordering)
-		PermutationTable* varOrd = new PermutationTable(asgn.VariablesCount());
-
-		for (size_t i = 0; i < varOrd->size(); ++i)
-		{	// fill the permutation table with the natural ordering
-			(*varOrd)[i] = i;
-		}
-
-		varOrdering_.reset(varOrd);
-
-		// create the MTBDD
-		root_ = constructMTBDD(asgn, value, defaultValue_, varOrdering_);
-	}
-
-
-	/**
 	 * @brief  Constructor with given variable ordering
 	 *
-	 * This constructor creates a new MTBDD with the variable ordering given as
-	 * @p varOrdering, such that the variable assignment @p asgn is set to @p
-	 * value and all other assignments are set to @p defaultValue.
+	 * This constructor creates a new MTBDD , such that the variable assignment
+	 * @p asgn is set to @p value and all other assignments are set to @p
+	 * defaultValue.
 	 *
 	 * @param  asgn          Variable assignment to be set to @p value
 	 * @param  value         Value to be set for assignment @p asgn
 	 * @param  defaultValue  Value to be set for all assignments other than @p
 	 *                       asgn
-	 * @param  varOrdering   Ordering of variables
 	 */
 	OndriksMTBDD(const VarAsgn& asgn, const DataType& value,
-		const DataType& defaultValue, const PermutationTablePtr& varOrdering) :
+		const DataType& defaultValue) :
 		root_(static_cast<uintptr_t>(0)),
-		defaultValue_(defaultValue),
-		varOrdering_(varOrdering)
+		defaultValue_(defaultValue)
 	{
-		assert(asgn.VariablesCount() > varOrdering->size());
-
 		// create the MTBDD
-		root_ = constructMTBDD(asgn, value, defaultValue_, varOrdering_);
+		root_ = constructMTBDD(asgn, value, defaultValue_);
 	}
 
 	OndriksMTBDD(const OndriksMTBDD& mtbdd)
 		: root_(mtbdd.root_),
-			defaultValue_(mtbdd.defaultValue_),
-			varOrdering_(mtbdd.varOrdering_)
+			defaultValue_(mtbdd.defaultValue_)
 	{
 		// Assertions
 		assert(!IsNull(root_));
@@ -371,8 +319,7 @@ public:   // public methods
 
 	explicit OndriksMTBDD(const DataType& value)
 		: root_(spawnLeaf(value)),
-			defaultValue_(value),
-			varOrdering_(static_cast<PermutationTable*>(0))
+			defaultValue_(value)
 	{
 		// Assertions
 		assert(!IsNull(root_));
@@ -396,7 +343,6 @@ public:   // public methods
 		IncrementRefCnt(root_);
 
 		defaultValue_ = mtbdd.defaultValue_;
-		varOrdering_ = mtbdd.varOrdering_;
 
 		return *this;
 	}
@@ -404,16 +350,6 @@ public:   // public methods
 	inline const DataType& GetDefaultValue() const
 	{
 		return defaultValue_;
-	}
-
-	inline size_t MaxHeight() const
-	{
-		return varOrdering_.size();
-	}
-
-	inline const PermutationTablePtr& GetVarOrdering() const
-	{
-		return varOrdering_;
 	}
 
 	/**

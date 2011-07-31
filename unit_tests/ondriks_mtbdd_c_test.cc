@@ -358,7 +358,7 @@ protected:// protected methods
 			DataType leafValue = static_cast<DataType>(prsRes.first);
 			VarAsgn asgn = varListToAsgn(prsRes.second);
 
-			MTBDD tmp(asgn, leafValue, DEFAULT_DATA_VALUE, bdd.GetVarOrdering());
+			MTBDD tmp(asgn, leafValue, DEFAULT_DATA_VALUE);
 			bdd = copyFunc(bdd, tmp);
 		}
 

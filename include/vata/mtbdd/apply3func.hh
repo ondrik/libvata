@@ -257,13 +257,6 @@ public:   // Public methods
 		// clear the cache
 		ht.clear();
 
-		if ((mtbdd1_->GetVarOrdering() != mtbdd2_->GetVarOrdering()) ||
-			(mtbdd1_->GetVarOrdering() != mtbdd3_->GetVarOrdering()))
-		{	// in case the MTBDDs have a different variable ordering
-			assert(false);
-			// TODO
-		}
-
 		// recursively descend the MTBDD and generate a new one
 		NodeOutPtrType root = recDescend(mtbdd1_->getRoot(), mtbdd2_->getRoot(),
 			mtbdd3_->getRoot());
@@ -274,7 +267,7 @@ public:   // Public methods
 			mtbdd2_->GetDefaultValue(), mtbdd3_->GetDefaultValue());
 
 		// wrap it all up
-		return MTBDDOutType(root, defaultValue, mtbdd1_->GetVarOrdering());
+		return MTBDDOutType(root, defaultValue);
 	}
 
 	virtual DataOutType ApplyOperation(
