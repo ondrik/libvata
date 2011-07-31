@@ -187,10 +187,41 @@ void BDDTreeAut::LoadFromString(AbstrParser& parser, const std::string& str,
 }
 
 
-std::string BDDTreeAut::DumpToString(
-	VATA::Serialization::AbstrSerializer& serializer,
-	StringToStateDict* pStateDict)
+AutDescription BDDTreeAut::dumpToAutDescExplicit(
+	const StringToStateDict* pStateDict) const
 {
+	class CondColApplyFunctor :
+		public VATA::MTBDDPkg::AbstractVoidApply2Functor<StateTupleSet, bool>
+	{
+	public:   // data types
+
+		typedef std::list<StateTuple> AccumulatorType;
+
+	private:  // data members
+
+		AccumulatorType accumulator_;
+
+	public:
+
+		inline const AccumulatorType& GetAccumulator() const
+		{
+			return accumulator_;
+		}
+
+		inline void Clear()
+		{
+			accumulator_.clear();
+		}
+
+		virtual void ApplyOperation(const StateTupleSet& lhs, const bool& rhs)
+		{
+			if (rhs)
+			{
+				accumulator_.insert(accumulator_.end(), lhs.begin(), lhs.end());
+			}
+		}
+	};
+
 	bool translateStates = false;
 	if (pStateDict != static_cast<StringToStateDict*>(0))
 	{	// in case there is provided dictionary
