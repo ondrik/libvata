@@ -14,6 +14,7 @@
 // VATA headers
 #include	<vata/vata.hh>
 #include	<vata/mtbdd/ondriks_mtbdd.hh>
+#include	<vata/mtbdd/classify_case.hh>
 
 // Standard library headers
 #include  <tr1/unordered_set>
@@ -73,44 +74,10 @@ private:  // Private data members
 
 	CacheHashTable ht;
 
-	static const char NODE1MASK = 0x01;  // 00000001
-	static const char NODE2MASK = 0x02;  // 00000010
-
 private:  // Private methods
 
 	AbstractApply2Functor(const AbstractApply2Functor&);
 	AbstractApply2Functor& operator=(const AbstractApply2Functor&);
-
-
-	inline static char classifyCase(const Node1PtrType& node1,
-		const Node2PtrType& node2)
-	{
-		// Assertions
-		assert(!IsNull(node1));
-		assert(!IsNull(node2));
-
-		char result = 0x00;
-
-		if (IsInternal(node1))
-		{	// node1 is internal
-			if (IsLeaf(node2) ||
-				(GetVarFromInternal(node1) >= GetVarFromInternal(node2)))
-			{
-				result |= NODE1MASK;	// branch node1
-			}
-		}
-
-		if (IsInternal(node2))
-		{	// node2 is internal
-			if (IsLeaf(node1) ||
-				(GetVarFromInternal(node2) >= GetVarFromInternal(node1)))
-			{
-				result |= NODE2MASK;	// branch node2
-			}
-		}
-
-		return result;
-	}
 
 	NodeOutPtrType recDescend(const Node1PtrType& node1, const Node2PtrType& node2)
 	{
@@ -126,7 +93,7 @@ private:  // Private methods
 			return itHt->second;
 		}
 
-		char relation = classifyCase(node1, node2);
+		char relation = classifyCase2(node1, node2);
 		assert((relation & ~(NODE1MASK | NODE2MASK)) == 0x00);
 
 		if (!relation)
