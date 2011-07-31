@@ -38,14 +38,15 @@ private:  // private data types
 	typedef std::vector<StateType> StateTuple;
 	typedef VATA::Util::OrdVector<StateTuple> StateTupleSet;
 
-	typedef VATA::MTBDDPkg::OndriksMTBDD<StateTupleSet> MTBDD;
+	typedef VATA::MTBDDPkg::OndriksMTBDD<StateTupleSet> TransMTBDD;
+	typedef VATA::MTBDDPkg::OndriksMTBDD<bool> BDD;
 
 	typedef std::vector<StateType> StateVector;
 
 	typedef VATA::Util::TDBDDTransTable< StateType, VATA::Util::OrdVector>
-		TransitionTable;
+		TransTable;
 
-	typedef std::tr1::shared_ptr<TransitionTable> TransitionTablePtr;
+	typedef std::tr1::shared_ptr<TransTable> TransTablePtr;
 
 	typedef VATA::Util::AutDescription AutDescription;
 
@@ -69,7 +70,7 @@ private:  // private data members
 
 	StateVector states_;
 	StateVector finalStates_;
-	TransitionTablePtr transTable_;
+	TransTablePtr transTable_;
 
 	static StringToSymbolDict symbolDict_;
 
@@ -83,7 +84,7 @@ private:  // private methods
 			return false;
 		}
 
-		if (transTable_.get() == static_cast<TransitionTable*>(0))
+		if (transTable_.get() == static_cast<TransTable*>(0))
 		{	// in case the transition table pointer is bad
 			return false;
 		}
@@ -95,7 +96,7 @@ private:  // private methods
 
 	static SymbolType addSymbol();
 
-	inline const MTBDD& getMtbdd(const StateType& state) const
+	inline const TransMTBDD& getMtbdd(const StateType& state) const
 	{
 		// Assertions
 		assert(isValid());
@@ -103,7 +104,7 @@ private:  // private methods
 		return transTable_->GetMtbdd(state);
 	}
 
-	inline void setMtbdd(const StateType& state, const MTBDD& mtbdd)
+	inline void setMtbdd(const StateType& state, const TransMTBDD& mtbdd)
 	{
 		// Assertions
 		assert(isValid());
@@ -159,13 +160,13 @@ public:   // public methods
 	BDDTreeAut() :
 		states_(),
 		finalStates_(),
-		transTable_(new TransitionTable)
+		transTable_(new TransTable)
 	{
 		// Assertions
 		assert(isValid());
 	}
 
-	BDDTreeAut(TransitionTablePtr transTable) :
+	BDDTreeAut(TransTablePtr transTable) :
 		states_(),
 		finalStates_(),
 		transTable_(transTable)
