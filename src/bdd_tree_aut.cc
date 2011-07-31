@@ -203,6 +203,10 @@ AutDescription BDDTreeAut::dumpToAutDescExplicit(
 
 	public:
 
+		CondColApplyFunctor() :
+			accumulator_()
+		{ }
+
 		inline const AccumulatorType& GetAccumulator() const
 		{
 			return accumulator_;
