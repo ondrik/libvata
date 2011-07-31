@@ -12,8 +12,8 @@ add_definitions(-Wctor-dtor-privacy)
 add_definitions(-Weffc++)
 add_definitions(-Wold-style-cast)
 add_definitions(-Woverloaded-virtual)
-add_definitions(-finline-functions)
 add_definitions(-fdiagnostics-show-option)
+add_definitions(-finline-functions)
 add_definitions(-O2)
 add_definitions(-march=core2)
 add_definitions(-mtune=core2)
@@ -23,10 +23,6 @@ add_definitions(-g)
 # uncomment for profiling
 #add_definitions(-pg)
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
-
-find_package(Log4CPP REQUIRED)
-#find_package(Loki REQUIRED)                # no longer necessary
-find_package(Boost 1.42.0 COMPONENTS unit_test_framework REQUIRED)
 
 include_directories(../include)
 
@@ -44,11 +40,10 @@ set(TESTS
 foreach (TEST ${TESTS})
 	add_executable(${TEST} ${TEST}.cc)
 
-	target_link_libraries(${TEST} vatalib)
+	target_link_libraries(${TEST} vata)
 	target_link_libraries(${TEST} tests)
 	target_link_libraries(${TEST} ${LOG4CPP_LIBRARIES})
 	target_link_libraries(${TEST} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
-	target_link_libraries(${TEST} ${LOKI_LIBRARY})
 
 	add_test(${TEST} ${CMAKE_CURRENT_BINARY_DIR}/${TEST})
 endforeach(TEST)

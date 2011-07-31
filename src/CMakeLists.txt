@@ -14,13 +14,13 @@ set(flex_bison_compiler_flags_list
   -Wctor-dtor-privacy
   -Weffc++
   -Woverloaded-virtual
-  -finline-functions
   -fdiagnostics-show-option
+  -g
+  -finline-functions
   -O2
   -march=core2
   -mtune=core2
   -msse2
-  -g
 )
 
 set(vata_compiler_add_flags_list
@@ -41,18 +41,13 @@ endforeach(param)
 #add_definitions(-pg)
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 
-find_package(Log4CPP REQUIRED)
-#find_package(Loki REQUIRED)               # no longer necessary
-find_package(FLEX REQUIRED)
-find_package(BISON REQUIRED)
-
 include_directories(../include)
 
 flex_target(timbuk_scanner timbuk.l ${CMAKE_CURRENT_BINARY_DIR}/timbuk.l.cc)
 bison_target(timbuk_parser timbuk.y ${CMAKE_CURRENT_BINARY_DIR}/timbuk.y.cc)
 add_flex_bison_dependency(timbuk_scanner timbuk_parser)
 
-add_library(vatalib STATIC
+add_library(vata STATIC
   bdd_tree_aut.cc
   convert.cc
   fake_file.cc
@@ -92,5 +87,4 @@ endforeach()
 
 #target_link_libraries(vata vatalib)
 #target_link_libraries(vata ${LOG4CPP_LIBRARIES})
-#target_link_libraries(vata ${LOKI_LIBRARY})
 #target_link_libraries(vata rt)
