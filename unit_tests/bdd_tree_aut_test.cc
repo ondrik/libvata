@@ -50,7 +50,18 @@ const char* AUT_A2 =
 	"a -> p\n"
 	;
 
-const char* IMPORT_EXPORT_TEST_CASES[] = {AUT_A1, AUT_A2};
+const char* AUT_A3 =
+	"Ops a:0 b:1 c:2\n"
+	"Automaton A2\n"
+	"States p q\n"
+	"Final States q\n"
+	"Transitions\n"
+	"a -> p\n"
+	"b(p) -> q\n"
+	"c(p, q) -> q\n"
+	;
+
+const char* IMPORT_EXPORT_TEST_CASES[] = {AUT_A1, AUT_A2, AUT_A3};
 const size_t IMPORT_EXPORT_TEST_CASES_SIZE = (sizeof(IMPORT_EXPORT_TEST_CASES) /
 	sizeof(const char*));
 
@@ -62,7 +73,7 @@ const size_t IMPORT_EXPORT_TEST_CASES_SIZE = (sizeof(IMPORT_EXPORT_TEST_CASES) /
 /**
  * @brief  BDDTreeAut testing fixture
  *
- * Fixture for test of BDDTreeAut with characters as leaves.
+ * Fixture for test of BDDTreeAut
  */
 class BDDTreeAutFixture : public LogFixture
 { };
