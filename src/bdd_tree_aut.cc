@@ -117,7 +117,7 @@ void BDDTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
 			else
 			{	// in case there is no translation for the state name
 				child = AddState();
-				states_.push_back(parent);
+				states_.push_back(child);
 				pStateDict->Insert(std::make_pair(*itTup, child));
 			}
 
