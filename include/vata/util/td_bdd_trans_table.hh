@@ -37,6 +37,8 @@ public:   // data types
 
 	typedef State StateType;
 
+	typedef size_t RefCntType;
+
 private:  // data types
 
 	typedef std::vector<StateType> StateTuple;
@@ -46,10 +48,6 @@ private:  // data types
 
 	struct StateCell
 	{
-	public:   // data types
-
-		typedef size_t RefCntType;
-
 	private:  // data members
 
 		MTBDD bdd_;
@@ -86,6 +84,11 @@ private:  // data types
 		inline void SetMTBDD(const MTBDD& bdd)
 		{
 			bdd_ = bdd;
+		}
+
+		inline const RefCntType& GetRefCnt() const
+		{
+			return refcnt_;
 		}
 	};
 
@@ -154,6 +157,17 @@ public:   // methods
 		{	// in case no one uses the state
 			stateCellMap_.erase(itStates);
 		}
+	}
+
+	inline const RefCntType& GetStateRefCnt(const StateType& state) const
+	{
+		typename StateHashTable::const_iterator itStates;
+		if ((itStates = stateCellMap_.find(state)) == stateCellMap_.end())
+		{	// in case the state is not in the hash table
+			assert(false);    // fail gracefully
+		}
+
+		return (itStates->second).GetRefCnt();
 	}
 
 	~TDBDDTransTable()
