@@ -190,6 +190,11 @@ public:   // public methods
 		assert(isValid());
 	}
 
+	inline const StateVector& GetFinalStates() const
+	{
+		return finalStates_;
+	}
+
 	virtual void LoadFromString(VATA::Parsing::AbstrParser& parser,
 		const std::string& str,
 		StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0),
