@@ -43,7 +43,7 @@ const char* AUT_TIMBUK_A3 =
 const char* AUT_TIMBUK_A4 =
 	"Ops\n"
 	"Automaton anonymous\n"
-	"States p:0 q:0\n"
+	"States p q\n"
 	"Final States q\n"
 	"Transitions\n"
 	"a -> p\n"
