@@ -344,6 +344,44 @@ bool BDDTreeAut::haveDisjointStateSets(const BDDTreeAut& lhs,
 }
 
 
+void BDDTreeAut::AddTransition(const StateTuple& children, const SymbolType& sym,
+	const StateType& state)
+{
+	// Assertions
+	assert(isValid());
+
+	// TODO: couldn't this be done only on final states? Are there such
+	// operations that change reference counters for inner states without
+	// changing reference counters of final states?
+
+	// check whether the automaton has some shared states
+	bool isStandalone = true;
+	for (StateVector::const_iterator itSt = states_.begin();
+		itSt != states_.end(); ++itSt)
+	{	// iterate through all states
+		assert(transTable_->GetStateRefCnt(*itSt) > 0);
+
+		if (transTable_->GetStateRefCnt(*itSt) > 1)
+		{	// in case there is some state which is shared
+			isStandalone = false;
+			break;
+		}
+	}
+
+	if (isStandalone)
+	{	// in case the automaton has no shared states
+		addSimplyTransition(children, sym, state);
+	}
+	else
+	{
+		// TODO
+		assert(false);
+	}
+
+	assert(isValid());
+}
+
+
 BDDTreeAut::~BDDTreeAut()
 {
 	// Assertions

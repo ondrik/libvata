@@ -212,19 +212,9 @@ public:   // public methods
 		return transTable_->AddState();
 	}
 
+
 	void AddTransition(const StateTuple& children, const SymbolType& sym,
-		const StateType& state)
-	{
-		// Assertions
-		assert(isValid());
-
-
-
-
-
-
-		assert(false);
-	}
+		const StateType& state);
 
 	~BDDTreeAut();
 };
