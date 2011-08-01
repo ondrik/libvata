@@ -25,37 +25,27 @@ using VATA::Util::Convert;
 
 // testing headers
 #include "log_fixture.hh"
+#include "aut_db.hh"
 
 
 /******************************************************************************
  *                                  Constants                                 *
  ******************************************************************************/
 
-const char* AUT_EMPTY =
-	"Ops\n"
-	"Automaton A1\n"
-	"States\n"
-	"Final States\n"
-	"Transitions\n";
-
-const char* AUT_SIMPLE =
-	"Ops a:0 b:1 c:2\n"
-	"Automaton A1\n"
-	"States p q:0 r\n"
-	"Final States r\n"
-	"Transitions\n"
-	"a -> q\n"
-	"b(q) -> p\n"
-	"c(p, p) -> r\n";
-
-const char* CORRECT_TEST_CASES[] = {AUT_EMPTY, AUT_SIMPLE};
-const size_t CORRECT_TEST_CASES_SIZE = (sizeof(CORRECT_TEST_CASES) /
-	sizeof(const char*));
-
 const char* AUT_FAIL1 = "";
 const char* AUT_FAIL2 = " ";
+const char* AUT_FAIL3 = "Automaton";
+const char* AUT_FAIL4 = "j@#(&$*O!@";
+const char* AUT_FAIL5 = "Ops";
 
-const char* FAILING_TEST_CASES[] = {AUT_FAIL1, AUT_FAIL2};
+const char* FAILING_TEST_CASES[] =
+{
+	AUT_FAIL1,
+	AUT_FAIL2,
+	AUT_FAIL3,
+	AUT_FAIL4,
+	AUT_FAIL5
+};
 const size_t FAILING_TEST_CASES_SIZE = (sizeof(FAILING_TEST_CASES) /
 	sizeof(const char*));
 
@@ -85,14 +75,14 @@ BOOST_AUTO_TEST_CASE(correct_format)
 	TimbukParser parser;
 	TimbukSerializer serializer;
 
-	for (size_t i = 0; i < CORRECT_TEST_CASES_SIZE; ++i)
+	for (size_t i = 0; i < TIMBUK_AUTOMATA_SIZE; ++i)
 	{
-		TimbukParser::AutDescription desc = parser.ParseString(CORRECT_TEST_CASES[i]);
+		TimbukParser::AutDescription desc = parser.ParseString(TIMBUK_AUTOMATA[i]);
 		std::string dumpedStr = serializer.Serialize(desc);
 		TimbukParser::AutDescription secondTimeParsed = parser.ParseString(dumpedStr);
 
 		BOOST_CHECK_MESSAGE(desc == secondTimeParsed, "Error while checking \n" +
-			std::string(CORRECT_TEST_CASES[i]));
+			std::string(TIMBUK_AUTOMATA[i]));
 	}
 }
 
