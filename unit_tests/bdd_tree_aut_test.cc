@@ -15,10 +15,10 @@
 #include <vata/serialization/timbuk_serializer.hh>
 
 using VATA::BDDTreeAut;
-using VATA::Util::Convert;
 using VATA::Parsing::TimbukParser;
 using VATA::Serialization::TimbukSerializer;
 using VATA::Util::AutDescription;
+using VATA::Util::Convert;
 
 // Boost headers
 #define BOOST_TEST_DYN_LINK
@@ -63,12 +63,12 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 
 	for (size_t i = 0; i < TIMBUK_AUTOMATA_SIZE; ++i)
 	{
-		BDDTreeAut aut1;
+		BDDTreeAut aut;
 
 		BDDTreeAut::StringToStateDict stateDict;
-		aut1.LoadFromString(parser, TIMBUK_AUTOMATA[i], &stateDict);
+		aut.LoadFromString(parser, TIMBUK_AUTOMATA[i], &stateDict);
 
-		std::string autOut = aut1.DumpToString(serializer, &stateDict);
+		std::string autOut = aut.DumpToString(serializer, &stateDict);
 
 		AutDescription descOrig = parser.ParseString(TIMBUK_AUTOMATA[i]);
 		AutDescription descOut = parser.ParseString(autOut);
