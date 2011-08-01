@@ -32,10 +32,10 @@ class VATA::BDDTreeAut
 public:   // public data types
 
 	typedef VATA::MTBDDPkg::VarAsgn SymbolType;
+	typedef std::vector<StateType> StateTuple;
 
 private:  // private data types
 
-	typedef std::vector<StateType> StateTuple;
 	typedef VATA::Util::OrdVector<StateTuple> StateTupleSet;
 
 	typedef VATA::MTBDDPkg::OndriksMTBDD<StateTupleSet> TransMTBDD;
