@@ -15,6 +15,7 @@
 #include <vata/serialization/timbuk_serializer.hh>
 
 using VATA::BDDTreeAut;
+using VATA::MTBDDPkg::VarAsgn;
 using VATA::Parsing::TimbukParser;
 using VATA::Serialization::TimbukSerializer;
 using VATA::Util::AutDescription;
@@ -79,6 +80,39 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 			"===========\n\nGot:\n===========\n" + autOut + "\n===========");
 	}
 }
+
+
+BOOST_AUTO_TEST_CASE(adding_transitions)
+{
+	TimbukParser parser;
+	TimbukSerializer serializer;
+
+	BDDTreeAut aut;
+
+	BDDTreeAut::StringToStateDict stateDict;
+	aut.LoadFromString(parser, AUT_TIMBUK_A4, &stateDict);
+
+	// add the following transition: a -> q
+	AutDescription::Transition newTransition(std::vector<std::string>(), "a", "q");
+
+	assert(aut.GetFinalStates().size() == 1);
+	BDDTreeAut::StateType parent = aut.GetFinalStates()[0];
+
+	aut.AddTransition(BDDTreeAut::StateTuple(),
+		BDDTreeAut::TranslateStringToSymbol("a"), parent);
+
+	std::string autOut = aut.DumpToString(serializer, &stateDict);
+	AutDescription descOut = parser.ParseString(autOut);
+
+	AutDescription descCorrect = parser.ParseString(AUT_TIMBUK_A4);
+	descCorrect.transitions.insert(newTransition);
+
+	BOOST_CHECK_MESSAGE(descCorrect == descOut,
+		"\n\nExpecting:\n===========\n" +
+		serializer.Serialize(descCorrect) +
+		"===========\n\nGot:\n===========\n" + autOut + "\n===========");
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
 
