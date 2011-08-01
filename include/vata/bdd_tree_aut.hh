@@ -212,6 +212,10 @@ public:   // public methods
 		return transTable_->AddState();
 	}
 
+	inline static const SymbolType& TranslateStringToSymbol(const std::string& str)
+	{
+		return symbolDict_.TranslateFwd(str);
+	}
 
 	void AddTransition(const StateTuple& children, const SymbolType& sym,
 		const StateType& state);
