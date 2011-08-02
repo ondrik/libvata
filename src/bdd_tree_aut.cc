@@ -78,6 +78,29 @@ void BDDTreeAut::copyStates(const BDDTreeAut& src)
 	assert(isValid());
 }
 
+bool BDDTreeAut::isStandAlone() const
+{
+	// Assertions
+	assert(isValid());
+
+	// TODO: couldn't this be done only on final states? Are there such
+	// operations that change reference counters for inner states without
+	// changing reference counters of final states?
+
+	// check whether the automaton has some shared states
+	for (StateVector::const_iterator itSt = states_.begin();
+		itSt != states_.end(); ++itSt)
+	{	// iterate through all states
+		assert(transTable_->GetStateRefCnt(*itSt) > 0);
+
+		if (transTable_->GetStateRefCnt(*itSt) > 1)
+		{	// in case there is some state which is shared
+			return false;
+		}
+	}
+
+	return true;
+}
 
 void BDDTreeAut::addSimplyTransition(const StateTuple& children, const SymbolType& symbol,
 	const StateType& parent)

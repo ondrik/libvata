@@ -118,6 +118,7 @@ private:  // private methods
 	AutDescription dumpToAutDescSymbolic(
 		const StringToStateDict* pStateDict) const;
 
+	bool isStandAlone() const;
 
 	static bool haveDisjointStateSets(const BDDTreeAut& lhs, const BDDTreeAut& rhs);
 
