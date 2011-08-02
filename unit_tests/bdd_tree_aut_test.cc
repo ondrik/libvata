@@ -81,7 +81,6 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 	}
 }
 
-
 BOOST_AUTO_TEST_CASE(adding_transitions)
 {
 	TimbukParser parser;
@@ -128,6 +127,28 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 		"\n\nExpecting:\n===========\n" +
 		serializer.Serialize(descCorrect) +
 		"===========\n\nGot:\n===========\n" + autOut + "\n===========");
+}
+
+
+BOOST_AUTO_TEST_CASE(aut_union)
+{
+	TimbukParser parser;
+	TimbukSerializer serializer;
+
+	BDDTreeAut autU1;
+	BDDTreeAut::StringToStateDict autU1StateDict;
+	autU1.LoadFromString(parser, AUT_TIMBUK_UNION_1, &autU1StateDict);
+	AutDescription autU1Desc = parser.ParseString(AUT_TIMBUK_UNION_1);
+
+	BDDTreeAut autU2;
+	BDDTreeAut::StringToStateDict autU2StateDict;
+	autU2.LoadFromString(parser, AUT_TIMBUK_UNION_2, &autU2StateDict);
+	AutDescription autU2Desc = parser.ParseString(AUT_TIMBUK_UNION_2);
+
+	BDDTreeAut autU3;
+	BDDTreeAut::StringToStateDict autU3StateDict;
+	autU3.LoadFromString(parser, AUT_TIMBUK_UNION_3, &autU3StateDict);
+	AutDescription autU3Desc = parser.ParseString(AUT_TIMBUK_UNION_3);
 }
 
 
