@@ -201,7 +201,7 @@ public:   // public methods
 		return symbolDict_.TranslateFwd(str);
 	}
 
-	void AddTransition(const StateTuple& children, const SymbolType& sym,
+	void AddTransition(const StateTuple& children, const SymbolType& symbol,
 		const StateType& state);
 
 	void AddSimplyTransition(const StateTuple& children, const SymbolType& symbol,
