@@ -91,21 +91,38 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 
 	BDDTreeAut::StringToStateDict stateDict;
 	aut.LoadFromString(parser, AUT_TIMBUK_A4, &stateDict);
+	AutDescription descCorrect = parser.ParseString(AUT_TIMBUK_A4);
 
-	// add the following transition: a -> q
-	AutDescription::Transition newTransition(std::vector<std::string>(), "a", "q");
+	// get state "q"
+	//BDDTreeAut::StateType stateQ = stateDict.TranslateFwd("q");
+	// get state "p"
+	BDDTreeAut::StateType stateP = stateDict.TranslateFwd("p");
+	// insert state "qa"
+	BDDTreeAut::StateType stateQA = aut.AddState();
+	stateDict.Insert(std::make_pair("qa", stateQA));
 
-	assert(aut.GetFinalStates().size() == 1);
-	BDDTreeAut::StateType parent = aut.GetFinalStates()[0];
+	// add the following transition: a -> qa, to the description ...
+	AutDescription::Transition newTransition(std::vector<std::string>(), "a", "qa");
+	descCorrect.transitions.insert(newTransition);
+	// ... and to the automaton
+	aut.AddSimplyTransition(BDDTreeAut::StateTuple(),
+		BDDTreeAut::TranslateStringToSymbol("a"), stateQA);
 
-	aut.AddTransition(BDDTreeAut::StateTuple(),
-		BDDTreeAut::TranslateStringToSymbol("a"), parent);
+	// add the following transition: a(qa, qa) -> p, to the description ...
+	std::vector<std::string> childrenStr;
+	childrenStr.push_back("qa");
+	childrenStr.push_back("qa");
+	newTransition = AutDescription::Transition(childrenStr, "a", "p");
+	descCorrect.transitions.insert(newTransition);
+	// ... and to the automaton
+	BDDTreeAut::StateTuple children;
+	children.push_back(stateQA);
+	children.push_back(stateQA);
+	aut.AddSimplyTransition(children, BDDTreeAut::TranslateStringToSymbol("a"),
+		stateP);
 
 	std::string autOut = aut.DumpToString(serializer, &stateDict);
 	AutDescription descOut = parser.ParseString(autOut);
-
-	AutDescription descCorrect = parser.ParseString(AUT_TIMBUK_A4);
-	descCorrect.transitions.insert(newTransition);
 
 	BOOST_CHECK_MESSAGE(descCorrect == descOut,
 		"\n\nExpecting:\n===========\n" +
