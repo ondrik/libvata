@@ -11,6 +11,7 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_tree_aut.hh>
+#include <vata/bdd_tree_aut_op.hh>
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
 
@@ -149,6 +150,8 @@ BOOST_AUTO_TEST_CASE(aut_union)
 	BDDTreeAut::StringToStateDict autU3StateDict;
 	autU3.LoadFromString(parser, AUT_TIMBUK_UNION_3, &autU3StateDict);
 	AutDescription autU3Desc = parser.ParseString(AUT_TIMBUK_UNION_3);
+
+	BDDTreeAut autUnion12 = VATA::Union(autU1, autU2);
 }
 
 
