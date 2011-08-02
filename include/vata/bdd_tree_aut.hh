@@ -194,7 +194,12 @@ public:   // public methods
 		// Assertions
 		assert(isValid());
 
-		return transTable_->AddState();
+		StateType newState = transTable_->AddState();
+		states_.push_back(newState);
+
+		assert(isValid());
+
+		return newState;
 	}
 
 	inline static const SymbolType& TranslateStringToSymbol(const std::string& str)
