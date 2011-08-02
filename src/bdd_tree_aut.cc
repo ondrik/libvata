@@ -130,11 +130,12 @@ void BDDTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
 		if (pStateDict->FindFwd(*itFst) == pStateDict->EndFwd())
 		{	// in case the state name is not known
 			StateType state = AddState();
-			states_.push_back(state);
 			finalStates_.push_back(state);
 			pStateDict->Insert(std::make_pair(*itFst, state));
 		}
 	}
+
+	assert(isValid());
 
 	for (AutDescription::TransitionSet::const_iterator itTr =
 		desc.transitions.begin(); itTr != desc.transitions.end(); ++itTr)
@@ -153,7 +154,6 @@ void BDDTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
 		else
 		{	// in case there is no translation for the state name
 			parent = AddState();
-			states_.push_back(parent);
 			pStateDict->Insert(std::make_pair(parentStr, parent));
 		}
 
@@ -171,7 +171,6 @@ void BDDTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
 			else
 			{	// in case there is no translation for the state name
 				child = AddState();
-				states_.push_back(child);
 				pStateDict->Insert(std::make_pair(*itTup, child));
 			}
 
@@ -191,7 +190,8 @@ void BDDTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
 			symbolDict_.Insert(std::make_pair(symbolStr, symbol));
 		}
 
-		addSimplyTransition(children, symbol, parent);
+		AddSimplyTransition(children, symbol, parent);
+		assert(isValid());
 	}
 
 	assert(isValid());
