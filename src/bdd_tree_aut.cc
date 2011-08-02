@@ -23,6 +23,37 @@ using VATA::Util::Convert;
 BDDTreeAut::StringToSymbolDict BDDTreeAut::symbolDict_;
 
 
+bool BDDTreeAut::isValid() const
+{
+	if (transTable_.get() == static_cast<TransTable*>(0))
+	{	// in case the transition table pointer is bad
+		return false;
+	}
+
+	if (!std::includes(states_.begin(), states_.end(),
+		finalStates_.begin(), finalStates_.end()))
+	{	// in case the set of final states is not a subset of the set of states
+		return false;
+	}
+
+	// check that there are no duplicates in the state set
+	for (StateVector::const_iterator itOuter = states_.begin();
+		itOuter != states_.end(); ++itOuter)
+	{
+		for (StateVector::const_iterator itNested = itOuter + 1;
+			itNested != states_.end(); ++itNested)
+		{
+			if ((itOuter != itNested) && (*itOuter == *itNested))
+			{	// if the same value is at two different positions
+				return false;
+			}
+		}
+	}
+
+	return true;
+}
+
+
 BDDTreeAut::SymbolType BDDTreeAut::addSymbol()
 {
 	const size_t MAX_SYMBOL_SIZE = 64;

@@ -76,21 +76,7 @@ private:  // private data members
 
 private:  // private methods
 
-	inline bool isValid() const
-	{
-		if (!std::includes(states_.begin(), states_.end(),
-			finalStates_.begin(), finalStates_.end()))
-		{	// in case the set of final states is not a subset of the set of states
-			return false;
-		}
-
-		if (transTable_.get() == static_cast<TransTable*>(0))
-		{	// in case the transition table pointer is bad
-			return false;
-		}
-
-		return true;
-	}
+	bool isValid() const;
 
 	void copyStates(const BDDTreeAut& src);
 
