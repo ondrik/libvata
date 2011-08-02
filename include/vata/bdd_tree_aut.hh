@@ -132,8 +132,6 @@ private:  // private methods
 	AutDescription dumpToAutDescSymbolic(
 		const StringToStateDict* pStateDict) const;
 
-	void addSimplyTransition(const StateTuple& children, const SymbolType& symbol,
-		const StateType& parent);
 
 	static bool haveDisjointStateSets(const BDDTreeAut& lhs, const BDDTreeAut& rhs);
 
@@ -219,6 +217,9 @@ public:   // public methods
 
 	void AddTransition(const StateTuple& children, const SymbolType& sym,
 		const StateType& state);
+
+	void AddSimplyTransition(const StateTuple& children, const SymbolType& symbol,
+		const StateType& parent);
 
 	~BDDTreeAut();
 };
