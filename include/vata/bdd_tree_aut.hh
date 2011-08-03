@@ -126,6 +126,13 @@ private:  // private methods
 
 	static bool haveDisjointStateSets(const BDDTreeAut& lhs, const BDDTreeAut& rhs);
 
+	inline bool isStateLocal(const StateType& state) const
+	{
+		// Assertions
+		assert(isValid());
+
+		return (states_.find(state) != states_.end());
+	}
 
 	template <typename T, class Container>
 	inline StateType safelyTranslateToState(const T& value, Container& dict)
@@ -230,6 +237,15 @@ public:   // public methods
 		assert(isValid());
 
 		return newState;
+	}
+
+	inline void SetStateFinal(const StateType& state)
+	{
+		// Assertions
+		assert(isValid());
+		assert(isStateLocal(state));
+
+		finalStates_.insert(state);
 	}
 
 	inline static const SymbolType& TranslateStringToSymbol(const std::string& str)
