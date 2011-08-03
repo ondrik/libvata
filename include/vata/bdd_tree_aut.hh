@@ -126,6 +126,29 @@ private:  // private methods
 
 	static bool haveDisjointStateSets(const BDDTreeAut& lhs, const BDDTreeAut& rhs);
 
+
+	template <typename T, class Container>
+	inline StateType safelyTranslateToState(const T& value, Container& dict)
+	{
+		// Assertions
+		assert(isValid());
+
+		StateType state;
+		typename Container::const_iterator itHt;
+		if ((itHt = dict.find(value)) != dict.end())
+		{	// in case the state is known
+			state = itHt->second;
+		}
+		else
+		{	// in case there is no translation for the state
+			state = AddState();
+			dict.insert(std::make_pair(value, state));
+		}
+
+		return state;
+	}
+
+
 	// TODO: put this somewhere else
 //	static BDDTreeAut* makeUnionBU(const BDDTreeAut& lhs, const BDDTreeAut& rhs,
 //			const std::string&)
