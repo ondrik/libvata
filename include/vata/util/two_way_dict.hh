@@ -62,6 +62,8 @@ public:   // Public data types
 	typedef typename MapFwdType::const_iterator ConstIteratorFwd;
 	typedef typename MapBwdType::const_iterator ConstIteratorBwd;
 
+	typedef typename MapFwdType::const_iterator const_iterator;
+
 private:  // Private data members
 
 	MapFwdType fwdMap_;
@@ -96,6 +98,11 @@ public:   // Public methods
 		return itBwd->second;
 	}
 
+	inline const_iterator find(const Type1& t1) const
+	{
+		return FindFwd(t1);
+	}
+
 	inline ConstIteratorFwd FindFwd(const Type1& t1) const
 	{
 		return fwdMap_.find(t1);
@@ -104,6 +111,16 @@ public:   // Public methods
 	inline ConstIteratorBwd FindBwd(const Type2& t2) const
 	{
 		return bwdMap_.find(t2);
+	}
+
+	inline const_iterator begin() const
+	{
+		return BeginFwd();
+	}
+
+	inline const_iterator end() const
+	{
+		return EndFwd();
 	}
 
 	inline ConstIteratorFwd BeginFwd() const
@@ -124,6 +141,11 @@ public:   // Public methods
 	inline ConstIteratorBwd EndBwd() const
 	{
 		return bwdMap_.end();
+	}
+
+	inline void insert(const std::pair<Type1, Type2>& value)
+	{
+		return Insert(value);
 	}
 
 	inline void Insert(const std::pair<Type1, Type2>& value)
