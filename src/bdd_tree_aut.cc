@@ -30,23 +30,13 @@ bool BDDTreeAut::isValid() const
 		return false;
 	}
 
-	if (!std::includes(states_.begin(), states_.end(),
-		finalStates_.begin(), finalStates_.end()))
-	{	// in case the set of final states is not a subset of the set of states
-		return false;
-	}
-
-	// check that there are no duplicates in the state set
-	for (StateVector::const_iterator itOuter = states_.begin();
-		itOuter != states_.end(); ++itOuter)
+	// check that final states are a subset of states
+	for (StateSet::const_iterator itFst = finalStates_.begin();
+		itFst != finalStates_.end(); ++itFst)
 	{
-		for (StateVector::const_iterator itNested = itOuter + 1;
-			itNested != states_.end(); ++itNested)
-		{
-			if ((itOuter != itNested) && (*itOuter == *itNested))
-			{	// if the same value is at two different positions
-				return false;
-			}
+		if (states_.find(*itFst) == states_.end())
+		{	// in case the final state is not in the set of states
+			return false;
 		}
 	}
 
@@ -88,7 +78,7 @@ bool BDDTreeAut::isStandAlone() const
 	// changing reference counters of final states?
 
 	// check whether the automaton has some shared states
-	for (StateVector::const_iterator itSt = states_.begin();
+	for (StateSet::const_iterator itSt = states_.begin();
 		itSt != states_.end(); ++itSt)
 	{	// iterate through all states
 		assert(transTable_->GetStateRefCnt(*itSt) > 0);
@@ -101,6 +91,23 @@ bool BDDTreeAut::isStandAlone() const
 
 	return true;
 }
+
+
+BDDTreeAut::BDDTreeAut(const BDDTreeAut& aut) :
+	states_(aut.states_),
+	finalStates_(aut.finalStates_),
+	transTable_(aut.transTable_)
+{
+	for (StateSet::const_iterator itSt = states_.begin();
+		itSt != states_.end(); ++itSt)
+	{	// increment states reference counters
+		transTable_->IncrementStateRefCnt(*itSt);
+	}
+
+	// Assertions
+	assert(isValid());
+}
+
 
 void BDDTreeAut::AddSimplyTransition(const StateTuple& children,
 	const SymbolType& symbol, const StateType& parent)
@@ -131,7 +138,7 @@ void BDDTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
 		if (pStateDict->FindFwd(*itFst) == pStateDict->EndFwd())
 		{	// in case the state name is not known
 			StateType state = AddState();
-			finalStates_.push_back(state);
+			finalStates_.insert(state);
 			pStateDict->Insert(std::make_pair(*itFst, state));
 		}
 	}
@@ -290,7 +297,7 @@ AutDescription BDDTreeAut::dumpToAutDescExplicit(
 	AutDescription desc;
 
 	// copy final states
-	for (StateVector::const_iterator itSt = finalStates_.begin();
+	for (StateSet::const_iterator itSt = finalStates_.begin();
 		itSt != finalStates_.end(); ++itSt)
 	{	// copy final states
 		if (translateStates)
@@ -306,7 +313,7 @@ AutDescription BDDTreeAut::dumpToAutDescExplicit(
 	CondColApplyFunctor collector;
 
 	// copy states, transitions and symbols
-	for (StateVector::const_iterator itSt = states_.begin();
+	for (StateSet::const_iterator itSt = states_.begin();
 		itSt != states_.end(); ++itSt)
 	{	// for all states
 		const StateType& state = *itSt;
@@ -424,7 +431,7 @@ BDDTreeAut::~BDDTreeAut()
 	// Assertions
 	assert(isValid());
 
-	for (StateVector::iterator itSt = states_.begin();
+	for (StateSet::iterator itSt = states_.begin();
 		itSt != states_.end(); ++itSt)
 	{	// release all states
 		transTable_->DecrementStateRefCnt(*itSt);

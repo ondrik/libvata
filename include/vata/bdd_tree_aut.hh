@@ -41,7 +41,7 @@ private:  // private data types
 	typedef VATA::MTBDDPkg::OndriksMTBDD<StateTupleSet> TransMTBDD;
 	typedef VATA::MTBDDPkg::OndriksMTBDD<bool> BDD;
 
-	typedef std::vector<StateType> StateVector;
+	typedef std::tr1::unordered_set<StateType> StateSet;
 
 	typedef VATA::Util::TDBDDTransTable< StateType, VATA::Util::OrdVector>
 		TransTable;
@@ -68,8 +68,8 @@ private:  // private data types
 
 private:  // private data members
 
-	StateVector states_;
-	StateVector finalStates_;
+	StateSet states_;
+	StateSet finalStates_;
 	TransTablePtr transTable_;
 
 	static StringToSymbolDict symbolDict_;
@@ -166,18 +166,16 @@ public:   // public methods
 		assert(isValid());
 	}
 
-	BDDTreeAut(const BDDTreeAut& aut) :
-		states_(aut.states_),
-		finalStates_(aut.finalStates_),
-		transTable_(aut.transTable_)
-	{
-		// Assertions
-		assert(isValid());
-	}
+	BDDTreeAut(const BDDTreeAut& aut);
 
-	inline const StateVector& GetFinalStates() const
+	inline const StateSet& GetFinalStates() const
 	{
 		return finalStates_;
+	}
+
+	inline TransTablePtr& GetTransTable() const
+	{
+		return const_cast<TransTablePtr&>(transTable_);
 	}
 
 	virtual void LoadFromString(VATA::Parsing::AbstrParser& parser,
@@ -195,7 +193,7 @@ public:   // public methods
 		assert(isValid());
 
 		StateType newState = transTable_->AddState();
-		states_.push_back(newState);
+		states_.insert(newState);
 
 		assert(isValid());
 
