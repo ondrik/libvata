@@ -142,7 +142,13 @@ public:   // methods
 
 	inline void IncrementStateRefCnt(const StateType& state)
 	{
-		stateCellMap_[state].IncrementRefCnt();
+		typename StateHashTable::iterator itStates;
+		if ((itStates = stateCellMap_.find(state)) == stateCellMap_.end())
+		{	// in case the state is not in the hash table
+			assert(false);    // fail gracefully
+		}
+
+		(itStates->second).IncrementRefCnt();
 	}
 
 	inline void DecrementStateRefCnt(const StateType& state)
