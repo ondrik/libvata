@@ -138,16 +138,12 @@ void BDDTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
 {
 	// Assertions
 	assert(hasEmptyStateSet());
+	assert(pStateDict != static_cast<StringToStateDict*>(0));
 
 	for (AutDescription::StateSet::const_iterator itFst =
 		desc.finalStates.begin(); itFst != desc.finalStates.end(); ++itFst)
 	{	// traverse final states
-		if (pStateDict->FindFwd(*itFst) == pStateDict->EndFwd())
-		{	// in case the state name is not known
-			StateType state = AddState();
-			finalStates_.insert(state);
-			pStateDict->Insert(std::make_pair(*itFst, state));
-		}
+		finalStates_.insert(safelyTranslateToState(*itFst, *pStateDict));
 	}
 
 	assert(isValid());
@@ -160,36 +156,14 @@ void BDDTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
 		const AutDescription::State& parentStr = itTr->third;
 
 		// translate the parent state
-		StateType parent;
-		StringToStateDict::ConstIteratorFwd itSt;
-		if ((itSt = pStateDict->FindFwd(parentStr)) != pStateDict->EndFwd())
-		{	// in case the state name is known
-			parent = itSt->second;
-		}
-		else
-		{	// in case there is no translation for the state name
-			parent = AddState();
-			pStateDict->Insert(std::make_pair(parentStr, parent));
-		}
+		StateType parent = safelyTranslateToState(parentStr, *pStateDict);
 
 		// translate children
 		StateTuple children;
 		for (AutDescription::StateTuple::const_iterator itTup = childrenStr.begin();
 			itTup != childrenStr.end(); ++itTup)
 		{	// for all children states
-			StateType child;
-			StringToStateDict::ConstIteratorFwd itSt;
-			if ((itSt = pStateDict->FindFwd(*itTup)) != pStateDict->EndFwd())
-			{	// in case the state name is known
-				child = itSt->second;
-			}
-			else
-			{	// in case there is no translation for the state name
-				child = AddState();
-				pStateDict->Insert(std::make_pair(*itTup, child));
-			}
-
-			children.push_back(child);
+			children.push_back(safelyTranslateToState(*itTup, *pStateDict));
 		}
 
 		// translate the symbol
