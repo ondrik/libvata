@@ -195,6 +195,11 @@ public:   // public methods
 
 	BDDTreeAut(const BDDTreeAut& aut);
 
+	inline const StateSet& GetStates() const
+	{
+		return states_;
+	}
+
 	inline const StateSet& GetFinalStates() const
 	{
 		return finalStates_;
