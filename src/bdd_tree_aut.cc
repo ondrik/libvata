@@ -59,11 +59,18 @@ void BDDTreeAut::copyStates(const BDDTreeAut& src)
 	// Assertions
 	assert(isValid());
 	assert(src.isValid());
-	assert(haveDisjointStateSets(*this, src));
+	assert(transTable_ == src.transTable_);
 
-	states_.insert(states_.end(), src.states_.begin(), src.states_.end());
-	finalStates_.insert(finalStates_.end(), src.finalStates_.begin(),
-		src.finalStates_.end());
+	// copy states and increment their reference counters
+	for (StateSet::const_iterator itSt = src.states_.begin();
+		itSt != src.states_.end(); ++itSt)
+	{
+		transTable_->IncrementStateRefCnt(*itSt);
+		states_.insert(*itSt);
+	}
+
+	// simply copy final states
+	finalStates_.insert(src.finalStates_.begin(), src.finalStates_.end());
 
 	assert(isValid());
 }
