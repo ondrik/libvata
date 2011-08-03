@@ -14,6 +14,7 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/abstr_aut.hh>
+#include <vata/aut_op.hh>
 #include <vata/mtbdd/apply2func.hh>
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
@@ -29,6 +30,9 @@ namespace VATA { class BDDTreeAut; }
 class VATA::BDDTreeAut
 	: public AbstrAut
 {
+	template <class Aut>
+	friend Aut Union(const Aut& lhs, const Aut& rhs);
+
 public:   // public data types
 
 	typedef VATA::MTBDDPkg::VarAsgn SymbolType;

@@ -18,6 +18,21 @@ using VATA::BDDTreeAut;
 template <>
 BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
 {
-	assert(false);
-	return lhs;
+	// Assertions
+	assert(lhs.isValid());
+	assert(rhs.isValid());
+
+	typedef BDDTreeAut::StateType StateType;
+
+	if (lhs.transTable_ == rhs.transTable_)
+	{	// in case the automata share their transition table
+		BDDTreeAut result = lhs;
+		result.copyStates(rhs);
+
+		return result;
+	}
+	else
+	{
+		assert(false);
+	}
 }

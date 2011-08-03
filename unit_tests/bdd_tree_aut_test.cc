@@ -141,7 +141,7 @@ BOOST_AUTO_TEST_CASE(aut_union)
 	autU1.LoadFromString(parser, AUT_TIMBUK_UNION_1, &autU1StateDict);
 	AutDescription autU1Desc = parser.ParseString(AUT_TIMBUK_UNION_1);
 
-	BDDTreeAut autU2;
+	BDDTreeAut autU2(autU1.GetTransTable());
 	BDDTreeAut::StringToStateDict autU2StateDict;
 	autU2.LoadFromString(parser, AUT_TIMBUK_UNION_2, &autU2StateDict);
 	AutDescription autU2Desc = parser.ParseString(AUT_TIMBUK_UNION_2);
