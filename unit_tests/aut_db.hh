@@ -112,6 +112,21 @@ const char* AUT_TIMBUK_UNION_12_RESULT =
 	"c(v, v) -> v\n"
 	;
 
+const char* AUT_TIMBUK_UNION_13_RESULT =
+	"Ops\n"
+	"Automaton anonymous\n"
+	"States\n"
+	"Final States 4 1\n"
+	"Transitions\n"
+	"a -> 2\n"
+	"a -> 6\n"
+	"b(2) -> 3\n"
+	"b(6) -> 5\n"
+	"c(2, 3) -> 1\n"
+	"c(5, 5) -> 4\n"
+	"d(4, 4) -> 4\n"
+	;
+
 const char* AUT_TIMBUK_A53 =
 	"Ops\n"
 	"Automaton anonymous\n"
@@ -289,6 +304,8 @@ const char* TIMBUK_AUTOMATA[] =
 	AUT_TIMBUK_UNION_1,
 	AUT_TIMBUK_UNION_2,
 	AUT_TIMBUK_UNION_3,
+	AUT_TIMBUK_UNION_12_RESULT,
+	AUT_TIMBUK_UNION_13_RESULT,
 	AUT_TIMBUK_A53
 };
 const size_t TIMBUK_AUTOMATA_SIZE = (sizeof(TIMBUK_AUTOMATA) /
