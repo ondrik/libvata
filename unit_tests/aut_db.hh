@@ -97,6 +97,21 @@ const char* AUT_TIMBUK_UNION_3 =
 	"d(r, r) -> r\n"
 	;
 
+const char* AUT_TIMBUK_UNION_12_RESULT =
+	"Ops\n"
+	"Automaton anonymous\n"
+	"States\n"
+	"Final States v r\n"
+	"Transitions\n"
+	"a -> p\n"
+	"a -> t\n"
+	"b(p) -> q\n"
+	"b(t) -> u\n"
+	"c(p, q) -> r\n"
+	"c(u, u) -> v\n"
+	"c(v, v) -> v\n"
+	;
+
 const char* AUT_TIMBUK_A53 =
 	"Ops\n"
 	"Automaton anonymous\n"

@@ -152,6 +152,19 @@ BOOST_AUTO_TEST_CASE(aut_union)
 	AutDescription autU3Desc = parser.ParseString(AUT_TIMBUK_UNION_3);
 
 	BDDTreeAut autUnion12 = VATA::Union(autU1, autU2);
+	BDDTreeAut::StringToStateDict autUnion12StateDict =
+		autU1StateDict.Union(autU2StateDict);
+
+	std::string autUnion12Str = autUnion12.DumpToString(serializer,
+		&autUnion12StateDict);
+	AutDescription descOutU12 = parser.ParseString(autUnion12Str);
+
+	AutDescription descCorrectU12 = parser.ParseString(AUT_TIMBUK_UNION_12_RESULT);
+
+	BOOST_CHECK_MESSAGE(descCorrectU12 == descOutU12,
+		"\n\nExpecting:\n===========\n" +
+		serializer.Serialize(descCorrectU12) +
+		"===========\n\nGot:\n===========\n" + autUnion12Str + "\n===========");
 }
 
 
