@@ -138,6 +138,25 @@ public:   // Public methods
 			assert(false);      // fail gracefully
 		}
 	}
+
+	TwoWayDict Union(const TwoWayDict& rhs) const
+	{
+		TwoWayDict result = *this;
+
+		// copy all pairs
+		for (ConstIteratorFwd itRhs = rhs.BeginFwd(); itRhs != rhs.EndFwd(); ++itRhs)
+		{
+			if ((result.fwdMap_.find(itRhs->first) != result.fwdMap_.end()) ||
+				(result.bwdMap_.find(itRhs->second) != result.bwdMap_.end()))
+			{	// in case the first or the second component is already in the dictionary
+				assert(false);
+			}
+
+			result.Insert(*itRhs);
+		}
+
+		return result;
+	}
 };
 
 #endif
