@@ -48,8 +48,23 @@ using VATA::Util::Convert;
  * Fixture for test of BDDTreeAut
  */
 class BDDTreeAutFixture : public LogFixture
-{ };
+{
+protected:// methods
 
+//	static BDDTreeAut::StringToStateDict suffixize(
+//		const BDDTreeAut::StringToStateDict& dict, const std::string& suffix)
+//	{
+//		BDDTreeAut::StringToStateDict result;
+//
+//		for (BDDTreeAut::StringToStateDict::const_iterator itDict = dict.begin();
+//			itDict != dict.end(); ++itDict)
+//		{	// transfer all states
+//			result.insert(std::make_pair(itDict->first + suffix, itDict->second));
+//		}
+//
+//		return result;
+//	}
+};
 
 /******************************************************************************
  *                              Start of testing                              *
@@ -131,7 +146,7 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 }
 
 
-BOOST_AUTO_TEST_CASE(aut_union)
+BOOST_AUTO_TEST_CASE(aut_union_simple)
 {
 	TimbukParser parser;
 	TimbukSerializer serializer;
@@ -145,11 +160,6 @@ BOOST_AUTO_TEST_CASE(aut_union)
 	BDDTreeAut::StringToStateDict autU2StateDict;
 	autU2.LoadFromString(parser, AUT_TIMBUK_UNION_2, &autU2StateDict);
 	AutDescription autU2Desc = parser.ParseString(AUT_TIMBUK_UNION_2);
-
-	BDDTreeAut autU3;
-	BDDTreeAut::StringToStateDict autU3StateDict;
-	autU3.LoadFromString(parser, AUT_TIMBUK_UNION_3, &autU3StateDict);
-	AutDescription autU3Desc = parser.ParseString(AUT_TIMBUK_UNION_3);
 
 	BDDTreeAut autUnion12 = VATA::Union(autU1, autU2);
 	BDDTreeAut::StringToStateDict autUnion12StateDict =
@@ -167,6 +177,34 @@ BOOST_AUTO_TEST_CASE(aut_union)
 		"===========\n\nGot:\n===========\n" + autUnion12Str + "\n===========");
 }
 
+
+BOOST_AUTO_TEST_CASE(aut_union_trans_table_copy)
+{
+	TimbukParser parser;
+	TimbukSerializer serializer;
+
+	BDDTreeAut autU1;
+	BDDTreeAut::StringToStateDict autU1StateDict;
+	autU1.LoadFromString(parser, AUT_TIMBUK_UNION_1, &autU1StateDict);
+	AutDescription autU1Desc = parser.ParseString(AUT_TIMBUK_UNION_1);
+
+	BDDTreeAut autU3;
+	BDDTreeAut::StringToStateDict autU3StateDict;
+	autU3.LoadFromString(parser, AUT_TIMBUK_UNION_3, &autU3StateDict);
+	AutDescription autU3Desc = parser.ParseString(AUT_TIMBUK_UNION_3);
+
+	BDDTreeAut autUnion13 = VATA::Union(autU1, autU3);
+
+	std::string autUnion13Str = autUnion13.DumpToString(serializer);
+	AutDescription descOutU13 = parser.ParseString(autUnion13Str);
+
+	AutDescription descCorrectU13 = parser.ParseString(AUT_TIMBUK_UNION_13_RESULT);
+
+	BOOST_CHECK_MESSAGE(descCorrectU13 == descOutU13,
+		"\n\nExpecting:\n===========\n" +
+		serializer.Serialize(descCorrectU13) +
+		"===========\n\nGot:\n===========\n" + autUnion13Str + "\n===========");
+}
 
 BOOST_AUTO_TEST_SUITE_END()
 
