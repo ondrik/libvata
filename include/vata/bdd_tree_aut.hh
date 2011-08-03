@@ -22,7 +22,7 @@
 #include <vata/util/vector_map.hh>
 
 // Standard library headers
-#include <stdint.h>
+#include <tr1/cstdint>
 
 namespace VATA { class BDDTreeAut; }
 
