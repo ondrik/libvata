@@ -40,7 +40,7 @@ set(TESTS
 foreach (TEST ${TESTS})
 	add_executable(${TEST} ${TEST}.cc)
 
-	target_link_libraries(${TEST} vata)
+	target_link_libraries(${TEST} vatalib)
 	target_link_libraries(${TEST} tests)
 	target_link_libraries(${TEST} ${LOG4CPP_LIBRARIES})
 	target_link_libraries(${TEST} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
