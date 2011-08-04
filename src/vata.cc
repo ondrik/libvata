@@ -11,6 +11,8 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_tree_aut.hh>
+#include <vata/parsing/timbuk_parser.hh>
+#include <vata/serialization/timbuk_serializer.hh>
 #include <vata/util/convert.hh>
 
 // standard library headers
@@ -22,7 +24,10 @@
 
 using VATA::BDDTreeAut;
 using VATA::Util::Convert;
-
+using VATA::Parsing::AbstrParser;
+using VATA::Parsing::TimbukParser;
+using VATA::Serialization::AbstrSerializer;
+using VATA::Serialization::TimbukSerializer;
 
 const char VATA_USAGE_STRING[] =
 	"usage: vata [-r <representation>] [(-F|-I|-O) <format>] <command> [<args>]\n"
@@ -45,28 +50,57 @@ void printHelp(bool full = false)
 	}
 }
 
-template <class Aut>
-void performLoad(const Arguments& args)
-{
 
+template <class Aut>
+void performLoad(const Arguments& args, AbstrParser& parser,
+	AbstrSerializer& serializer)
+{
+	Aut aut;
+
+
+
+	assert(false);
 }
 
 
 template <class Aut>
 int executeCommand(const Arguments& args)
 {
+	std::auto_ptr<AbstrParser> parser(static_cast<AbstrParser*>(0));
+	std::auto_ptr<AbstrSerializer> serializer(static_cast<AbstrSerializer*>(0));
+
+	// create the input parser
+	if (args.inputFormat == FORMAT_TIMBUK)
+	{
+		parser.reset(new TimbukParser());
+	}
+	else
+	{
+		std::cerr << "Internal error: invalid input format\n";
+		return EXIT_FAILURE;
+	}
+
+	// create the output serializer
+	if (args.outputFormat == FORMAT_TIMBUK)
+	{
+		serializer.reset(new TimbukSerializer());
+	}
+	else
+	{
+		std::cerr << "Internal error: invalid output format\n";
+		return EXIT_FAILURE;
+	}
+
+	// process command
 	if (args.command == COMMAND_LOAD)
 	{
-		performLoad<Aut>(args);
+		performLoad<Aut>(args, *(parser.get()), *(serializer.get()));
 	}
 	else
 	{
 		std::cerr << "Internal error: invalid command\n";
-		printHelp(false);
 		return EXIT_FAILURE;
 	}
-
-
 
 	return EXIT_SUCCESS;
 }

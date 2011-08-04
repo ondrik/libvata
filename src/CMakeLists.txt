@@ -94,6 +94,6 @@ add_executable(vata
   parse_args.cc
 )
 
-#target_link_libraries(vata vatalib)
+target_link_libraries(vata vatalib)
 target_link_libraries(vata ${LOG4CPP_LIBRARIES})
 #target_link_libraries(vata rt)
