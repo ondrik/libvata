@@ -17,6 +17,7 @@
 
 // standard library headers
 #include <cstdlib>
+#include <fstream>
 
 // local headers
 #include "parse_args.hh"
@@ -52,14 +53,12 @@ void printHelp(bool full = false)
 
 
 template <class Aut>
-void performLoad(const Arguments& args, AbstrParser& parser,
-	AbstrSerializer& serializer)
+std::string performLoad(const Arguments& args, AbstrParser& parser,
+	AbstrSerializer& serializer, const std::string str)
 {
 	Aut aut;
-
-
-
-	assert(false);
+	aut.LoadFromString(parser, str);
+	return aut.DumpToString(serializer);
 }
 
 
@@ -76,8 +75,7 @@ int executeCommand(const Arguments& args)
 	}
 	else
 	{
-		std::cerr << "Internal error: invalid input format\n";
-		return EXIT_FAILURE;
+		throw std::runtime_error("Internal error: invalid input format");
 	}
 
 	// create the output serializer
@@ -87,19 +85,43 @@ int executeCommand(const Arguments& args)
 	}
 	else
 	{
-		std::cerr << "Internal error: invalid output format\n";
-		return EXIT_FAILURE;
+		throw std::runtime_error("Internal error: invalid output format");
+	}
+
+	std::string str1;
+	std::string str2;
+
+	if (args.command == COMMAND_LOAD)
+	{
+		std::ifstream file1(args.fileName1.c_str());
+		if (!file1)
+		{	// in case the first file cannot be open
+			throw std::runtime_error("Cannot open input file " + args.fileName1);
+		}
+
+		str1 = "buch";
+	}
+
+	if (false)
+	{
+		std::ifstream file2(args.fileName2.c_str());
+		if (!file2)
+		{	// in case the second file cannot be open
+			throw std::runtime_error("Cannot open input file " + args.fileName2);
+		}
+
+		str2 = "zbuch";
 	}
 
 	// process command
 	if (args.command == COMMAND_LOAD)
 	{
-		performLoad<Aut>(args, *(parser.get()), *(serializer.get()));
+		std::cout <<
+			performLoad<Aut>(args, *(parser.get()), *(serializer.get()), str1);
 	}
 	else
 	{
-		std::cerr << "Internal error: invalid command\n";
-		return EXIT_FAILURE;
+		throw std::runtime_error("Internal error: invalid command");
 	}
 
 	return EXIT_SUCCESS;
@@ -128,7 +150,8 @@ int main(int argc, char* argv[])
 	}
 	catch (const std::exception& ex)
 	{
-		std::cerr << "An error occured: " << ex.what() << "\n";
+		std::cerr << "An error occured while parsing arguments: "
+			<< ex.what() << "\n";
 		printHelp(false);
 
 		return EXIT_FAILURE;
@@ -142,7 +165,15 @@ int main(int argc, char* argv[])
 
 	if (args.representation == REPRESENTATION_BDD)
 	{
-		return executeCommand<BDDTreeAut>(args);
+		try
+		{
+			return executeCommand<BDDTreeAut>(args);
+		}
+		catch (std::exception& ex)
+		{
+			std::cerr << "An error occured: " << ex.what() << "\n";
+			return EXIT_FAILURE;
+		}
 	}
 	else
 	{
