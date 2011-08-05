@@ -61,6 +61,23 @@ std::string performLoad(const Arguments& args, AbstrParser& parser,
 	return aut.DumpToString(serializer);
 }
 
+std::string readFile(const std::string& fileName)
+{
+	std::ifstream ifs(fileName.c_str());
+	if (!ifs)
+	{	// in case the file cannot be open
+		throw std::runtime_error("Cannot open file " + fileName);
+	}
+
+	std::string result;
+	std::string str;
+	while (std::getline(ifs, str))
+	{
+		result += str + "\n";
+	}
+
+	return result;
+}
 
 template <class Aut>
 int executeCommand(const Arguments& args)
@@ -93,24 +110,12 @@ int executeCommand(const Arguments& args)
 
 	if (args.command == COMMAND_LOAD)
 	{
-		std::ifstream file1(args.fileName1.c_str());
-		if (!file1)
-		{	// in case the first file cannot be open
-			throw std::runtime_error("Cannot open input file " + args.fileName1);
-		}
-
-		str1 = "buch";
+		str1 = readFile(args.fileName1);
 	}
 
 	if (false)
 	{
-		std::ifstream file2(args.fileName2.c_str());
-		if (!file2)
-		{	// in case the second file cannot be open
-			throw std::runtime_error("Cannot open input file " + args.fileName2);
-		}
-
-		str2 = "zbuch";
+		str2 = readFile(args.fileName2);
 	}
 
 	// process command
