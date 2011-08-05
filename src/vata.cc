@@ -31,13 +31,27 @@ using VATA::Serialization::AbstrSerializer;
 using VATA::Serialization::TimbukSerializer;
 
 const char VATA_USAGE_STRING[] =
-	"usage: vata [-r <representation>] [(-F|-I|-O) <format>] <command> [<args>]\n"
+	"VATA: Vojnar's Army Tree Automata library interface\n"
+	"usage: vata [-r <representation>] [(-I|-O|-F) <format>] <command> [<args>]\n"
 	;
 
 const char VATA_USAGE_COMMANDS[] =
-	"help\n"
-	"load\n"
-	"union\n"
+	"\nThe following commands are supported:\n"
+	"    help                   Shows this help message\n"
+	"    load <file>            Load automaton from <file> and write it to standard output\n"
+	"    union <file1> <file2>  Compute union of automata from <file1> and <file2>\n"
+	;
+
+const char VATA_USAGE_FLAGS[] =
+	"\nOptions:\n"
+	"    -r <representation>    Use <representation> for internal storage of automata\n"
+	"                           The following representations are supported:\n"
+	"\n"
+	"                               'bdd'     : binary decision diagrams\n"
+	"    (-I|-O|-F) <format>    Specify format for input (-I), output (-O), or both (-F)\n"
+	"                           The following formats are supported:\n"
+	"\n"
+	"                               'timbuk'  : binary decision diagrams\n"
 	;
 
 
@@ -48,6 +62,8 @@ void printHelp(bool full = false)
 	if (full)
 	{	// in case full help is wanted
 		std::cout << VATA_USAGE_COMMANDS;
+		std::cout << VATA_USAGE_FLAGS;
+		std::cout << "\n\n";
 	}
 }
 
