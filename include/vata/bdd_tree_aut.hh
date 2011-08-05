@@ -107,7 +107,7 @@ private:  // private methods
 		// Assertions
 		assert(isValid());
 
-		return states_.empty();
+		return states_.empty() && finalStates_.empty();
 	}
 
 	void loadFromAutDescExplicit(const AutDescription& desc,
@@ -123,8 +123,6 @@ private:  // private methods
 		const StringToStateDict* pStateDict) const;
 
 	bool isStandAlone() const;
-
-	static bool haveDisjointStateSets(const BDDTreeAut& lhs, const BDDTreeAut& rhs);
 
 	inline bool isStateLocal(const StateType& state) const
 	{
@@ -154,30 +152,6 @@ private:  // private methods
 
 		return state;
 	}
-
-
-	// TODO: put this somewhere else
-//	static BDDTreeAut* makeUnionBU(const BDDTreeAut& lhs, const BDDTreeAut& rhs,
-//			const std::string&)
-//	{
-//		// Assertions
-//		assert(lhs.isValid());
-//		assert(rhs.isValid());
-//		assert(haveDisjointStateSets(lhs, rhs));
-//
-//		BDDTreeAut* result = new BDDTreeAut(lhs);
-//		result->copyStates(rhs);
-//
-//		const MTBDD& lhsMtbdd = lhs.getMtbdd(StateTuple());
-//		const MTBDD& rhsMtbdd = rhs.getMtbdd(StateTuple());
-//
-//		UnionApplyFunctor unionFunc;
-//		MTBDD resultMtbdd = unionFunc(lhsMtbdd, rhsMtbdd);
-//
-//		result->setMtbdd(StateTuple(), resultMtbdd);
-//
-//		return result;
-//	}
 
 
 public:   // public methods

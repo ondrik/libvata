@@ -38,6 +38,11 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
 		BDDTreeAut* pAut_;
 		StateToStateHT* pDict_;
 
+	private:  // methods
+
+		RewriterApplyFunctor(const RewriterApplyFunctor&);
+		RewriterApplyFunctor& operator=(const RewriterApplyFunctor&);
+
 	public:   // methods
 
 		RewriterApplyFunctor(BDDTreeAut* pAut, StateToStateHT* pDict) :

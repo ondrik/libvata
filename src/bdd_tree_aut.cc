@@ -187,8 +187,8 @@ void BDDTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
 }
 
 
-void BDDTreeAut::loadFromAutDescSymbolic(const AutDescription& desc,
-	StringToStateDict* pStateDict)
+void BDDTreeAut::loadFromAutDescSymbolic(const AutDescription& /* desc */,
+	StringToStateDict* /* pStateDict */)
 {
 	// Assertions
 	assert(hasEmptyStateSet());
@@ -353,7 +353,7 @@ AutDescription BDDTreeAut::dumpToAutDescExplicit(
 }
 
 AutDescription BDDTreeAut::dumpToAutDescSymbolic(
-	const StringToStateDict* pStateDict) const
+	const StringToStateDict* /* pStateDict */) const
 {
 	assert(false);
 }
@@ -373,17 +373,6 @@ std::string BDDTreeAut::DumpToString(
 	}
 
 	return serializer.Serialize(desc);
-}
-
-
-bool BDDTreeAut::haveDisjointStateSets(const BDDTreeAut& lhs,
-	const BDDTreeAut& rhs)
-{
-	// Assertions
-	assert(lhs.isValid());
-	assert(lhs.isValid());
-
-	assert(false);
 }
 
 
