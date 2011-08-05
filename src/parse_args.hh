@@ -37,6 +37,7 @@ struct Arguments
 	size_t representation;
 	size_t inputFormat;
 	size_t outputFormat;
+	size_t operands;
 	std::string fileName1;
 	std::string fileName2;
 };

@@ -54,6 +54,7 @@ Arguments parseArguments(int argc, char* argv[])
 	args.representation  = REPRESENTATION_BDD;
 	args.inputFormat     = FORMAT_TIMBUK;
 	args.outputFormat    = FORMAT_TIMBUK;
+	args.operands        = 0;
 
 	while (argc > 0)
 	{	// until we parse all arguments
@@ -162,7 +163,9 @@ Arguments parseArguments(int argc, char* argv[])
 				}
 				else if (currentArg == "load")
 				{
-					args.command = COMMAND_LOAD;
+					args.command   = COMMAND_LOAD;
+					args.operands  = 1;
+
 					parserState = PARSING_LOAD_FILE;
 				}
 				else

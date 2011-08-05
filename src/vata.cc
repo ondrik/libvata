@@ -126,12 +126,12 @@ int executeCommand(const Arguments& args)
 	std::string str1;
 	std::string str2;
 
-	if (args.command == COMMAND_LOAD)
+	if (args.operands >= 1)
 	{
 		str1 = readFile(args.fileName1);
 	}
 
-	if (false)
+	if (args.operands >= 2)
 	{
 		str2 = readFile(args.fileName2);
 	}
