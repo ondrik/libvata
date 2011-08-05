@@ -61,7 +61,12 @@ Arguments parseArguments(int argc, char* argv[])
 		std::string currentArg = argv[0];
 		if (currentArg[0] == '-')
 		{	// in case there is a flag
-			if (currentArg == "-r")
+			if ((currentArg == "-h") || currentArg == "--help")
+			{
+				args.command = COMMAND_HELP;
+				parserState = PARSING_END;
+			}
+			else	if (currentArg == "-r")
 			{
 				if (parsedRepresentation)
 				{
