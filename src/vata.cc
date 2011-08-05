@@ -57,8 +57,10 @@ std::string performLoad(const Arguments& args, AbstrParser& parser,
 	AbstrSerializer& serializer, const std::string str)
 {
 	Aut aut;
-	aut.LoadFromString(parser, str);
-	return aut.DumpToString(serializer);
+	BDDTreeAut::StringToStateDict stateDict;
+
+	aut.LoadFromString(parser, str, &stateDict);
+	return aut.DumpToString(serializer, &stateDict);
 }
 
 std::string readFile(const std::string& fileName)
