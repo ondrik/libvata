@@ -80,6 +80,23 @@ std::string performLoad(const Arguments& args, AbstrParser& parser,
 	return aut.DumpToString(serializer, &stateDict);
 }
 
+
+template <class Aut>
+std::string performUnion(const Arguments& args, AbstrParser& parser,
+	AbstrSerializer& serializer, const std::string& lhs, const std::string& rhs)
+{
+	Aut aut1;
+	Aut aut2;
+
+	aut1.LoadFromString(parser, lhs);
+	aut2.LoadFromString(parser, rhs);
+
+	Aut autRes = Union(aut1, aut2);
+
+	return autRes.DumpToString(serializer);
+}
+
+
 std::string readFile(const std::string& fileName)
 {
 	std::ifstream ifs(fileName.c_str());
@@ -142,6 +159,11 @@ int executeCommand(const Arguments& args)
 	{
 		std::cout <<
 			performLoad<Aut>(args, *(parser.get()), *(serializer.get()), str1);
+	}
+	if (args.command == COMMAND_UNION)
+	{
+		std::cout <<
+			performUnion<Aut>(args, *(parser.get()), *(serializer.get()), str1, str2);
 	}
 	else
 	{

@@ -173,6 +173,13 @@ Arguments parseArguments(int argc, char* argv[])
 
 					parserState = PARSING_LOAD_FILE;
 				}
+				else if (currentArg == "union")
+				{
+					args.command   = COMMAND_UNION;
+					args.operands  = 2;
+
+					parserState = PARSING_LOAD_2_FILES_1;
+				}
 				else
 				{
 					throw std::runtime_error("Unknown command: " + currentArg);
@@ -181,6 +188,16 @@ Arguments parseArguments(int argc, char* argv[])
 			else if (parserState == PARSING_LOAD_FILE)
 			{
 				args.fileName1 = currentArg;
+				parserState = PARSING_END;
+			}
+			else if (parserState == PARSING_LOAD_2_FILES_1)
+			{
+				args.fileName1 = currentArg;
+				parserState = PARSING_LOAD_2_FILES_2;
+			}
+			else if (parserState == PARSING_LOAD_2_FILES_2)
+			{
+				args.fileName2 = currentArg;
 				parserState = PARSING_END;
 			}
 			else
