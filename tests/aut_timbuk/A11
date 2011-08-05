@@ -1,0 +1,22 @@
+Ops xppyblack:0 xblack:0 rootxpblack:0 red:0 normal:0 bot0:0 bot0:0 black:0 UNDEF:0 NULL:0 bot2:0 something:0
+
+Automaton A86
+States q0:0 q1:0 q10:0 q2:0 q3:0 q4:0 q5:0 q6:0 q7:0 q8:0 
+
+Final States q4 
+
+Transitions 
+xppyblack(q3,q3) -> q7
+xblack(q8,q8) -> q6
+rootxpblack(q6,q7) -> q0
+red(q0,q1) -> q0
+red(q1,q0) -> q0
+red(q1,q1) -> q1
+normal(q2,q3) -> q4
+bot2(q10,q10) -> q10
+bot2(q10,q10) -> q3
+bot0 -> q10
+black(q10,q10) -> q8
+black(q3,q3) -> q1
+UNDEF(q5,q3) -> q2
+NULL(q0,q3) -> q5
