@@ -14,6 +14,15 @@
 // local headers
 #include "parse_args.hh"
 
+enum
+{
+	PARSING_COMMAND,
+	PARSING_LOAD_FILE,
+	PARSING_LOAD_2_FILES_1,
+	PARSING_LOAD_2_FILES_2,
+	PARSING_END
+};
+
 
 inline size_t translateFormat(const std::string& str)
 {
