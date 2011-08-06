@@ -47,7 +47,7 @@ flex_target(timbuk_scanner timbuk.l ${CMAKE_CURRENT_BINARY_DIR}/timbuk.l.cc)
 bison_target(timbuk_parser timbuk.y ${CMAKE_CURRENT_BINARY_DIR}/timbuk.y.cc)
 add_flex_bison_dependency(timbuk_scanner timbuk_parser)
 
-add_library(vatalib STATIC
+add_library(libvata STATIC
   bdd_tree_aut.cc
   bdd_tree_aut_op.cc
   convert.cc
@@ -58,7 +58,7 @@ add_library(vatalib STATIC
   ${FLEX_timbuk_scanner_OUTPUTS}
   ${BISON_timbuk_parser_OUTPUTS}
 )
-set_target_properties(vatalib PROPERTIES
+set_target_properties(libvata PROPERTIES
   OUTPUT_NAME vata
   CLEAN_DIRECT_OUTPUT 1
 )
@@ -69,9 +69,9 @@ set(scanner_parser_files
   ${BISON_timbuk_parser_OUTPUTS}
 )
 
-get_target_property(vatalib_sources vatalib SOURCES)
+get_target_property(libvata_sources libvata SOURCES)
 
-foreach(src ${vatalib_sources})
+foreach(src ${libvata_sources})
 
   unset(is_scanner_parser_file)
   foreach (checked_file ${scanner_parser_files})
@@ -94,6 +94,6 @@ add_executable(vata
   parse_args.cc
 )
 
-target_link_libraries(vata vatalib)
+target_link_libraries(vata libvata)
 target_link_libraries(vata ${LOG4CPP_LIBRARIES})
 #target_link_libraries(vata rt)
