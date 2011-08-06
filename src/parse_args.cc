@@ -180,6 +180,13 @@ Arguments parseArguments(int argc, char* argv[])
 
 					parserState = PARSING_LOAD_2_FILES_1;
 				}
+				else if (currentArg == "isect")
+				{
+					args.command   = COMMAND_INTERSECTION;
+					args.operands  = 2;
+
+					parserState = PARSING_LOAD_2_FILES_1;
+				}
 				else
 				{
 					throw std::runtime_error("Unknown command: " + currentArg);

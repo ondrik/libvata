@@ -40,6 +40,7 @@ const char VATA_USAGE_COMMANDS[] =
 	"    help                   Display this message\n"
 	"    load <file>            Load automaton from <file> and write it to standard output\n"
 	"    union <file1> <file2>  Compute union of automata from <file1> and <file2>\n"
+	"    isect <file1> <file2>  Compute intersection of automata from <file1> and <file2>\n"
 	;
 
 const char VATA_USAGE_FLAGS[] =
@@ -92,6 +93,22 @@ std::string performUnion(const Arguments& args, AbstrParser& parser,
 	aut2.LoadFromString(parser, rhs);
 
 	Aut autRes = Union(aut1, aut2);
+
+	return autRes.DumpToString(serializer);
+}
+
+
+template <class Aut>
+std::string performIntersection(const Arguments& args, AbstrParser& parser,
+	AbstrSerializer& serializer, const std::string& lhs, const std::string& rhs)
+{
+	Aut aut1;
+	Aut aut2;
+
+	aut1.LoadFromString(parser, lhs);
+	aut2.LoadFromString(parser, rhs);
+
+	Aut autRes = Intersection(aut1, aut2);
 
 	return autRes.DumpToString(serializer);
 }
@@ -164,6 +181,11 @@ int executeCommand(const Arguments& args)
 	{
 		std::cout <<
 			performUnion<Aut>(args, *(parser.get()), *(serializer.get()), str1, str2);
+	}
+	else if (args.command == COMMAND_INTERSECTION)
+	{
+		std::cout << performIntersection<Aut>(args, *(parser.get()),
+			*(serializer.get()), str1, str2);
 	}
 	else
 	{
