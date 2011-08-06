@@ -21,6 +21,10 @@ namespace VATA
 {
 	template <>
 	BDDTreeAut Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs);
+
+	template <>
+	BDDTreeAut Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
+		const BDDTreeAut& rhs);
 }
 
 #endif

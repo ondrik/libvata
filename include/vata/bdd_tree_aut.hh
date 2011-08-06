@@ -33,6 +33,9 @@ class VATA::BDDTreeAut
 	template <class Aut>
 	friend Aut Union(const Aut& lhs, const Aut& rhs);
 
+	template <class Aut>
+	friend Aut Intersection(const Aut& lhs, const Aut& rhs);
+
 public:   // public data types
 
 	typedef VATA::MTBDDPkg::VarAsgn SymbolType;

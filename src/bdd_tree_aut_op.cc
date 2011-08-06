@@ -13,6 +13,9 @@
 #include <vata/bdd_tree_aut_op.hh>
 #include <vata/mtbdd/apply1func.hh>
 
+// Boost library headers
+//#include <boost/functional/hash.hpp>
+
 using VATA::BDDTreeAut;
 
 
@@ -118,4 +121,57 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
 
 		return result;
 	}
+}
+
+
+template <>
+BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
+	const BDDTreeAut& rhs)
+{
+	// Assertions
+	assert(lhs.isValid());
+	assert(rhs.isValid());
+
+	// TODO: substitute translation map for a two-way dict?
+
+	typedef BDDTreeAut::StateType StateType;
+	typedef BDDTreeAut::StateSet StateSet;
+	typedef std::pair<StateType, StateType> StatePair;
+	typedef std::tr1::unordered_map<StatePair, StateType, boost::hash<StatePair> >
+		IntersectionTranslMap;
+	typedef std::map<StateType, StatePair> WorkSetType;
+
+	BDDTreeAut result;
+	WorkSetType workset;
+	IntersectionTranslMap translMap;
+
+	for (StateSet::const_iterator itFstLhs = lhs.GetFinalStates().begin();
+		itFstLhs != lhs.GetFinalStates().end(); ++itFstLhs)
+	{	// iterate over LHS's final states
+		for (StateSet::const_iterator itFstRhs = rhs.GetFinalStates().begin();
+			itFstRhs != rhs.GetFinalStates().end(); ++itFstRhs)
+		{	// iterate over RHS's final states
+			StatePair origStates = std::make_pair(*itFstLhs, *itFstRhs);
+
+			StateType newState = result.AddState();
+			result.SetStateFinal(newState);
+
+			workset.insert(std::make_pair(newState, origStates));
+			translMap.insert(std::make_pair(origStates, newState));
+		}
+	}
+
+	while (!workset.empty())
+	{	// while there is something in the workset
+		const StatePair& procPair  = workset.begin()->second;
+		const StateType& procState = workset.begin()->first;
+
+
+		// remove the processed state from the workset
+		workset.erase(workset.begin());
+	}
+
+	assert(result.isValid());
+
+	return result;
 }
