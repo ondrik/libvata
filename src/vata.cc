@@ -37,28 +37,34 @@ using VATA::Serialization::TimbukSerializer;
 
 const char VATA_USAGE_STRING[] =
 	"VATA: Vojnar's Army Tree Automata library interface\n"
-	"usage: vata [-r <representation>] [(-I|-O|-F) <format>] [-h|--help] <command> [<args>]\n"
+	"usage: vata [-r <representation>] [(-I|-O|-F) <format>] [-h|--help] [-t]\n"
+	"            <command> [<args>]\n"
 	;
 
 const char VATA_USAGE_COMMANDS[] =
 	"\nThe following commands are supported:\n"
-	"    help                   Display this message\n"
-	"    load <file>            Load automaton from <file> and write it to standard output\n"
-	"    union <file1> <file2>  Compute union of automata from <file1> and <file2>\n"
-	"    isect <file1> <file2>  Compute intersection of automata from <file1> and <file2>\n"
+	"    help                    Display this message\n"
+	"    load <file>             Load automaton from <file> and write it to standard\n"
+	"                            output\n"
+	"    union <file1> <file2>   Compute union of automata from <file1> and <file2>\n"
+	"    isect <file1> <file2>   Compute intersection of automata from <file1> and\n"
+	"                            <file2>\n"
 	;
 
 const char VATA_USAGE_FLAGS[] =
 	"\nOptions:\n"
-	"    -h, --help             Display this message\n"
-	"    -r <representation>    Use <representation> for internal storage of automata\n"
-	"                           The following representations are supported:\n"
+	"    -h, --help              Display this message\n"
+	"    -r <representation>     Use <representation> for internal storage of\n"
+	"                            automata. The following representations are\n"
+	"                            supported:\n"
 	"\n"
 	"                               'bdd'     : binary decision diagrams\n"
-	"    (-I|-O|-F) <format>    Specify format for input (-I), output (-O), or both (-F)\n"
-	"                           The following formats are supported:\n"
+	"    (-I|-O|-F) <format>     Specify format for input (-I), output (-O), or\n"
+	"                            both (-F). The following formats are supported:\n"
 	"\n"
 	"                               'timbuk'  : binary decision diagrams\n"
+	"    -t                      Print the time the operation took to error output\n"
+	"                            stream\n"
 	;
 
 
