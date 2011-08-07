@@ -166,7 +166,7 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	{
 		autResult = autInput1;
 	}
-	if (args.command == COMMAND_UNION)
+	else if (args.command == COMMAND_UNION)
 	{
 		autResult = Union(autInput1, autInput2);
 	}
@@ -236,7 +236,7 @@ int executeCommand(const Arguments& args)
 		std::cout <<
 			performLoad<Aut>(args, *(parser.get()), *(serializer.get()), str1);
 	}
-	if (args.command == COMMAND_UNION)
+	else if (args.command == COMMAND_UNION)
 	{
 		std::cout <<
 			performUnion<Aut>(args, *(parser.get()), *(serializer.get()), str1, str2);
