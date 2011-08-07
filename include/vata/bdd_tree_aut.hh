@@ -178,6 +178,7 @@ public:   // public methods
 	}
 
 	BDDTreeAut(const BDDTreeAut& aut);
+	BDDTreeAut& operator=(const BDDTreeAut& rhs);
 
 	inline const StateSet& GetStates() const
 	{

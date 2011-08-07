@@ -101,18 +101,32 @@ bool BDDTreeAut::isStandAlone() const
 
 
 BDDTreeAut::BDDTreeAut(const BDDTreeAut& aut) :
-	states_(aut.states_),
-	finalStates_(aut.finalStates_),
+	states_(),
+	finalStates_(),
 	transTable_(aut.transTable_)
 {
-	for (StateSet::const_iterator itSt = states_.begin();
-		itSt != states_.end(); ++itSt)
-	{	// increment states reference counters
-		transTable_->IncrementStateRefCnt(*itSt);
-	}
+	copyStates(aut);
 
 	// Assertions
 	assert(isValid());
+}
+
+
+BDDTreeAut& BDDTreeAut::operator=(const BDDTreeAut& rhs)
+{
+	if (this == &rhs)
+	{
+		return *this;
+	}
+
+	// NB: need to copy the transition table before copying states!
+	transTable_ = rhs.transTable_;
+	copyStates(rhs);
+
+	// Assertions
+	assert(isValid());
+
+	return *this;
 }
 
 
