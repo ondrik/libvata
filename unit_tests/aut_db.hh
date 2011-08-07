@@ -127,12 +127,50 @@ const char* AUT_TIMBUK_UNION_13_RESULT =
 	"d(4, 4) -> 4\n"
 	;
 
+const char* AUT_TIMBUK_ISECT_1 =
+	"Ops\n"
+	"Automaton anonymous\n"
+	"States\n"
+	"Final States r\n"
+	"Transitions\n"
+	"a -> p\n"
+	"b(p) -> q\n"
+	"b(q) -> q\n"
+	"c(p, q) -> r\n"
+	;
+
+const char* AUT_TIMBUK_ISECT_2 =
+	"Ops\n"
+	"Automaton anonymous\n"
+	"States\n"
+	"Final States h\n"
+	"Transitions\n"
+	"a -> g\n"
+	"z -> g\n"
+	"b(g) -> f\n"
+	"c(g, f) -> h\n"
+	"c(g, h) -> h\n"
+	;
+
+const char* AUT_TIMBUK_ISECT_12_RESULT =
+	"Ops\n"
+	"Automaton anonymous\n"
+	"States\n"
+	"Final States 1\n"
+	"Transitions\n"
+	"a -> 2\n"
+	"b(2) -> 4\n"
+	"b(5) -> 4\n"
+	"c(2, 4) -> 1\n"
+	"c(2, 3) -> 1\n"
+	;
+
 const char* AUT_TIMBUK_A53 =
 	"Ops\n"
 	"Automaton anonymous\n"
 	"States\n"
 	"Final States q47 q5\n"
-	""
+	"\n"
 	"Transitions\n"
 	"yblack(q1,q19) -> q22\n"
 	"yblack(q9,q9) -> q18\n"

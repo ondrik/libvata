@@ -206,5 +206,31 @@ BOOST_AUTO_TEST_CASE(aut_union_trans_table_copy)
 		"===========\n\nGot:\n===========\n" + autUnion13Str + "\n===========");
 }
 
+BOOST_AUTO_TEST_CASE(aut_intersection)
+{
+	TimbukParser parser;
+	TimbukSerializer serializer;
+
+	BDDTreeAut autI1;
+	autI1.LoadFromString(parser, AUT_TIMBUK_ISECT_1);
+	AutDescription autI1Desc = parser.ParseString(AUT_TIMBUK_ISECT_1);
+
+	BDDTreeAut autI2;
+	autI2.LoadFromString(parser, AUT_TIMBUK_ISECT_2);
+	AutDescription autI2Desc = parser.ParseString(AUT_TIMBUK_UNION_2);
+
+	BDDTreeAut autIsect12 = VATA::Intersection(autI1, autI2);
+
+	std::string autIsect12Str = autIsect12.DumpToString(serializer);
+	AutDescription descOutI12 = parser.ParseString(autIsect12Str);
+
+	AutDescription descCorrectI12 = parser.ParseString(AUT_TIMBUK_ISECT_12_RESULT);
+
+	BOOST_CHECK_MESSAGE(descCorrectI12 == descOutI12,
+		"\n\nExpecting:\n===========\n" +
+		serializer.Serialize(descCorrectI12) +
+		"===========\n\nGot:\n===========\n" + autIsect12Str + "\n===========");
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
