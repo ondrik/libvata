@@ -44,8 +44,7 @@ const char VATA_USAGE_STRING[] =
 const char VATA_USAGE_COMMANDS[] =
 	"\nThe following commands are supported:\n"
 	"    help                    Display this message\n"
-	"    load <file>             Load automaton from <file> and write it to standard\n"
-	"                            output\n"
+	"    load <file>             Load automaton from <file>\n"
 	"    union <file1> <file2>   Compute union of automata from <file1> and <file2>\n"
 	"    isect <file1> <file2>   Compute intersection of automata from <file1> and\n"
 	"                            <file2>\n"
