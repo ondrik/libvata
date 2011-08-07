@@ -144,6 +144,54 @@ std::string readFile(const std::string& fileName)
 }
 
 template <class Aut>
+int performOperation(const Arguments& args, AbstrParser& parser,
+	AbstrSerializer& serializer)
+{
+	Aut autInput1;
+	Aut autInput2;
+	Aut autResult;
+
+	if (args.operands >= 1)
+	{
+		autInput1.LoadFromString(parser, readFile(args.fileName1));
+	}
+
+	if (args.operands >= 2)
+	{
+		autInput2.LoadFromString(parser, readFile(args.fileName2));
+	}
+
+	// process command
+	if (args.command == COMMAND_LOAD)
+	{
+		autResult = autInput1;
+	}
+	if (args.command == COMMAND_UNION)
+	{
+		autResult = Union(autInput1, autInput2);
+	}
+	else if (args.command == COMMAND_INTERSECTION)
+	{
+		autResult = Intersection(autInput1, autInput2);
+	}
+	else
+	{
+		throw std::runtime_error("Internal error: invalid command");
+	}
+
+	if ((args.command == COMMAND_LOAD) ||
+		(args.command == COMMAND_UNION) ||
+		(args.command == COMMAND_INTERSECTION) ||
+		false)
+	{
+		std::cout << autResult.DumpToString(serializer);
+	}
+
+	return EXIT_SUCCESS;
+}
+
+
+template <class Aut>
 int executeCommand(const Arguments& args)
 {
 	std::auto_ptr<AbstrParser> parser(static_cast<AbstrParser*>(0));
