@@ -41,6 +41,7 @@ struct Arguments
 	size_t operands;
 	std::string fileName1;
 	std::string fileName2;
+	bool showTime;
 };
 
 Arguments parseArguments(int argc, char* argv[]);
