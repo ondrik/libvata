@@ -16,8 +16,11 @@
 // Log4cpp headers
 #include <log4cpp/Category.hh>
 
-//#define DEBUG 0
 //#define NDEBUG
+
+#ifdef NDEBUG
+	#define DEBUG 0
+#endif
 
 #define VATA_LOG_CATEGORY_NAME "VATA"
 
