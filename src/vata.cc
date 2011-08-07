@@ -161,6 +161,14 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 		autInput2.LoadFromString(parser, readFile(args.fileName2));
 	}
 
+	// get the start time
+	timespec startTime;
+	timespec finishTime;
+	if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime))
+	{
+		throw std::runtime_error("Could not get the start time");
+	}
+
 	// process command
 	if (args.command == COMMAND_LOAD)
 	{
@@ -177,6 +185,19 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	else
 	{
 		throw std::runtime_error("Internal error: invalid command");
+	}
+
+	// get the finish time
+	if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &finishTime))
+	{
+		throw std::runtime_error("Could not get the finish time");
+	}
+	double opTime = (finishTime.tv_sec - startTime.tv_sec)
+		+ 1e-9 * (finishTime.tv_nsec - startTime.tv_nsec);
+
+	if (args.showTime)
+	{
+		std::cerr << opTime << "\n";
 	}
 
 	if ((args.command == COMMAND_LOAD) ||
