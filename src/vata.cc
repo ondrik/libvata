@@ -217,41 +217,7 @@ int executeCommand(const Arguments& args)
 		throw std::runtime_error("Internal error: invalid output format");
 	}
 
-	std::string str1;
-	std::string str2;
-
-	if (args.operands >= 1)
-	{
-		str1 = readFile(args.fileName1);
-	}
-
-	if (args.operands >= 2)
-	{
-		str2 = readFile(args.fileName2);
-	}
-
-	// process command
-	if (args.command == COMMAND_LOAD)
-	{
-		std::cout <<
-			performLoad<Aut>(args, *(parser.get()), *(serializer.get()), str1);
-	}
-	else if (args.command == COMMAND_UNION)
-	{
-		std::cout <<
-			performUnion<Aut>(args, *(parser.get()), *(serializer.get()), str1, str2);
-	}
-	else if (args.command == COMMAND_INTERSECTION)
-	{
-		std::cout << performIntersection<Aut>(args, *(parser.get()),
-			*(serializer.get()), str1, str2);
-	}
-	else
-	{
-		throw std::runtime_error("Internal error: invalid command");
-	}
-
-	return EXIT_SUCCESS;
+	return performOperation<Aut>(args, *(parser.get()), *(serializer.get()));
 }
 
 
