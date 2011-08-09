@@ -9,7 +9,6 @@ project(libvata)
 # Include CTest so that sophisticated testing can be done now
 include(CTest)
 
-
 # Necessary packages
 find_package(Log4CPP REQUIRED)
 find_package(FLEX REQUIRED)

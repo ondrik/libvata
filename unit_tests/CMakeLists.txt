@@ -13,12 +13,7 @@ add_definitions(-Weffc++)
 add_definitions(-Wold-style-cast)
 add_definitions(-Woverloaded-virtual)
 add_definitions(-fdiagnostics-show-option)
-add_definitions(-finline-functions)
-add_definitions(-O2)
-add_definitions(-march=core2)
-add_definitions(-mtune=core2)
-add_definitions(-msse2)
-add_definitions(-g)
+add_definitions(-march=native)
 
 # uncomment for profiling
 #add_definitions(-pg)

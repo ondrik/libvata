@@ -15,12 +15,7 @@ set(flex_bison_compiler_flags_list
   -Weffc++
   -Woverloaded-virtual
   -fdiagnostics-show-option
-  -g
-  -finline-functions
-  -O2
-  -march=core2
-  -mtune=core2
-  -msse2
+  -march=native
 )
 
 set(vata_compiler_add_flags_list
