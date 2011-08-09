@@ -2,3 +2,5 @@
 build/*
 # Vim swap files
 **.swp
+# Doxygen generated documentation
+/html

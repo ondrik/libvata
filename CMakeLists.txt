@@ -14,6 +14,7 @@ find_package(Log4CPP REQUIRED)
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 find_package(Boost 1.42.0 COMPONENTS unit_test_framework REQUIRED)
+find_package(Doxygen REQUIRED)
 
 
 # Process subdirectories
@@ -21,3 +22,11 @@ add_subdirectory(src)
 add_subdirectory(unit_tests)
 add_subdirectory(tests)
 
+if (DOXYGEN_FOUND)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
+    ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+  add_custom_target(doc
+    ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+    COMMENT "Generating API documentation with Doxygen" VERBATIM)
+endif()
