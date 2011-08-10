@@ -165,6 +165,32 @@ const char* AUT_TIMBUK_ISECT_12_RESULT =
 	"c(2, 3) -> 1\n"
 	;
 
+const char* AUT_TIMBUK_UNREACHABLE_1 =
+	"Ops\n"
+	"Automaton anonymous\n"
+	"States\n"
+	"Final States q\n"
+	"Transitions\n"
+	"a -> p\n"
+	"b(p) -> r\n"
+	"b(p) -> s\n"
+	"c(p, p) -> q\n"
+	"c(p, r) -> q\n"
+	"c(p, s) -> s\n"
+	;
+
+const char* AUT_TIMBUK_UNREACHABLE_1_RESULT =
+	"Ops\n"
+	"Automaton anonymous\n"
+	"States\n"
+	"Final States 5\n"
+	"Transitions\n"
+	"a -> 6\n"
+	"b(6) -> 7\n"
+	"c(6, 6) -> 5\n"
+	"c(6, 7) -> 5\n"
+	;
+
 const char* AUT_TIMBUK_A53 =
 	"Ops\n"
 	"Automaton anonymous\n"

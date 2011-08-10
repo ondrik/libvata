@@ -232,5 +232,27 @@ BOOST_AUTO_TEST_CASE(aut_intersection)
 		"===========\n\nGot:\n===========\n" + autIsect12Str + "\n===========");
 }
 
+BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
+{
+	TimbukParser parser;
+	TimbukSerializer serializer;
+
+	BDDTreeAut aut1;
+	aut1.LoadFromString(parser, AUT_TIMBUK_UNREACHABLE_1);
+	AutDescription autI1Desc = parser.ParseString(AUT_TIMBUK_UNREACHABLE_1);
+
+	BDDTreeAut aut1UF = VATA::RemoveUnreachableStates(aut1);
+
+	std::string aut1UFStr = aut1UF.DumpToString(serializer);
+	AutDescription descOutUF1 = parser.ParseString(aut1UFStr);
+
+	AutDescription descCorrectUF1 = parser.ParseString(AUT_TIMBUK_UNREACHABLE_1_RESULT);
+
+	BOOST_CHECK_MESSAGE(descCorrectUF1 == descOutUF1,
+		"\n\nExpecting:\n===========\n" +
+		serializer.Serialize(descCorrectUF1) +
+		"===========\n\nGot:\n===========\n" + aut1UFStr + "\n===========");
+}
+
 BOOST_AUTO_TEST_SUITE_END()
 
