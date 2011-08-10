@@ -25,6 +25,9 @@ namespace VATA
 	template <>
 	BDDTreeAut Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
 		const BDDTreeAut& rhs);
+
+	template <>
+	BDDTreeAut RemoveUnreachableStates(const BDDTreeAut& aut);
 }
 
 #endif

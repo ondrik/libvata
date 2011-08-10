@@ -21,6 +21,9 @@ namespace VATA
 
 	template <class Aut>
 	Aut Intersection(const Aut& lhs, const Aut& rhs);
+
+	template <class Aut>
+	Aut RemoveUnreachableStates(const Aut& aut);
 }
 
 #endif

@@ -36,6 +36,9 @@ class VATA::BDDTreeAut
 	template <class Aut>
 	friend Aut Intersection(const Aut& lhs, const Aut& rhs);
 
+	template <class Aut>
+	friend Aut RemoveUnreachableStates(const Aut& aut);
+
 public:   // public data types
 
 	typedef VATA::MTBDDPkg::VarAsgn SymbolType;
