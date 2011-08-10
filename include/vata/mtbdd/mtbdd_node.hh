@@ -47,7 +47,17 @@ namespace VATA
 }
 
 
-
+/**
+ * @brief   Pointer to an MTBDD node
+ * @author  Ondra Lengal <ilengal@fit.vutbr.cz>
+ * @date    2011
+ *
+ * This is a pointer to an MTBDD node. It can point either to an internal node
+ * or to a leaf node. Methods of this strucre are optimised so that they can
+ * be inlined thus yielding minimum overhead.
+ *
+ * @tparam  Data  The data type stored in leaves
+ */
 template <
 	typename Data
 >
@@ -55,21 +65,69 @@ struct VATA::MTBDDPkg::MTBDDNodePtr
 {
 public:   // public data types
 
+
+	/**
+	 * @brief  Leaf data type
+	 *
+	 * The data types used in leaves of the MTBDD.
+	 */
 	typedef Data DataType;
+
+
+	/**
+	 * @brief  Reference counter type
+	 *
+	 * The data type used for reference counter of MTBDD nodes.
+	 */
 	typedef uintptr_t RefCntType;
+
+	/**
+	 * @brief  Type of Boolean variables
+	 *
+	 * The data type of Boolean variables stored in the nodes of the MTBDD.
+	 */
 	typedef uintptr_t VarType;
 
 private:  // private data types
 
+	/**
+	 * @brief  The type of internal nodes
+	 *
+	 * The type of MTBDD internal nodes.
+	 */
 	typedef InternalNode<DataType> InternalType;
+
+
+	/**
+	 * @brief  The type of leaf nodes
+	 *
+	 * The type of MTBDD leaf nodes.
+	 */
 	typedef LeafNode<DataType> LeafType;
+
 
 private:  // private data members
 
+
+	/**
+	 * @brief  Address of the pointer
+	 *
+	 * The address that the pointer is pointing to.
+	 */
 	uintptr_t addr_;
 
 private:  // private methods
 
+
+	/**
+	 * @brief  Creates MTBDDNodePtr from a leaf pointer
+	 *
+	 * This static method creates MTBDDNodePtr from a leaf node pointer.
+	 *
+	 * @param[in]  node  Input leaf node pointer
+	 *
+	 * @return  MTBDDNodePtr with @p node address
+	 */
 	static inline MTBDDNodePtr makeLeaf(LeafType* node)
 	{
 		// Assertions
@@ -78,6 +136,16 @@ private:  // private methods
 		return (reinterpret_cast<uintptr_t>(node) | 1);
 	}
 
+
+	/**
+	 * @brief  Creates MTBDDNodePtr from an internal node pointer
+	 *
+	 * This static method creates MTBDDNodePtr from an internal node pointer.
+	 *
+	 * @param[in]  node  Input internal node pointer
+	 *
+	 * @return  MTBDDNodePtr with @p node address
+	 */
 	static inline MTBDDNodePtr makeInternal(InternalType* node)
 	{
 		// Assertions
@@ -86,6 +154,17 @@ private:  // private methods
 		return static_cast<MTBDDNodePtr>(node);
 	}
 
+
+	/**
+	 * @brief  Translates MTBDDNodePtr to a leaf
+	 *
+	 * The static method that translates MTBDDNodePtr to a pointer to a leaf
+	 * node.
+	 *
+	 * @param[in]  node  Input MTBDDNodePtr
+	 *
+	 * @return  Leaf node pointer
+	 */
 	static inline LeafType* nodeToLeaf(MTBDDNodePtr& node)
 	{
 		// Assertions
@@ -95,6 +174,9 @@ private:  // private methods
 		return reinterpret_cast<LeafType*>(node.addr_ ^ 1);
 	}
 
+	/**
+	 * @copydoc MTBDDNodePtr::nodeToLeaf(MTBDDNodePtr&)
+	 */
 	static inline const LeafType* nodeToLeaf(const MTBDDNodePtr& node)
 	{
 		// Assertions
@@ -104,6 +186,16 @@ private:  // private methods
 		return nodeToLeaf(const_cast<MTBDDNodePtr&>(node));
 	}
 
+	/**
+	 * @brief  Translates MTBDDNodePtr to an internal node
+	 *
+	 * The static method that translates MTBDDNodePtr to a pointer to an
+	 * internal node.
+	 *
+	 * @param[in]  node  Input MTBDDNodePtr
+	 *
+	 * @return  Internal node pointer
+	 */
 	static inline InternalType* nodeToInternal(MTBDDNodePtr& node)
 	{
 		// Assertions
@@ -113,6 +205,10 @@ private:  // private methods
 		return reinterpret_cast<InternalType*>(node.addr_);
 	}
 
+
+	/**
+	 * @copydoc MTBDDNodePtr::nodeToInternal(MTBDDNodePtr&)
+	 */
 	static inline const InternalType* nodeToInternal(const MTBDDNodePtr& node)
 	{
 		// Assertions
@@ -122,6 +218,17 @@ private:  // private methods
 		return nodeToInternal(const_cast<MTBDDNodePtr&>(node));
 	}
 
+
+	/**
+	 * @brief  Retrieve internal node's reference counter value
+	 *
+	 * Static method that retrieves reference counter value of an MTBDDNodePtr
+	 * representing an internal node.
+	 *
+	 * @param[in]  node  MTBDDNodePtr of an internal node
+	 *
+	 * @return  Reference counter value
+	 */
 	static inline const RefCntType& getInternalRefCnt(const MTBDDNodePtr& node)
 	{
 		// Assertions
@@ -131,6 +238,15 @@ private:  // private methods
 		return nodeToInternal(node)->GetRefCnt();
 	}
 
+
+	/**
+	 * @brief  Increments leaf node's reference counter value
+	 *
+	 * Static method that increments value of the reference counter of an
+	 * MTBDDNodePtr representing a leaf node.
+	 *
+	 * @param[in]  node  MTBDDNodePtr of a leaf node
+	 */
 	static inline void incrementLeafRefCnt(MTBDDNodePtr node)
 	{
 		// Assertions
@@ -140,6 +256,15 @@ private:  // private methods
 		nodeToLeaf(node)->IncrementRefCnt();
 	}
 
+
+	/**
+	 * @brief  Increments internal node's reference counter value
+	 *
+	 * Static method that increments value of the reference counter of an
+	 * MTBDDNodePtr representing an internal node.
+	 *
+	 * @param[in]  node  MTBDDNodePtr of an internal node
+	 */
 	static inline void incrementInternalRefCnt(MTBDDNodePtr node)
 	{
 		// Assertions
@@ -151,27 +276,74 @@ private:  // private methods
 
 public:
 
-	MTBDDNodePtr(const uintptr_t addr)
-		: addr_(addr)
+
+	/**
+	 * @brief  Constructs MTBDDNodePtr from an address
+	 *
+	 * Creates an MTBDDNodePtr from an address (or rather, from @p uintptr_t).
+	 *
+	 * @param[in]  addr  Address of an MTBDD node given as @p uintptr_t
+	 */
+	MTBDDNodePtr(const uintptr_t addr) :
+		addr_(addr)
 	{ }
 
-	explicit MTBDDNodePtr(const LeafType* leaf)
-		: addr_(static_cast<uintptr_t>(leaf))
+
+	/**
+	 * @brief  Converts a leaf node pointer to MTBDDNodePtr
+	 *
+	 * This conversion operator converts a leaf node pointer into MTBDDNodePtr.
+	 *
+	 * @param[in]  leaf  The leaf node pointer that should be converted
+	 */
+	explicit MTBDDNodePtr(const LeafType* leaf) :
+		addr_(static_cast<uintptr_t>(leaf))
 	{ }
 
-	explicit MTBDDNodePtr(const InternalType* internal)
-		: addr_(reinterpret_cast<uintptr_t>(internal))
+
+	/**
+	 * @brief  Converts in internal node pointer to MTBDDNodePtr
+	 *
+	 * This conversion operator converts an internal node pointer into
+	 * MTBDDNodePtr.
+	 *
+	 * @param[in]  internal	  The internal node pointer that should be converted
+	 */
+	explicit MTBDDNodePtr(const InternalType* internal) :
+		addr_(reinterpret_cast<uintptr_t>(internal))
 	{ }
 
+
+	/**
+	 * @brief  Equality comparison operator
+	 *
+	 * Equality comparison operator, compares stored addreses.
+	 *
+	 * @param[in]  rhs  Right-hand side of the comparison
+	 *
+	 * @return  @p true if the object is equal to @p rhs, @p false otherwise
+	 */
 	inline bool operator==(const MTBDDNodePtr& rhs) const
 	{
 		return addr_ == rhs.addr_;
 	}
 
+
+	/**
+	 * @brief  Unequality comparison operator
+	 *
+	 * Unequality comparison operator, compares stored addreses.
+	 *
+	 * @param[in]  rhs  Right-hand side of the comparison
+	 *
+	 * @return  @p true if the object is not equal to @p rhs, @p false otherwise
+	 */
 	inline bool operator!=(const MTBDDNodePtr& rhs) const
 	{
 		return !operator==(rhs);
 	}
+
+	// Friends
 
 	template <typename DataType>
 	friend MTBDDNodePtr<DataType> CreateLeaf(const DataType& data);
