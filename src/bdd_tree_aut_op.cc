@@ -242,8 +242,9 @@ BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
 
 	while (!workset.empty())
 	{	// while there is something in the workset
-		const StatePair& procPair  = workset.begin()->second;
-		const StateType& procState = workset.begin()->first;
+		WorkSetType::iterator itWs = workset.begin();
+		const StatePair& procPair  = itWs->second;
+		const StateType& procState = itWs->first;
 
 		BDDTreeAut::TransMTBDD mtbdd = isect(lhs.getMtbdd(procPair.first),
 			rhs.getMtbdd(procPair.second));
@@ -251,7 +252,7 @@ BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
 		result.setMtbdd(procState, mtbdd);
 
 		// remove the processed state from the workset
-		workset.erase(workset.begin());
+		workset.erase(itWs);
 	}
 
 	assert(result.isValid());
