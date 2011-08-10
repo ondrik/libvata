@@ -14,6 +14,9 @@ release:
 doc:
 	cd $(BUILD_DIR) && make doc -j
 
+test:
+	cd $(BUILD_DIR) && make test
+
 clean:
 	cd $(BUILD_DIR) && rm -rf *
 	rm -rf html
