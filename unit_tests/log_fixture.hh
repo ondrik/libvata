@@ -21,8 +21,6 @@
 
 /**
  * @brief   Test fixture that enables logging
- * @author  Ondra Lengal <ilengal@fit.vutbr.cz>
- * @date    2011
  *
  * This test fixture enables Log4cpp logging for proper categories.
  */

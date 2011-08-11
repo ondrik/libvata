@@ -31,8 +31,6 @@ namespace VATA
 
 /**
  * @brief   Two-way dictionary
- * @author  Ondra Lengal <ilengal@fit.vutbr.cz>
- * @date    2011
  *
  * This class can be used as a two-way dictionary for two different types, @p
  * Type1 and @p Type2

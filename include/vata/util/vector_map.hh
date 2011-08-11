@@ -38,8 +38,6 @@ namespace VATA
 
 /**
  * @brief   Map of vectors to elements
- * @author  Ondra Lengal <ilengal@fit.vutbr.cz>
- * @date    2011
  *
  * This class implements map that projects vectors of elements to arbitrary
  * elements.

@@ -33,8 +33,6 @@ namespace VATA
 
 /**
  * @brief   Variable assignment
- * @author  Ondra Lengal <ilengal@fit.vutbr.cz>
- * @date    2011
  *
  * A class that represents assignments to Boolean variables in a compact way.
  * Assigned values can be one of '0', '1' and 'X', where 'X' means <em>don't

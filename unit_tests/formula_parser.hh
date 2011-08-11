@@ -21,8 +21,6 @@
 
 /**
  * @brief   Parser of formulae
- * @author  Ondra Lengal <ilengal@fit.vutbr.cz>
- * @date    2011
  *
  * Static class that is used to parse some types of formulae.
  */

@@ -60,8 +60,6 @@ namespace VATA
 
 /**
  * @brief   Class representing MTBDD
- * @author  Ondra Lengal <ilengal@fit.vutbr.cz>
- * @date    2011
  *
  * This class represents a single multi-terminal binary decision diagram
  * (MTBDD).
