@@ -418,7 +418,7 @@ public:
 namespace
 {
 	/**
-	 * @brief  Internal MTBDD Node
+	 * @brief  Internal MTBDD node
 	 *
 	 * The data type for an internal MTBDD node. The node contains 2 children
 	 * pointers, a variable and a reference counter.
@@ -595,6 +595,14 @@ namespace
 	};
 
 
+	/**
+	 * @brief  Leaf MTBDD node
+	 *
+	 * The data type for a leaf MTBDD node. The node contains a value from the
+	 * domain of the MTBDD.
+	 *
+	 * @tparam  Data  The data type of value in the leaf
+	 */
 	template <
 		typename Data
 	>
@@ -602,37 +610,101 @@ namespace
 	{
 	public:   // public data members
 
+		/**
+		 * @brief  Data type of the value
+		 *
+		 * The data type of the value stored in the leaf.
+		 */
 		typedef Data DataType;
+
+		/**
+		 * @brief  Data type of node pointer
+		 *
+		 * The data type of the MTBDD's node pointer.
+		 */
 		typedef VATA::MTBDDPkg::MTBDDNodePtr<DataType> NodePtr;
+
+		/**
+		 * @brief  Data type of reference counter
+		 *
+		 * The data type of the reference counter.
+		 */
 		typedef typename NodePtr::RefCntType RefCntType;
 
 	private:  // private data members
 
+		/**
+		 * @brief  Stored data value
+		 *
+		 * Data value stored in the leaf node.
+		 */
 		DataType data_;
+
+		/**
+		 * @brief  Reference counter
+		 *
+		 * Counter of references to the leaf node.
+		 */
 		RefCntType refcnt_;
 
 	public:   // public methods
 
+
+		/**
+		 * @brief  Constructor
+		 *
+		 * Constructs the leaf from components.
+		 *
+		 * @param[in]  data    The data value
+		 * @param[in]  refcnt  The reference counter
+		 */
 		LeafNode(const DataType& data, const RefCntType& refcnt)
 			: data_(data),
 				refcnt_(refcnt)
 		{ }
 
+		/**
+		 * @brief  Gets data from the leaf
+		 *
+		 * Returns the data value stored in the leaf.
+		 *
+		 * @return  Leaf's data value
+		 */
 		inline const DataType& GetData() const
 		{
 			return data_;
 		}
 
+		/**
+		 * @brief  Gets data from the leaf
+		 *
+		 * Returns the data value stored in the leaf.
+		 *
+		 * @return  Leaf's data value
+		 */
 		inline const RefCntType& GetRefCnt() const
 		{
 			return refcnt_;
 		}
 
+		/**
+		 * @brief  Increments the reference counter
+		 *
+		 * Increments the value of the leaf's reference counter.
+		 */
 		inline void IncrementRefCnt()
 		{
 			++refcnt_;
 		}
 
+		/**
+		 * @brief  Decreemtns the reference counter
+		 *
+		 * Decrements the value of the leaf's reference counter and returns the
+		 * new value.
+		 *
+		 * @return  The decremented value
+		 */
 		inline const RefCntType& DecrementRefCnt()
 		{
 			// Assertions
