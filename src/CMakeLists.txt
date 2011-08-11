@@ -44,7 +44,8 @@ add_flex_bison_dependency(timbuk_scanner timbuk_parser)
 
 add_library(libvata STATIC
   bdd_tree_aut.cc
-  bdd_tree_aut_op.cc
+  bdd_tree_aut_isect.cc
+  bdd_tree_aut_union.cc
   convert.cc
   fake_file.cc
   timbuk_parser.cc
