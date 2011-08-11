@@ -600,8 +600,8 @@ public:
 	 *
 	 * @tparam  Data  Data type of leaf nodes
 	 */
-	template <typename Data>
-	friend size_t hash_value(const MTBDDNodePtr<Data>& node);
+	template <typename DataType>
+	friend size_t hash_value(const MTBDDNodePtr<DataType>& node);
 };
 
 
