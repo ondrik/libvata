@@ -80,50 +80,6 @@ void printHelp(bool full = false)
 }
 
 
-template <class Aut>
-std::string performLoad(const Arguments& args, AbstrParser& parser,
-	AbstrSerializer& serializer, const std::string str)
-{
-	Aut aut;
-	BDDTreeAut::StringToStateDict stateDict;
-
-	aut.LoadFromString(parser, str, &stateDict);
-	return aut.DumpToString(serializer, &stateDict);
-}
-
-
-template <class Aut>
-std::string performUnion(const Arguments& args, AbstrParser& parser,
-	AbstrSerializer& serializer, const std::string& lhs, const std::string& rhs)
-{
-	Aut aut1;
-	Aut aut2;
-
-	aut1.LoadFromString(parser, lhs);
-	aut2.LoadFromString(parser, rhs);
-
-	Aut autRes = Union(aut1, aut2);
-
-	return autRes.DumpToString(serializer);
-}
-
-
-template <class Aut>
-std::string performIntersection(const Arguments& args, AbstrParser& parser,
-	AbstrSerializer& serializer, const std::string& lhs, const std::string& rhs)
-{
-	Aut aut1;
-	Aut aut2;
-
-	aut1.LoadFromString(parser, lhs);
-	aut2.LoadFromString(parser, rhs);
-
-	Aut autRes = Intersection(aut1, aut2);
-
-	return autRes.DumpToString(serializer);
-}
-
-
 std::string readFile(const std::string& fileName)
 {
 	std::ifstream ifs(fileName.c_str());
