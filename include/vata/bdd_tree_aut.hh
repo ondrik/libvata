@@ -92,6 +92,18 @@ private:  // private methods
 
 	static SymbolType addSymbol();
 
+	inline void deallocateStates()
+	{
+		// Assertions
+		assert(isValid());
+
+		for (StateSet::iterator itSt = states_.begin();
+			itSt != states_.end(); ++itSt)
+		{	// release all states
+			transTable_->DecrementStateRefCnt(*itSt);
+		}
+	}
+
 	inline const TransMTBDD& getMtbdd(const StateType& state) const
 	{
 		// Assertions

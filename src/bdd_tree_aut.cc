@@ -119,6 +119,10 @@ BDDTreeAut& BDDTreeAut::operator=(const BDDTreeAut& rhs)
 		return *this;
 	}
 
+	deallocateStates();
+	states_.clear();
+	finalStates_.clear();
+
 	// NB: need to copy the transition table before copying states!
 	transTable_ = rhs.transTable_;
 	copyStates(rhs);
@@ -415,9 +419,5 @@ BDDTreeAut::~BDDTreeAut()
 	// Assertions
 	assert(isValid());
 
-	for (StateSet::iterator itSt = states_.begin();
-		itSt != states_.end(); ++itSt)
-	{	// release all states
-		transTable_->DecrementStateRefCnt(*itSt);
-	}
+	deallocateStates();
 }
