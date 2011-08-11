@@ -4,3 +4,5 @@ build/*
 **.swp
 # Doxygen generated documentation
 /html
+# ctags tags
+tags
