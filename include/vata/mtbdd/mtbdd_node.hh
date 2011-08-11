@@ -59,10 +59,10 @@ namespace VATA
  * @li  Leaf nodes contain value of the given data type.
  *
  * Both internal and leaf nodes contain a counter of references. The value of
- * this counter denotes how many times is given node referenced either by
- * other MTBDD nodes or from other places (e.g., as an MTBDD root). Note that
- * it <b>does not</b> count the <em>number of trees going through the
- * node</em>.
+ * this counter denotes <em>how many times given node is referenced</em>
+ * either by other MTBDD nodes or from other places (e.g., as an MTBDD root).
+ * Note that it <b>does not</b> count the <em>number of trees going through
+ * the node</em>.
  *
  * @tparam  Data  The data type stored in leaves
  */
@@ -353,65 +353,255 @@ public:
 
 	// Friends
 
+	/**
+	 * @brief  Creates a leaf node
+	 *
+	 * This function creates a leaf node with given data value and returns the
+	 * pointer to the node.
+	 *
+	 * @param[in]  data  The data value to be stored in the leaf
+	 *
+	 * @return  Pointer to the created leaf node
+	 *
+	 * @tparam  DataType  The data type of the leaf
+	 */
 	template <typename DataType>
 	friend MTBDDNodePtr<DataType> CreateLeaf(const DataType& data);
 
+	/**
+	 * @brief  Creates an internal node
+	 *
+	 * This function creates an internal node with given child nodes and
+	 * variable, and returns the pointer to the node.
+	 *
+	 * @param[in]  low   Pointer to the @e low child
+	 * @param[in]  high  Pointer to the @e high child
+	 * @param[in]  var   Variable of the node
+	 *
+	 * @return  Pointer to the created internal node
+	 *
+	 * @tparam  NodePtrType  Type of node pointer
+	 */
 	template <typename NodePtrType>
 	friend NodePtrType CreateInternal(NodePtrType low, NodePtrType high,
 		const typename NodePtrType::VarType& var);
 
+	/**
+	 * @brief  Deletes a leaf node
+	 *
+	 * This function deletes the leaf node given by the passed node pointer.
+	 *
+	 * @param[in]  node  Pointer to the leaf node to be deleted
+	 *
+	 * @tparam  NodePtrType  Type of node pointer
+	 */
 	template <typename NodePtrType>
 	friend void DeleteLeafNode(NodePtrType node);
 
+	/**
+	 * @brief  Deletes an internal node
+	 *
+	 * This function deletes the internal node given by the passed node
+	 * pointer.
+	 *
+	 * @param[in]  node  Pointer to the internal node to be deleted
+	 *
+	 * @tparam  NodePtrType  Type of node pointer
+	 */
 	template <typename NodePtrType>
 	friend void DeleteInternalNode(NodePtrType node);
 
+	/**
+	 * @brief  Checks if a node pointer is @p NULL
+	 *
+	 * This function determines whether the passed node pointer points to @p
+	 * NULL.
+	 *
+	 * @param[in]  node  Node pointer 
+	 *
+	 * @tparam NodePtrType  Type of node pointer
+	 */
 	template <typename NodePtrType>
 	friend bool IsNull(NodePtrType node);
 
+	/**
+	 * @brief  Checks if a node is a leaf
+	 *
+	 * This function determines whether the node is a leaf node of an MTBDD.
+	 *
+	 * @param[in]  node  Pointer to the node to be checked 
+	 *
+	 * @return  @p true if @p node is a leaf, @p false otherwise
+	 *
+	 * @tparam  NodePtrType  Type of node pointer
+	 */
 	template <typename NodePtrType>
 	friend bool IsLeaf(const NodePtrType& node);
 
+	/**
+	 * @brief  Checks if a node is an internal node
+	 *
+	 * This function determines whether the node is an interanal node of an
+	 * MTBDD.
+	 *
+	 * @param[in]  node  Pointer to the node to be checked 
+	 *
+	 * @return  @p true if @p node is an internal node, @p false otherwise
+	 *
+	 * @tparam  NodePtrType  Type of node pointer
+	 */
 	template <typename NodePtrType>
 	friend bool IsInternal(const NodePtrType& node);
 
+	/**
+	 * @brief  Gets variable from an internal node
+	 *
+	 * The function to retrieve variable from the internal node pointed to by
+	 * the passed MTBDD node pointer.
+	 *
+	 * @param[in]  node  Pointer to an internal node
+	 *
+	 * @return  The variable represented by the internal node
+	 *
+	 * @tparam  NodePtrType  Type of node pointer
+	 */
 	template <typename NodePtrType>
 	friend const typename NodePtrType::VarType& GetVarFromInternal(
 		NodePtrType& node);
 
+	/**
+	 * @brief  Gets the @e low child of an internal node
+	 *
+	 * Retrieves the pointer to the @e low child of the internal node pointed
+	 * to by the passed MTBDD node pointer.
+	 *
+	 * @param[in]  node  Pointer to the internal node
+	 *
+	 * @return  The @e low child of @p node
+	 *
+	 * @tparam  NodePtrType  Type of node pointer
+	 */
 	template <typename NodePtrType>
 	friend NodePtrType GetLowFromInternal(NodePtrType& node);
 
+	/**
+	 * @copydoc GetLowFromInternal(NodePtrType&)
+	 */
 	template <typename NodePtrType>
 	friend NodePtrType GetLowFromInternal(const NodePtrType& node);
 
+	/**
+	 * @brief  Gets the @e high child of an internal node
+	 *
+	 * Retrieves the pointer to the @e high child of the internal node pointed
+	 * to by the passed MTBDD node pointer.
+	 *
+	 * @param[in]  node  Pointer to the internal node
+	 *
+	 * @return  The @e high child of @p node
+	 *
+	 * @tparam  NodePtrType  Type of node pointer
+	 */
 	template <typename NodePtrType>
 	friend NodePtrType GetHighFromInternal(NodePtrType& node);
 
+	/**
+	 * @copydoc GetHighFromInternal(NodePtrType&)
+	 */
 	template <typename NodePtrType>
 	friend NodePtrType GetHighFromInternal(const NodePtrType& node);
 
+	/**
+	 * @brief  Gets data from a leaf
+	 *
+	 * The function to retrieve data from the leaf node pointed to by the
+	 * passed MTBDD node pointer.
+	 *
+	 * @param[in]  node  Pointer to a leaf node
+	 *
+	 * @return  The data value stored in the leaf node
+	 *
+	 * @tparam  NodePtrType  Type of node pointer
+	 */
 	template <typename NodePtrType>
 	friend const typename NodePtrType::DataType& GetDataFromLeaf(
 		const NodePtrType& node);
 
+	/**
+	 * @brief  Gets leaf's reference counter
+	 *
+	 * Retrieves the value of the reference counter of the leaf node pointed
+	 * to by given pointer.
+	 *
+	 * @param[in]  node  Pointer to the leaf node
+	 *
+	 * @return  The value of the reference counter
+	 *
+	 * @tparam  NodePtrType  Type of node pointer
+	 */
 	template <typename NodePtrType>
 	friend const typename NodePtrType::VarType& GetLeafRefCnt(
 		const NodePtrType node);
 
+	/**
+	 * @brief  Increments nodes reference counter
+	 *
+	 * The function that increments the reference counter of node pointed to
+	 * by the passed pointer.
+	 *
+	 * @param[in]  node  Pointer to the node
+	 *
+	 * @tparam  NodePtrType  Type of node pointer
+	 */
 	template <typename NodePtrType>
 	friend void IncrementRefCnt(NodePtrType node);
 
+	/**
+	 * @brief  Decrements leaf's reference counter
+	 *
+	 * This function decrements the value of the reference counter of the leaf
+	 * of the passed node pointer and returns the new value.
+	 *
+	 * @param[in]  node  The node for decrementing reference counter
+	 *
+	 * @return  The new value of the reference counter
+	 *
+	 * @tparam  NodePtrType  Type of node pointer
+	 */
 	template <typename NodePtrType>
 	friend const typename NodePtrType::RefCntType& DecrementLeafRefCnt(
 		NodePtrType node);
 
+	/**
+	 * @brief  Decrements internal node's reference counter
+	 *
+	 * This function decrements the value of the reference counter of the
+	 * internal node of the passed node pointer and returns the new value.
+	 *
+	 * @param[in]  node  The node for decrementing reference counter
+	 *
+	 * @return  The new value of the reference counter
+	 *
+	 * @tparam  NodePtrType  Type of node pointer
+	 */
 	template <typename NodePtrType>
 	friend const typename NodePtrType::RefCntType& DecrementInternalRefCnt(
 		NodePtrType node);
 
-	template <typename T>
-	friend size_t hash_value(const MTBDDNodePtr<T>& node);
+	/**
+	 * @brief  Generates hash of MTBDDNodePtr
+	 *
+	 * This is a function required by Boost to be able to use MTBDDNodePtr in
+	 * hash tables, etc. The function generates the hash of a node pointer.
+	 *
+	 * @param[in]  node  Pointer to the node
+	 *
+	 * @return  Hash value of the pointer
+	 *
+	 * @tparam  Data  Data type of leaf nodes
+	 */
+	template <typename Data>
+	friend size_t hash_value(const MTBDDNodePtr<Data>& node);
 };
 
 
@@ -907,6 +1097,7 @@ namespace VATA
 		{
 			return node.addr_ == 0;
 		}
+
 
 		template <typename Data>
 		inline size_t hash_value(const MTBDDNodePtr<Data>& node)
