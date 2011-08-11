@@ -49,12 +49,20 @@ namespace VATA
 
 /**
  * @brief   Pointer to an MTBDD node
- * @author  Ondra Lengal <ilengal@fit.vutbr.cz>
- * @date    2011
  *
  * This is a pointer to an MTBDD node. It can point either to an internal node
- * or to a leaf node. Methods of this strucre are optimised so that they can
+ * or to a leaf node. Methods of this structure are optimised so that they can
  * be inlined thus yielding minimum overhead.
+ *
+ * @li  Internal nodes contain left and right child pointers and a variable. 
+ *
+ * @li  Leaf nodes contain value of the given data type.
+ *
+ * Both internal and leaf nodes contain a counter of references. The value of
+ * this counter denotes how many times is given node referenced either by
+ * other MTBDD nodes or from other places (e.g., as an MTBDD root). Note that
+ * it <b>does not</b> count the <em>number of trees going through the
+ * node</em>.
  *
  * @tparam  Data  The data type stored in leaves
  */
@@ -409,6 +417,14 @@ public:
 
 namespace
 {
+	/**
+	 * @brief  Internal MTBDD Node
+	 *
+	 * The data type for an internal MTBDD node. The node contains 2 children
+	 * pointers, a variable and a reference counter.
+	 *
+	 * @tparam  Data  The data type of MTBDD's leaves
+	 */
 	template <
 		typename Data
 	>
@@ -416,28 +432,84 @@ namespace
 	{
 	public:   // public data types
 
+		/**
+		 * @brief  Leaves data type
+		 *
+		 * The data type of leaf nodes.
+		 */
 		typedef Data DataType;
+
+		/**
+		 * @brief  MTBDD node pointer type
+		 *
+		 * The data type of MTBDD node pointer (internal or leaf).
+		 */
 		typedef VATA::MTBDDPkg::MTBDDNodePtr<DataType> NodePtrType;
+
+		/**
+		 * @brief  Reference counter data type
+		 *
+		 * The data type of the reference counter.
+		 */
 		typedef typename NodePtrType::RefCntType RefCntType;
+
+		/**
+		 * @brief  Variable data type
+		 *
+		 * The data type of the varible in the node.
+		 */
 		typedef typename NodePtrType::VarType VarType;
 
 	private:  // private data members
 
+		/**
+		 * @brief  The @e low child
+		 *
+		 * The child for value @p 0 of the node's variable.
+		 */
 		NodePtrType low_;
+
+		/**
+		 * @brief  The @e high child
+		 *
+		 * The child for value @p 1 of the node's variable.
+		 */
 		NodePtrType high_;
+
+		/**
+		 * @brief  Boolean variable
+		 *
+		 * The Boolean variable represented by the node
+		 */
 		VarType var_;
+
+		/**
+		 * @brief  Reference counter
+		 *
+		 * The counter of references to the node.
+		 */
 		RefCntType refcnt_;
 
 	public:   // public methods
 
 		// I know what I'm doing!!
 		GCC_DIAG_OFF(uninitialized)
+		/**
+		 * @brief  Constructor
+		 *
+		 * Constructs InternalNode from components.
+		 *
+		 * @param[in]  low     The node's @e low child pointer
+		 * @param[in]  high    The node's @e high child pointer
+		 * @param[in]  var     The node's Boolean variable
+		 * @param[in]  refcnt  Value of reference counter
+		 */
 		InternalNode(NodePtrType low, NodePtrType high, const VarType& var,
-			const RefCntType& refcnt)
-			: low_(low),
-				high_(high),
-				var_(var),
-				refcnt_(refcnt)
+			const RefCntType& refcnt) :
+			low_(low),
+			high_(high),
+			var_(var),
+			refcnt_(refcnt)
 		{
 			// Assertions
 			assert(!IsNull(low));
@@ -445,31 +517,74 @@ namespace
 		}
 		GCC_DIAG_ON(uninitialized)
 
+		/**
+		 * @brief  Gets the node's variable
+		 *
+		 * Returns the Boolean variable of the node.
+		 *
+		 * @return  Boolean variable of the node
+		 */
 		inline const VarType& GetVar() const
 		{
 			return var_;
 		}
 
+		/**
+		 * @brief  Gets the @e low child
+		 *
+		 * Returns the @e low child of the node, i.e., the child node
+		 * corresponding to assigning @p 0 to the variable.
+		 *
+		 * @return  The @e low child of the node
+		 */
 		inline const NodePtrType& GetLow() const
 		{
 			return low_;
 		}
 
+		/**
+		 * @brief  Gets the @e high child
+		 *
+		 * Returns the @e high child of the node, i.e., the child node
+		 * corresponding to assigning @p 1 to the variable.
+		 *
+		 * @return  The @e high child of the node
+		 */
 		inline const NodePtrType& GetHigh() const
 		{
 			return high_;
 		}
 
+		/**
+		 * @brief  Gets the reference counter value
+		 *
+		 * Returns the value of the node's reference counter.
+		 *
+		 * @return  Node's reference counter value
+		 */
 		inline const RefCntType& GetRefCnt() const
 		{
 			return refcnt_;
 		}
 
+		/**
+		 * @brief  Increments the reference counter value
+		 *
+		 * Increments the value of the node's reference counter.
+		 */
 		inline void IncrementRefCnt()
 		{
 			++refcnt_;
 		}
 
+		/**
+		 * @brief  Decrements the reference counter value
+		 *
+		 * Decrements the value of the node's reference counter and returns the
+		 * new value.
+		 *
+		 * @return  Decremented reference counter value
+		 */
 		inline const RefCntType& DecrementRefCnt()
 		{
 			// Assertions
