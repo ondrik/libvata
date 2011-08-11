@@ -42,6 +42,7 @@ struct Arguments
 	std::string fileName1;
 	std::string fileName2;
 	bool showTime;
+	bool pruneUnreachable;
 };
 
 Arguments parseArguments(int argc, char* argv[]);

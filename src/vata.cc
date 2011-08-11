@@ -38,7 +38,7 @@ using VATA::Serialization::TimbukSerializer;
 const char VATA_USAGE_STRING[] =
 	"VATA: Vojnar's Army Tree Automata library interface\n"
 	"usage: vata [-r <representation>] [(-I|-O|-F) <format>] [-h|--help] [-t]\n"
-	"            <command> [<args>]\n"
+	"            [-p] <command> [<args>]\n"
 	;
 
 const char VATA_USAGE_COMMANDS[] =
@@ -64,6 +64,7 @@ const char VATA_USAGE_FLAGS[] =
 	"                               'timbuk'  : binary decision diagrams\n"
 	"    -t                      Print the time the operation took to error output\n"
 	"                            stream\n"
+	"    -p                      Prune unreachable states first\n"
 	;
 
 
@@ -122,6 +123,19 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime))
 	{
 		throw std::runtime_error("Could not get the start time");
+	}
+
+	if (args.pruneUnreachable)
+	{
+		if (args.operands >= 1)
+		{
+			autInput1 = RemoveUnreachableStates(autInput1);
+		}
+
+		if (args.operands >= 2)
+		{
+			autInput2 = RemoveUnreachableStates(autInput2);
+		}
 	}
 
 	// process command

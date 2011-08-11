@@ -48,6 +48,7 @@ Arguments parseArguments(int argc, char* argv[])
 	bool parsedInputFormat    = false;
 	bool parsedOutputFormat   = false;
 	bool parsedShowTime       = false;
+	bool parsedPruneUnreach   = false;
 
 	// initialize the structure
 	Arguments args;
@@ -57,6 +58,7 @@ Arguments parseArguments(int argc, char* argv[])
 	args.outputFormat    = FORMAT_TIMBUK;
 	args.operands        = 0;
 	args.showTime        = false;
+	args.pruneUnreachable     = false;
 
 	while (argc > 0)
 	{	// until we parse all arguments
@@ -77,6 +79,16 @@ Arguments parseArguments(int argc, char* argv[])
 
 				parsedShowTime = true;
 				args.showTime = true;
+			}
+			else	if (currentArg == "-p")
+			{
+				if (parsedPruneUnreach)
+				{
+					throw std::runtime_error("The \'-p\' flag specified more times.");
+				}
+
+				parsedPruneUnreach = true;
+				args.pruneUnreachable = true;
 			}
 			else	if (currentArg == "-r")
 			{
