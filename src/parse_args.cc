@@ -48,16 +48,18 @@ Arguments parseArguments(int argc, char* argv[])
 	bool parsedInputFormat    = false;
 	bool parsedOutputFormat   = false;
 	bool parsedShowTime       = false;
+	bool parsedDontOutputRes  = false;
 	bool parsedPruneUnreach   = false;
 
 	// initialize the structure
 	Arguments args;
-	args.command         = COMMAND_HELP;
-	args.representation  = REPRESENTATION_BDD;
-	args.inputFormat     = FORMAT_TIMBUK;
-	args.outputFormat    = FORMAT_TIMBUK;
-	args.operands        = 0;
-	args.showTime        = false;
+	args.command              = COMMAND_HELP;
+	args.representation       = REPRESENTATION_BDD;
+	args.inputFormat          = FORMAT_TIMBUK;
+	args.outputFormat         = FORMAT_TIMBUK;
+	args.operands             = 0;
+	args.showTime             = false;
+	args.dontOutputResult     = false;
 	args.pruneUnreachable     = false;
 
 	while (argc > 0)
@@ -89,6 +91,16 @@ Arguments parseArguments(int argc, char* argv[])
 
 				parsedPruneUnreach = true;
 				args.pruneUnreachable = true;
+			}
+			else	if (currentArg == "-n")
+			{
+				if (parsedDontOutputRes)
+				{
+					throw std::runtime_error("The \'-n\' flag specified more times.");
+				}
+
+				parsedDontOutputRes = true;
+				args.dontOutputResult = true;
 			}
 			else	if (currentArg == "-r")
 			{

@@ -37,7 +37,7 @@ using VATA::Serialization::TimbukSerializer;
 
 const char VATA_USAGE_STRING[] =
 	"VATA: Vojnar's Army Tree Automata library interface\n"
-	"usage: vata [-r <representation>] [(-I|-O|-F) <format>] [-h|--help] [-t]\n"
+	"usage: vata [-r <representation>] [(-I|-O|-F) <format>] [-h|--help] [-t] [-n]\n"
 	"            [-p] <command> [<args>]\n"
 	;
 
@@ -64,6 +64,7 @@ const char VATA_USAGE_FLAGS[] =
 	"                               'timbuk'  : binary decision diagrams\n"
 	"    -t                      Print the time the operation took to error output\n"
 	"                            stream\n"
+	"    -n                      Do not output the result automaton\n"
 	"    -p                      Prune unreachable states first\n"
 	;
 
@@ -169,12 +170,15 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 		std::cerr << opTime << "\n";
 	}
 
-	if ((args.command == COMMAND_LOAD) ||
-		(args.command == COMMAND_UNION) ||
-		(args.command == COMMAND_INTERSECTION) ||
-		false)
-	{
-		std::cout << autResult.DumpToString(serializer);
+	if (!args.dontOutputResult)
+	{	// in case output is not forbidden
+		if ((args.command == COMMAND_LOAD) ||
+			(args.command == COMMAND_UNION) ||
+			(args.command == COMMAND_INTERSECTION) ||
+			false)
+		{
+			std::cout << autResult.DumpToString(serializer);
+		}
 	}
 
 	return EXIT_SUCCESS;
