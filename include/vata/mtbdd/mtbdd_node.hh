@@ -682,8 +682,6 @@ namespace
 
 	public:   // public methods
 
-		// I know what I'm doing!!
-		GCC_DIAG_OFF(uninitialized)
 		/**
 		 * @brief  Constructor
 		 *
@@ -694,6 +692,7 @@ namespace
 		 * @param[in]  var     The node's Boolean variable
 		 * @param[in]  refcnt  Value of reference counter
 		 */
+		GCC_DIAG_OFF(uninitialized)     // I know what I'm doing!!!
 		InternalNode(NodePtrType low, NodePtrType high, const VarType& var,
 			const RefCntType& refcnt) :
 			low_(low),

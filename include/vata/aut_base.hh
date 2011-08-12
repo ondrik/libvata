@@ -4,12 +4,12 @@
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
  *  Description:
- *    Header file for an abstract class representing some automaton.
+ *    Header file for the base class of automata.
  *
  *****************************************************************************/
 
-#ifndef _VATA_ABSTR_AUT_HH_
-#define _VATA_ABSTR_AUT_HH_
+#ifndef _VATA_AUT_BASE_HH_
+#define _VATA_AUT_BASE_HH_
 
 // VATA headers
 #include <vata/vata.hh>
@@ -17,33 +17,20 @@
 #include <vata/serialization/abstr_serializer.hh>
 #include <vata/util/two_way_dict.hh>
 
+
 namespace VATA
 {
-	class AbstrAut;
+	class AutBase;
 }
 
 
-class VATA::AbstrAut
+class VATA::AutBase
 {
 public:   // data types
 
 	typedef uint32_t StateType;
 
 	typedef VATA::Util::TwoWayDict<std::string, StateType> StringToStateDict;
-
-public:   // methods
-
-	virtual void LoadFromString(VATA::Parsing::AbstrParser& parser,
-		const std::string& str,
-		StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0),
-		const std::string& params = "") = 0;
-
-	virtual std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
-		const StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0),
-		const std::string& params = "") const = 0;
-
-	virtual ~AbstrAut()
-	{	}
 };
 
 #endif

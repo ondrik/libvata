@@ -13,7 +13,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/abstr_aut.hh>
+#include <vata/aut_base.hh>
 #include <vata/aut_op.hh>
 #include <vata/mtbdd/apply2func.hh>
 #include <vata/parsing/abstr_parser.hh>
@@ -27,9 +27,12 @@
 
 namespace VATA { class BDDTreeAut; }
 
+GCC_DIAG_OFF(effc++)
 class VATA::BDDTreeAut
-	: public AbstrAut
+	: public AutBase
 {
+GCC_DIAG_ON(effc++)
+
 	template <class Aut>
 	friend Aut Union(const Aut& lhs, const Aut& rhs);
 
@@ -210,12 +213,12 @@ public:   // public methods
 		return const_cast<TransTablePtr&>(transTable_);
 	}
 
-	virtual void LoadFromString(VATA::Parsing::AbstrParser& parser,
+	void LoadFromString(VATA::Parsing::AbstrParser& parser,
 		const std::string& str,
 		StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0),
 		const std::string& params = "");
 
-	virtual std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
+	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
 		const StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0),
 		const std::string& params = "") const;
 
