@@ -200,8 +200,8 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 template <class Aut>
 int executeCommand(const Arguments& args)
 {
-	std::auto_ptr<AbstrParser> parser(static_cast<AbstrParser*>(0));
-	std::auto_ptr<AbstrSerializer> serializer(static_cast<AbstrSerializer*>(0));
+	std::auto_ptr<AbstrParser> parser(nullptr);
+	std::auto_ptr<AbstrSerializer> serializer(nullptr);
 
 	// create the input parser
 	if (args.inputFormat == FORMAT_TIMBUK)
@@ -244,7 +244,7 @@ int main(int argc, char* argv[])
 {
 	// Assertions
 	assert(argc > 0);
-	assert(argv != static_cast<char**>(0));
+	assert(argv != nullptr);
 
 	// start logging
 	setUpLogging();

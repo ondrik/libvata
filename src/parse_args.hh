@@ -14,7 +14,7 @@
 // VATA headers
 #include <vata/vata.hh>
 
-enum
+enum CommandEnum
 {
 	COMMAND_HELP,
 	COMMAND_LOAD,
@@ -23,28 +23,42 @@ enum
 	COMMAND_INCLUSION
 };
 
-enum
+enum RepresentationEnum
 {
 	REPRESENTATION_BDD
 };
 
-enum
+enum FormatEnum
 {
 	FORMAT_TIMBUK
 };
 
 struct Arguments
 {
-	size_t command;
-	size_t representation;
-	size_t inputFormat;
-	size_t outputFormat;
+	CommandEnum command;
+	RepresentationEnum representation;
+	FormatEnum inputFormat;
+	FormatEnum outputFormat;
 	size_t operands;
 	std::string fileName1;
 	std::string fileName2;
 	bool showTime;
 	bool dontOutputResult;
 	bool pruneUnreachable;
+
+	Arguments() :
+		command(),
+		representation(),
+		inputFormat(),
+		outputFormat(),
+		operands(0),
+		fileName1(),
+		fileName2(),
+		showTime(false),
+		dontOutputResult(false),
+		pruneUnreachable(false)
+	{ }
+
 };
 
 Arguments parseArguments(int argc, char* argv[]);

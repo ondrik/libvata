@@ -14,7 +14,7 @@
 // local headers
 #include "parse_args.hh"
 
-enum
+enum ParsingEnum
 {
 	PARSING_COMMAND,
 	PARSING_LOAD_FILE,
@@ -24,7 +24,7 @@ enum
 };
 
 
-inline size_t translateFormat(const std::string& str)
+inline FormatEnum translateFormat(const std::string& str)
 {
 	if (str == "timbuk")
 	{
@@ -43,7 +43,7 @@ Arguments parseArguments(int argc, char* argv[])
 	assert(argv != static_cast<char**>(0));
 
 	// initialize parser state
-	size_t parserState        = PARSING_COMMAND;
+	ParsingEnum parserState   = PARSING_COMMAND;
 	bool parsedRepresentation = false;
 	bool parsedInputFormat    = false;
 	bool parsedOutputFormat   = false;
