@@ -40,7 +40,7 @@ inline FormatEnum translateFormat(const std::string& str)
 Arguments parseArguments(int argc, char* argv[])
 {
 	// Assertions
-	assert(argv != static_cast<char**>(0));
+	assert(argv != nullptr);
 
 	// initialize parser state
 	ParsingEnum parserState   = PARSING_COMMAND;

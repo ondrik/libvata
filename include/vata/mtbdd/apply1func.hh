@@ -138,7 +138,7 @@ private:  // Private methods
 public:   // Public methods
 
 	AbstractApply1Functor()
-		: mtbdd1_(static_cast<MTBDD1Type*>(0)),
+		: mtbdd1_(nullptr),
 			ht()
 	{ }
 
@@ -167,7 +167,7 @@ protected:// Protected methods
 
 	inline const MTBDD1Type& getMTBDD1() const
 	{
-		assert(mtbdd1_ != static_cast<MTBDD1Type*>(0));
+		assert(mtbdd1_ != nullptr);
 		return *mtbdd1_;
 	}
 

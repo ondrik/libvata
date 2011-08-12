@@ -52,15 +52,15 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
 			pDict_(pDict)
 		{
 			// Assertions
-			assert(pAut_ != static_cast<BDDTreeAut*>(0));
-			assert(pDict_ != static_cast<StateToStateHT*>(0));
+			assert(pAut_ != nullptr);
+			assert(pDict_ != nullptr);
 		}
 
 		virtual StateTupleSet ApplyOperation(const StateTupleSet& value)
 		{
 			// Assertions
-			assert(pAut_ != static_cast<BDDTreeAut*>(0));
-			assert(pDict_ != static_cast<StateToStateHT*>(0));
+			assert(pAut_ != nullptr);
+			assert(pDict_ != nullptr);
 
 			StateTupleSet result;
 

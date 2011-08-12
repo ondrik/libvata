@@ -220,11 +220,11 @@ public:   // public methods
 
 	void LoadFromString(VATA::Parsing::AbstrParser& parser,
 		const std::string& str,
-		StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0),
+		StringToStateDict* pStateDict = nullptr,
 		const std::string& params = "");
 
 	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
-		const StringToStateDict* pStateDict = static_cast<StringToStateDict*>(0),
+		const StringToStateDict* pStateDict = nullptr,
 		const std::string& params = "") const;
 
 	inline StateType AddState()

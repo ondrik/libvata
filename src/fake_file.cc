@@ -20,9 +20,9 @@ using VATA::Util::FakeFile;
 
 
 FakeFile::FakeFile()
-	: ptrBuffer_(static_cast<char*>(0)),
+	: ptrBuffer_(nullptr),
 	  bufferSize_(0),
-		ptrFile_(static_cast<FILE*>(0)),
+		ptrFile_(nullptr),
 		hasBeenOpened_(false),
 		isClosed_(false),
 		writeMode_(false)
@@ -36,8 +36,7 @@ FILE* FakeFile::OpenWrite()
 		throw std::runtime_error("Opening memory stream more than once");
 	}
 
-	if ((ptrFile_ = open_memstream(&ptrBuffer_, &bufferSize_))
-		== static_cast<FILE*>(0))
+	if ((ptrFile_ = open_memstream(&ptrBuffer_, &bufferSize_)) == nullptr)
 	{	// in case the stream could not be created
 		throw std::runtime_error("Could not create memory stream");
 	}
@@ -63,7 +62,7 @@ FILE* FakeFile::OpenRead(std::string str)
 	}
 
 	if ((ptrFile_ = fmemopen(const_cast<char*>(str.c_str()), str.length(), "r"))
-		== static_cast<FILE*>(0))
+		== nullptr)
 	{	// in case the stream could not be created
 		throw std::runtime_error("Could not create memory stream");
 	}
@@ -133,7 +132,7 @@ FakeFile::~FakeFile()
 	}
 
 	// free the memory used for the buffer
-	if (ptrBuffer_ != static_cast<char*>(0))
+	if (ptrBuffer_ != nullptr)
 	{	// in case some buffer has been allocated
 		free(ptrBuffer_);
 	}

@@ -25,7 +25,7 @@ BDDTreeAut::StringToSymbolDict BDDTreeAut::symbolDict_;
 
 bool BDDTreeAut::isValid() const
 {
-	if (transTable_.get() == static_cast<TransTable*>(0))
+	if (transTable_.get() == nullptr)
 	{	// in case the transition table pointer is bad
 		return false;
 	}
@@ -156,7 +156,7 @@ void BDDTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
 {
 	// Assertions
 	assert(hasEmptyStateSet());
-	assert(pStateDict != static_cast<StringToStateDict*>(0));
+	assert(pStateDict != nullptr);
 
 	for (AutDescription::StateSet::const_iterator itFst =
 		desc.finalStates.begin(); itFst != desc.finalStates.end(); ++itFst)
@@ -224,7 +224,7 @@ void BDDTreeAut::LoadFromString(AbstrParser& parser, const std::string& str,
 	assert(hasEmptyStateSet());
 
 	bool delStateDict = false;
-	if (pStateDict == static_cast<StringToStateDict*>(0))
+	if (pStateDict == nullptr)
 	{	// in case we do not wish to retain the string-to-state dictionary
 		delStateDict = true;
 		pStateDict = new StringToStateDict();
@@ -288,7 +288,7 @@ AutDescription BDDTreeAut::dumpToAutDescExplicit(
 	};
 
 	bool translateStates = false;
-	if (pStateDict != static_cast<StringToStateDict*>(0))
+	if (pStateDict != nullptr)
 	{	// in case there is provided dictionary
 		translateStates = true;
 	}

@@ -139,7 +139,7 @@ private:  // private methods
 	static inline MTBDDNodePtr makeLeaf(LeafType* node)
 	{
 		// Assertions
-		assert(node != static_cast<LeafType*>(0));
+		assert(node != nullptr);
 
 		return (reinterpret_cast<uintptr_t>(node) | 1);
 	}
@@ -157,7 +157,7 @@ private:  // private methods
 	static inline MTBDDNodePtr makeInternal(InternalType* node)
 	{
 		// Assertions
-		assert(node != static_cast<InternalType*>(0));
+		assert(node != nullptr);
 
 		return static_cast<MTBDDNodePtr>(node);
 	}

@@ -240,9 +240,9 @@ private:  // Private methods
 public:   // Public methods
 
 	AbstractApply3Functor()
-		: mtbdd1_(static_cast<MTBDD1Type*>(0)),
-			mtbdd2_(static_cast<MTBDD2Type*>(0)),
-			mtbdd3_(static_cast<MTBDD3Type*>(0)),
+		: mtbdd1_(nullptr),
+			mtbdd2_(nullptr),
+			mtbdd3_(nullptr),
 			ht()
 	{ }
 
@@ -277,19 +277,19 @@ protected:// Protected methods
 
 	inline const MTBDD1Type& getMTBDD1() const
 	{
-		assert(mtbdd1_ != static_cast<MTBDD1Type*>(0));
+		assert(mtbdd1_ != nullptr);
 		return *mtbdd1_;
 	}
 
 	inline const MTBDD2Type& getMTBDD2() const
 	{
-		assert(mtbdd2_ != static_cast<MTBDD2Type*>(0));
+		assert(mtbdd2_ != nullptr);
 		return *mtbdd2_;
 	}
 
 	inline const MTBDD3Type& getMTBDD3() const
 	{
-		assert(mtbdd3_ != static_cast<MTBDD3Type*>(0));
+		assert(mtbdd3_ != nullptr);
 		return *mtbdd3_;
 	}
 

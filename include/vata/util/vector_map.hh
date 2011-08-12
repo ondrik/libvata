@@ -163,7 +163,7 @@ private:  // Private data types
 				itNnary_()
 		{
 			// Assertions
-			assert(vecMap_ != static_cast<const Type*>(0));
+			assert(vecMap_ != nullptr);
 
 			if (state_ != ITERATOR_END)
 			{
@@ -182,7 +182,7 @@ private:  // Private data types
 				itNnary_(it.itNnary_)
 		{
 			// Assertions
-			assert(vecMap_ != static_cast<const Type*>(0));
+			assert(vecMap_ != nullptr);
 		}
 
 
@@ -205,7 +205,7 @@ private:  // Private data types
 		Tconst_iterator& operator++()
 		{
 			// Assertions
-			assert(vecMap_ != static_cast<const Type*>(0));
+			assert(vecMap_ != nullptr);
 
 			bool sound = false;
 
@@ -305,7 +305,7 @@ private:  // Private data types
 		{
 			// Assertions
 			assert(state_ != ITERATOR_INVALID);
-			assert(vecMap_ != static_cast<Type*>(0));
+			assert(vecMap_ != nullptr);
 
 			if (vecMap_ != rhs.vecMap_)
 			{

@@ -118,7 +118,7 @@ public:
 	template <typename T>
 	static std::string ToString(T* ptr)
 	{
-		assert(ptr != static_cast<T*>(0));
+		assert(ptr != nullptr);
 
 		// the output stream for the string
 		std::ostringstream oss;

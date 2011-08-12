@@ -55,17 +55,17 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut)
 			pWorkset_(pWorkset)
 		{
 			// Assertions
-			assert(pResultAut != static_cast<BDDTreeAut*>(0));
-			assert(pTranslMap_ != static_cast<TranslMap*>(0));
-			assert(pWorkset_ != static_cast<WorkSetType*>(0));
+			assert(pResultAut != nullptr);
+			assert(pTranslMap_ != nullptr);
+			assert(pWorkset_ != nullptr);
 		}
 
 		virtual StateTupleSet ApplyOperation(const StateTupleSet& value)
 		{
 			// Assertions
-			assert(pResultAut_ != static_cast<BDDTreeAut*>(0));
-			assert(pTranslMap_ != static_cast<TranslMap*>(0));
-			assert(pWorkset_ != static_cast<WorkSetType*>(0));
+			assert(pResultAut_ != nullptr);
+			assert(pTranslMap_ != nullptr);
+			assert(pWorkset_ != nullptr);
 
 			StateTupleSet result;
 
