@@ -49,10 +49,10 @@ public:   // public data types
 
 	typedef VATA::MTBDDPkg::VarAsgn SymbolType;
 	typedef std::vector<StateType> StateTuple;
+	typedef VATA::Util::OrdVector<StateTuple> StateTupleSet;
 
 private:  // private data types
 
-	typedef VATA::Util::OrdVector<StateTuple> StateTupleSet;
 
 	typedef VATA::MTBDDPkg::OndriksMTBDD<StateTupleSet> TransMTBDD;
 	typedef VATA::MTBDDPkg::OndriksMTBDD<bool> BDD;
@@ -257,6 +257,18 @@ public:   // public methods
 
 	void AddSimplyTransition(const StateTuple& children, const SymbolType& symbol,
 		const StateType& parent);
+
+	template <class OperationFunc>
+	static void ForeachDownSymbolDo2(const BDDTreeAut& lhs, const BDDTreeAut& rhs,
+		const StateSet& lhsSet, const StateSet& rhsSet, OperationFunc& opFunc)
+	{
+		assert(&lhs != 0);
+		assert(&rhs != 0);
+		assert(&lhsSet != 0);
+		assert(&rhsSet != 0);
+		assert(&opFunc != 0);
+
+	}
 
 	~BDDTreeAut();
 };
