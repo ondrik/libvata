@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 2.8.2)
 
 project(unit_tests)
 
-add_definitions(-std=c++98)
+add_definitions(-std=c++0x)
 add_definitions(-pedantic-errors)
 add_definitions(-Wextra)
 add_definitions(-Wall)
