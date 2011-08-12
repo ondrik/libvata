@@ -316,6 +316,23 @@ public:   // Public methods
 		return vec_.end();
 	}
 
+
+	inline const_iterator cbegin() const
+	{
+		// Assertions
+		assert(vectorIsSorted());
+
+		return begin();
+	}
+
+	inline const_iterator cend() const
+	{
+		// Assertions
+		assert(vectorIsSorted());
+
+		return end();
+	}
+
 	/**
 	 * @brief  Overloaded << operator
 	 *
