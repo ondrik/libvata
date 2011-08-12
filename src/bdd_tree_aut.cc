@@ -31,8 +31,8 @@ bool BDDTreeAut::isValid() const
 	}
 
 	// check that final states are a subset of states
-	for (StateSet::const_iterator itFst = finalStates_.begin();
-		itFst != finalStates_.end(); ++itFst)
+	for (auto itFst = finalStates_.cbegin();
+		itFst != finalStates_.cend(); ++itFst)
 	{
 		if (states_.find(*itFst) == states_.end())
 		{	// in case the final state is not in the set of states
@@ -62,8 +62,7 @@ void BDDTreeAut::copyStates(const BDDTreeAut& src)
 	assert(transTable_ == src.transTable_);
 
 	// copy states and increment their reference counters
-	for (StateSet::const_iterator itSt = src.states_.begin();
-		itSt != src.states_.end(); ++itSt)
+	for (auto itSt = src.states_.cbegin(); itSt != src.states_.cend(); ++itSt)
 	{
 		transTable_->IncrementStateRefCnt(*itSt);
 		states_.insert(*itSt);
@@ -85,8 +84,7 @@ bool BDDTreeAut::isStandAlone() const
 	// changing reference counters of final states?
 
 	// check whether the automaton has some shared states
-	for (StateSet::const_iterator itSt = states_.begin();
-		itSt != states_.end(); ++itSt)
+	for (auto itSt = states_.cbegin(); itSt != states_.cend(); ++itSt)
 	{	// iterate through all states
 		assert(transTable_->GetStateRefCnt(*itSt) > 0);
 
@@ -158,16 +156,16 @@ void BDDTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
 	assert(hasEmptyStateSet());
 	assert(pStateDict != nullptr);
 
-	for (AutDescription::StateSet::const_iterator itFst =
-		desc.finalStates.begin(); itFst != desc.finalStates.end(); ++itFst)
+	for (auto itFst = desc.finalStates.cbegin();
+		itFst != desc.finalStates.cend(); ++itFst)
 	{	// traverse final states
 		finalStates_.insert(safelyTranslateToState(*itFst, *pStateDict));
 	}
 
 	assert(isValid());
 
-	for (AutDescription::TransitionSet::const_iterator itTr =
-		desc.transitions.begin(); itTr != desc.transitions.end(); ++itTr)
+	for (auto itTr = desc.transitions.cbegin();
+		itTr != desc.transitions.cend(); ++itTr)
 	{	// traverse the transitions
 		const AutDescription::StateTuple& childrenStr = itTr->first;
 		const std::string& symbolStr = itTr->second;
@@ -178,8 +176,8 @@ void BDDTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
 
 		// translate children
 		StateTuple children;
-		for (AutDescription::StateTuple::const_iterator itTup = childrenStr.begin();
-			itTup != childrenStr.end(); ++itTup)
+		for (auto itTup = childrenStr.cbegin();
+			itTup != childrenStr.cend(); ++itTup)
 		{	// for all children states
 			children.push_back(safelyTranslateToState(*itTup, *pStateDict));
 		}
@@ -296,8 +294,7 @@ AutDescription BDDTreeAut::dumpToAutDescExplicit(
 	AutDescription desc;
 
 	// copy final states
-	for (StateSet::const_iterator itSt = finalStates_.begin();
-		itSt != finalStates_.end(); ++itSt)
+	for (auto itSt = finalStates_.cbegin(); itSt != finalStates_.cend(); ++itSt)
 	{	// copy final states
 		if (translateStates)
 		{	// if there is a dictionary, use it
@@ -312,8 +309,7 @@ AutDescription BDDTreeAut::dumpToAutDescExplicit(
 	CondColApplyFunctor collector;
 
 	// copy states, transitions and symbols
-	for (StateSet::const_iterator itSt = states_.begin();
-		itSt != states_.end(); ++itSt)
+	for (auto itSt = states_.cbegin(); itSt != states_.cend(); ++itSt)
 	{	// for all states
 		const StateType& state = *itSt;
 		std::string stateStr;
@@ -332,7 +328,7 @@ AutDescription BDDTreeAut::dumpToAutDescExplicit(
 
 		const TransMTBDD& transMtbdd = getMtbdd(state);
 
-		for (StringToSymbolDict::ConstIteratorFwd itSym = symbolDict_.BeginFwd();
+		for (auto itSym = symbolDict_.BeginFwd();
 			itSym != symbolDict_.EndFwd(); ++itSym)
 		{	// iterate over all known symbols
 			const std::string& symbol = itSym->first;
@@ -341,15 +337,13 @@ AutDescription BDDTreeAut::dumpToAutDescExplicit(
 			collector.Clear();
 			collector(transMtbdd, symbolBdd);
 
-			for (CondColApplyFunctor::AccumulatorType::const_iterator itCol =
-				collector.GetAccumulator().begin();
-				itCol != collector.GetAccumulator().end(); ++itCol)
+			for (auto itCol = collector.GetAccumulator().cbegin();
+				itCol != collector.GetAccumulator().cend(); ++itCol)
 			{	// for each state tuple for which there is a transition
 				const StateTuple& tuple = *itCol;
 
 				std::vector<std::string> tupleStr;
-				for (StateTuple::const_iterator itTup = tuple.begin();
-					itTup != tuple.end(); ++itTup)
+				for (auto itTup = tuple.cbegin(); itTup != tuple.cend(); ++itTup)
 				{	// for each element in the tuple
 					if (translateStates)
 					{	// if there is a dictionary, use it
