@@ -28,6 +28,9 @@ namespace VATA
 
 	template <>
 	BDDTreeAut RemoveUnreachableStates(const BDDTreeAut& aut);
+
+	template <>
+	bool CheckInclusion(const BDDTreeAut& smaller, const BDDTreeAut& bigger);
 }
 
 #endif

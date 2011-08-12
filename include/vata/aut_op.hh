@@ -24,6 +24,9 @@ namespace VATA
 
 	template <class Aut>
 	Aut RemoveUnreachableStates(const Aut& aut);
+
+	template <class Aut>
+	bool CheckInclusion(const Aut& smaller, const Aut& bigger);
 }
 
 #endif
