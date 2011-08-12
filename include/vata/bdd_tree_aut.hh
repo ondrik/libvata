@@ -259,15 +259,50 @@ public:   // public methods
 		const StateType& parent);
 
 	template <class OperationFunc>
-	static void ForeachDownSymbolDo2(const BDDTreeAut& lhs, const BDDTreeAut& rhs,
-		const StateSet& lhsSet, const StateSet& rhsSet, OperationFunc& opFunc)
+	static void ForeachDownSymbolFromStateAndStateSetDo(const BDDTreeAut& lhs,
+		const BDDTreeAut& rhs, const StateType& lhsState, const StateSet& rhsSet,
+		OperationFunc& opFunc)
 	{
-		assert(&lhs != 0);
-		assert(&rhs != 0);
-		assert(&lhsSet != 0);
-		assert(&rhsSet != 0);
-		assert(&opFunc != 0);
+		// Assertions
+		assert(lhs.isValid());
+		assert(rhs.isValid());
 
+		class OperationApplyFunctor :
+			public VATA::MTBDDPkg::AbstractVoidApply2Functor<
+			StateTupleSet, StateTupleSet>
+		{
+		private:  // data members
+
+			OperationFunc& opFunc_;
+
+		public:   // methods
+
+			OperationApplyFunctor(OperationFunc& opFunc) :
+				opFunc_(opFunc)
+			{ }
+
+			virtual void ApplyOperation(const StateTupleSet& lhs,
+				const StateTupleSet& rhs)
+			{
+				opFunc_(lhs, rhs);
+			}
+		};
+
+
+		UnionApplyFunctor unioner;
+		TransMTBDD rhsUnionMtbdd((StateTupleSet()));
+
+		// collect the RHS's MTBDDs leaves
+		for (auto itRhsSt = rhsSet.cbegin(); itRhsSt != rhsSet.cend(); ++itRhsSt)
+		{
+			rhsUnionMtbdd = unioner(rhsUnionMtbdd, rhs.getMtbdd(*itRhsSt));
+		}
+
+		// create apply functor
+		OperationApplyFunctor opApplyFunc(opFunc);
+
+		// perform the apply operation
+		opApplyFunc(lhs.getMtbdd(lhsState), rhsUnionMtbdd);
 	}
 
 	~BDDTreeAut();
