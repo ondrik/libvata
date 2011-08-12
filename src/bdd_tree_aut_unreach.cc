@@ -37,9 +37,9 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut)
 	{
 	private:  // data members
 
-		BDDTreeAut* pResultAut_;
-		TranslMap* pTranslMap_;
-		WorkSetType* pWorkset_;
+		BDDTreeAut& resultAut_;
+		TranslMap& translMap_;
+		WorkSetType& workset_;
 
 	private:  // methods
 
@@ -48,25 +48,15 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut)
 
 	public:   // methods
 
-		UnreachableApplyFunctor(BDDTreeAut* pResultAut, TranslMap* pTranslMap,
-			WorkSetType* pWorkset) :
-			pResultAut_(pResultAut),
-			pTranslMap_(pTranslMap),
-			pWorkset_(pWorkset)
-		{
-			// Assertions
-			assert(pResultAut != nullptr);
-			assert(pTranslMap_ != nullptr);
-			assert(pWorkset_ != nullptr);
-		}
+		UnreachableApplyFunctor(BDDTreeAut& resultAut, TranslMap& translMap,
+			WorkSetType& workset) :
+			resultAut_(resultAut),
+			translMap_(translMap),
+			workset_(workset)
+		{ }
 
 		virtual StateTupleSet ApplyOperation(const StateTupleSet& value)
 		{
-			// Assertions
-			assert(pResultAut_ != nullptr);
-			assert(pTranslMap_ != nullptr);
-			assert(pWorkset_ != nullptr);
-
 			StateTupleSet result;
 
 			for (StateTupleSet::const_iterator itVal = value.begin();
@@ -79,15 +69,15 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut)
 
 					StateType newState;
 					TranslMap::const_iterator itTransl;
-					if ((itTransl = pTranslMap_->find(state)) != pTranslMap_->end())
+					if ((itTransl = translMap_.find(state)) != translMap_.end())
 					{	// if the pair is already known
 						newState = itTransl->second;
 					}
 					else
 					{	// if the pair is new
-						newState = pResultAut_->AddState();
-						pTranslMap_->insert(std::make_pair(state, newState));
-						pWorkset_->insert(std::make_pair(newState, state));
+						newState = resultAut_.AddState();
+						translMap_.insert(std::make_pair(state, newState));
+						workset_.insert(std::make_pair(newState, state));
 					}
 
 					resultTuple.push_back(newState);
@@ -104,7 +94,7 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut)
 	WorkSetType workset;
 	TranslMap translMap;
 
-	UnreachableApplyFunctor unreach(&result, &translMap, &workset);
+	UnreachableApplyFunctor unreach(result, translMap, workset);
 
 	for (StateSet::const_iterator itFst = aut.GetFinalStates().begin();
 		itFst != aut.GetFinalStates().end(); ++itFst)

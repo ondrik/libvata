@@ -42,9 +42,9 @@ BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
 	{
 	private:  // data members
 
-		BDDTreeAut* pResultAut_;
-		IntersectionTranslMap* pTranslMap_;
-		WorkSetType* pWorkset_;
+		BDDTreeAut& resultAut_;
+		IntersectionTranslMap& translMap_;
+		WorkSetType& workset_;
 
 	private:  // methods
 
@@ -53,26 +53,16 @@ BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
 
 	public:   // methods
 
-		IntersectionApplyFunctor(BDDTreeAut* pResultAut,
-			IntersectionTranslMap* pTranslMap, WorkSetType* pWorkset) :
-			pResultAut_(pResultAut),
-			pTranslMap_(pTranslMap),
-			pWorkset_(pWorkset)
-		{
-			// Assertions
-			assert(pResultAut != nullptr);
-			assert(pTranslMap_ != nullptr);
-			assert(pWorkset_ != nullptr);
-		}
+		IntersectionApplyFunctor(BDDTreeAut& resultAut,
+			IntersectionTranslMap& translMap, WorkSetType& workset) :
+			resultAut_(resultAut),
+			translMap_(translMap),
+			workset_(workset)
+		{ }
 
 		virtual StateTupleSet ApplyOperation(const StateTupleSet& lhs,
 			const StateTupleSet& rhs)
 		{
-			// Assertions
-			assert(pResultAut_ != nullptr);
-			assert(pTranslMap_ != nullptr);
-			assert(pWorkset_ != nullptr);
-
 			StateTupleSet result;
 
 			for (StateTupleSet::const_iterator itLhs = lhs.begin();
@@ -90,15 +80,15 @@ BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
 
 						StateType state;
 						IntersectionTranslMap::const_iterator itTransl;
-						if ((itTransl = pTranslMap_->find(newPair)) != pTranslMap_->end())
+						if ((itTransl = translMap_.find(newPair)) != translMap_.end())
 						{	// if the pair is already known
 							state = itTransl->second;
 						}
 						else
 						{	// if the pair is new
-							state = pResultAut_->AddState();
-							pTranslMap_->insert(std::make_pair(newPair, state));
-							pWorkset_->insert(std::make_pair(state, newPair));
+							state = resultAut_.AddState();
+							translMap_.insert(std::make_pair(newPair, state));
+							workset_.insert(std::make_pair(state, newPair));
 						}
 
 						resultTuple.push_back(state);
@@ -132,7 +122,7 @@ BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
 		}
 	}
 
-	IntersectionApplyFunctor isect(&result, &translMap, &workset);
+	IntersectionApplyFunctor isect(result, translMap, workset);
 
 	while (!workset.empty())
 	{	// while there is something in the workset

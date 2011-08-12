@@ -37,8 +37,8 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
 	{
 	private:  // data members
 
-		BDDTreeAut* pAut_;
-		StateToStateHT* pDict_;
+		BDDTreeAut& aut_;
+		StateToStateHT& dict_;
 
 	private:  // methods
 
@@ -47,21 +47,13 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
 
 	public:   // methods
 
-		RewriterApplyFunctor(BDDTreeAut* pAut, StateToStateHT* pDict) :
-			pAut_(pAut),
-			pDict_(pDict)
-		{
-			// Assertions
-			assert(pAut_ != nullptr);
-			assert(pDict_ != nullptr);
-		}
+		RewriterApplyFunctor(BDDTreeAut& aut, StateToStateHT& dict) :
+			aut_(aut),
+			dict_(dict)
+		{ }
 
 		virtual StateTupleSet ApplyOperation(const StateTupleSet& value)
 		{
-			// Assertions
-			assert(pAut_ != nullptr);
-			assert(pDict_ != nullptr);
-
 			StateTupleSet result;
 
 			for (StateTupleSet::const_iterator itSts = value.begin();
@@ -73,7 +65,7 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
 				for (StateTuple::const_iterator itTup = tup.begin();
 					itTup != tup.end(); ++itTup)
 				{	// for every element in the tuple
-					resTuple.push_back(pAut_->safelyTranslateToState(*itTup, *pDict_));
+					resTuple.push_back(aut_.safelyTranslateToState(*itTup, dict_));
 				}
 
 				result.insert(resTuple);
@@ -98,7 +90,7 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
 		BDDTreeAut result = lhs;
 
 		StateToStateHT stateDict;
-		RewriterApplyFunctor rewriter(&result, &stateDict);
+		RewriterApplyFunctor rewriter(result, stateDict);
 
 		for (StateSet::const_iterator itSt = rhs.GetStates().begin();
 			itSt != rhs.GetStates().end(); ++itSt)
