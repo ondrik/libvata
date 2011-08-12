@@ -34,13 +34,16 @@ class VATA::BDDTreeAut
 GCC_DIAG_ON(effc++)
 
 	template <class Aut>
-	friend Aut Union(const Aut& lhs, const Aut& rhs);
+	friend Aut Union(const Aut&, const Aut&);
 
 	template <class Aut>
-	friend Aut Intersection(const Aut& lhs, const Aut& rhs);
+	friend Aut Intersection(const Aut&, const Aut&);
 
 	template <class Aut>
-	friend Aut RemoveUnreachableStates(const Aut& aut);
+	friend Aut RemoveUnreachableStates(const Aut&);
+
+	template <class Aut>
+	friend bool CheckInclusion(const Aut&, const Aut&);
 
 public:   // public data types
 
