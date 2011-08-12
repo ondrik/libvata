@@ -20,10 +20,11 @@ std::string TimbukSerializer::Serialize(const AutDescription& desc)
 	std::string result;
 
 	result += "Ops ";
-	for (AutDescription::SymbolSet::const_iterator itSymb = desc.symbols.begin();
-		itSymb != desc.symbols.end(); ++itSymb)
+	for (auto itSymb = desc.symbols.cbegin();
+		itSymb != desc.symbols.cend(); ++itSymb)
 	{
-		result += itSymb->first + ":" + VATA::Util::Convert::ToString(itSymb->second) + " ";
+		result += itSymb->first + ":" +
+			VATA::Util::Convert::ToString(itSymb->second) + " ";
 	}
 
 	result += "\n";
@@ -31,24 +32,23 @@ std::string TimbukSerializer::Serialize(const AutDescription& desc)
 
 	result += "\n";
 	result += "States ";
-	for (AutDescription::StateSet::const_iterator itSt = desc.states.begin();
-		itSt != desc.states.end(); ++itSt)
+	for (auto itSt = desc.states.cbegin(); itSt != desc.states.cend(); ++itSt)
 	{
 		result += *itSt + " ";
 	}
 
 	result += "\n";
 	result += "Final States ";
-	for (AutDescription::StateSet::const_iterator itFst = desc.finalStates.begin();
-		itFst != desc.finalStates.end(); ++itFst)
+	for (auto itFst = desc.finalStates.cbegin();
+		itFst != desc.finalStates.cend(); ++itFst)
 	{
 		result += *itFst + " ";
 	}
 
 	result += "\n";
 	result += "Transitions\n";
-	for (AutDescription::TransitionSet::const_iterator itTran = desc.transitions.begin();
-		itTran != desc.transitions.end(); ++itTran)
+	for (auto itTran = desc.transitions.cbegin();
+		itTran != desc.transitions.cend(); ++itTran)
 	{
 		result += itTran->second;
 		if (!(itTran->first.empty()))
