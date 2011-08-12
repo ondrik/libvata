@@ -14,6 +14,11 @@
 
 using VATA::Serialization::TimbukSerializer;
 
+// Standard library headers
+#include <algorithm>
+
+using std::for_each;
+
 
 std::string TimbukSerializer::Serialize(const AutDescription& desc)
 {
@@ -32,18 +37,13 @@ std::string TimbukSerializer::Serialize(const AutDescription& desc)
 
 	result += "\n";
 	result += "States ";
-	for (auto itSt = desc.states.cbegin(); itSt != desc.states.cend(); ++itSt)
-	{
-		result += *itSt + " ";
-	}
+	for_each(desc.states.cbegin(), desc.states.cend(),
+		[&result](const std::string& sStr){ result += sStr + " ";});
 
 	result += "\n";
 	result += "Final States ";
-	for (auto itFst = desc.finalStates.cbegin();
-		itFst != desc.finalStates.cend(); ++itFst)
-	{
-		result += *itFst + " ";
-	}
+	for_each(desc.finalStates.cbegin(), desc.finalStates.cend(),
+		[&result](const std::string& fsStr){ result += fsStr + " ";});
 
 	result += "\n";
 	result += "Transitions\n";
