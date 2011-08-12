@@ -20,11 +20,10 @@
 namespace VATA
 {
 	template <>
-	BDDTreeAut Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs);
+	BDDTreeAut Union(const BDDTreeAut& lhs, const BDDTreeAut& rhs);
 
 	template <>
-	BDDTreeAut Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
-		const BDDTreeAut& rhs);
+	BDDTreeAut Intersection(const BDDTreeAut& lhs, const BDDTreeAut& rhs);
 
 	template <>
 	BDDTreeAut RemoveUnreachableStates(const BDDTreeAut& aut);
