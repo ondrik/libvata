@@ -48,6 +48,9 @@ const char VATA_USAGE_COMMANDS[] =
 	"    union <file1> <file2>   Compute union of automata from <file1> and <file2>\n"
 	"    isect <file1> <file2>   Compute intersection of automata from <file1> and\n"
 	"                            <file2>\n"
+	"    incl <file1> <file2>    Checks language inclusion of automata from <file1>\n"
+	"                            and <file2>, i.e., whether L(<file1>) is a subset\n"
+	"                            of L(<file2>)\n"
 	;
 
 const char VATA_USAGE_FLAGS[] =
@@ -107,6 +110,7 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	Aut autInput1;
 	Aut autInput2;
 	Aut autResult;
+	bool boolResult = false;
 
 	if (args.operands >= 1)
 	{
@@ -152,6 +156,10 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	{
 		autResult = Intersection(autInput1, autInput2);
 	}
+	else if (args.command == COMMAND_INCLUSION)
+	{
+		boolResult = CheckInclusion(autInput1, autInput2);
+	}
 	else
 	{
 		throw std::runtime_error("Internal error: invalid command");
@@ -174,10 +182,14 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	{	// in case output is not forbidden
 		if ((args.command == COMMAND_LOAD) ||
 			(args.command == COMMAND_UNION) ||
-			(args.command == COMMAND_INTERSECTION) ||
-			false)
+			(args.command == COMMAND_INTERSECTION))
 		{
 			std::cout << autResult.DumpToString(serializer);
+		}
+
+		if (args.command == COMMAND_INCLUSION)
+		{
+			std::cout << boolResult << "\n";
 		}
 	}
 
