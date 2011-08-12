@@ -42,15 +42,21 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 
 		void operator()(const StateTupleSet& lhs, const StateTupleSet& rhs)
 		{
+			assert(&lhs != nullptr);
+			assert(&rhs != nullptr);
+			assert(false);
 
 		}
 	};
 
 	DownwardAntichainFunctor downFctor;
 
-	// execute the operation
-	Aut::ForeachDownSymbolDo2(smaller, bigger,
-		smaller.GetFinalStates(), bigger.GetFinalStates(), downFctor);
+	for (auto itSmSt = smaller.GetFinalStates().cbegin();
+		itSmSt != smaller.GetFinalStates().cend(); ++itSmSt)
+	{	// for each final state of the smaller automaton
+		Aut::ForeachDownSymbolFromStateAndStateSetDo(smaller, bigger,
+			*itSmSt, bigger.GetFinalStates(), downFctor);
+	}
 
 	assert(false);
 }
