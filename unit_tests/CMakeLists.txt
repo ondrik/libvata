@@ -3,17 +3,24 @@ cmake_minimum_required(VERSION 2.8.2)
 
 project(unit_tests)
 
-add_definitions(-std=c++0x)
-add_definitions(-pedantic-errors)
-add_definitions(-Wextra)
-add_definitions(-Wall)
-add_definitions(-Wfloat-equal)
-add_definitions(-Wctor-dtor-privacy)
-add_definitions(-Weffc++)
-add_definitions(-Wold-style-cast)
-add_definitions(-Woverloaded-virtual)
-add_definitions(-fdiagnostics-show-option)
-add_definitions(-march=native)
+set(compiler_flags_list
+  -std=c++0x
+  -pedantic-errors
+  -Wextra
+  -Wall
+  -Wfloat-equal
+  -Wctor-dtor-privacy
+  -Weffc++
+  -Woverloaded-virtual
+  -Wold-style-cast
+  -fdiagnostics-show-option
+  -march=native
+)
+
+set(compiler_flags "")
+foreach(param ${compiler_flags_list})
+  set(compiler_flags "${compiler_flags} ${param}")
+endforeach(param)
 
 # uncomment for profiling
 #add_definitions(-pg)
@@ -34,6 +41,9 @@ set(TESTS
 
 foreach (TEST ${TESTS})
 	add_executable(${TEST} ${TEST}.cc)
+
+  set_source_files_properties(
+    ${TEST} PROPERTIES COMPILE_FLAGS ${compiler_flags})
 
 	target_link_libraries(${TEST} libvata)
 	target_link_libraries(${TEST} tests)
