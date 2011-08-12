@@ -33,6 +33,15 @@ add_library(tests
 	formula_parser.cc
 )
 
+get_target_property(libtests_sources tests SOURCES)
+
+foreach(src ${libtests_sources})
+
+  set_source_files_properties(
+    ${src} PROPERTIES COMPILE_FLAGS ${compiler_flags})
+
+endforeach()
+
 set(TESTS
 	"ondriks_mtbdd_c_test"
 	"bdd_tree_aut_test"
