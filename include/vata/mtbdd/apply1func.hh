@@ -16,7 +16,7 @@
 #include	<vata/mtbdd/ondriks_mtbdd.hh>
 
 // Standard library headers
-#include  <tr1/unordered_set>
+#include  <unordered_set>
 
 // Boost library headers
 #include <boost/functional/hash.hpp>
@@ -66,7 +66,7 @@ private:  // Private data types
 	//dependant lookup. So if there is a free function hash_value in the same
 	//namespace as a custom type, it will get called. 
 
-	typedef std::tr1::unordered_map<CacheAddressType, NodeOutPtrType,
+	typedef std::unordered_map<CacheAddressType, NodeOutPtrType,
 		boost::hash<CacheAddressType> > CacheHashTable;
 
 private:  // Private data members

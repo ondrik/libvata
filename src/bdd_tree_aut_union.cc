@@ -15,6 +15,9 @@
 
 using VATA::BDDTreeAut;
 
+// Standard library headers
+#include <unordered_map>
+
 
 template <>
 BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
@@ -27,7 +30,7 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
 	typedef BDDTreeAut::StateSet StateSet;
 	typedef BDDTreeAut::StateTuple StateTuple;
 	typedef BDDTreeAut::StateTupleSet StateTupleSet;
-	typedef std::tr1::unordered_map<StateType, StateType> StateToStateHT;
+	typedef std::unordered_map<StateType, StateType> StateToStateHT;
 
 	class RewriterApplyFunctor :
 		public VATA::MTBDDPkg::AbstractApply1Functor<StateTupleSet, StateTupleSet>

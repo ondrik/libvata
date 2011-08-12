@@ -22,8 +22,8 @@
 #include	<stdint.h>
 #include	<stdexcept>
 #include	<vector>
-#include  <tr1/memory>
-#include  <tr1/unordered_map>
+#include  <memory>
+#include  <unordered_map>
 
 // Boost library headers
 #include <boost/functional/hash.hpp>
@@ -101,17 +101,17 @@ public:   // public data types
 
 	typedef typename NodePtrType::VarType VarType;
 	typedef std::vector<VarType> PermutationTable;
-	typedef std::tr1::shared_ptr<PermutationTable> PermutationTablePtr;
+	typedef std::shared_ptr<PermutationTable> PermutationTablePtr;
 
 private:  // private data types
 
 	typedef VATA::Util::Triple<NodePtrType, NodePtrType, VarType>
 		InternalAddressType;
 
-	typedef std::tr1::unordered_map<InternalAddressType, NodePtrType,
+	typedef std::unordered_map<InternalAddressType, NodePtrType,
 		boost::hash<InternalAddressType> > InternalCacheType;
 
-	typedef std::tr1::unordered_map<DataType, NodePtrType,
+	typedef std::unordered_map<DataType, NodePtrType,
 		boost::hash<DataType> > LeafCacheType;
 
 private:  // private data members

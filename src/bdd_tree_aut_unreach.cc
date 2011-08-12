@@ -15,6 +15,9 @@
 
 using VATA::BDDTreeAut;
 
+// Standard library headers
+#include <unordered_map>
+
 
 template <>
 BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut)
@@ -26,7 +29,7 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut)
 	typedef BDDTreeAut::StateSet StateSet;
 	typedef BDDTreeAut::StateTuple StateTuple;
 	typedef BDDTreeAut::StateTupleSet StateTupleSet;
-	typedef std::tr1::unordered_map<StateType, StateType> TranslMap;
+	typedef std::unordered_map<StateType, StateType> TranslMap;
 	typedef std::map<StateType, StateType> WorkSetType;
 
 	class UnreachableApplyFunctor :

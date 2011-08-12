@@ -16,6 +16,7 @@
 #include <vata/aut_base.hh>
 #include <vata/aut_op.hh>
 #include <vata/mtbdd/apply2func.hh>
+#include <vata/mtbdd/void_apply2func.hh>
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
 #include <vata/util/ord_vector.hh>
@@ -23,7 +24,8 @@
 #include <vata/util/vector_map.hh>
 
 // Standard library headers
-#include <tr1/cstdint>
+#include <cstdint>
+#include <unordered_set>
 
 namespace VATA { class BDDTreeAut; }
 
@@ -57,12 +59,12 @@ private:  // private data types
 	typedef VATA::MTBDDPkg::OndriksMTBDD<StateTupleSet> TransMTBDD;
 	typedef VATA::MTBDDPkg::OndriksMTBDD<bool> BDD;
 
-	typedef std::tr1::unordered_set<StateType> StateSet;
+	typedef std::unordered_set<StateType> StateSet;
 
 	typedef VATA::Util::TDBDDTransTable< StateType, VATA::Util::OrdVector>
 		TransTable;
 
-	typedef std::tr1::shared_ptr<TransTable> TransTablePtr;
+	typedef std::shared_ptr<TransTable> TransTablePtr;
 
 	typedef VATA::Util::AutDescription AutDescription;
 

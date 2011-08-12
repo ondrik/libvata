@@ -14,6 +14,10 @@
 // VATA headers
 #include <vata/vata.hh>
 
+// Standard library headers
+#include <unordered_map>
+
+
 namespace VATA
 {
 	namespace Util
@@ -92,7 +96,7 @@ private:  // data types
 		}
 	};
 
-	typedef std::tr1::unordered_map<StateType, StateCell> StateHashTable;
+	typedef std::unordered_map<StateType, StateCell> StateHashTable;
 
 private:  // data members
 

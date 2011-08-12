@@ -15,7 +15,7 @@
 #include <vata/vata.hh>
 
 // Standard library headers
-#include <tr1/unordered_map>
+#include <unordered_map>
 
 // Boost library headers
 #include <boost/functional/hash.hpp>
@@ -76,11 +76,11 @@ private:  // Private data types
 
 	typedef std::pair<KeyElementType, KeyElementType> KeyElementPairType;
 
-	typedef std::tr1::unordered_map<KeyElementType, ValueType,
+	typedef std::unordered_map<KeyElementType, ValueType,
 		boost::hash<KeyElementType> > HashTableUnary;
-	typedef std::tr1::unordered_map<KeyElementPairType, ValueType,
+	typedef std::unordered_map<KeyElementPairType, ValueType,
 		boost::hash<KeyElementPairType> > HashTableBinary;
-	typedef std::tr1::unordered_map<IndexType, ValueType,
+	typedef std::unordered_map<IndexType, ValueType,
 		boost::hash<IndexType> > HashTableNnary;
 
 

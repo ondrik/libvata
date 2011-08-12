@@ -16,7 +16,7 @@
 #include	<vata/mtbdd/ondriks_mtbdd.hh>
 
 // Standard library headers
-#include  <tr1/unordered_set>
+#include  <unordered_set>
 
 // Boost library headers
 #include <boost/functional/hash.hpp>
@@ -56,7 +56,7 @@ private:  // Private data types
 
 	typedef std::pair<Node1PtrType, Node2PtrType> CacheAddressType;
 
-	typedef std::tr1::unordered_set<CacheAddressType,
+	typedef std::unordered_set<CacheAddressType,
 		boost::hash<CacheAddressType> > CacheHashTable;
 
 private:  // Private data members

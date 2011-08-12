@@ -17,7 +17,7 @@
 #include	<vata/util/triple.hh>
 
 // Standard library headers
-#include  <tr1/unordered_set>
+#include  <unordered_set>
 
 // Boost library headers
 #include <boost/functional/hash.hpp>
@@ -71,7 +71,7 @@ private:  // Private data types
 	typedef VATA::Util::Triple<Node1PtrType, Node2PtrType, Node3PtrType>
 		CacheAddressType;
 
-	typedef std::tr1::unordered_map<CacheAddressType, NodeOutPtrType,
+	typedef std::unordered_map<CacheAddressType, NodeOutPtrType,
 		boost::hash<CacheAddressType> > CacheHashTable;
 
 
