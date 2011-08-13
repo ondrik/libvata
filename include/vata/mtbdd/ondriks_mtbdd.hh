@@ -109,10 +109,10 @@ private:  // private data types
 		InternalAddressType;
 
 	typedef std::unordered_map<InternalAddressType, NodePtrType,
-		boost::hash<InternalAddressType> > InternalCacheType;
+		boost::hash<InternalAddressType>> InternalCacheType;
 
 	typedef std::unordered_map<DataType, NodePtrType,
-		boost::hash<DataType> > LeafCacheType;
+		boost::hash<DataType>> LeafCacheType;
 
 private:  // private data members
 

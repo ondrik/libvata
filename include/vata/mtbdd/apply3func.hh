@@ -72,7 +72,7 @@ private:  // Private data types
 		CacheAddressType;
 
 	typedef std::unordered_map<CacheAddressType, NodeOutPtrType,
-		boost::hash<CacheAddressType> > CacheHashTable;
+		boost::hash<CacheAddressType>> CacheHashTable;
 
 
 private:  // Private data members

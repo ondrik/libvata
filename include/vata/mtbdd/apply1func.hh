@@ -67,7 +67,7 @@ private:  // Private data types
 	//namespace as a custom type, it will get called. 
 
 	typedef std::unordered_map<CacheAddressType, NodeOutPtrType,
-		boost::hash<CacheAddressType> > CacheHashTable;
+		boost::hash<CacheAddressType>> CacheHashTable;
 
 private:  // Private data members
 

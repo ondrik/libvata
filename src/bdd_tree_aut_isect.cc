@@ -32,7 +32,7 @@ BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
 	typedef BDDTreeAut::StateTuple StateTuple;
 	typedef BDDTreeAut::StateTupleSet StateTupleSet;
 	typedef std::pair<StateType, StateType> StatePair;
-	typedef std::unordered_map<StatePair, StateType, boost::hash<StatePair> >
+	typedef std::unordered_map<StatePair, StateType, boost::hash<StatePair>>
 		IntersectionTranslMap;
 	typedef std::map<StateType, StatePair> WorkSetType;
 

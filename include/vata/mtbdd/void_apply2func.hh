@@ -57,7 +57,7 @@ private:  // Private data types
 	typedef std::pair<Node1PtrType, Node2PtrType> CacheAddressType;
 
 	typedef std::unordered_set<CacheAddressType,
-		boost::hash<CacheAddressType> > CacheHashTable;
+		boost::hash<CacheAddressType>> CacheHashTable;
 
 private:  // Private data members
 

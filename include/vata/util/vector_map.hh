@@ -77,11 +77,11 @@ private:  // Private data types
 	typedef std::pair<KeyElementType, KeyElementType> KeyElementPairType;
 
 	typedef std::unordered_map<KeyElementType, ValueType,
-		boost::hash<KeyElementType> > HashTableUnary;
+		boost::hash<KeyElementType>> HashTableUnary;
 	typedef std::unordered_map<KeyElementPairType, ValueType,
-		boost::hash<KeyElementPairType> > HashTableBinary;
+		boost::hash<KeyElementPairType>> HashTableBinary;
 	typedef std::unordered_map<IndexType, ValueType,
-		boost::hash<IndexType> > HashTableNnary;
+		boost::hash<IndexType>> HashTableNnary;
 
 
 	/**
