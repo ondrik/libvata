@@ -96,8 +96,8 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut)
 
 	UnreachableApplyFunctor unreach(result, translMap, workset);
 
-	for (StateSet::const_iterator itFst = aut.GetFinalStates().begin();
-		itFst != aut.GetFinalStates().end(); ++itFst)
+	for (auto itFst = aut.GetFinalStates().cbegin();
+		itFst != aut.GetFinalStates().cend(); ++itFst)
 	{	// start from all final states of the original automaton
 		StateType state = result.AddState();
 		result.SetStateFinal(state);
