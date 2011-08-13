@@ -146,10 +146,9 @@ public:
 		std::ostringstream oss;
 
 		oss << "(";		// opening tag
-		for (typename std::vector<T>::const_iterator it = vec.begin();
-			it != vec.end(); ++it)
+		for (auto it = vec.cbegin(); it != vec.cend(); ++it)
 		{	// for each element of the vector
-			if (it != vec.begin())
+			if (it != vec.cbegin())
 			{	// if we are not at the first element
 				oss << ", ";
 			}
@@ -182,10 +181,9 @@ public:
 		std::ostringstream oss;
 
 		oss << "{";		// opening tag
-		for (typename std::set<T>::const_iterator it = st.begin();
-			it != st.end(); ++it)
+		for (auto it = st.cbegin(); it != st.cend(); ++it)
 		{	// for each element of the set
-			if (it != st.begin())
+			if (it != st.cbegin())
 			{	// if we are not at the first element
 				oss << ", ";
 			}
@@ -218,10 +216,9 @@ public:
 		std::ostringstream oss;
 
 		oss << "[";		// opening tag
-		for (typename std::unordered_map<T, U>::const_iterator it = unmap.begin();
-			it != unmap.end(); ++it)
+		for (auto it = unmap.cbegin(); it != unmap.cend(); ++it)
 		{	// for each element of the unordered map
-			if (it != unmap.begin())
+			if (it != unmap.cbegin())
 			{	// if we are not at the first element
 				oss << ", ";
 			}
@@ -250,16 +247,13 @@ public:
 	template <typename T, typename U>
 	static std::string ToString(const std::multimap<T, U>& mm)
 	{
-		typedef std::multimap<T, U> MultiMapType;
-
 		// the output stream for the string
 		std::ostringstream oss;
 
 		oss << "{";		// opening tag
-		for (typename MultiMapType::const_iterator it = mm.begin();
-			it != mm.end(); )
+		for (auto it = mm.cbegin(); it != mm.cend(); )
 		{	// for each element of the set
-			if (it != mm.begin())
+			if (it != mm.cbegin())
 			{	// if we are not at the first element
 				oss << ", ";
 			}
@@ -267,11 +261,7 @@ public:
 			oss << Convert::ToString(it->first);
 			oss << " -> [";
 
-			std::pair
-			<
-				typename MultiMapType::const_iterator,
-				typename MultiMapType::const_iterator
-			> findRes = mm.equal_range(it->first);
+			auto findRes = mm.equal_range(it->first);
 
 			while (it != findRes.second)
 			{
@@ -336,10 +326,9 @@ public:
 		std::ostringstream oss;
 
 		oss << "(";		// opening tag
-		for (typename std::list<T>::const_iterator it = lst.begin();
-			it != lst.end(); ++it)
+		for (auto it = lst.cbegin(); it != lst.cend(); ++it)
 		{	// for each element of the vector
-			if (it != lst.begin())
+			if (it != lst.cbegin())
 			{	// if we are not at the first element
 				oss << ", ";
 			}
