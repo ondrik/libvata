@@ -72,8 +72,7 @@ private:  // Private methods
 
 	bool vectorIsSorted() const
 	{
-		for (typename VectorType::const_iterator itVec = vec_.begin() + 1;
-			itVec < vec_.end(); ++itVec)
+		for (auto itVec = vec_.cbegin() + 1; itVec < vec_.cend(); ++itVec)
 		{	// check that the vector is sorted
 			if (!(*(itVec - 1) < *itVec))
 			{	// in case there is an unordered pair (or there is one element twice)
@@ -102,7 +101,7 @@ public:   // Public methods
 		std::sort(vec_.begin(), vec_.end());
 
 		// remove duplicates
-		typename VectorType::iterator it = std::unique(vec_.begin(), vec_.end());
+		auto it = std::unique(vec_.begin(), vec_.end());
 		vec_.resize(it - vec_.begin());
 
 		// Assertions
@@ -219,8 +218,8 @@ public:   // Public methods
 
 		VectorType newVector;
 
-		typename VectorType::const_iterator lhsIt = vec_.begin();
-		typename VectorType::const_iterator rhsIt = rhs.vec_.begin();
+		auto lhsIt = vec_.begin();
+		auto rhsIt = rhs.vec_.begin();
 
 		while ((lhsIt != vec_.end()) || (rhsIt != rhs.vec_.end()))
 		{	// until we get to the end of both vectors
@@ -352,8 +351,7 @@ public:   // Public methods
 
 		std::string result = "{";
 
-		for (typename VectorType::const_iterator it = vec.begin();
-			it != vec.end(); ++it)
+		for (auto it = vec.cbegin(); it != vec.cend(); ++it)
 		{
 			result += ((it != vec.begin())? ", " : " ") + Convert::ToString(*it);
 		}
