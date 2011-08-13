@@ -200,8 +200,8 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 template <class Aut>
 int executeCommand(const Arguments& args)
 {
-	std::auto_ptr<AbstrParser> parser(nullptr);
-	std::auto_ptr<AbstrSerializer> serializer(nullptr);
+	std::unique_ptr<AbstrParser> parser(nullptr);
+	std::unique_ptr<AbstrSerializer> serializer(nullptr);
 
 	// create the input parser
 	if (args.inputFormat == FORMAT_TIMBUK)
