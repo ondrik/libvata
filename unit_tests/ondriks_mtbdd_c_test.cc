@@ -18,9 +18,9 @@
 #include <vata/util/convert.hh>
 
 using VATA::MTBDDPkg::OndriksMTBDD;
-using VATA::MTBDDPkg::AbstractApply1Functor;
-using VATA::MTBDDPkg::AbstractApply2Functor;
-using VATA::MTBDDPkg::AbstractApply3Functor;
+using VATA::MTBDDPkg::Apply1Functor;
+using VATA::MTBDDPkg::Apply2Functor;
+using VATA::MTBDDPkg::Apply3Functor;
 using VATA::Util::Convert;
 
 
@@ -324,16 +324,15 @@ protected:// protected methods
 	 */
 	MTBDD createMTBDDForTestCases(const ListOfTestCasesType& testCases)
 	{
-		class CopyApply2Functor
-			: public AbstractApply2Functor<
-					DataType,
-					DataType,
-					DataType
-				>
+		GCC_DIAG_OFF(effc++)
+		class CopyApply2Functor :
+			public Apply2Functor<CopyApply2Functor, DataType, DataType, DataType>
 		{
+		GCC_DIAG_ON(effc++)
+
 		public:
 
-			virtual DataType ApplyOperation(const DataType& data1, const DataType& data2)
+			inline DataType ApplyOperation(const DataType& data1, const DataType& data2)
 			{
 				if (data2 == getMTBDD2().GetDefaultValue())
 				{
@@ -591,12 +590,15 @@ BOOST_AUTO_TEST_CASE(monadic_apply)
 	MTBDD bdd = createMTBDDForTestCases(testCases);
 
 	// apply functor that squares values in leaves
-	class SquareMonadicApplyFunctor
-		: public AbstractApply1Functor<DataType, DataType>
+	GCC_DIAG_OFF(effc++)
+	class SquareMonadicApplyFunctor :
+		public Apply1Functor<SquareMonadicApplyFunctor, DataType, DataType>
 	{
+	GCC_DIAG_ON(effc++)
+
 	public:
 
-		virtual DataType ApplyOperation(const DataType& val)
+		inline DataType ApplyOperation(const DataType& val)
 		{
 			return val * val;
 		}
@@ -634,12 +636,15 @@ BOOST_AUTO_TEST_CASE(apply)
 	MTBDD bdd = createMTBDDForTestCases(testCases);
 
 	// apply functor that squares values in leaves
-	class TimesApply2Functor
-		: public AbstractApply2Functor<DataType, DataType, DataType>
+	GCC_DIAG_OFF(effc++)
+	class TimesApply2Functor :
+		public Apply2Functor<TimesApply2Functor, DataType, DataType, DataType>
 	{
+	GCC_DIAG_ON(effc++)
+
 	public:
 
-		virtual DataType ApplyOperation(const DataType& lhs, const DataType& rhs)
+		inline DataType ApplyOperation(const DataType& lhs, const DataType& rhs)
 		{
 			return lhs * rhs;
 		}
@@ -677,12 +682,16 @@ BOOST_AUTO_TEST_CASE(ternary_apply)
 	MTBDD bdd = createMTBDDForTestCases(testCases);
 
 	// apply functor that squares values in leaves
-	class TimesApplyFunctor
-		: public AbstractApply3Functor<DataType, DataType, DataType, DataType>
+	GCC_DIAG_OFF(effc++)
+	class TimesApplyFunctor :
+		public Apply3Functor<TimesApplyFunctor, DataType, DataType, DataType,
+		DataType>
 	{
+	GCC_DIAG_ON(effc++)
+
 	public:
 
-		virtual DataType ApplyOperation(
+		inline DataType ApplyOperation(
 			const DataType& lhs, const DataType& mhs, const DataType& rhs)
 		{
 			return lhs * mhs * rhs;

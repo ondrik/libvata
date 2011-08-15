@@ -249,9 +249,13 @@ void BDDTreeAut::LoadFromString(AbstrParser& parser, const std::string& str,
 AutDescription BDDTreeAut::dumpToAutDescExplicit(
 	const StringToStateDict* pStateDict) const
 {
+	GCC_DIAG_OFF(effc++)
 	class CondColApplyFunctor :
-		public VATA::MTBDDPkg::AbstractVoidApply2Functor<StateTupleSet, bool>
+		public VATA::MTBDDPkg::VoidApply2Functor<CondColApplyFunctor,
+		StateTupleSet, bool>
 	{
+	GCC_DIAG_ON(effc++)
+
 	public:   // data types
 
 		typedef std::list<StateTuple> AccumulatorType;
@@ -276,7 +280,7 @@ AutDescription BDDTreeAut::dumpToAutDescExplicit(
 			accumulator_.clear();
 		}
 
-		virtual void ApplyOperation(const StateTupleSet& lhs, const bool& rhs)
+		inline void ApplyOperation(const StateTupleSet& lhs, const bool& rhs)
 		{
 			if (rhs)
 			{

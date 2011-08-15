@@ -27,21 +27,25 @@ namespace VATA
 	namespace MTBDDPkg
 	{
 		template <
+			class Base,
 			typename Data1,
 			typename DataOut
 		>
-		class AbstractApply1Functor;
+		class Apply1Functor;
 	}
 }
 
 
 template <
+	class Base,
 	typename Data1,
 	typename DataOut
 >
-class VATA::MTBDDPkg::AbstractApply1Functor
+class VATA::MTBDDPkg::Apply1Functor
 {
 public:   // Public data types
+
+	typedef Base BaseClass;
 
 	typedef Data1 Data1Type;
 	typedef DataOut DataOutType;
@@ -78,8 +82,8 @@ private:  // Private data members
 
 private:  // Private methods
 
-	AbstractApply1Functor(const AbstractApply1Functor&);
-	AbstractApply1Functor& operator=(const AbstractApply1Functor&);
+	Apply1Functor(const Apply1Functor&);
+	Apply1Functor& operator=(const Apply1Functor&);
 
 
 	NodeOutPtrType recDescend(const Node1PtrType& node1)
@@ -99,7 +103,7 @@ private:  // Private methods
 			else
 			{	// if the result isn't known
 				NodeOutPtrType result = MTBDDOutType::spawnLeaf(
-					ApplyOperation(GetDataFromLeaf(node1)));
+					makeBase().ApplyOperation(GetDataFromLeaf(node1)));
 
 				// cache
 				ht.insert(std::make_pair(cacheAddress, result));
@@ -135,9 +139,14 @@ private:  // Private methods
 		}
 	}
 
+	inline BaseClass& makeBase()
+	{
+		return static_cast<BaseClass&>(*this);
+	}
+
 public:   // Public methods
 
-	AbstractApply1Functor()
+	Apply1Functor()
 		: mtbdd1_(nullptr),
 			ht()
 	{ }
@@ -155,13 +164,12 @@ public:   // Public methods
 		IncrementRefCnt(root);
 
 		// compute the new default value
-		DataOutType defaultValue = ApplyOperation(mtbdd1_->GetDefaultValue());
+		DataOutType defaultValue = makeBase().ApplyOperation(
+			mtbdd1_->GetDefaultValue());
 
 		// wrap it all up
 		return MTBDDOutType(root, defaultValue);
 	}
-
-	virtual DataOutType ApplyOperation(const Data1Type& data1) = 0;
 
 protected:// Protected methods
 
@@ -170,9 +178,5 @@ protected:// Protected methods
 		assert(mtbdd1_ != nullptr);
 		return *mtbdd1_;
 	}
-
-
-	virtual ~AbstractApply1Functor()
-	{ }
 };
 #endif

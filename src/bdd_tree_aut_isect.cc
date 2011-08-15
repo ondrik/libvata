@@ -36,20 +36,17 @@ BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
 		IntersectionTranslMap;
 	typedef std::map<StateType, StatePair> WorkSetType;
 
+	GCC_DIAG_OFF(effc++)  // suppress non-virtual destructor warning
 	class IntersectionApplyFunctor :
-		public VATA::MTBDDPkg::AbstractApply2Functor<StateTupleSet, StateTupleSet,
-		StateTupleSet>
+		public VATA::MTBDDPkg::Apply2Functor<IntersectionApplyFunctor, StateTupleSet,
+		StateTupleSet, StateTupleSet>
 	{
+	GCC_DIAG_ON(effc++)
 	private:  // data members
 
 		BDDTreeAut& resultAut_;
 		IntersectionTranslMap& translMap_;
 		WorkSetType& workset_;
-
-	private:  // methods
-
-		IntersectionApplyFunctor(const IntersectionApplyFunctor&);
-		IntersectionApplyFunctor& operator=(const IntersectionApplyFunctor&);
 
 	public:   // methods
 
@@ -60,7 +57,7 @@ BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
 			workset_(workset)
 		{ }
 
-		virtual StateTupleSet ApplyOperation(const StateTupleSet& lhs,
+		StateTupleSet ApplyOperation(const StateTupleSet& lhs,
 			const StateTupleSet& rhs)
 		{
 			StateTupleSet result;

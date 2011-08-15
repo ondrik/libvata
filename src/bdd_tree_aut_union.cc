@@ -32,18 +32,16 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
 	typedef BDDTreeAut::StateTupleSet StateTupleSet;
 	typedef std::unordered_map<StateType, StateType> StateToStateHT;
 
+	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class RewriterApplyFunctor :
-		public VATA::MTBDDPkg::AbstractApply1Functor<StateTupleSet, StateTupleSet>
+		public VATA::MTBDDPkg::Apply1Functor<RewriterApplyFunctor,
+		StateTupleSet, StateTupleSet>
 	{
+	GCC_DIAG_ON(effc++)
 	private:  // data members
 
 		BDDTreeAut& aut_;
 		StateToStateHT& dict_;
-
-	private:  // methods
-
-		RewriterApplyFunctor(const RewriterApplyFunctor&);
-		RewriterApplyFunctor& operator=(const RewriterApplyFunctor&);
 
 	public:   // methods
 
@@ -52,7 +50,7 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
 			dict_(dict)
 		{ }
 
-		virtual StateTupleSet ApplyOperation(const StateTupleSet& value)
+		inline StateTupleSet ApplyOperation(const StateTupleSet& value)
 		{
 			StateTupleSet result;
 
@@ -74,6 +72,7 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
 			return result;
 		}
 	};
+
 
 	if (lhs.GetTransTable() == rhs.GetTransTable())
 	{	// in case the automata share their transition table

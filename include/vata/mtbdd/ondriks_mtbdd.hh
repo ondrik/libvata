@@ -37,23 +37,23 @@ namespace VATA
 		>
 		class OndriksMTBDD;
 
-		template <typename, typename>
-		class AbstractApply1Functor;
+		template <class, typename, typename>
+		class Apply1Functor;
 
-		template <typename, typename, typename>
-		class AbstractApply2Functor;
+		template <class, typename, typename, typename>
+		class Apply2Functor;
 
-		template <typename, typename, typename, typename>
-		class AbstractApply3Functor;
+		template <class, typename, typename, typename, typename>
+		class Apply3Functor;
 
-		template <typename>
-		class AbstractVoidApply1Functor;
+		template <class, typename>
+		class VoidApply1Functor;
 
-		template <typename, typename>
-		class AbstractVoidApply2Functor;
+		template <class, typename, typename>
+		class VoidApply2Functor;
 
-		template <typename, typename, typename>
-		class AbstractVoidApply3Functor;
+		template <class, typename, typename, typename>
+		class VoidApply3Functor;
 	}
 }
 
@@ -71,23 +71,23 @@ template <
 >
 class VATA::MTBDDPkg::OndriksMTBDD
 {
-	template <typename, typename>
-	friend class AbstractApply1Functor;
+	template <class, typename, typename>
+	friend class Apply1Functor;
 
-	template <typename, typename, typename>
-	friend class AbstractApply2Functor;
+	template <class, typename, typename, typename>
+	friend class Apply2Functor;
 
-	template <typename, typename, typename, typename>
-	friend class AbstractApply3Functor;
+	template <class, typename, typename, typename, typename>
+	friend class Apply3Functor;
 
-	template <typename>
-	friend class AbstractVoidApply1Functor;
+	template <class, typename>
+	friend class VoidApply1Functor;
 
-	template <typename, typename>
-	friend class AbstractVoidApply2Functor;
+	template <class, typename, typename>
+	friend class VoidApply2Functor;
 
-	template <typename, typename, typename>
-	friend class AbstractVoidApply3Functor;
+	template <class, typename, typename, typename>
+	friend class VoidApply3Functor;
 
 public:   // public data types
 

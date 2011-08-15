@@ -32,19 +32,17 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut)
 	typedef std::unordered_map<StateType, StateType> TranslMap;
 	typedef std::map<StateType, StateType> WorkSetType;
 
+	GCC_DIAG_OFF(effc++)   // suppress missing virtual destructor warning
 	class UnreachableApplyFunctor :
-		public VATA::MTBDDPkg::AbstractApply1Functor<StateTupleSet, StateTupleSet>
+		public VATA::MTBDDPkg::Apply1Functor<UnreachableApplyFunctor,
+		StateTupleSet, StateTupleSet>
 	{
+	GCC_DIAG_OFF(effc++)
 	private:  // data members
 
 		BDDTreeAut& resultAut_;
 		TranslMap& translMap_;
 		WorkSetType& workset_;
-
-	private:  // methods
-
-		UnreachableApplyFunctor(const UnreachableApplyFunctor&);
-		UnreachableApplyFunctor& operator=(const UnreachableApplyFunctor&);
 
 	public:   // methods
 
@@ -55,7 +53,7 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut)
 			workset_(workset)
 		{ }
 
-		virtual StateTupleSet ApplyOperation(const StateTupleSet& value)
+		StateTupleSet ApplyOperation(const StateTupleSet& value)
 		{
 			StateTupleSet result;
 

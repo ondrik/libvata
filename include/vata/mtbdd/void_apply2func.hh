@@ -27,21 +27,25 @@ namespace VATA
 	namespace MTBDDPkg
 	{
 		template <
+			class Base,
 			typename Data1,
 			typename Data2
 		>
-		class AbstractVoidApply2Functor;
+		class VoidApply2Functor;
 	}
 }
 
 
 template <
+	class Base,
 	typename Data1,
 	typename Data2
 >
-class VATA::MTBDDPkg::AbstractVoidApply2Functor
+class VATA::MTBDDPkg::VoidApply2Functor
 {
 public:   // Public data types
+
+	typedef Base BaseClass;
 
 	typedef Data1 Data1Type;
 	typedef Data2 Data2Type;
@@ -71,8 +75,8 @@ private:  // Private data members
 
 private:  // Private methods
 
-	AbstractVoidApply2Functor(const AbstractVoidApply2Functor&);
-	AbstractVoidApply2Functor& operator=(const AbstractVoidApply2Functor&);
+	VoidApply2Functor(const VoidApply2Functor&);
+	VoidApply2Functor& operator=(const VoidApply2Functor&);
 
 	void recDescend(const Node1PtrType& node1, const Node2PtrType& node2)
 	{
@@ -93,7 +97,7 @@ private:  // Private methods
 
 		if (!relation)
 		{	// for the terminal case
-			ApplyOperation(GetDataFromLeaf(node1), GetDataFromLeaf(node2));
+			makeBase().ApplyOperation(GetDataFromLeaf(node1), GetDataFromLeaf(node2));
 
 			ht.insert(cacheAddress);
 			return;
@@ -137,9 +141,14 @@ private:  // Private methods
 		ht.insert(cacheAddress);
 	}
 
+	inline BaseClass& makeBase()
+	{
+		return static_cast<BaseClass&>(*this);
+	}
+
 public:   // Public methods
 
-	AbstractVoidApply2Functor() :
+	VoidApply2Functor() :
 		mtbdd1_(nullptr),
 		mtbdd2_(nullptr),
 		ht()
@@ -158,9 +167,6 @@ public:   // Public methods
 		recDescend(mtbdd1_->getRoot(), mtbdd2_->getRoot());
 	}
 
-	virtual void ApplyOperation(
-		const Data1Type& data1, const Data2Type& data2) = 0;
-
 protected:// Protected methods
 
 	inline const MTBDD1Type& getMTBDD1() const
@@ -174,10 +180,6 @@ protected:// Protected methods
 		assert(mtbdd2_ != nullptr);
 		return *mtbdd2_;
 	}
-
-
-	virtual ~AbstractVoidApply2Functor()
-	{ }
 };
 
 #endif

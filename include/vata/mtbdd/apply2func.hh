@@ -28,23 +28,27 @@ namespace VATA
 	namespace MTBDDPkg
 	{
 		template <
+			class Base,
 			typename Data1,
 			typename Data2,
 			typename DataOut
 		>
-		class AbstractApply2Functor;
+		class Apply2Functor;
 	}
 }
 
 
 template <
+	class Base,
 	typename Data1,
 	typename Data2,
 	typename DataOut
 >
-class VATA::MTBDDPkg::AbstractApply2Functor
+class VATA::MTBDDPkg::Apply2Functor
 {
 public:   // Public data types
+
+	typedef Base BaseClass;
 
 	typedef Data1 Data1Type;
 	typedef Data2 Data2Type;
@@ -76,8 +80,8 @@ private:  // Private data members
 
 private:  // Private methods
 
-	AbstractApply2Functor(const AbstractApply2Functor&);
-	AbstractApply2Functor& operator=(const AbstractApply2Functor&);
+	Apply2Functor(const Apply2Functor&);
+	Apply2Functor& operator=(const Apply2Functor&);
 
 	NodeOutPtrType recDescend(const Node1PtrType& node1, const Node2PtrType& node2)
 	{
@@ -98,7 +102,7 @@ private:  // Private methods
 
 		if (!relation)
 		{	// for the terminal case
-			NodeOutPtrType result = MTBDDOutType::spawnLeaf(ApplyOperation(
+			NodeOutPtrType result = MTBDDOutType::spawnLeaf(makeBase().ApplyOperation(
 				GetDataFromLeaf(node1), GetDataFromLeaf(node2)));
 
 			ht.insert(std::make_pair(cacheAddress, result));
@@ -158,9 +162,14 @@ private:  // Private methods
 		}
 	}
 
+	inline BaseClass& makeBase()
+	{
+		return static_cast<BaseClass&>(*this);
+	}
+
 public:   // Public methods
 
-	AbstractApply2Functor() :
+	Apply2Functor() :
 		mtbdd1_(nullptr),
 		mtbdd2_(nullptr),
 		ht()
@@ -180,15 +189,12 @@ public:   // Public methods
 		IncrementRefCnt(root);
 
 		// compute the new default value
-		DataOutType defaultValue = ApplyOperation(mtbdd1_->GetDefaultValue(),
-			mtbdd2_->GetDefaultValue());
+		DataOutType defaultValue = makeBase().ApplyOperation(
+			mtbdd1_->GetDefaultValue(), mtbdd2_->GetDefaultValue());
 
 		// wrap it all up
 		return MTBDDOutType(root, defaultValue);
 	}
-
-	virtual DataOutType ApplyOperation(
-		const Data1Type& data1, const Data2Type& data2) = 0;
 
 protected:// Protected methods
 
@@ -203,10 +209,6 @@ protected:// Protected methods
 		assert(mtbdd2_ != nullptr);
 		return *mtbdd2_;
 	}
-
-
-	virtual ~AbstractApply2Functor()
-	{ }
 };
 
 #endif

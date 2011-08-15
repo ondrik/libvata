@@ -28,25 +28,29 @@ namespace VATA
 	namespace MTBDDPkg
 	{
 		template <
+			class Base,
 			typename Data1,
 			typename Data2,
 			typename Data3,
 			typename DataOut
 		>
-		class AbstractApply3Functor;
+		class Apply3Functor;
 	}
 }
 
 
 template <
+	class Base,
 	typename Data1,
 	typename Data2,
 	typename Data3,
 	typename DataOut
 >
-class VATA::MTBDDPkg::AbstractApply3Functor
+class VATA::MTBDDPkg::Apply3Functor
 {
 public:   // Public data types
+
+	typedef Base BaseClass;
 
 	typedef Data1 Data1Type;
 	typedef Data2 Data2Type;
@@ -90,8 +94,8 @@ private:  // Private data members
 
 private:  // Private methods
 
-	AbstractApply3Functor(const AbstractApply3Functor&);
-	AbstractApply3Functor& operator=(const AbstractApply3Functor&);
+	Apply3Functor(const Apply3Functor&);
+	Apply3Functor& operator=(const Apply3Functor&);
 
 
 	inline static char classifyCase(Node1PtrType node1,
@@ -161,7 +165,7 @@ private:  // Private methods
 
 		if (!relation)
 		{	// for the terminal case
-			NodeOutPtrType result = MTBDDOutType::spawnLeaf(ApplyOperation(
+			NodeOutPtrType result = MTBDDOutType::spawnLeaf(makeBase().ApplyOperation(
 				GetDataFromLeaf(node1), GetDataFromLeaf(node2), GetDataFromLeaf(node3)));
 
 			ht.insert(std::make_pair(cacheAddress, result));
@@ -236,14 +240,18 @@ private:  // Private methods
 		}
 	}
 
+	inline BaseClass& makeBase()
+	{
+		return static_cast<BaseClass&>(*this);
+	}
 
 public:   // Public methods
 
-	AbstractApply3Functor()
-		: mtbdd1_(nullptr),
-			mtbdd2_(nullptr),
-			mtbdd3_(nullptr),
-			ht()
+	Apply3Functor() :
+		mtbdd1_(nullptr),
+		mtbdd2_(nullptr),
+		mtbdd3_(nullptr),
+		ht()
 	{ }
 
 	MTBDDOutType operator()(const MTBDD1Type& mtbdd1,
@@ -263,15 +271,12 @@ public:   // Public methods
 		IncrementRefCnt(root);
 
 		// compute the new default value
-		DataOutType defaultValue = ApplyOperation(mtbdd1_->GetDefaultValue(),
+		DataOutType defaultValue = makeBase().ApplyOperation(mtbdd1_->GetDefaultValue(),
 			mtbdd2_->GetDefaultValue(), mtbdd3_->GetDefaultValue());
 
 		// wrap it all up
 		return MTBDDOutType(root, defaultValue);
 	}
-
-	virtual DataOutType ApplyOperation(
-		const Data1Type& data1, const Data2Type& data2, const Data3Type& data3) = 0;
 
 protected:// Protected methods
 
@@ -292,10 +297,6 @@ protected:// Protected methods
 		assert(mtbdd3_ != nullptr);
 		return *mtbdd3_;
 	}
-
-
-	virtual ~AbstractApply3Functor()
-	{ }
 };
 
 // TODO:

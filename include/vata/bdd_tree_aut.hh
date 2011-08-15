@@ -70,13 +70,15 @@ private:  // private data types
 
 	typedef VATA::Util::TwoWayDict<std::string, SymbolType> StringToSymbolDict;
 
+	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class UnionApplyFunctor :
-		public VATA::MTBDDPkg::AbstractApply2Functor<StateTupleSet,
+		public VATA::MTBDDPkg::Apply2Functor<UnionApplyFunctor, StateTupleSet,
 		StateTupleSet, StateTupleSet>
 	{
-	public:
+	GCC_DIAG_ON(effc++)
+	public:   // methods
 
-		virtual StateTupleSet ApplyOperation(const StateTupleSet& lhs,
+		inline StateTupleSet ApplyOperation(const StateTupleSet& lhs,
 			const StateTupleSet& rhs)
 		{
 			return lhs.Union(rhs);
@@ -269,10 +271,13 @@ public:   // public methods
 		assert(lhs.isValid());
 		assert(rhs.isValid());
 
+		GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 		class OperationApplyFunctor :
-			public VATA::MTBDDPkg::AbstractVoidApply2Functor<
+			public VATA::MTBDDPkg::VoidApply2Functor<OperationApplyFunctor,
 			StateTupleSet, StateTupleSet>
 		{
+		GCC_DIAG_ON(effc++)
+
 		private:  // data members
 
 			OperationFunc& opFunc_;
@@ -283,13 +288,12 @@ public:   // public methods
 				opFunc_(opFunc)
 			{ }
 
-			virtual void ApplyOperation(const StateTupleSet& lhs,
+			inline void ApplyOperation(const StateTupleSet& lhs,
 				const StateTupleSet& rhs)
 			{
 				opFunc_(lhs, rhs);
 			}
 		};
-
 
 		UnionApplyFunctor unioner;
 		TransMTBDD rhsUnionMtbdd((StateTupleSet()));
