@@ -33,19 +33,54 @@ namespace VATA
 template <typename Aut>
 bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 {
+	typedef typename Aut::StateTuple StateTuple;
 	typedef typename Aut::StateTupleSet StateTupleSet;
 
 	class DownwardAntichainFunctor
 	{
+	private:  // data members
 
-	public:
+		bool processingStopped_;
+		bool inclusionHolds_;
+
+	public:   // methods
+
+		DownwardAntichainFunctor() :
+			processingStopped_(false),
+			inclusionHolds_(true)
+		{ }
 
 		void operator()(const StateTupleSet& lhs, const StateTupleSet& rhs)
 		{
-			assert(&lhs != nullptr);
-			assert(&rhs != nullptr);
-			assert(false);
+			if (!lhs.empty() && (lhs.begin()->size() == 0))
+			{	// in case LHS represents a nullary transition (i.e., a leaf symbol)
+				assert(lhs.size() == 1);
 
+				if (!rhs.empty())
+				{	// in case there also a nullary transition in the RHS
+					assert(rhs.size() == 1);
+					assert(rhs.begin()->size() == 0);
+				}
+				else
+				{	// in case RHS cannot make this transition
+					//doesInclusionHold_ = false;
+					processingStopped_ = true;
+					inclusionHolds_ = false;
+				}
+			}
+			else
+			{	// in case the transition si not nullary
+				for (const StateTuple& tuple : lhs)
+				{
+					assert(false);
+
+				}
+			}
+		}
+
+		inline bool IsProcessingStopped() const
+		{
+			return processingStopped_;
 		}
 	};
 

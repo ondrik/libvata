@@ -292,6 +292,11 @@ public:   // public methods
 				const StateTupleSet& rhs)
 			{
 				opFunc_(lhs, rhs);
+
+				if (opFunc_.IsProcessingStopped())
+				{	// in case the operator wants to stop processing
+					this->stopProcessing();
+				}
 			}
 		};
 
