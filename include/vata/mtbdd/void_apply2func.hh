@@ -70,6 +70,8 @@ private:  // Private data members
 
 	CacheHashTable ht;
 
+	bool processingStopped_;
+
 	static const char NODE1MASK = 0x01;  // 00000001
 	static const char NODE2MASK = 0x02;  // 00000010
 
@@ -83,6 +85,11 @@ private:  // Private methods
 		// Assertions
 		assert(!IsNull(node1));
 		assert(!IsNull(node2));
+
+		if (processingStopped_)
+		{
+			return;
+		}
 
 		CacheAddressType cacheAddress(node1, node2);
 		typename CacheHashTable::iterator itHt;
@@ -151,7 +158,8 @@ public:   // Public methods
 	VoidApply2Functor() :
 		mtbdd1_(nullptr),
 		mtbdd2_(nullptr),
-		ht()
+		ht(),
+		processingStopped_(false)
 	{ }
 
 	void operator()(const MTBDD1Type& mtbdd1, const MTBDD2Type& mtbdd2)
@@ -162,6 +170,9 @@ public:   // Public methods
 
 		// clear the cache
 		ht.clear();
+
+		// re-enable processing
+		processingStopped_ = false;
 
 		// recursively descend the MTBDD
 		recDescend(mtbdd1_->getRoot(), mtbdd2_->getRoot());
@@ -179,6 +190,11 @@ protected:// Protected methods
 	{
 		assert(mtbdd2_ != nullptr);
 		return *mtbdd2_;
+	}
+
+	inline void stopProcessing()
+	{
+		processingStopped_ = true;
 	}
 };
 
