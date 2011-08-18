@@ -46,8 +46,6 @@ const char* FAILING_TEST_CASES[] =
 	AUT_FAIL4,
 	AUT_FAIL5
 };
-const size_t FAILING_TEST_CASES_SIZE = (sizeof(FAILING_TEST_CASES) /
-	sizeof(const char*));
 
 
 /******************************************************************************
@@ -75,14 +73,14 @@ BOOST_AUTO_TEST_CASE(correct_format)
 	TimbukParser parser;
 	TimbukSerializer serializer;
 
-	for (size_t i = 0; i < TIMBUK_AUTOMATA_SIZE; ++i)
+	for (auto autTest : TIMBUK_AUTOMATA)
 	{
-		TimbukParser::AutDescription desc = parser.ParseString(TIMBUK_AUTOMATA[i]);
+		TimbukParser::AutDescription desc = parser.ParseString(autTest);
 		std::string dumpedStr = serializer.Serialize(desc);
 		TimbukParser::AutDescription secondTimeParsed = parser.ParseString(dumpedStr);
 
 		BOOST_CHECK_MESSAGE(desc == secondTimeParsed, "Error while checking \n" +
-			std::string(TIMBUK_AUTOMATA[i]));
+			std::string(autTest));
 	}
 }
 
@@ -90,9 +88,9 @@ BOOST_AUTO_TEST_CASE(incorrect_format)
 {
 	TimbukParser parser;
 
-	for (size_t i = 0; i < FAILING_TEST_CASES_SIZE; ++i)
+	for (auto autTest : FAILING_TEST_CASES)
 	{
-		BOOST_CHECK_THROW(parser.ParseString(FAILING_TEST_CASES[i]), std::exception);
+		BOOST_CHECK_THROW(parser.ParseString(autTest), std::exception);
 	}
 }
 

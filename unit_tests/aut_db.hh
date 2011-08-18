@@ -191,6 +191,43 @@ const char* AUT_TIMBUK_UNREACHABLE_1_RESULT =
 	"c(6, 7) -> 5\n"
 	;
 
+const char* AUT_TIMBUK_INCL_1A =
+	"Ops\n"
+	"Automaton anonymous\n"
+	"States\n"
+	"Final States 5\n"
+	"Transitions\n"
+	;
+
+const char* AUT_TIMBUK_INCL_1B =
+	"Ops\n"
+	"Automaton anonymous\n"
+	"States\n"
+	"Final States 5\n"
+	"Transitions\n"
+	;
+
+bool AUT_TIMBUK_INCL_1_RESULT = true;
+
+const char* AUT_TIMBUK_INCL_2A =
+	"Ops\n"
+	"Automaton anonymous\n"
+	"States\n"
+	"Final States 5\n"
+	"Transitions\n"
+	;
+
+const char* AUT_TIMBUK_INCL_2B =
+	"Ops\n"
+	"Automaton anonymous\n"
+	"States\n"
+	"Final States q\n"
+	"Transitions\n"
+	"a -> q\n"
+	;
+
+bool AUT_TIMBUK_INCL_2_RESULT = true;
+
 const char* AUT_TIMBUK_A53 =
 	"Ops\n"
 	"Automaton anonymous\n"
@@ -359,6 +396,7 @@ const char* AUT_TIMBUK_A53 =
 	"UNDEF(q42,q41) -> q44\n"
 	;
 
+
 const char* TIMBUK_AUTOMATA[] =
 {
 	AUT_TIMBUK_A1,
@@ -372,6 +410,16 @@ const char* TIMBUK_AUTOMATA[] =
 	AUT_TIMBUK_UNION_13_RESULT,
 	AUT_TIMBUK_A53
 };
-const size_t TIMBUK_AUTOMATA_SIZE = (sizeof(TIMBUK_AUTOMATA) /
-	sizeof(const char*));
 
+
+const std::pair<std::pair<const char*, const char*>, bool>
+	TIMBUK_AUTOMATA_INCL[] =
+{
+	std::make_pair(
+		std::make_pair(AUT_TIMBUK_INCL_1A, AUT_TIMBUK_INCL_1B),
+		AUT_TIMBUK_INCL_1_RESULT
+		),
+	std::make_pair(
+		std::make_pair(AUT_TIMBUK_INCL_2A, AUT_TIMBUK_INCL_2B),
+		AUT_TIMBUK_INCL_2_RESULT)
+};

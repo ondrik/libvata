@@ -78,21 +78,21 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 	TimbukParser parser;
 	TimbukSerializer serializer;
 
-	for (size_t i = 0; i < TIMBUK_AUTOMATA_SIZE; ++i)
+	for (auto autTest : TIMBUK_AUTOMATA)
 	{
 		BDDTreeAut aut;
 
 		BDDTreeAut::StringToStateDict stateDict;
-		aut.LoadFromString(parser, TIMBUK_AUTOMATA[i], &stateDict);
+		aut.LoadFromString(parser, autTest, &stateDict);
 
 		std::string autOut = aut.DumpToString(serializer, &stateDict);
 
-		AutDescription descOrig = parser.ParseString(TIMBUK_AUTOMATA[i]);
+		AutDescription descOrig = parser.ParseString(autTest);
 		AutDescription descOut = parser.ParseString(autOut);
 
 		BOOST_CHECK_MESSAGE(descOrig == descOut,
 			"\n\nExpecting:\n===========\n" +
-			std::string(TIMBUK_AUTOMATA[i]) +
+			std::string(autTest) +
 			"===========\n\nGot:\n===========\n" + autOut + "\n===========");
 	}
 }
@@ -252,6 +252,32 @@ BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
 		"\n\nExpecting:\n===========\n" +
 		serializer.Serialize(descCorrectUF1) +
 		"===========\n\nGot:\n===========\n" + aut1UFStr + "\n===========");
+}
+
+BOOST_AUTO_TEST_CASE(aut_down_inclusion)
+{
+	TimbukParser parser;
+	TimbukSerializer serializer;
+
+	for (auto inclTest : TIMBUK_AUTOMATA_INCL)
+	{
+		BDDTreeAut autA;
+		autA.LoadFromString(parser, inclTest.first.first);
+
+		BDDTreeAut autB;
+		autB.LoadFromString(parser, inclTest.first.second);
+
+		bool doesInclusionHold = VATA::CheckInclusion(autA, autB);
+
+		BOOST_CHECK_MESSAGE(inclTest.second == doesInclusionHold,
+			"\n\nError checking inclusion of:\n===========\n" +
+			autA.DumpToString(serializer) +
+			"===========\n"
+			"and\n===========\n" +
+			autB.DumpToString(serializer) +
+			"===========\n\nGot: " + Convert::ToString(doesInclusionHold) +
+			", expected was " + Convert::ToString(inclTest.second));
+	}
 }
 
 BOOST_AUTO_TEST_SUITE_END()
