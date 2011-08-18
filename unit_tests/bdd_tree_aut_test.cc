@@ -48,23 +48,7 @@ using VATA::Util::Convert;
  * Fixture for test of BDDTreeAut
  */
 class BDDTreeAutFixture : public LogFixture
-{
-protected:// methods
-
-//	static BDDTreeAut::StringToStateDict suffixize(
-//		const BDDTreeAut::StringToStateDict& dict, const std::string& suffix)
-//	{
-//		BDDTreeAut::StringToStateDict result;
-//
-//		for (BDDTreeAut::StringToStateDict::const_iterator itDict = dict.begin();
-//			itDict != dict.end(); ++itDict)
-//		{	// transfer all states
-//			result.insert(std::make_pair(itDict->first + suffix, itDict->second));
-//		}
-//
-//		return result;
-//	}
-};
+{ };
 
 /******************************************************************************
  *                              Start of testing                              *

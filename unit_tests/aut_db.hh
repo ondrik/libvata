@@ -421,5 +421,14 @@ const std::pair<std::pair<const char*, const char*>, bool>
 		),
 	std::make_pair(
 		std::make_pair(AUT_TIMBUK_INCL_2A, AUT_TIMBUK_INCL_2B),
-		AUT_TIMBUK_INCL_2_RESULT)
+		AUT_TIMBUK_INCL_2_RESULT
+		),
+	std::make_pair(
+		std::make_pair(AUT_TIMBUK_INCL_2B, AUT_TIMBUK_INCL_2A),
+		!AUT_TIMBUK_INCL_2_RESULT
+		),
+	std::make_pair(
+		std::make_pair(AUT_TIMBUK_INCL_3A, AUT_TIMBUK_INCL_3B),
+		AUT_TIMBUK_INCL_3_RESULT
+		),
 };
