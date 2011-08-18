@@ -49,7 +49,8 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 		}
 	};
 
-	typedef std::set<WorkSetElement, LexicOrder> WorkSetType;
+	typedef std::unordered_multimap<typename WorkSetElement::first_type,
+		typename WorkSetElement::second_type> WorkSetType;
 
 	class DownwardAntichainFunctor
 	{
@@ -128,28 +129,84 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 		{
 			auto key = std::make_pair(smallerState, biggerStateSet);
 
-			if (workset_.find(key) != workset_.end())
+			if (isInWorkset(key))
 			{	// in case we returned somewhere we already know
 				return true;
 			}
 
-			auto itInsertedKey = workset_.insert(key).first;
+			workset_.insert(key);
 
 			DownwardAntichainFunctor innerFctor(smaller_, bigger_, workset_);
 			Aut::ForeachDownSymbolFromStateAndStateSetDo(smaller_, bigger_,
 				smallerState, biggerStateSet, innerFctor);
 
-			// let's hope that the above processing that uses the workset doesn't
-			// mess with the iterator
-			workset_.erase(itInsertedKey);
+			// erase the element
+			bool erased = false;
+			for (auto keyRange = workset_.equal_range(smallerState);
+				keyRange.first != keyRange.second; ++(keyRange.first))
+			{	// for all items with proper key
+				if (biggerStateSet == (keyRange.first)->second)
+				{	// if we found what we were looking for
+					workset_.erase(keyRange.first);
+					erased = true;
+					break;
+				}
+			}
+
+			// make sure the element was removed
+			assert(erased);
 
 			return innerFctor.InclusionHolds();
 		}
 
-		void inline failProcessing()
+		inline void failProcessing()
 		{
 			inclusionHolds_ = false;
 			processingStopped_ = true;
+		}
+
+#if 0
+		// no antichain
+		inline bool isInWorkset(const WorkSetElement& key) const
+		{
+			for (auto keyRange = workset_.equal_range(elem.first);
+				keyRange.first != keyRange.second; ++(keyRange.first))
+			{	// for all items with proper key
+				const StateSet& wsBigger = (keyRange.first)->second;
+
+				if (elem.second == wsBigger)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+#endif
+
+		// workset antichain
+		inline bool isInWorkset(const WorkSetElement& elem) const
+		{
+			for (auto keyRange = workset_.equal_range(elem.first);
+				keyRange.first != keyRange.second; ++(keyRange.first))
+			{	// for all items with proper key
+				const StateSet& wsBigger = (keyRange.first)->second;
+
+				if (std::includes(wsBigger.begin(), wsBigger.end(),
+					elem.second.begin(), elem.second.end()))
+				{	// if there is a smaller set in the workset
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		inline void processFailedInclusion(const StateType& smallerState,
+			const StateSet& biggerStateSet)
+		{
+			assert(&smallerState != nullptr);
+			assert(&biggerStateSet != nullptr);
 		}
 
 	public:   // methods
@@ -239,6 +296,10 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 								{	// in case inclusion holds for this case
 									found = true;
 									break;
+								}
+								else
+								{	// in case inclusion does not hold, cache the result
+									processFailedInclusion(lhsTuple[tuplePos], rhsSetForTuplePos);
 								}
 							}
 
