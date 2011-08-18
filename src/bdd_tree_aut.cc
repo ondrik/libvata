@@ -46,7 +46,7 @@ bool BDDTreeAut::isValid() const
 
 BDDTreeAut::SymbolType BDDTreeAut::addSymbol()
 {
-	const size_t MAX_SYMBOL_SIZE = 64;
+	const size_t MAX_SYMBOL_SIZE = 16;
 
 	static SymbolType nextSymbol(MAX_SYMBOL_SIZE, 0);
 
