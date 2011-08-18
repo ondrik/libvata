@@ -52,14 +52,14 @@ public:   // public data types
 	typedef VATA::MTBDDPkg::VarAsgn SymbolType;
 	typedef std::vector<StateType> StateTuple;
 	typedef VATA::Util::OrdVector<StateTuple> StateTupleSet;
+	typedef std::unordered_set<StateType> StateSet;
+	typedef VATA::Util::OrdVector<StateType> StateSetLight;
 
 private:  // private data types
 
 
 	typedef VATA::MTBDDPkg::OndriksMTBDD<StateTupleSet> TransMTBDD;
 	typedef VATA::MTBDDPkg::OndriksMTBDD<bool> BDD;
-
-	typedef std::unordered_set<StateType> StateSet;
 
 	typedef VATA::Util::TDBDDTransTable< StateType, VATA::Util::OrdVector>
 		TransTable;
@@ -264,8 +264,8 @@ public:   // public methods
 
 	template <class OperationFunc>
 	static void ForeachDownSymbolFromStateAndStateSetDo(const BDDTreeAut& lhs,
-		const BDDTreeAut& rhs, const StateType& lhsState, const StateSet& rhsSet,
-		OperationFunc& opFunc)
+		const BDDTreeAut& rhs, const StateType& lhsState,
+		const StateSetLight& rhsSet, OperationFunc& opFunc)
 	{
 		// Assertions
 		assert(lhs.isValid());
