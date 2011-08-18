@@ -115,6 +115,21 @@ public:   // Public methods
 		assert(vectorIsSorted());
 	}
 
+	template <class InputIterator>
+	OrdVector(InputIterator first, InputIterator last) :
+		vec_(first, last)
+	{
+		// sort
+		std::sort(vec_.begin(), vec_.end());
+
+		// remove duplicates
+		auto it = std::unique(vec_.begin(), vec_.end());
+		vec_.resize(it - vec_.begin());
+
+		// Assertions
+		assert(vectorIsSorted());
+	}
+
 	OrdVector& operator=(const OrdVector& rhs)
 	{
 		// Assertions
