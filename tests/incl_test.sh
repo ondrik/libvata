@@ -11,7 +11,7 @@ SCRIPT=`readlink -f $0`
 # Absolute path this script is in, thus /home/user/bin
 SCRIPTPATH=`dirname $SCRIPT`
 
-METHODS=("suif" "suuf" "suus" "sdif" "sddf" "sdds" "seif" "sedf" "seds" "symsu" "symsd" "symsds" "symsdsw" "symsdsb" "symsdsbw");
+METHODS=("symdown" "symdown")
 
 ################################# FUNCTIONS ##################################
 
@@ -22,21 +22,25 @@ function die {
 }
 
 # Function that runs a single test
-# takes:   <LHS automaton>   <RHS automaton>  <method>   <file to write result>
+# takes:   <LHS automaton>   <RHS automaton>  <method>   <file to write result>   <file to write time>
 function runone {
-  ulimit -St "$timeout";
-  ${SCRIPTPATH}/incl_wrapper.sh "$1" "$2" "$3" &> "$4"
+  ulimit -St "${timeout}";
+  ${SCRIPTPATH}/incl_wrapper.sh "$1" "$2" "$3" > "$4" 2> "$5"
   return $?
 }
 
 # Function that runs all tests for one pair of automata
 function runall {
+
+  # Set trap for terminating the script
+  trap killscripts INT TERM EXIT
+
   local res="?";
   local i;
 
   # run all methods
   for (( i=0; i < ${#METHODS[*]}; i++ )); do
-    runone "${METHODS[$i]}" "$1" "$2" "${tmp[$i]}" &
+    runone "${METHODS[$i]}" "$1" "$2" "${tmp[$i]}" "${tmpTime[$i]}" 2> /dev/null &
     pid[$i]=$!;
   done;
 
@@ -44,17 +48,19 @@ function runall {
   for (( i=0; i < ${#METHODS[*]}; i++ )); do
     wait ${pid[$i]};
     local ret=$?;
+    pid[$i]=0;
     if [ "$ret" == "152" ]; then
       printcolumn "-"
     else
-      local v=(`<"${tmp[$i]}"`);
+      local v=(`<"${tmp[$i]}"` "`<"${tmpTime[$i]}"`");
       [ "$ret" == "0" ] || die "inclusion test failed! ($ret)"; 
       if [ "$res" == "?" ]; then
         res=${v[0]};
       else
         [ "$res" == ${v[0]} ] || die "inconsistent results! ($res != ${v[0]})";
       fi;
-      printcolumn $(printf "%.4f" "${v[1]}");
+      num=$(printf "%.4f" "${v[1]}")
+      printcolumn "${num}";
     fi;
   done;
   printcolumn "$res"
@@ -65,6 +71,15 @@ function runall {
 function printcolumn {
   printf "%10s;" "$1"
 }
+
+function killscripts {
+  local i
+
+  for i in $(ps | grep "\(vata\|sfta\)" | cut -d' ' -f1); do
+    kill ${i}
+  done
+}
+
 
 ################################## PROGRAM ###################################
 
@@ -87,18 +102,18 @@ fi
 
 echo "======== Checking inclusion of automata ======="
 echo "Automata directory:   ${1}"
-echo "Timeout:              ${timeout}"
+echo "Timeout:              ${timeout} s"
 
 # Create temporary files for storing the output
 for (( i=0; i < ${#METHODS[*]}; i++ )); do
   tmp[$i]=`mktemp`;
+  tmpTime[$i]=`mktemp`;
 done;
 
 echo "reading files ..."
 cnt=0;
 for x in $1/*; do
   key[$cnt]=`basename $x`;
-  #val[$cnt]=`./main n <"$x"`;
   val[$cnt]="${x}";
   #[ "$?" == "0" ] || die "unable to preprocess $x";
   #printf "$x (%s)\n" "`./main i <<< ${val[$cnt]}`";
@@ -125,3 +140,8 @@ for (( i=0; i < $cnt; i++ )); do
   done;
 done;
 
+# Remove temporary files
+for (( i=0; i < ${#METHODS[*]}; i++ )); do
+  rm ${tmp[$i]}
+  rm ${tmpTime[$i]}
+done;
