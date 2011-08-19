@@ -228,6 +228,44 @@ const char* AUT_TIMBUK_INCL_2B =
 
 bool AUT_TIMBUK_INCL_2_RESULT = true;
 
+const char* AUT_TIMBUK_INCL_3A =
+	"Ops\n"
+	"Automaton anonymous\n"
+	"States\n"
+	"Final States q\n"
+	"Transitions\n"
+	"a(q1) -> q\n"
+	;
+
+const char* AUT_TIMBUK_INCL_3B =
+	"Ops\n"
+	"Automaton anonymous\n"
+	"States\n"
+	"Final States q\n"
+	"Transitions\n"
+	;
+
+bool AUT_TIMBUK_INCL_3_RESULT = true;
+
+const char* AUT_TIMBUK_INCL_4A =
+	"Ops\n"
+	"Automaton anonymous\n"
+	"States\n"
+	"Final States q\n"
+	"Transitions\n"
+	"a(q1) -> q\n"
+	;
+
+const char* AUT_TIMBUK_INCL_4B =
+	"Ops\n"
+	"Automaton anonymous\n"
+	"States\n"
+	"Final States q\n"
+	"Transitions\n"
+	;
+
+bool AUT_TIMBUK_INCL_4_RESULT = true;
+
 const char* AUT_TIMBUK_A53 =
 	"Ops\n"
 	"Automaton anonymous\n"
