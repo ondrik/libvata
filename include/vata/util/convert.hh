@@ -285,6 +285,57 @@ public:
 		return oss.str();
 	}
 
+	/**
+	 * @brief  Converts an object to string (std::unordered_multimap specialization)
+	 *
+	 * Static method for conversion of an unordered multimap of objects of any
+	 * class with the << output operator into a string
+	 *
+	 * @param[in]  mm  The unordered multimap for the conversion
+	 *
+	 * @returns  The string representation of the unordered multimap
+	 */
+	template <typename T, typename U>
+	static std::string ToString(const std::unordered_multimap<T, U>& mm)
+	{
+		// the output stream for the string
+		std::ostringstream oss;
+
+		oss << "{";		// opening tag
+		for (auto it = mm.cbegin(); it != mm.cend(); )
+		{	// for each element of the set
+			if (it != mm.cbegin())
+			{	// if we are not at the first element
+				oss << ", ";
+			}
+
+			oss << Convert::ToString(it->first);
+			oss << " -> [";
+
+			auto findRes = mm.equal_range(it->first);
+
+			while (it != findRes.second)
+			{
+				if (it != findRes.first)
+				{	// if we are not at the first element
+					oss << "; ";
+				}
+
+				// the string of the element
+				oss << ToString(it->second);
+
+				++it;
+			}
+
+			oss << "]";
+		}
+
+		oss << "}";		// closing tag
+
+		// return the string
+		return oss.str();
+	}
+
 
 	/**
 	 * @brief  Converts an object to string (std::pair specialization)
