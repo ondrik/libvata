@@ -398,6 +398,12 @@ public:   // Public methods
 		return vec_;
 	}
 
+	bool IsSubsetOf(const OrdVector& bigger) const
+	{
+		return std::includes(bigger.cbegin(), bigger.cend(),
+			this->cbegin(), this->cend());
+	}
+
 	bool HaveEmptyIntersection(const OrdVector& rhs) const
 	{
 		// Assertions
