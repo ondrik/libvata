@@ -15,6 +15,9 @@ SCRIPTPATH=`dirname $SCRIPT`
 # VATA executable
 VATA="${SCRIPTPATH}/../build/src/vata"
 
+# SFTA executable
+SFTA="${SCRIPTPATH}/sfta"
+
 ################################# FUNCTIONS ##################################
 
 # Function that terminates the script with a message
@@ -34,6 +37,10 @@ RETVAL="?"
 case "${OPERATION}" in
   symdown)
     ${VATA} -t incl "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  symdownX)
+    ${SFTA} -o "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   *) die "Invalid option ${OPERATION}"
