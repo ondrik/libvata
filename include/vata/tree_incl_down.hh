@@ -33,6 +33,8 @@ namespace VATA
 template <typename Aut>
 bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 {
+	typedef VATA::Util::Convert Convert;
+
 	typedef typename Aut::StateType StateType;
 	typedef typename Aut::StateTuple StateTuple;
 	typedef typename Aut::StateTupleSet StateTupleSet;
@@ -41,18 +43,12 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 
 	typedef std::pair<StateType, StateSet> WorkSetElement;
 
-	struct LexicOrder
-	{
-		bool operator()(const WorkSetElement& lhs, const WorkSetElement& rhs) const
-		{
-			return (lhs.first < rhs.first)? true : lhs.second < rhs.second;
-		}
-	};
-
 	typedef std::unordered_multimap<typename WorkSetElement::first_type,
 		typename WorkSetElement::second_type> WorkSetType;
 
-	class DownwardAntichainFunctor
+	typedef std::unordered_multimap<StateType, StateSet> NonInlusionCache;
+
+	class DownwardInclusionFunctor
 	{
 	private:  // data types
 
@@ -123,6 +119,8 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 
 		WorkSetType& workset_;
 
+		NonInlusionCache& nonIncl_;
+
 	private:  // methods
 
 		bool expand(const StateType& smallerState, const StateSet& biggerStateSet)
@@ -133,10 +131,14 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 			{	// in case we returned somewhere we already know
 				return true;
 			}
+			else if (isNoninclusionImplied(key))
+			{	// in case we know that the inclusion does not hold
+				return false;
+			}
 
 			workset_.insert(key);
 
-			DownwardAntichainFunctor innerFctor(smaller_, bigger_, workset_);
+			DownwardInclusionFunctor innerFctor(*this);
 			Aut::ForeachDownSymbolFromStateAndStateSetDo(smaller_, bigger_,
 				smallerState, biggerStateSet, innerFctor);
 
@@ -192,8 +194,7 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 			{	// for all items with proper key
 				const StateSet& wsBigger = (keyRange.first)->second;
 
-				if (std::includes(wsBigger.begin(), wsBigger.end(),
-					elem.second.begin(), elem.second.end()))
+				if (wsBigger.IsSubsetOf(elem.second))
 				{	// if there is a smaller set in the workset
 					return true;
 				}
@@ -202,22 +203,77 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 			return false;
 		}
 
-		inline void processFailedInclusion(const StateType& smallerState,
+		inline bool isNoninclusionImplied(const WorkSetElement& elem) const
+		{
+			assert(&elem != nullptr);
+
+			for (auto keyRange = nonIncl_.equal_range(elem.first);
+				keyRange.first != keyRange.second; ++(keyRange.first))
+			{	// for all items with proper key
+				const StateSet& wsBigger = (keyRange.first)->second;
+
+				if (elem.second.IsSubsetOf(wsBigger))
+				{	// if there is a bigger set in the workset
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+		inline void processFoundNoninclusion(const StateType& smallerState,
 			const StateSet& biggerStateSet)
 		{
-			assert(&smallerState != nullptr);
-			assert(&biggerStateSet != nullptr);
+			auto keyRange = nonIncl_.equal_range(smallerState);
+			for (auto itRange = keyRange.first; itRange != keyRange.second; ++itRange)
+			{	// for all elements for smallerState
+				const StateSet& wsBigger = (keyRange.first)->second;
+				if (biggerStateSet.IsSubsetOf(wsBigger))
+				{	// if there is a bigger set in the workset, skip
+					return;
+				}
+			}
+
+			while (keyRange.first != keyRange.second)
+			{	// until we process all elements for smallerState
+				const StateSet& wsBigger = (keyRange.first)->second;
+
+				if (wsBigger.IsSubsetOf(biggerStateSet) &&
+					(wsBigger.size() < biggerStateSet.size()))
+				{	// if there is a _strictly_ smaller set in the workset
+					auto nextPtr = keyRange.first;
+					++nextPtr;
+					nonIncl_.erase(keyRange.first);
+					keyRange.first = nextPtr;
+				}
+				else
+				{
+					++(keyRange.first);
+				}
+			}
+
+			nonIncl_.insert(std::make_pair(smallerState, biggerStateSet));
 		}
 
 	public:   // methods
 
-		DownwardAntichainFunctor(const Aut& smaller, const Aut& bigger,
-			WorkSetType& workset) :
+		DownwardInclusionFunctor(const Aut& smaller, const Aut& bigger,
+			WorkSetType& workset, NonInlusionCache& nonIncl) :
 			smaller_(smaller),
 			bigger_(bigger),
 			processingStopped_(false),
 			inclusionHolds_(true),
-			workset_(workset)
+			workset_(workset),
+			nonIncl_(nonIncl)
+		{ }
+
+		DownwardInclusionFunctor(DownwardInclusionFunctor& downFctor) :
+			smaller_(downFctor.smaller_),
+			bigger_(downFctor.bigger_),
+			processingStopped_(false),
+			inclusionHolds_(true),
+			workset_(downFctor.workset_),
+			nonIncl_(downFctor.nonIncl_)
 		{ }
 
 		void operator()(const StateTupleSet& lhs, const StateTupleSet& rhs)
@@ -258,6 +314,7 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 						{
 							if (!expand(lhsTupleState, StateSet()))
 							{	// if a state from LHS can generate a tree
+								processFoundNoninclusion(lhsTupleState, StateSet());
 								failProcessing();
 								return;
 							}
@@ -299,12 +356,12 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 								}
 								else
 								{	// in case inclusion does not hold, cache the result
-									processFailedInclusion(lhsTuple[tuplePos], rhsSetForTuplePos);
+									processFoundNoninclusion(lhsTuple[tuplePos], rhsSetForTuplePos);
 								}
 							}
 
 							if (!found)
-							{
+							{	// in case the inclusion does not hold
 								failProcessing();
 								return;
 							}
@@ -332,8 +389,9 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 	};
 
 	WorkSetType workset;
+	NonInlusionCache nonIncl;
 
-	DownwardAntichainFunctor downFctor(smaller, bigger, workset);
+	DownwardInclusionFunctor downFctor(smaller, bigger, workset, nonIncl);
 
 	StateSet finalStatesBigger(bigger.GetFinalStates().begin(),
 		bigger.GetFinalStates().end());
