@@ -18,6 +18,9 @@ VATA="${SCRIPTPATH}/../build/src/vata"
 # SFTA executable
 SFTA="${SCRIPTPATH}/sfta"
 
+# TAlib executable
+TALIB="${SCRIPTPATH}/talib"
+
 ################################# FUNCTIONS ##################################
 
 # Function that terminates the script with a message
@@ -41,6 +44,10 @@ case "${OPERATION}" in
     ;;
   symdownX)
     ${SFTA} -o "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  downT)
+    ${TALIB} sdif <<< $(cat "${FILE_LHS}" "${FILE_RHS}")
     RETVAL="$?"
     ;;
   *) die "Invalid option ${OPERATION}"
