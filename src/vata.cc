@@ -14,6 +14,7 @@
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
 #include <vata/util/convert.hh>
+#include <vata/util/util.hh>
 
 // Log4cpp headers
 #include <log4cpp/Category.hh>
@@ -29,11 +30,12 @@
 
 
 using VATA::BDDTreeAut;
-using VATA::Util::Convert;
 using VATA::Parsing::AbstrParser;
 using VATA::Parsing::TimbukParser;
 using VATA::Serialization::AbstrSerializer;
 using VATA::Serialization::TimbukSerializer;
+using VATA::Util::Convert;
+
 
 const char VATA_USAGE_STRING[] =
 	"VATA: Vojnar's Army Tree Automata library interface\n"
@@ -85,24 +87,6 @@ void printHelp(bool full = false)
 }
 
 
-std::string readFile(const std::string& fileName)
-{
-	std::ifstream ifs(fileName.c_str());
-	if (!ifs)
-	{	// in case the file cannot be open
-		throw std::runtime_error("Cannot open file " + fileName);
-	}
-
-	std::string result;
-	std::string str;
-	while (std::getline(ifs, str))
-	{
-		result += str + "\n";
-	}
-
-	return result;
-}
-
 template <class Aut>
 int performOperation(const Arguments& args, AbstrParser& parser,
 	AbstrSerializer& serializer)
@@ -114,12 +98,12 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 
 	if (args.operands >= 1)
 	{
-		autInput1.LoadFromString(parser, readFile(args.fileName1));
+		autInput1.LoadFromString(parser, VATA::Util::ReadFile(args.fileName1));
 	}
 
 	if (args.operands >= 2)
 	{
-		autInput2.LoadFromString(parser, readFile(args.fileName2));
+		autInput2.LoadFromString(parser, VATA::Util::ReadFile(args.fileName2));
 	}
 
 	// get the start time
