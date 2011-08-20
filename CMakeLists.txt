@@ -22,6 +22,17 @@ add_subdirectory(src)
 add_subdirectory(unit_tests)
 add_subdirectory(tests)
 
+SET(REQUIRED_GCC_VERSION 4.6.0)
+
+# check minimum GCC version
+execute_process(COMMAND ${CMAKE_C_COMPILER} -dumpversion
+	OUTPUT_VARIABLE GCC_VERSION)
+if (NOT(GCC_VERSION VERSION_GREATER ${REQUIRED_GCC_VERSION}
+	OR GCC_VERSION VERSION_EQUAL ${REQUIRED_GCC_VERSION}))
+	message(FATAL_ERROR "GCC Version >= ${REQUIRED_GCC_VERSION} required!")
+endif()
+
+
 if (DOXYGEN_FOUND)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
     ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
