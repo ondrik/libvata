@@ -13,15 +13,22 @@
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
 #include <vata/util/convert.hh>
+#include <vata/util/util.hh>
 
 using VATA::Parsing::TimbukParser;
 using VATA::Serialization::TimbukSerializer;
 using VATA::Util::Convert;
 
 // Boost headers
-#define BOOST_TEST_DYN_LINK
+#define BOOST_ALL_DYN_LINK
+
 #define BOOST_TEST_MODULE TimbukParser
 #include <boost/test/unit_test.hpp>
+
+#define BOOST_FILESYSTEM_NO_DEPRECATED
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
+
 
 // testing headers
 #include "log_fixture.hh"
@@ -32,20 +39,9 @@ using VATA::Util::Convert;
  *                                  Constants                                 *
  ******************************************************************************/
 
-const char* AUT_FAIL1 = "";
-const char* AUT_FAIL2 = " ";
-const char* AUT_FAIL3 = "Automaton";
-const char* AUT_FAIL4 = "j@#(&$*O!@";
-const char* AUT_FAIL5 = "Ops";
-
-const char* FAILING_TEST_CASES[] =
-{
-	AUT_FAIL1,
-	AUT_FAIL2,
-	AUT_FAIL3,
-	AUT_FAIL4,
-	AUT_FAIL5
-};
+const fs::path BASE_DIR = "../..";
+const fs::path AUT_DIR = BASE_DIR / "automata";
+const fs::path FAIL_AUT_DIR = AUT_DIR / "fail_timbuk";
 
 
 /******************************************************************************
@@ -86,11 +82,22 @@ BOOST_AUTO_TEST_CASE(correct_format)
 
 BOOST_AUTO_TEST_CASE(incorrect_format)
 {
+	if (!fs::exists(FAIL_AUT_DIR) || !fs::is_directory(FAIL_AUT_DIR))
+	{
+		BOOST_FAIL("Cannot find the " + FAIL_AUT_DIR.string() + " directory");
+	}
+
 	TimbukParser parser;
 
-	for (auto autTest : FAILING_TEST_CASES)
-	{
-		BOOST_CHECK_THROW(parser.ParseString(autTest), std::exception);
+	for (auto dirEntryIt = fs::directory_iterator(FAIL_AUT_DIR);
+		dirEntryIt != fs::directory_iterator(); ++dirEntryIt)
+	{	// for each entry in the directory
+		if (fs::is_regular_file(*dirEntryIt))
+		{	// if it is a file
+			std::string autStr = VATA::Util::ReadFile(dirEntryIt->path().string());
+
+			BOOST_CHECK_THROW(parser.ParseString(autStr), std::exception);
+		}
 	}
 }
 

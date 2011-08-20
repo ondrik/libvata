@@ -26,6 +26,8 @@ endforeach(param)
 #add_definitions(-pg)
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 
+find_package(Boost 1.46.0 COMPONENTS filesystem system REQUIRED)
+
 include_directories(../include)
 
 add_library(tests
@@ -58,6 +60,8 @@ foreach (TEST ${TESTS})
 	target_link_libraries(${TEST} tests)
 	target_link_libraries(${TEST} ${LOG4CPP_LIBRARIES})
 	target_link_libraries(${TEST} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
+	target_link_libraries(${TEST} ${Boost_FILESYSTEM_LIBRARY})
+	target_link_libraries(${TEST} ${Boost_SYSTEM_LIBRARY})
 
 	add_test(${TEST} ${CMAKE_CURRENT_BINARY_DIR}/${TEST})
 endforeach(TEST)
