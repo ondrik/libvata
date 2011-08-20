@@ -95,14 +95,17 @@ BOOST_AUTO_TEST_CASE(correct_format)
 				continue;
 			}
 
-			BOOST_MESSAGE("Parsing automata in " + dirPath);
+			BOOST_MESSAGE("Parsing automata in " + dirPath + "...");
 
 			for (auto dirIt = fs::directory_iterator(dirPath);
 				dirIt != fs::directory_iterator(); ++dirIt)
 			{	// for each entry in the lower directory
 				if (fs::is_regular_file(*dirIt))
 				{	// if it is a file
-					std::string autStr = VATA::Util::ReadFile(dirIt->path().string());
+					std::string fileName = dirIt->path().string();
+
+					BOOST_MESSAGE("  parsing " + fileName);
+					std::string autStr = VATA::Util::ReadFile(fileName);
 
 					try
 					{
