@@ -98,18 +98,18 @@ operation_list: ident COLON NUMBER operation_list
 automaton_name: ident
   ;
 
-state_list: state state_list
+state_list: state_list state
 	{
-		timbukParse.states.insert($1);
-		free($1);
+		timbukParse.states.insert($2);
+		free($2);
 	}
   |
   ;
 
-final_state_list: state final_state_list
+final_state_list: final_state_list state
 	{
-		timbukParse.finalStates.insert($1);
-		free($1);
+		timbukParse.finalStates.insert($2);
+		free($2);
 	}
   |
   ;
@@ -121,7 +121,7 @@ state: ident COLON NUMBER
   | ident
   ;
 
-transition_list: transition transition_list
+transition_list: transition_list transition
   |
   ;
 
