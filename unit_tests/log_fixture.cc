@@ -9,6 +9,10 @@
  *
  *****************************************************************************/
 
+// VATA headers
+#include <vata/vata.hh>
+#include <vata/util/util.hh>
+
 // Boost headers
 #include <boost/test/unit_test.hpp>
 
@@ -78,6 +82,41 @@ std::vector<std::string> LogFixture::GetTimbukAutFilenames() const
 					result.push_back(dirIt->path().string());
 				}
 			}
+		}
+	}
+
+	return result;
+}
+
+
+LogFixture::ConfFileContentType LogFixture::ParseTestFile(
+	const std::string& filename) const
+{
+	if (!fs::exists(filename) || !fs::is_regular_file(filename))
+	{
+		BOOST_FAIL("Cannot find the " + filename + " file");
+	}
+
+	std::string confStr = VATA::Util::ReadFile(filename);
+
+	std::vector<std::string> splitConfStr;
+	boost::algorithm::split(splitConfStr, confStr,
+		boost::algorithm::is_any_of("\n"), boost::algorithm::token_compress_on);
+
+	ConfFileContentType result;
+	for (auto confLine : splitConfStr)
+	{
+		std::vector<std::string> splitConfLine;
+		boost::algorithm::split(splitConfLine, confLine,
+			boost::algorithm::is_space(), boost::algorithm::token_compress_on);
+
+		if (splitConfLine.empty() || splitConfLine[0].empty())
+		{	// in case there is nothing
+			continue;
+		}
+		else
+		{
+			result.push_back(splitConfLine);
 		}
 	}
 

@@ -45,7 +45,11 @@ const fs::path FAIL_TIMBUK_AUT_DIR = AUT_DIR / "fail_timbuk";
  */
 class LogFixture
 {
-private:  // Private data members
+protected:// data types
+
+	typedef std::vector<std::vector<std::string>> ConfFileContentType;
+
+private:  // data members
 
 	/**
 	 * @brief  Static initialization flag
@@ -56,7 +60,7 @@ private:  // Private data members
 	static bool logInitialized_;
 
 
-public:   // Public methods
+public:   // methods
 
 	/**
 	 * @brief  Constructor
@@ -67,6 +71,8 @@ public:   // Public methods
 	LogFixture();
 
 	std::vector<std::string> GetTimbukAutFilenames() const;
+
+	ConfFileContentType ParseTestFile(const std::string& filename) const;
 
 	/**
 	 * @brief  Destructor

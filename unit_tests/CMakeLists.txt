@@ -56,8 +56,8 @@ foreach (TEST ${TESTS})
   set_source_files_properties(
     ${TEST} PROPERTIES COMPILE_FLAGS ${compiler_flags})
 
-	target_link_libraries(${TEST} libvata)
 	target_link_libraries(${TEST} tests)
+	target_link_libraries(${TEST} libvata)
 	target_link_libraries(${TEST} ${LOG4CPP_LIBRARIES})
 	target_link_libraries(${TEST} ${Boost_UNIT_TEST_FRAMEWORK_LIBRARY})
 	target_link_libraries(${TEST} ${Boost_FILESYSTEM_LIBRARY})
