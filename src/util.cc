@@ -18,6 +18,11 @@
 std::string VATA::Util::ReadFile(const std::string& fileName)
 {
 	std::ifstream t(fileName);
+	if (!t)
+	{	// in case the file could not be open
+		throw std::runtime_error("Error opening file " + fileName);
+	}
+
 	std::string str;
 
 	t.seekg(0, std::ios::end);
