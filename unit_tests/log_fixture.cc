@@ -37,3 +37,46 @@ LogFixture::LogFixture()
 		log4cpp::Category::getInstance(cat_name).setPriority(log4cpp::Priority::INFO);
 	}
 }
+
+
+std::vector<std::string> LogFixture::GetTimbukAutFilenames() const
+{
+	if (!fs::exists(AUT_DIR) || !fs::is_directory(AUT_DIR))
+	{
+		BOOST_FAIL("Cannot find the " + AUT_DIR.string() + " directory");
+	}
+
+	std::vector<std::string> result;
+
+	for (auto topDirEntryIt = fs::directory_iterator(AUT_DIR);
+		topDirEntryIt != fs::directory_iterator(); ++topDirEntryIt)
+	{	// for each entry in the directory
+		auto topDirEntry = *topDirEntryIt;
+		if (fs::is_directory(topDirEntry))
+		{	// if it is a directory
+			std::string dirPath = topDirEntry.path().string();
+
+			if (dirPath.rfind(TIMBUK_SUFFIX) !=
+				(dirPath.size() - TIMBUK_SUFFIX.length()))
+			{	// in case there are not timbuk automata in the directory
+				continue;
+			}
+
+			if (dirPath == FAIL_TIMBUK_AUT_DIR)
+			{	// in case it is the bad directory
+				continue;
+			}
+
+			for (auto dirIt = fs::directory_iterator(dirPath);
+				dirIt != fs::directory_iterator(); ++dirIt)
+			{	// for each entry in the lower directory
+				if (fs::is_regular_file(*dirIt))
+				{	// if it is a file
+					result.push_back(dirIt->path().string());
+				}
+			}
+		}
+	}
+
+	return result;
+}

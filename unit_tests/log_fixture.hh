@@ -18,6 +18,25 @@
 #include <log4cpp/OstreamAppender.hh>
 #include <log4cpp/BasicLayout.hh>
 
+// Boost headers
+#define BOOST_FILESYSTEM_NO_DEPRECATED
+#include <boost/filesystem.hpp>
+namespace fs = boost::filesystem;
+
+/******************************************************************************
+ *                                  Constants                                 *
+ ******************************************************************************/
+
+const std::string TIMBUK_SUFFIX = "_timbuk";
+
+const fs::path BASE_DIR = "../..";
+const fs::path AUT_DIR = BASE_DIR / "automata";
+const fs::path FAIL_TIMBUK_AUT_DIR = AUT_DIR / "fail_timbuk";
+
+
+/******************************************************************************
+ *                                  Fixtures                                  *
+ ******************************************************************************/
 
 /**
  * @brief   Test fixture that enables logging
@@ -47,14 +66,15 @@ public:   // Public methods
 	 */
 	LogFixture();
 
+	std::vector<std::string> GetTimbukAutFilenames() const;
+
 	/**
 	 * @brief  Destructor
 	 *
 	 * Virtual destructor
 	 */
 	virtual ~LogFixture()
-	{
-	}
+	{ }
 
 };
 
