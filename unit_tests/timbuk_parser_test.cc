@@ -32,18 +32,12 @@ namespace fs = boost::filesystem;
 
 // testing headers
 #include "log_fixture.hh"
-#include "aut_db.hh"
 
 
 /******************************************************************************
  *                                  Constants                                 *
  ******************************************************************************/
 
-const std::string TIMBUK_SUFFIX = "_timbuk";
-
-const fs::path BASE_DIR = "../..";
-const fs::path AUT_DIR = BASE_DIR / "automata";
-const fs::path FAIL_AUT_DIR = AUT_DIR / "fail_timbuk";
 
 
 /******************************************************************************
@@ -68,82 +62,51 @@ BOOST_FIXTURE_TEST_SUITE(suite, TimbukParserFixture)
 
 BOOST_AUTO_TEST_CASE(correct_format)
 {
-	if (!fs::exists(AUT_DIR) || !fs::is_directory(AUT_DIR))
-	{
-		BOOST_FAIL("Cannot find the " + AUT_DIR.string() + " directory");
-	}
-
 	TimbukParser parser;
 	TimbukSerializer serializer;
 
-	for (auto topDirEntryIt = fs::directory_iterator(AUT_DIR);
-		topDirEntryIt != fs::directory_iterator(); ++topDirEntryIt)
-	{	// for each entry in the directory
-		auto topDirEntry = *topDirEntryIt;
-		if (fs::is_directory(topDirEntry))
-		{	// if it is a directory
-			std::string dirPath = topDirEntry.path().string();
+	auto filenames = GetTimbukAutFilenames();
+	for (const std::string& filename : filenames)
+	{
+		BOOST_MESSAGE("Parsing automaton " + filename + "...");
+		std::string autStr = VATA::Util::ReadFile(filename);
 
-			if (dirPath.rfind(TIMBUK_SUFFIX) !=
-				(dirPath.size() - TIMBUK_SUFFIX.length()))
-			{	// in case there are not timbuk automata in the directory
-				continue;
-			}
+		try
+		{
+			TimbukParser::AutDescription desc = parser.ParseString(autStr);
 
-			if (dirPath == FAIL_AUT_DIR)
-			{	// in case it is the bad directory
-				continue;
-			}
+			std::string dumpedStr = serializer.Serialize(desc);
+			TimbukParser::AutDescription secondTimeParsed =
+				parser.ParseString(dumpedStr);
 
-			BOOST_MESSAGE("Parsing automata in " + dirPath + "...");
-
-			for (auto dirIt = fs::directory_iterator(dirPath);
-				dirIt != fs::directory_iterator(); ++dirIt)
-			{	// for each entry in the lower directory
-				if (fs::is_regular_file(*dirIt))
-				{	// if it is a file
-					std::string fileName = dirIt->path().string();
-
-					BOOST_MESSAGE("  parsing " + fileName);
-					std::string autStr = VATA::Util::ReadFile(fileName);
-
-					try
-					{
-						TimbukParser::AutDescription desc = parser.ParseString(autStr);
-
-						std::string dumpedStr = serializer.Serialize(desc);
-						TimbukParser::AutDescription secondTimeParsed =
-							parser.ParseString(dumpedStr);
-
-						BOOST_CHECK_MESSAGE(desc == secondTimeParsed,
-							"Error while checking \n" + std::string(autStr));
-					}
-					catch (std::exception& ex)
-					{
-						BOOST_FAIL("Caught exception while parsing file \""
-							+ dirIt->path().string() + "\": " + ex.what());
-					}
-				}
-			}
+			BOOST_CHECK_MESSAGE(desc == secondTimeParsed,
+				"Error while checking \n" + std::string(autStr));
+		}
+		catch (std::exception& ex)
+		{
+			BOOST_FAIL("Caught exception while parsing file \""
+				+ filename + "\": " + ex.what());
 		}
 	}
 }
 
 BOOST_AUTO_TEST_CASE(incorrect_format)
 {
-	if (!fs::exists(FAIL_AUT_DIR) || !fs::is_directory(FAIL_AUT_DIR))
+	if (!fs::exists(FAIL_TIMBUK_AUT_DIR) || !fs::is_directory(FAIL_TIMBUK_AUT_DIR))
 	{
-		BOOST_FAIL("Cannot find the " + FAIL_AUT_DIR.string() + " directory");
+		BOOST_FAIL("Cannot find the " + FAIL_TIMBUK_AUT_DIR.string() + " directory");
 	}
 
 	TimbukParser parser;
 
-	for (auto dirEntryIt = fs::directory_iterator(FAIL_AUT_DIR);
+	for (auto dirEntryIt = fs::directory_iterator(FAIL_TIMBUK_AUT_DIR);
 		dirEntryIt != fs::directory_iterator(); ++dirEntryIt)
 	{	// for each entry in the directory
 		if (fs::is_regular_file(*dirEntryIt))
 		{	// if it is a file
-			std::string autStr = VATA::Util::ReadFile(dirEntryIt->path().string());
+			std::string filename = dirEntryIt->path().string();
+			BOOST_MESSAGE("Parsing automaton " + filename + "...");
+			std::string autStr = VATA::Util::ReadFile(filename);
 
 			BOOST_CHECK_THROW(parser.ParseString(autStr), std::exception);
 		}
