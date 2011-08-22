@@ -14,6 +14,7 @@
 #include <vata/bdd_tree_aut_op.hh>
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
+#include <vata/util/util.hh>
 
 using VATA::BDDTreeAut;
 using VATA::MTBDDPkg::VarAsgn;
@@ -31,10 +32,6 @@ using VATA::Util::Convert;
 #include "log_fixture.hh"
 #include "aut_db.hh"
 
-
-/******************************************************************************
- *                                  Constants                                 *
- ******************************************************************************/
 
 
 
@@ -62,21 +59,25 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 	TimbukParser parser;
 	TimbukSerializer serializer;
 
-	for (auto autTest : TIMBUK_AUTOMATA)
+	auto filenames = GetTimbukAutFilenames();
+	for (const std::string& filename : filenames)
 	{
+		BOOST_MESSAGE("Loading automaton " + filename + "...");
+		std::string autStr = VATA::Util::ReadFile(filename);
+
 		BDDTreeAut aut;
 
 		BDDTreeAut::StringToStateDict stateDict;
-		aut.LoadFromString(parser, autTest, &stateDict);
+		aut.LoadFromString(parser, autStr, &stateDict);
 
 		std::string autOut = aut.DumpToString(serializer, &stateDict);
 
-		AutDescription descOrig = parser.ParseString(autTest);
+		AutDescription descOrig = parser.ParseString(autStr);
 		AutDescription descOut = parser.ParseString(autOut);
 
 		BOOST_CHECK_MESSAGE(descOrig == descOut,
 			"\n\nExpecting:\n===========\n" +
-			std::string(autTest) +
+			std::string(autStr) +
 			"===========\n\nGot:\n===========\n" + autOut + "\n===========");
 	}
 }
