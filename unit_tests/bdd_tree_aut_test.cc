@@ -34,6 +34,13 @@ using VATA::Util::Convert;
 
 
 
+/******************************************************************************
+ *                                  Constants                                 *
+ ******************************************************************************/
+
+const fs::path UNREACHABLE_TIMBUK_FILE =
+	AUT_DIR / "unreachable_removal_timbuk.txt";
+
 
 /******************************************************************************
  *                                  Fixtures                                  *
@@ -219,24 +226,37 @@ BOOST_AUTO_TEST_CASE(aut_intersection)
 
 BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
 {
+	auto testfileContent = ParseTestFile(UNREACHABLE_TIMBUK_FILE.string());
+
 	TimbukParser parser;
 	TimbukSerializer serializer;
 
-	BDDTreeAut aut1;
-	aut1.LoadFromString(parser, AUT_TIMBUK_UNREACHABLE_1);
-	AutDescription autI1Desc = parser.ParseString(AUT_TIMBUK_UNREACHABLE_1);
+	for (auto testcase : testfileContent)
+	{
+		assert(testcase.size() == 2);
 
-	BDDTreeAut aut1UF = VATA::RemoveUnreachableStates(aut1);
+		std::string inputFile = (AUT_DIR / testcase[0]).string();
+		std::string resultFile = (AUT_DIR / testcase[1]).string();
 
-	std::string aut1UFStr = aut1UF.DumpToString(serializer);
-	AutDescription descOutUF1 = parser.ParseString(aut1UFStr);
+		BOOST_MESSAGE("Removing unreachable states from " + inputFile + "...");
+		std::string autStr = VATA::Util::ReadFile(inputFile);
+		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-	AutDescription descCorrectUF1 = parser.ParseString(AUT_TIMBUK_UNREACHABLE_1_RESULT);
+		BDDTreeAut aut;
+		aut.LoadFromString(parser, autStr);
+		AutDescription autDesc = parser.ParseString(autStr);
 
-	BOOST_CHECK_MESSAGE(descCorrectUF1 == descOutUF1,
-		"\n\nExpecting:\n===========\n" +
-		serializer.Serialize(descCorrectUF1) +
-		"===========\n\nGot:\n===========\n" + aut1UFStr + "\n===========");
+		BDDTreeAut autNoUnreach = VATA::RemoveUnreachableStates(aut);
+		std::string autNoUnreachStr = autNoUnreach.DumpToString(serializer);
+
+		AutDescription descOutNoUnreach = parser.ParseString(autNoUnreachStr);
+		AutDescription descCorrectNoUnreach = parser.ParseString(autCorrectStr);
+
+		BOOST_CHECK_MESSAGE(descCorrectNoUnreach == descOutNoUnreach,
+			"\n\nExpecting:\n===========\n" +
+			serializer.Serialize(descCorrectNoUnreach) +
+			"===========\n\nGot:\n===========\n" + autNoUnreachStr + "\n===========");
+	}
 }
 
 BOOST_AUTO_TEST_CASE(aut_down_inclusion)
