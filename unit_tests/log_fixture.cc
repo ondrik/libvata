@@ -15,6 +15,10 @@
 // testing header files
 #include "log_fixture.hh"
 
+// Boost headers
+#include <boost/algorithm/string.hpp>
+
+
 // initialization of the static variable
 bool LogFixture::logInitialized_ = false;
 
@@ -56,8 +60,7 @@ std::vector<std::string> LogFixture::GetTimbukAutFilenames() const
 		{	// if it is a directory
 			std::string dirPath = topDirEntry.path().string();
 
-			if (dirPath.rfind(TIMBUK_SUFFIX) !=
-				(dirPath.size() - TIMBUK_SUFFIX.length()))
+			if (!boost::algorithm::ends_with(dirPath, TIMBUK_SUFFIX))
 			{	// in case there are not timbuk automata in the directory
 				continue;
 			}
