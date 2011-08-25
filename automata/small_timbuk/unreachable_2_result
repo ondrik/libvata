@@ -1,0 +1,11 @@
+Ops
+Automaton aut
+States
+Final States q
+Transitions
+i -> b
+j(b) -> c
+j(c) -> d
+j(d) -> e
+j(e) -> q
+j(q) -> b
