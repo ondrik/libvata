@@ -200,6 +200,41 @@ public:
 
 
 	/**
+	 * @brief  Converts an object to string (std::map specialization)
+	 *
+	 * Static method for conversion of a map of objects of any class with the
+	 * << output operator into a string
+	 *
+	 * @param[in]  mp  The map for the conversion
+	 *
+	 * @returns  The string representation of the map
+	 */
+	template <typename T, typename U>
+	static std::string ToString(const std::map<T, U>& mp)
+	{
+		// the output stream for the string
+		std::ostringstream oss;
+
+		oss << "[";		// opening tag
+		for (auto it = mp.cbegin(); it != mp.cend(); ++it)
+		{	// for each element of the map
+			if (it != mp.cbegin())
+			{	// if we are not at the first element
+				oss << ", ";
+			}
+
+			// the string of the element
+			oss << ToString(it->first) << " -> " << ToString(it->second);
+		}
+
+		oss << "]";		// closing tag
+
+		// return the string
+		return oss.str();
+	}
+
+
+	/**
 	 * @brief  Converts an object to string (std::unordered_map specialization)
 	 *
 	 * Static method for conversion of an unordered map of objects of any class with the
