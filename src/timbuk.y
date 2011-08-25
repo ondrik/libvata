@@ -153,6 +153,11 @@ transition_states: ident COMMA transition_states
 		global_tuple.push_back($1);
 		free($1);
 	}
+	|
+	{
+		global_tuple.clear();
+	}
+
 	;
 
 ident: IDENTIFIER
