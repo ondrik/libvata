@@ -10,12 +10,14 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/aut_base.hh>
 #include <vata/bdd_tree_aut.hh>
 #include <vata/bdd_tree_aut_op.hh>
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
 #include <vata/util/util.hh>
 
+using VATA::AutBase;
 using VATA::BDDTreeAut;
 using VATA::MTBDDPkg::VarAsgn;
 using VATA::Parsing::TimbukParser;
@@ -32,6 +34,14 @@ using VATA::Util::Convert;
 #include "log_fixture.hh"
 #include "aut_db.hh"
 
+
+/******************************************************************************
+ *                                    Types                                   *
+ ******************************************************************************/
+
+typedef AutBase::StringToStateDict StringToStateDict;
+
+typedef AutBase::StateToStateMap StateToStateMap;
 
 
 /******************************************************************************
@@ -74,7 +84,7 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 
 		BDDTreeAut aut;
 
-		BDDTreeAut::StringToStateDict stateDict;
+		StringToStateDict stateDict;
 		aut.LoadFromString(parser, autStr, &stateDict);
 
 		std::string autOut = aut.DumpToString(serializer, &stateDict);
@@ -96,7 +106,7 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 
 	BDDTreeAut aut;
 
-	BDDTreeAut::StringToStateDict stateDict;
+	StringToStateDict stateDict;
 	aut.LoadFromString(parser, AUT_TIMBUK_A4, &stateDict);
 	AutDescription descCorrect = parser.ParseString(AUT_TIMBUK_A4);
 
@@ -144,17 +154,17 @@ BOOST_AUTO_TEST_CASE(aut_union_simple)
 	TimbukSerializer serializer;
 
 	BDDTreeAut autU1;
-	BDDTreeAut::StringToStateDict autU1StateDict;
+	StringToStateDict autU1StateDict;
 	autU1.LoadFromString(parser, AUT_TIMBUK_UNION_1, &autU1StateDict);
 	AutDescription autU1Desc = parser.ParseString(AUT_TIMBUK_UNION_1);
 
 	BDDTreeAut autU2(autU1.GetTransTable());
-	BDDTreeAut::StringToStateDict autU2StateDict;
+	StringToStateDict autU2StateDict;
 	autU2.LoadFromString(parser, AUT_TIMBUK_UNION_2, &autU2StateDict);
 	AutDescription autU2Desc = parser.ParseString(AUT_TIMBUK_UNION_2);
 
 	BDDTreeAut autUnion12 = VATA::Union(autU1, autU2);
-	BDDTreeAut::StringToStateDict autUnion12StateDict =
+	StringToStateDict autUnion12StateDict =
 		autU1StateDict.Union(autU2StateDict);
 
 	std::string autUnion12Str = autUnion12.DumpToString(serializer,
@@ -176,12 +186,12 @@ BOOST_AUTO_TEST_CASE(aut_union_trans_table_copy)
 	TimbukSerializer serializer;
 
 	BDDTreeAut autU1;
-	BDDTreeAut::StringToStateDict autU1StateDict;
+	StringToStateDict autU1StateDict;
 	autU1.LoadFromString(parser, AUT_TIMBUK_UNION_1, &autU1StateDict);
 	AutDescription autU1Desc = parser.ParseString(AUT_TIMBUK_UNION_1);
 
 	BDDTreeAut autU3;
-	BDDTreeAut::StringToStateDict autU3StateDict;
+	StringToStateDict autU3StateDict;
 	autU3.LoadFromString(parser, AUT_TIMBUK_UNION_3, &autU3StateDict);
 	AutDescription autU3Desc = parser.ParseString(AUT_TIMBUK_UNION_3);
 
@@ -239,15 +249,21 @@ BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
 		std::string resultFile = (AUT_DIR / testcase[1]).string();
 
 		BOOST_MESSAGE("Removing unreachable states from " + inputFile + "...");
+
 		std::string autStr = VATA::Util::ReadFile(inputFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
 		BDDTreeAut aut;
-		aut.LoadFromString(parser, autStr);
+		StringToStateDict stateDict;
+		aut.LoadFromString(parser, autStr, &stateDict);
 		AutDescription autDesc = parser.ParseString(autStr);
 
-		BDDTreeAut autNoUnreach = VATA::RemoveUnreachableStates(aut);
-		std::string autNoUnreachStr = autNoUnreach.DumpToString(serializer);
+		StateToStateMap translMap;
+		BDDTreeAut autNoUnreach = VATA::RemoveUnreachableStates(aut, &translMap);
+
+		stateDict = VATA::Util::RebindMap(stateDict, translMap);
+		std::string autNoUnreachStr =
+			autNoUnreach.DumpToString(serializer, &stateDict);
 
 		AutDescription descOutNoUnreach = parser.ParseString(autNoUnreachStr);
 		AutDescription descCorrectNoUnreach = parser.ParseString(autCorrectStr);
