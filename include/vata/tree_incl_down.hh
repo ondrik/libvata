@@ -310,14 +310,25 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 
 					if (rhs.empty())
 					{	// in case RHS is empty
+						bool found = false;
+
 						for (const StateType& lhsTupleState : lhsTuple)
 						{
-							if (!expand(lhsTupleState, StateSet()))
+							if (expand(lhsTupleState, StateSet()))
+							{	// if there a state from LHS cannot generate a tree (note that
+								// this means that the whole tuple is ``blind''
+								found = true;
+							}
+							else
 							{	// if a state from LHS can generate a tree
 								processFoundNoninclusion(lhsTupleState, StateSet());
-								failProcessing();
-								return;
 							}
+						}
+
+						if (!found)
+						{
+							failProcessing();
+							return;
 						}
 					}
 					else
