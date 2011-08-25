@@ -169,13 +169,19 @@ public:   // Public methods
 			if ((result.fwdMap_.find(itRhs->first) != result.fwdMap_.end()) ||
 				(result.bwdMap_.find(itRhs->second) != result.bwdMap_.end()))
 			{	// in case the first or the second component is already in the dictionary
-				assert(false);
+				assert(false);    // fail gracefully
 			}
 
 			result.Insert(*itRhs);
 		}
 
 		return result;
+	}
+
+	friend std::ostream& operator<<(std::ostream& os,
+		const TwoWayDict& dict)
+	{
+		return (os << Convert::ToString(dict.fwdMap_));
 	}
 };
 
