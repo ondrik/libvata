@@ -5,6 +5,5 @@ Final States q
 Transitions
 a -> p
 b(p) -> r
-b(p) -> s
 c(p, p) -> q
 c(p, r) -> q
