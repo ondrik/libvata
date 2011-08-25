@@ -51,6 +51,9 @@ typedef AutBase::StateToStateMap StateToStateMap;
 const fs::path UNREACHABLE_TIMBUK_FILE =
 	AUT_DIR / "unreachable_removal_timbuk.txt";
 
+const fs::path INCLUSION_TIMBUK_FILE =
+	AUT_DIR / "inclusion_timbuk.txt";
+
 
 /******************************************************************************
  *                                  Fixtures                                  *
@@ -243,7 +246,8 @@ BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
 
 	for (auto testcase : testfileContent)
 	{
-		assert(testcase.size() == 2);
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 2, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
 
 		std::string inputFile = (AUT_DIR / testcase[0]).string();
 		std::string resultFile = (AUT_DIR / testcase[1]).string();
@@ -277,27 +281,39 @@ BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
 
 BOOST_AUTO_TEST_CASE(aut_down_inclusion)
 {
+	auto testfileContent = ParseTestFile(INCLUSION_TIMBUK_FILE.string());
+
 	TimbukParser parser;
 	TimbukSerializer serializer;
 
-	for (auto inclTest : TIMBUK_AUTOMATA_INCL)
+	for (auto testcase : testfileContent)
 	{
-		BDDTreeAut autA;
-		autA.LoadFromString(parser, inclTest.first.first);
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 3, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
 
-		BDDTreeAut autB;
-		autB.LoadFromString(parser, inclTest.first.second);
+		std::string inputSmallerFile = (AUT_DIR / testcase[0]).string();
+		std::string inputBiggerFile = (AUT_DIR / testcase[1]).string();
+		unsigned expectedResult = static_cast<bool>(
+			Convert::FromString<unsigned>(testcase[2]));
 
-		bool doesInclusionHold = VATA::CheckInclusion(autA, autB);
+		BOOST_MESSAGE("Testing inclusion " + inputSmallerFile + " <= " +
+			inputBiggerFile  + "...");
 
-		BOOST_CHECK_MESSAGE(inclTest.second == doesInclusionHold,
-			"\n\nError checking inclusion of:\n===========\n" +
-			autA.DumpToString(serializer) +
-			"===========\n"
-			"and\n===========\n" +
-			autB.DumpToString(serializer) +
-			"===========\n\nGot: " + Convert::ToString(doesInclusionHold) +
-			", expected was " + Convert::ToString(inclTest.second));
+		std::string autSmallerStr = VATA::Util::ReadFile(inputSmallerFile);
+		std::string autBiggerStr = VATA::Util::ReadFile(inputBiggerFile);
+
+		BDDTreeAut autSmaller;
+		autSmaller.LoadFromString(parser, autSmallerStr);
+
+		BDDTreeAut autBigger;
+		autBigger.LoadFromString(parser, autBiggerStr);
+
+		bool doesInclusionHold = VATA::CheckInclusion(autSmaller, autBigger);
+
+		BOOST_CHECK_MESSAGE(expectedResult == doesInclusionHold,
+			"\n\nError checking inclusion " + inputSmallerFile + " <= " +
+			inputBiggerFile + ": expected " + Convert::ToString(expectedResult) +
+			", got " + Convert::ToString(doesInclusionHold));
 	}
 }
 
