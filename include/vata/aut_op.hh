@@ -13,6 +13,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/aut_base.hh>
 
 namespace VATA
 {
@@ -53,14 +54,18 @@ namespace VATA
 	 *
 	 * The function removes unreachable states from given automaton.
 	 *
-	 * @param[in]  aut  Input automaton
+	 * @param[in]   aut         Input automaton
+	 * @param[out]  pTranslMap  The state-to-state translation map that gives
+	 *                          which state is translated to which. In case @p
+	 *                          nullptr is given, the parameter is ignored.
 	 *
 	 * @return  Automaton without unreachable states
 	 *
 	 * @tparam  Aut  Automaton type
 	 */
 	template <class Aut>
-	Aut RemoveUnreachableStates(const Aut& aut);
+	Aut RemoveUnreachableStates(const Aut& aut,
+		AutBase::StateToStateMap* pTranslMap = nullptr);
 
 	/**
 	 * @brief  Checks language inclusion of two automata

@@ -13,6 +13,7 @@
 #include <vata/bdd_tree_aut_op.hh>
 #include <vata/mtbdd/apply1func.hh>
 
+using VATA::AutBase;
 using VATA::BDDTreeAut;
 
 // Standard library headers
@@ -20,7 +21,8 @@ using VATA::BDDTreeAut;
 
 
 template <>
-BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut)
+BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut,
+	AutBase::StateToStateMap* pTranslMap)
 {
 	// Assertions
 	assert(aut.isValid());
@@ -29,8 +31,9 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut)
 	typedef BDDTreeAut::StateSet StateSet;
 	typedef BDDTreeAut::StateTuple StateTuple;
 	typedef BDDTreeAut::StateTupleSet StateTupleSet;
-	typedef std::unordered_map<StateType, StateType> TranslMap;
+	typedef AutBase::StateToStateMap StateToStateMap;
 	typedef std::map<StateType, StateType> WorkSetType;
+
 
 	GCC_DIAG_OFF(effc++)   // suppress missing virtual destructor warning
 	class UnreachableApplyFunctor :
@@ -41,12 +44,12 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut)
 	private:  // data members
 
 		BDDTreeAut& resultAut_;
-		TranslMap& translMap_;
+		StateToStateMap& translMap_;
 		WorkSetType& workset_;
 
 	public:   // methods
 
-		UnreachableApplyFunctor(BDDTreeAut& resultAut, TranslMap& translMap,
+		UnreachableApplyFunctor(BDDTreeAut& resultAut, StateToStateMap& translMap,
 			WorkSetType& workset) :
 			resultAut_(resultAut),
 			translMap_(translMap),
@@ -66,7 +69,7 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut)
 					const StateType& state = (*itVal)[i];
 
 					StateType newState;
-					TranslMap::const_iterator itTransl;
+					StateToStateMap::const_iterator itTransl;
 					if ((itTransl = translMap_.find(state)) != translMap_.end())
 					{	// if the pair is already known
 						newState = itTransl->second;
@@ -90,16 +93,25 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut)
 
 	BDDTreeAut result(aut.GetTransTable());
 	WorkSetType workset;
-	TranslMap translMap;
 
-	UnreachableApplyFunctor unreach(result, translMap, workset);
+	bool deleteTranslMap = false;
+	if (pTranslMap == nullptr)
+	{	// in case the state translation map was not provided
+		pTranslMap = new StateToStateMap();
+		deleteTranslMap = true;
+	}
+
+	assert(pTranslMap->empty());
+
+	UnreachableApplyFunctor unreach(result, *pTranslMap, workset);
 
 	for (auto itFst = aut.GetFinalStates().cbegin();
 		itFst != aut.GetFinalStates().cend(); ++itFst)
 	{	// start from all final states of the original automaton
-		StateType state = result.AddState();
-		result.SetStateFinal(state);
-		workset.insert(std::make_pair(state, *itFst));
+		StateType newState = result.AddState();
+		result.SetStateFinal(newState);
+		workset.insert(std::make_pair(newState, *itFst));
+		pTranslMap->insert(std::make_pair(*itFst, newState));
 	}
 
 	while (!workset.empty())
@@ -113,6 +125,11 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut)
 		result.setMtbdd(newState, mtbdd);
 
 		workset.erase(itWs);
+	}
+
+	if (deleteTranslMap)
+	{	// in case we need to delete the map
+		delete pTranslMap;
 	}
 
 	assert(result.isValid());

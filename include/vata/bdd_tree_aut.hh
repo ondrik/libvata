@@ -42,7 +42,8 @@ GCC_DIAG_ON(effc++)
 	friend Aut Intersection(const Aut&, const Aut&);
 
 	template <class Aut>
-	friend Aut RemoveUnreachableStates(const Aut&);
+	friend Aut RemoveUnreachableStates(const Aut&,
+		AutBase::StateToStateMap* pTranslMap);
 
 	template <class Aut>
 	friend bool CheckInclusion(const Aut&, const Aut&);

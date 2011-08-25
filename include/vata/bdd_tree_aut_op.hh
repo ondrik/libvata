@@ -26,7 +26,8 @@ namespace VATA
 	BDDTreeAut Intersection(const BDDTreeAut& lhs, const BDDTreeAut& rhs);
 
 	template <>
-	BDDTreeAut RemoveUnreachableStates(const BDDTreeAut& aut);
+	BDDTreeAut RemoveUnreachableStates(const BDDTreeAut& aut,
+		AutBase::StateToStateMap* pTranslMap);
 
 	template <>
 	bool CheckInclusion(const BDDTreeAut& smaller, const BDDTreeAut& bigger);
