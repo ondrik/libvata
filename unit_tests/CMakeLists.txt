@@ -26,8 +26,6 @@ endforeach(param)
 #add_definitions(-pg)
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 
-find_package(Boost 1.46.0 COMPONENTS filesystem system REQUIRED)
-
 include_directories(../include)
 
 add_library(tests

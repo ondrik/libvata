@@ -25,7 +25,7 @@ if (NOT(GCC_VERSION VERSION_GREATER ${REQUIRED_GCC_VERSION}
           OR GCC_VERSION VERSION_EQUAL ${REQUIRED_GCC_VERSION})
           # in case the GCC version is usable
           set(CMAKE_CXX_COMPILER ${GCC_CANDIDATE})
-          message("-- Using ${CMAKE_CXX_COMPILER} as C++ compiler")
+          message("-- Using ${CMAKE_CXX_COMPILER} as the C++ compiler")
           set(FOUND_COMPILER 1)
         endif()
       endif()
@@ -47,8 +47,14 @@ include(CTest)
 find_package(Log4CPP REQUIRED)
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
-find_package(Boost 1.42.0 COMPONENTS unit_test_framework REQUIRED)
 find_package(Doxygen REQUIRED)
+
+set(Boost_USE_MULTITHREADED OFF)
+find_package(Boost 1.42.0 COMPONENTS
+  filesystem
+  system
+  unit_test_framework
+  REQUIRED)
 
 if (DOXYGEN_FOUND)
   configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
