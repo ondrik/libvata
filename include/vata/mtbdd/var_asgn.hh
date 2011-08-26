@@ -268,6 +268,18 @@ public:   // Public methods
 		return result;
 	}
 
+	inline void append(const VarAsgn& prefix)
+	{
+		size_t offset = variablesCount_;
+		variablesCount_ += prefix.length();
+
+		vars_.resize(numberOfChars(variablesCount_));
+		for (size_t i = 0; i < prefix.length(); ++i)
+		{
+			SetIthVariableValue(offset + i, prefix.GetIthVariableValue(i));
+		}
+	}
+
 
 	std::vector<VarAsgn> GetVectorOfConcreteSymbols() const;
 
