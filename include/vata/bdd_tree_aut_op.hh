@@ -23,7 +23,8 @@ namespace VATA
 	BDDTreeAut Union(const BDDTreeAut& lhs, const BDDTreeAut& rhs);
 
 	template <>
-	BDDTreeAut Intersection(const BDDTreeAut& lhs, const BDDTreeAut& rhs);
+	BDDTreeAut Intersection(const BDDTreeAut& lhs, const BDDTreeAut& rhs,
+		AutBase::ProductTranslMap* pTranslMap);
 
 	template <>
 	BDDTreeAut RemoveUnreachableStates(const BDDTreeAut& aut,

@@ -39,15 +39,19 @@ namespace VATA
 	 * This function computes an automaton such that its language is the
 	 * intersection of languages of the input automata.
 	 *
-	 * @param[in]  lhs  Left-hand side automaton
-	 * @param[in]  rhs  Right-hand side automaton
+	 * @param[in]  lhs         Left-hand side automaton
+	 * @param[in]  rhs         Right-hand side automaton
+	 * @param[out] pTranslMap  Translation map of states of the product automaton.
+	 *                         In case @p nullptr is given, the parameter is
+	 *                         ignored.
 	 *
 	 * @return  Intersection automaton
 	 *
 	 * @tparam  Aut  Automaton type
 	 */
 	template <class Aut>
-	Aut Intersection(const Aut& lhs, const Aut& rhs);
+	Aut Intersection(const Aut& lhs, const Aut& rhs,
+		AutBase::ProductTranslMap* pTranslMap = nullptr);
 
 	/**
 	 * @brief  Removes unreachable states

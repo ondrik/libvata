@@ -34,6 +34,9 @@ public:   // data types
 
 	typedef std::unordered_map<StateType, StateType> StateToStateMap;
 
+	typedef std::pair<StateType, StateType> StatePair;
+	typedef std::unordered_map<StatePair, StateType, boost::hash<StatePair>>
+		ProductTranslMap;
 };
 
 #endif

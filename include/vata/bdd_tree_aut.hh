@@ -39,7 +39,8 @@ GCC_DIAG_ON(effc++)
 	friend Aut Union(const Aut&, const Aut&);
 
 	template <class Aut>
-	friend Aut Intersection(const Aut&, const Aut&);
+	friend Aut Intersection(const Aut&, const Aut&,
+		AutBase::ProductTranslMap*);
 
 	template <class Aut>
 	friend Aut RemoveUnreachableStates(const Aut&,

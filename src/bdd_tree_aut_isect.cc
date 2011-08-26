@@ -12,6 +12,7 @@
 #include <vata/vata.hh>
 #include <vata/bdd_tree_aut_op.hh>
 
+using VATA::AutBase;
 using VATA::BDDTreeAut;
 
 // Standard library headers
@@ -19,22 +20,19 @@ using VATA::BDDTreeAut;
 
 template <>
 BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
-	const BDDTreeAut& rhs)
+	const BDDTreeAut& rhs, AutBase::ProductTranslMap* pTranslMap)
 {
 	// Assertions
 	assert(lhs.isValid());
 	assert(rhs.isValid());
-
-	// TODO: substitute translation map for a two-way dict?
 
 	typedef BDDTreeAut::StateType StateType;
 	typedef BDDTreeAut::StateSet StateSet;
 	typedef BDDTreeAut::StateTuple StateTuple;
 	typedef BDDTreeAut::StateTupleSet StateTupleSet;
 	typedef std::pair<StateType, StateType> StatePair;
-	typedef std::unordered_map<StatePair, StateType, boost::hash<StatePair>>
-		IntersectionTranslMap;
 	typedef std::map<StateType, StatePair> WorkSetType;
+	typedef AutBase::ProductTranslMap IntersectionTranslMap;
 
 	GCC_DIAG_OFF(effc++)  // suppress non-virtual destructor warning
 	class IntersectionApplyFunctor :
@@ -99,9 +97,16 @@ BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
 		}
 	};
 
+	bool deleteTranslMap = false;
+	if (pTranslMap == nullptr)
+	{
+		pTranslMap = new IntersectionTranslMap();
+		deleteTranslMap = true;
+	}
+
 	BDDTreeAut result;
 	WorkSetType workset;
-	IntersectionTranslMap translMap;
+
 
 	for (StateSet::const_iterator itFstLhs = lhs.GetFinalStates().begin();
 		itFstLhs != lhs.GetFinalStates().end(); ++itFstLhs)
@@ -115,11 +120,11 @@ BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
 			result.SetStateFinal(newState);
 
 			workset.insert(std::make_pair(newState, origStates));
-			translMap.insert(std::make_pair(origStates, newState));
+			pTranslMap->insert(std::make_pair(origStates, newState));
 		}
 	}
 
-	IntersectionApplyFunctor isect(result, translMap, workset);
+	IntersectionApplyFunctor isect(result, *pTranslMap, workset);
 
 	while (!workset.empty())
 	{	// while there is something in the workset
@@ -134,6 +139,11 @@ BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
 
 		// remove the processed state from the workset
 		workset.erase(itWs);
+	}
+
+	if (deleteTranslMap)
+	{
+		delete pTranslMap;
 	}
 
 	assert(result.isValid());
