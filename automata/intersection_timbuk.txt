@@ -1,0 +1,5 @@
+small_timbuk/intersect_1_lhs     small_timbuk/intersect_1_rhs    small_timbuk/intersect_1_result
+small_timbuk/intersect_2_lhs     small_timbuk/intersect_2_rhs    small_timbuk/intersect_2_result
+small_timbuk/intersect_3_lhs     small_timbuk/intersect_3_rhs    small_timbuk/intersect_3_result
+small_timbuk/intersect_4_lhs     small_timbuk/intersect_4_rhs    small_timbuk/intersect_4_result
+small_timbuk/intersect_5_lhs     small_timbuk/intersect_5_rhs    small_timbuk/intersect_5_result
