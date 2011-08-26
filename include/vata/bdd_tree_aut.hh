@@ -22,6 +22,7 @@
 #include <vata/util/ord_vector.hh>
 #include <vata/util/td_bdd_trans_table.hh>
 #include <vata/util/vector_map.hh>
+#include <vata/util/util.hh>
 
 // Standard library headers
 #include <cstdint>
@@ -88,21 +89,37 @@ private:  // private data types
 	};
 
 
-private:  // private data members
+private:  // constants
+
+	static const size_t SYMBOL_VALUE_LENGTH = 16;
+
+	static const size_t SYMBOL_ARITY_LENGTH = 6;
+	static const size_t MAX_SYMBOL_ARITY =
+		VATA::Util::IntExp2(SYMBOL_ARITY_LENGTH) - 1;
+
+	static const size_t SYMBOL_SIZE = SYMBOL_VALUE_LENGTH + SYMBOL_ARITY_LENGTH;
+
+
+private:  // data members
+
 
 	StateSet states_;
 	StateSet finalStates_;
 	TransTablePtr transTable_;
 
 	static StringToSymbolDict symbolDict_;
+	static SymbolType nextBaseSymbol_;
 
-private:  // private methods
+private:  // methods
 
 	bool isValid() const;
 
 	void copyStates(const BDDTreeAut& src);
 
-	static SymbolType addSymbol();
+	static SymbolType addBaseSymbol()
+	{
+		return nextBaseSymbol_++;
+	}
 
 	inline void deallocateStates()
 	{

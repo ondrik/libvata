@@ -22,6 +22,7 @@ using VATA::Util::Convert;
 // static class data member
 BDDTreeAut::StringToSymbolDict BDDTreeAut::symbolDict_;
 
+BDDTreeAut::SymbolType BDDTreeAut::nextBaseSymbol_(SYMBOL_VALUE_LENGTH, 0);
 
 bool BDDTreeAut::isValid() const
 {
@@ -41,16 +42,6 @@ bool BDDTreeAut::isValid() const
 	}
 
 	return true;
-}
-
-
-BDDTreeAut::SymbolType BDDTreeAut::addSymbol()
-{
-	const size_t MAX_SYMBOL_SIZE = 16;
-
-	static SymbolType nextSymbol(MAX_SYMBOL_SIZE, 0);
-
-	return nextSymbol++;
 }
 
 
