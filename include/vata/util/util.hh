@@ -13,6 +13,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/aut_base.hh>
 
 namespace VATA
 {
@@ -23,6 +24,10 @@ namespace VATA
 		template <class Container, class Translator>
 		Container RebindMap(const Container& container, const Translator& transl);
 
+		VATA::AutBase::StringToStateDict CreateProductStringToStateMap(
+			const VATA::AutBase::StringToStateDict& lhsCont,
+			const VATA::AutBase::StringToStateDict& rhsCont,
+			const VATA::AutBase::ProductTranslMap& translMap);
 	}
 }
 
