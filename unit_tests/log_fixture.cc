@@ -79,7 +79,10 @@ std::vector<std::string> LogFixture::GetTimbukAutFilenames() const
 			{	// for each entry in the lower directory
 				if (fs::is_regular_file(*dirIt))
 				{	// if it is a file
-					result.push_back(dirIt->path().string());
+					if (dirIt->path().filename().string()[0] != '.')
+					{	// in case the file is not hidden
+						result.push_back(dirIt->path().string());
+					}
 				}
 			}
 		}
