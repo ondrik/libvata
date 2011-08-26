@@ -54,6 +54,9 @@ const fs::path UNREACHABLE_TIMBUK_FILE =
 const fs::path INCLUSION_TIMBUK_FILE =
 	AUT_DIR / "inclusion_timbuk.txt";
 
+const fs::path INTERSECTION_TIMBUK_FILE =
+	AUT_DIR / "intersection_timbuk.txt";
+
 
 /******************************************************************************
  *                                  Fixtures                                  *
@@ -213,28 +216,52 @@ BOOST_AUTO_TEST_CASE(aut_union_trans_table_copy)
 
 BOOST_AUTO_TEST_CASE(aut_intersection)
 {
+	auto testfileContent = ParseTestFile(INTERSECTION_TIMBUK_FILE.string());
+
 	TimbukParser parser;
 	TimbukSerializer serializer;
 
-	BDDTreeAut autI1;
-	autI1.LoadFromString(parser, AUT_TIMBUK_ISECT_1);
-	AutDescription autI1Desc = parser.ParseString(AUT_TIMBUK_ISECT_1);
+	for (auto testcase : testfileContent)
+	{
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 3, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
 
-	BDDTreeAut autI2;
-	autI2.LoadFromString(parser, AUT_TIMBUK_ISECT_2);
-	AutDescription autI2Desc = parser.ParseString(AUT_TIMBUK_UNION_2);
+		std::string inputLhsFile = (AUT_DIR / testcase[0]).string();
+		std::string inputRhsFile = (AUT_DIR / testcase[1]).string();
+		std::string resultFile = (AUT_DIR / testcase[2]).string();
 
-	BDDTreeAut autIsect12 = VATA::Intersection(autI1, autI2);
+		BOOST_MESSAGE("Performing intersection of " + inputLhsFile + " and " + inputRhsFile + "...");
 
-	std::string autIsect12Str = autIsect12.DumpToString(serializer);
-	AutDescription descOutI12 = parser.ParseString(autIsect12Str);
+		std::string autLhsStr = VATA::Util::ReadFile(inputLhsFile);
+		std::string autRhsStr = VATA::Util::ReadFile(inputRhsFile);
+		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-	AutDescription descCorrectI12 = parser.ParseString(AUT_TIMBUK_ISECT_12_RESULT);
+		BDDTreeAut autLhs;
+		StringToStateDict stateDictLhs;
+		autLhs.LoadFromString(parser, autLhsStr, &stateDictLhs);
+		AutDescription autLhsDesc = parser.ParseString(autLhsStr);
 
-	BOOST_CHECK_MESSAGE(descCorrectI12 == descOutI12,
-		"\n\nExpecting:\n===========\n" +
-		serializer.Serialize(descCorrectI12) +
-		"===========\n\nGot:\n===========\n" + autIsect12Str + "\n===========");
+		BDDTreeAut autRhs;
+		StringToStateDict stateDictRhs;
+		autRhs.LoadFromString(parser, autRhsStr, &stateDictRhs);
+		AutDescription autRhsDesc = parser.ParseString(autRhsStr);
+
+		AutBase::ProductTranslMap translMap;
+		BDDTreeAut autIntersect = VATA::Intersection(autLhs, autRhs, &translMap);
+
+		StringToStateDict stateDictIsect = VATA::Util::CreateProductStringToStateMap(
+			stateDictLhs, stateDictRhs, translMap);
+
+		std::string autIntersectStr = autIntersect.DumpToString(serializer,
+			&stateDictIsect);
+
+		AutDescription descOut = parser.ParseString(autIntersectStr);
+		AutDescription descCorrect = parser.ParseString(autCorrectStr);
+
+		BOOST_CHECK_MESSAGE(descOut == descCorrect,
+			"\n\nExpecting:\n===========\n" + autCorrectStr +
+			"===========\n\nGot:\n===========\n" + autIntersectStr + "\n===========");
+	}
 }
 
 BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
