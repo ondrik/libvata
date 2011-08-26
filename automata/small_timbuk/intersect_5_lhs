@@ -1,0 +1,26 @@
+Ops
+Automaton aut
+States
+Final States q
+Transitions
+a -> q
+a(q) -> q
+a(q, q) -> q
+a(q, q, q) -> q
+a(q, q, q, q) -> q
+a(q, q, q, q, q) -> q
+a(q, q, q, q, q, q) -> q
+a(q, q, q, q, q, q, q) -> q
+a(q, q, q, q, q, q, q, q) -> q
+a(q, q, q, q, q, q, q, q, q) -> q
+a(q, q, q, q, q, q, q, q, q, q) -> q
+a(q, q, q, q, q, q, q, q, q, q, q) -> q
+a(q, q, q, q, q, q, q, q, q, q, q, q) -> q
+a(q, q, q, q, q, q, q, q, q, q, q, q, q) -> q
+a(q, q, q, q, q, q, q, q, q, q, q, q, q, q) -> q
+a(q, q, q, q, q, q, q, q, q, q, q, q, q, q, q) -> q
+a(q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q) -> q
+a(q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q) -> q
+a(q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q) -> q
+a(q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q) -> q
+

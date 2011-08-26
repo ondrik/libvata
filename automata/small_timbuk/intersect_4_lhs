@@ -1,25 +1,8 @@
 Ops
 Automaton aut
 States
-Final States q
+Final States 1
 Transitions
-a -> q
-a(q) -> q
-a(q, q) -> q
-a(q, q, q) -> q
-a(q, q, q, q) -> q
-a(q, q, q, q, q) -> q
-a(q, q, q, q, q, q) -> q
-a(q, q, q, q, q, q, q) -> q
-a(q, q, q, q, q, q, q, q) -> q
-a(q, q, q, q, q, q, q, q, q) -> q
-a(q, q, q, q, q, q, q, q, q, q) -> q
-a(q, q, q, q, q, q, q, q, q, q, q) -> q
-a(q, q, q, q, q, q, q, q, q, q, q, q) -> q
-a(q, q, q, q, q, q, q, q, q, q, q, q, q) -> q
-a(q, q, q, q, q, q, q, q, q, q, q, q, q, q) -> q
-a(q, q, q, q, q, q, q, q, q, q, q, q, q, q, q) -> q
-a(q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q) -> q
-a(q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q) -> q
-a(q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q) -> q
-a(q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q, q) -> q
+i -> 1
+a(1) -> 2
+a(2) -> 1
