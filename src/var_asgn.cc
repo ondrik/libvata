@@ -48,7 +48,7 @@ VarAsgn::VarAsgn(const std::string& value) :
 
 void VarAsgn::getAllSymbols(VarAsgn& var, std::vector<VarAsgn>& vec, size_t pos)
 {
-	if (pos == var.VariablesCount())
+	if (pos == var.length())
 	{
 		vec.push_back(var);
 	}
@@ -72,7 +72,7 @@ void VarAsgn::getAllSymbols(VarAsgn& var, std::vector<VarAsgn>& vec, size_t pos)
 void VarAsgn::AddVariablesUpTo(size_t maxVariableIndex)
 {
 	size_t newVariablesCount = maxVariableIndex + 1;
-	if (newVariablesCount > VariablesCount())
+	if (newVariablesCount > length())
 	{
 		size_t oldVariablesCount = variablesCount_;
 		variablesCount_ = newVariablesCount;
@@ -90,7 +90,7 @@ std::string VarAsgn::ToString() const
 {
 	std::string result;
 
-	for (size_t i = 0; i < VariablesCount(); ++i)
+	for (size_t i = 0; i < length(); ++i)
 	{	// append all variables to the string
 		switch (GetIthVariableValue(i))
 		{
@@ -121,7 +121,7 @@ VarAsgn::AssignmentList VarAsgn::GetAllAssignments(size_t variablesCount)
 
 VarAsgn& VarAsgn::operator++()
 {
-	for (size_t i = 0; i < VariablesCount(); ++i)
+	for (size_t i = 0; i < length(); ++i)
 	{	// for each variable
 		char value = GetIthVariableValue(i);
 		if (value == ZERO)

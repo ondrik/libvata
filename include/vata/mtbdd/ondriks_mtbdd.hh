@@ -159,7 +159,7 @@ private:  // private methods
 		// working node
 		NodePtrType node = leaf;
 
-		for (size_t i = 0; i < asgn.VariablesCount(); ++i)
+		for (size_t i = 0; i < asgn.length(); ++i)
 		{	// construct the MTBDD according to the variable ordering
 			VarType var =	i;
 			if (asgn.GetIthVariableValue(var) == VarAsgn::ONE)

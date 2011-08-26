@@ -189,7 +189,7 @@ public:   // Public methods
 	inline char GetIthVariableValue(size_t i) const
 	{
 		// Assertions
-		assert(i < VariablesCount());
+		assert(i < length());
 
 		return (vars_[getIndexOfChar(i)] >> getIndexInsideChar(i)) & DefaultMask;
 	}
@@ -198,7 +198,7 @@ public:   // Public methods
 	inline void SetIthVariableValue(size_t i, char value)
 	{
 		// Assertions
-		assert(i < VariablesCount());
+		assert(i < length());
 		assert((value == ZERO) || (value == ONE) || (value == DONT_CARE));
 
 		// prepare the mask
@@ -218,13 +218,14 @@ public:   // Public methods
 
 
 	/**
-	 * @brief  The number of variables
+	 * @brief  The length of the variable assignment
 	 *
-	 * Returns the number of variables of the variable assignment.
+	 * Returns the length, i.e., the number of variables, of the variable
+	 * assignment.
 	 *
-	 * @returns  The number of variables of the variable assignment
+	 * @returns  The length of the variable assignment
 	 */
-	inline size_t VariablesCount() const
+	inline size_t length() const
 	{
 		return variablesCount_;
 	}
@@ -292,16 +293,15 @@ public:   // Public methods
 	friend bool operator<(const VarAsgn& lhs,
 		const VarAsgn& rhs)
 	{
-		if ((lhs.VariablesCount() < rhs.VariablesCount()) ||
-			rhs.VariablesCount() < lhs.VariablesCount())
+		if ((lhs.length() < rhs.length()) || rhs.length() < lhs.length())
 		{
-			return lhs.VariablesCount() < rhs.VariablesCount();
+			return lhs.length() < rhs.length();
 		}
 
-		for (size_t i = 0; i < lhs.VariablesCount(); ++i)
+		for (size_t i = 0; i < lhs.length(); ++i)
 		{
-			char lhsIthValue = lhs.GetIthVariableValue(lhs.VariablesCount() - i - 1);
-			char rhsIthValue = rhs.GetIthVariableValue(rhs.VariablesCount() - i - 1);
+			char lhsIthValue = lhs.GetIthVariableValue(lhs.length() - i - 1);
+			char rhsIthValue = rhs.GetIthVariableValue(rhs.length() - i - 1);
 
 			switch (lhsIthValue)
 			{
