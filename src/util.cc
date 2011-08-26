@@ -69,3 +69,39 @@ VATA::AutBase::StringToStateDict VATA::Util::CreateProductStringToStateMap(
 	return result;
 }
 
+
+VATA::AutBase::StringToStateDict VATA::Util::CreateUnionStringToStateMap(
+	const VATA::AutBase::StringToStateDict& lhsCont,
+	const VATA::AutBase::StringToStateDict& rhsCont,
+	const AutBase::StateToStateMap* translMap)
+{
+	typedef VATA::AutBase::StateType StateType;
+	typedef VATA::AutBase::StateToStateMap StateToStateMap;
+	typedef VATA::AutBase::StringToStateDict StringToStateDict;
+
+	StringToStateDict result;
+
+	for (auto dictElem : lhsCont)
+	{
+		result.insert(std::make_pair(dictElem.first + "_1", dictElem.second));
+	}
+
+	for (auto dictElem : rhsCont)
+	{
+		StateType state = dictElem.second;
+		if (translMap != nullptr)
+		{	// in case there should be translation
+			StateToStateMap::const_iterator itTransl;
+			if ((itTransl = translMap->find(state)) == translMap->end())
+			{
+				assert(false);    // fail gracefully
+			}
+
+			state = itTransl->second;
+		}
+
+		result.insert(std::make_pair(dictElem.first + "_2", state));
+	}
+
+	return result;
+}

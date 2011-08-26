@@ -23,15 +23,19 @@ namespace VATA
 	 * This function computes an automaton such that its language is the union
 	 * of languages of the input automata.
 	 *
-	 * @param[in]  lhs  Left-hand side automaton
-	 * @param[in]  rhs  Right-hand side automaton
+	 * @param[in]         lhs  Left-hand side automaton
+	 * @param[in]         rhs  Right-hand side automaton
+	 * @param[out] pTranslMap  Translation map of states of the union automaton.
+	 *                         In case @p nullptr is given, the parameter is
+	 *                         ignored.
 	 *
 	 * @return  Union automaton
 	 *
 	 * @tparam  Aut  Automaton type
 	 */
 	template <class Aut>
-	Aut Union(const Aut& lhs, const Aut& rhs);
+	Aut Union(const Aut& lhs, const Aut& rhs,
+		AutBase::StateToStateMap* pTranslMap = nullptr);
 
 	/**
 	 * @brief  Computes intersection of two automata

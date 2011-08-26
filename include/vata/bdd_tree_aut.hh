@@ -37,7 +37,7 @@ class VATA::BDDTreeAut
 GCC_DIAG_ON(effc++)
 
 	template <class Aut>
-	friend Aut Union(const Aut&, const Aut&);
+	friend Aut Union(const Aut&, const Aut&, AutBase::StateToStateMap*);
 
 	template <class Aut>
 	friend Aut Intersection(const Aut&, const Aut&,

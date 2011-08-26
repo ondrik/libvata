@@ -29,6 +29,11 @@ namespace VATA
 			const VATA::AutBase::StringToStateDict& rhsCont,
 			const VATA::AutBase::ProductTranslMap& translMap);
 
+		VATA::AutBase::StringToStateDict CreateUnionStringToStateMap(
+			const VATA::AutBase::StringToStateDict& lhsCont,
+			const VATA::AutBase::StringToStateDict& rhsCont,
+			const VATA::AutBase::StateToStateMap* translMap = nullptr);
+
 		constexpr inline size_t IntExp2(size_t val)
 		{
 			return (val == 0)? 1 : 2 * IntExp2(val - 1);

@@ -20,7 +20,8 @@ using VATA::BDDTreeAut;
 
 
 template <>
-BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
+BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs,
+	AutBase::StateToStateMap* pTranslMap)
 {
 	// Assertions
 	assert(lhs.isValid());
@@ -30,7 +31,7 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
 	typedef BDDTreeAut::StateSet StateSet;
 	typedef BDDTreeAut::StateTuple StateTuple;
 	typedef BDDTreeAut::StateTupleSet StateTupleSet;
-	typedef std::unordered_map<StateType, StateType> StateToStateHT;
+	typedef AutBase::StateToStateMap StateToStateMap;
 
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class RewriterApplyFunctor :
@@ -41,11 +42,11 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
 	private:  // data members
 
 		BDDTreeAut& aut_;
-		StateToStateHT& dict_;
+		StateToStateMap& dict_;
 
 	public:   // methods
 
-		RewriterApplyFunctor(BDDTreeAut& aut, StateToStateHT& dict) :
+		RewriterApplyFunctor(BDDTreeAut& aut, StateToStateMap& dict) :
 			aut_(aut),
 			dict_(dict)
 		{ }
@@ -88,13 +89,19 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
 		// start by copying the LHS automaton
 		BDDTreeAut result = lhs;
 
-		StateToStateHT stateDict;
-		RewriterApplyFunctor rewriter(result, stateDict);
+		bool deleteTranslMap = false;
+		if (pTranslMap == nullptr)
+		{
+			pTranslMap = new StateToStateMap;
+			deleteTranslMap = true;
+		}
+
+		RewriterApplyFunctor rewriter(result, *pTranslMap);
 
 		for (StateSet::const_iterator itSt = rhs.GetStates().begin();
 			itSt != rhs.GetStates().end(); ++itSt)
 		{	// for all states in the RHS automaton
-			StateType translState = result.safelyTranslateToState(*itSt, stateDict);
+			StateType translState = result.safelyTranslateToState(*itSt, *pTranslMap);
 
 			BDDTreeAut::TransMTBDD newMtbdd = rewriter(rhs.getMtbdd(*itSt));
 
@@ -104,7 +111,12 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs)
 		for (StateSet::const_iterator itFst = rhs.GetFinalStates().begin();
 			itFst != rhs.GetFinalStates().end(); ++itFst)
 		{	// for all final states in the RHS automaton
-			result.SetStateFinal(result.safelyTranslateToState(*itFst, stateDict));
+			result.SetStateFinal(result.safelyTranslateToState(*itFst, *pTranslMap));
+		}
+
+		if (deleteTranslMap)
+		{
+			delete pTranslMap;
 		}
 
 		assert(result.isValid());

@@ -54,6 +54,9 @@ const fs::path UNREACHABLE_TIMBUK_FILE =
 const fs::path INCLUSION_TIMBUK_FILE =
 	AUT_DIR / "inclusion_timbuk.txt";
 
+const fs::path UNION_TIMBUK_FILE =
+	AUT_DIR / "union_timbuk.txt";
+
 const fs::path INTERSECTION_TIMBUK_FILE =
 	AUT_DIR / "intersection_timbuk.txt";
 
@@ -156,63 +159,103 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 
 BOOST_AUTO_TEST_CASE(aut_union_simple)
 {
+	auto testfileContent = ParseTestFile(UNION_TIMBUK_FILE.string());
+
 	TimbukParser parser;
 	TimbukSerializer serializer;
 
-	BDDTreeAut autU1;
-	StringToStateDict autU1StateDict;
-	autU1.LoadFromString(parser, AUT_TIMBUK_UNION_1, &autU1StateDict);
-	AutDescription autU1Desc = parser.ParseString(AUT_TIMBUK_UNION_1);
+	for (auto testcase : testfileContent)
+	{
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 3, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
 
-	BDDTreeAut autU2(autU1.GetTransTable());
-	StringToStateDict autU2StateDict;
-	autU2.LoadFromString(parser, AUT_TIMBUK_UNION_2, &autU2StateDict);
-	AutDescription autU2Desc = parser.ParseString(AUT_TIMBUK_UNION_2);
+		std::string inputLhsFile = (AUT_DIR / testcase[0]).string();
+		std::string inputRhsFile = (AUT_DIR / testcase[1]).string();
+		std::string resultFile = (AUT_DIR / testcase[2]).string();
 
-	BDDTreeAut autUnion12 = VATA::Union(autU1, autU2);
-	StringToStateDict autUnion12StateDict =
-		autU1StateDict.Union(autU2StateDict);
+		BOOST_MESSAGE("Performing union of " + inputLhsFile + " and " +
+			inputRhsFile + "...");
 
-	std::string autUnion12Str = autUnion12.DumpToString(serializer,
-		&autUnion12StateDict);
-	AutDescription descOutU12 = parser.ParseString(autUnion12Str);
+		std::string autLhsStr = VATA::Util::ReadFile(inputLhsFile);
+		std::string autRhsStr = VATA::Util::ReadFile(inputRhsFile);
+		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-	AutDescription descCorrectU12 = parser.ParseString(AUT_TIMBUK_UNION_12_RESULT);
+		BDDTreeAut autLhs;
+		StringToStateDict stateDictLhs;
+		autLhs.LoadFromString(parser, autLhsStr, &stateDictLhs);
+		AutDescription autLhsDesc = parser.ParseString(autLhsStr);
 
-	BOOST_CHECK_MESSAGE(descCorrectU12 == descOutU12,
-		"\n\nExpecting:\n===========\n" +
-		serializer.Serialize(descCorrectU12) +
-		"===========\n\nGot:\n===========\n" + autUnion12Str + "\n===========");
+		BDDTreeAut autRhs(autLhs.GetTransTable());
+		StringToStateDict stateDictRhs;
+		autRhs.LoadFromString(parser, autRhsStr, &stateDictRhs);
+		AutDescription autRhsDesc = parser.ParseString(autRhsStr);
+
+		BDDTreeAut autUnion = VATA::Union(autLhs, autRhs);
+		StringToStateDict stateDictUnion =
+			VATA::Util::CreateUnionStringToStateMap(stateDictLhs, stateDictRhs);
+
+		std::string autUnionStr = autUnion.DumpToString(serializer, &stateDictUnion);
+
+		AutDescription descOut = parser.ParseString(autUnionStr);
+		AutDescription descCorrect = parser.ParseString(autCorrectStr);
+
+		BOOST_CHECK_MESSAGE(descOut == descCorrect,
+			"\n\nExpecting:\n===========\n" + autCorrectStr +
+			"===========\n\nGot:\n===========\n" + autUnionStr + "\n===========");
+	}
 }
 
 
 BOOST_AUTO_TEST_CASE(aut_union_trans_table_copy)
 {
+	auto testfileContent = ParseTestFile(UNION_TIMBUK_FILE.string());
+
 	TimbukParser parser;
 	TimbukSerializer serializer;
 
-	BDDTreeAut autU1;
-	StringToStateDict autU1StateDict;
-	autU1.LoadFromString(parser, AUT_TIMBUK_UNION_1, &autU1StateDict);
-	AutDescription autU1Desc = parser.ParseString(AUT_TIMBUK_UNION_1);
+	for (auto testcase : testfileContent)
+	{
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 3, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
 
-	BDDTreeAut autU3;
-	StringToStateDict autU3StateDict;
-	autU3.LoadFromString(parser, AUT_TIMBUK_UNION_3, &autU3StateDict);
-	AutDescription autU3Desc = parser.ParseString(AUT_TIMBUK_UNION_3);
+		std::string inputLhsFile = (AUT_DIR / testcase[0]).string();
+		std::string inputRhsFile = (AUT_DIR / testcase[1]).string();
+		std::string resultFile = (AUT_DIR / testcase[2]).string();
 
-	BDDTreeAut autUnion13 = VATA::Union(autU1, autU3);
+		BOOST_MESSAGE("Performing union of " + inputLhsFile + " and " +
+			inputRhsFile + "...");
 
-	std::string autUnion13Str = autUnion13.DumpToString(serializer);
-	AutDescription descOutU13 = parser.ParseString(autUnion13Str);
+		std::string autLhsStr = VATA::Util::ReadFile(inputLhsFile);
+		std::string autRhsStr = VATA::Util::ReadFile(inputRhsFile);
+		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-	AutDescription descCorrectU13 = parser.ParseString(AUT_TIMBUK_UNION_13_RESULT);
+		BDDTreeAut autLhs;
+		StringToStateDict stateDictLhs;
+		autLhs.LoadFromString(parser, autLhsStr, &stateDictLhs);
+		AutDescription autLhsDesc = parser.ParseString(autLhsStr);
 
-	BOOST_CHECK_MESSAGE(descCorrectU13 == descOutU13,
-		"\n\nExpecting:\n===========\n" +
-		serializer.Serialize(descCorrectU13) +
-		"===========\n\nGot:\n===========\n" + autUnion13Str + "\n===========");
+		BDDTreeAut autRhs;
+		StringToStateDict stateDictRhs;
+		autRhs.LoadFromString(parser, autRhsStr, &stateDictRhs);
+		AutDescription autRhsDesc = parser.ParseString(autRhsStr);
+
+		AutBase::StateToStateMap stateTranslMap;
+		BDDTreeAut autUnion = VATA::Union(autLhs, autRhs, &stateTranslMap);
+		StringToStateDict stateDictUnion =
+			VATA::Util::CreateUnionStringToStateMap(stateDictLhs, stateDictRhs,
+				&stateTranslMap);
+
+		std::string autUnionStr = autUnion.DumpToString(serializer, &stateDictUnion);
+
+		AutDescription descOut = parser.ParseString(autUnionStr);
+		AutDescription descCorrect = parser.ParseString(autCorrectStr);
+
+		BOOST_CHECK_MESSAGE(descOut == descCorrect,
+			"\n\nExpecting:\n===========\n" + autCorrectStr +
+			"===========\n\nGot:\n===========\n" + autUnionStr + "\n===========");
+	}
 }
+
 
 BOOST_AUTO_TEST_CASE(aut_intersection)
 {
@@ -230,7 +273,8 @@ BOOST_AUTO_TEST_CASE(aut_intersection)
 		std::string inputRhsFile = (AUT_DIR / testcase[1]).string();
 		std::string resultFile = (AUT_DIR / testcase[2]).string();
 
-		BOOST_MESSAGE("Performing intersection of " + inputLhsFile + " and " + inputRhsFile + "...");
+		BOOST_MESSAGE("Performing intersection of " + inputLhsFile + " and "
+			+ inputRhsFile + "...");
 
 		std::string autLhsStr = VATA::Util::ReadFile(inputLhsFile);
 		std::string autRhsStr = VATA::Util::ReadFile(inputRhsFile);
