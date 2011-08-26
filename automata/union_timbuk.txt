@@ -1,0 +1,3 @@
+small_timbuk/union_1_lhs     small_timbuk/union_1_rhs    small_timbuk/union_1_result
+small_timbuk/union_2_lhs     small_timbuk/union_2_rhs    small_timbuk/union_2_result
+small_timbuk/union_3_lhs     small_timbuk/union_3_rhs    small_timbuk/union_3_result
