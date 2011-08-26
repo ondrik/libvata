@@ -200,6 +200,16 @@ private:  // methods
 		return state;
 	}
 
+	inline void addArityToSymbol(SymbolType& symbol, size_t arity) const
+	{
+		// Assertions
+		assert(arity <= MAX_SYMBOL_ARITY);
+
+		SymbolType prefix(SYMBOL_ARITY_LENGTH, arity);
+
+		symbol.append(prefix);
+	}
+
 
 public:   // public methods
 
@@ -278,7 +288,7 @@ public:   // public methods
 	void AddTransition(const StateTuple& children, const SymbolType& symbol,
 		const StateType& state);
 
-	void AddSimplyTransition(const StateTuple& children, const SymbolType& symbol,
+	void AddSimplyTransition(const StateTuple& children, SymbolType symbol,
 		const StateType& parent);
 
 	template <class OperationFunc>

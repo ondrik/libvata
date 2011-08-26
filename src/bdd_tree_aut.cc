@@ -124,11 +124,15 @@ BDDTreeAut& BDDTreeAut::operator=(const BDDTreeAut& rhs)
 
 
 void BDDTreeAut::AddSimplyTransition(const StateTuple& children,
-	const SymbolType& symbol, const StateType& parent)
+	SymbolType symbol, const StateType& parent)
 {
 	// Assertions
 	assert(isValid());
 	assert(isStandAlone());
+	assert(symbol.length() == SYMBOL_VALUE_LENGTH);
+
+	addArityToSymbol(symbol, children.size());
+	assert(symbol.length() == SYMBOL_SIZE);
 
 	UnionApplyFunctor unioner;
 
@@ -182,7 +186,7 @@ void BDDTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
 		}
 		else
 		{	// in case there is no translation for the state name
-			symbol = addSymbol();
+			symbol = addBaseSymbol();
 			symbolDict_.Insert(std::make_pair(symbolStr, symbol));
 		}
 
@@ -388,6 +392,7 @@ void BDDTreeAut::AddTransition(const StateTuple& children,
 {
 	// Assertions
 	assert(isValid());
+	assert(symbol.length() == SYMBOL_VALUE_LENGTH);
 
 	if (isStandAlone())
 	{	// in case the automaton has no shared states
