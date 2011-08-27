@@ -141,14 +141,17 @@ public:   // Public methods
 		return bwdMap_.end();
 	}
 
-	inline void insert(const std::pair<Type1, Type2>& value)
+	inline std::pair<ConstIteratorFwd, bool> insert(
+		const std::pair<Type1, Type2>& value)
 	{
 		return Insert(value);
 	}
 
-	inline void Insert(const std::pair<Type1, Type2>& value)
+	inline std::pair<ConstIteratorFwd, bool> Insert(
+		const std::pair<Type1, Type2>& value)
 	{
-		if (!(fwdMap_.insert(value).second))
+		auto resPair = fwdMap_.insert(value);
+		if (!(resPair.second))
 		{	// in case there is already some forward mapping for given value
 			assert(false);      // fail gracefully
 		}
@@ -157,6 +160,8 @@ public:   // Public methods
 		{	// in case there is already some backward mapping for given value
 			assert(false);      // fail gracefully
 		}
+
+		return resPair;
 	}
 
 	TwoWayDict Union(const TwoWayDict& rhs) const
