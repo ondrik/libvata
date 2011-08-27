@@ -285,6 +285,21 @@ public:   // public methods
 		return symbolDict_.TranslateFwd(str);
 	}
 
+	inline static const SymbolType& SafelyTranslateStringToSymbol(
+		const std::string& str)
+	{
+		StringToSymbolDict::ConstIteratorFwd itSym;
+		if ((itSym = symbolDict_.FindFwd(str)) != symbolDict_.EndFwd())
+		{	// in case the state name is known
+			return itSym->second;
+		}
+		else
+		{	// in case there is no translation for the state name
+			SymbolType symbol = addBaseSymbol();
+			return symbolDict_.insert(std::make_pair(str, symbol)).first->second;
+		}
+	}
+
 	void AddTransition(const StateTuple& children, const SymbolType& symbol,
 		const StateType& state);
 
