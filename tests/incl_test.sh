@@ -11,7 +11,8 @@ SCRIPT=`readlink -f $0`
 # Absolute path this script is in, thus /home/user/bin
 SCRIPTPATH=`dirname $SCRIPT`
 
-METHODS=("symdown" "symdownX" "downT")
+#METHODS=("symdown" "symdownX" "downT")
+METHODS=("symdown" "downT" "downSimT")
 
 ################################# FUNCTIONS ##################################
 

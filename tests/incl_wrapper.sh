@@ -50,6 +50,10 @@ case "${OPERATION}" in
     ${TALIB} sdif <<< $(cat "${FILE_LHS}" "${FILE_RHS}")
     RETVAL="$?"
     ;;
+  downSimT)
+    ${TALIB} sddf <<< $(cat "${FILE_LHS}" "${FILE_RHS}")
+    RETVAL="$?"
+    ;;
   *) die "Invalid option ${OPERATION}"
     ;;
 esac
