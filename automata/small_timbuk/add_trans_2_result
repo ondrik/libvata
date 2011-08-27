@@ -1,0 +1,9 @@
+Ops
+Automaton aut
+States
+Final States p q r
+Transitions
+a -> p
+b -> q
+a(p) -> r
+c(r, s, t) -> u

@@ -1,1 +1,2 @@
 small_timbuk/add_trans_1_aut      small_timbuk/add_trans_1_trans     small_timbuk/add_trans_1_result
+small_timbuk/add_trans_2_aut      small_timbuk/add_trans_2_trans     small_timbuk/add_trans_2_result
