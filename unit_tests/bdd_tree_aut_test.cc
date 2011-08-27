@@ -32,7 +32,6 @@ using VATA::Util::Convert;
 
 // testing headers
 #include "log_fixture.hh"
-#include "aut_db.hh"
 
 
 /******************************************************************************
