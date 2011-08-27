@@ -151,7 +151,7 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 			// get the parent state
 			StateType parState;
 			StringToStateDict::const_iterator itDict;
-			if (stateDict.FindFwd(parStr) == stateDict.EndFwd())
+			if ((itDict = stateDict.FindFwd(parStr)) == stateDict.EndFwd())
 			{
 				parState = aut.AddState();
 				stateDict.insert(std::make_pair(parStr, parState));
@@ -173,8 +173,7 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 			for (auto childStr : trans.first)
 			{	// for each child
 				StateType childState;
-				StringToStateDict::const_iterator itDict;
-				if (stateDict.FindFwd(childStr) == stateDict.EndFwd())
+				if ((itDict = stateDict.FindFwd(childStr)) == stateDict.EndFwd())
 				{
 					childState = aut.AddState();
 					stateDict.insert(std::make_pair(childStr, childState));
