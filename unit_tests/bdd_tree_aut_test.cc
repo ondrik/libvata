@@ -42,6 +42,8 @@ using VATA::Util::Convert;
 typedef AutBase::StringToStateDict StringToStateDict;
 
 typedef AutBase::StateToStateMap StateToStateMap;
+typedef AutBase::StateType StateType;
+typedef BDDTreeAut::StateTuple StateTuple;
 
 
 /******************************************************************************
@@ -59,6 +61,9 @@ const fs::path UNION_TIMBUK_FILE =
 
 const fs::path INTERSECTION_TIMBUK_FILE =
 	AUT_DIR / "intersection_timbuk.txt";
+
+const fs::path ADD_TRANS_TIMBUK_FILE =
+	AUT_DIR / "add_trans_timbuk.txt";
 
 
 /******************************************************************************
@@ -110,50 +115,133 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 
 BOOST_AUTO_TEST_CASE(adding_transitions)
 {
+	auto testfileContent = ParseTestFile(ADD_TRANS_TIMBUK_FILE.string());
+
 	TimbukParser parser;
 	TimbukSerializer serializer;
 
-	BDDTreeAut aut;
+	for (auto testcase : testfileContent)
+	{
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 3, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
 
-	StringToStateDict stateDict;
-	aut.LoadFromString(parser, AUT_TIMBUK_A4, &stateDict);
-	AutDescription descCorrect = parser.ParseString(AUT_TIMBUK_A4);
+		std::string inputAutFile = (AUT_DIR / testcase[0]).string();
+		std::string inputTransFile = (AUT_DIR / testcase[1]).string();
+		std::string resultFile = (AUT_DIR / testcase[2]).string();
 
-	// get state "q"
-	//BDDTreeAut::StateType stateQ = stateDict.TranslateFwd("q");
-	// get state "p"
-	BDDTreeAut::StateType stateP = stateDict.TranslateFwd("p");
-	// insert state "qa"
-	BDDTreeAut::StateType stateQA = aut.AddState();
-	stateDict.Insert(std::make_pair("qa", stateQA));
+		BOOST_MESSAGE("Adding transitions from " + inputTransFile + " to " +
+			inputAutFile + "...");
 
-	// add the following transition: a -> qa, to the description ...
-	AutDescription::Transition newTransition(std::vector<std::string>(), "a", "qa");
-	descCorrect.transitions.insert(newTransition);
-	// ... and to the automaton
-	aut.AddSimplyTransition(BDDTreeAut::StateTuple(),
-		BDDTreeAut::TranslateStringToSymbol("a"), stateQA);
+		std::string autStr = VATA::Util::ReadFile(inputAutFile);
+		std::string transStr = VATA::Util::ReadFile(inputTransFile);
+		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-	// add the following transition: a(qa, qa) -> p, to the description ...
-	std::vector<std::string> childrenStr;
-	childrenStr.push_back("qa");
-	childrenStr.push_back("qa");
-	newTransition = AutDescription::Transition(childrenStr, "a", "p");
-	descCorrect.transitions.insert(newTransition);
-	// ... and to the automaton
-	BDDTreeAut::StateTuple children;
-	children.push_back(stateQA);
-	children.push_back(stateQA);
-	aut.AddSimplyTransition(children, BDDTreeAut::TranslateStringToSymbol("a"),
-		stateP);
+		BDDTreeAut aut;
+		StringToStateDict stateDict;
+		aut.LoadFromString(parser, autStr, &stateDict);
+		AutDescription autDesc = parser.ParseString(autStr);
 
-	std::string autOut = aut.DumpToString(serializer, &stateDict);
-	AutDescription descOut = parser.ParseString(autOut);
+		AutDescription transDesc = parser.ParseString(transStr);
 
-	BOOST_CHECK_MESSAGE(descCorrect == descOut,
-		"\n\nExpecting:\n===========\n" +
-		serializer.Serialize(descCorrect) +
-		"===========\n\nGot:\n===========\n" + autOut + "\n===========");
+		for (const AutDescription::Transition& trans : transDesc.transitions)
+		{
+			const std::string& parStr = trans.third;
+			const std::string& symbolStr = trans.second;
+
+			// get the parent state
+			StateType parState;
+			StringToStateDict::const_iterator itDict;
+			if (stateDict.FindFwd(parStr) == stateDict.EndFwd())
+			{
+				parState = aut.AddState();
+				stateDict.insert(std::make_pair(parStr, parState));
+			}
+			else
+			{
+				parState = itDict->second;
+			}
+
+			if (transDesc.finalStates.find(parStr) != transDesc.finalStates.end())
+			{	// if the parent state is made final
+				aut.SetStateFinal(parState);
+			}
+
+			const BDDTreeAut::SymbolType& symbol =
+				aut.SafelyTranslateStringToSymbol(symbolStr);
+
+			StateTuple children;
+			for (auto childStr : trans.first)
+			{	// for each child
+				StateType childState;
+				StringToStateDict::const_iterator itDict;
+				if (stateDict.FindFwd(childStr) == stateDict.EndFwd())
+				{
+					childState = aut.AddState();
+					stateDict.insert(std::make_pair(childStr, childState));
+				}
+				else
+				{
+					childState = itDict->second;
+				}
+
+				if (transDesc.finalStates.find(childStr) != transDesc.finalStates.end())
+				{	// if the parent state is made final
+					aut.SetStateFinal(childState);
+				}
+
+				children.push_back(childState);
+			}
+
+			aut.AddSimplyTransition(children, symbol, parState);
+		}
+
+		std::string autTransStr = aut.DumpToString(serializer, &stateDict);
+
+		AutDescription descOut = parser.ParseString(autTransStr);
+		AutDescription descCorrect = parser.ParseString(autCorrectStr);
+
+		BOOST_CHECK_MESSAGE(descOut == descCorrect,
+			"\n\nExpecting:\n===========\n" + autCorrectStr +
+			"===========\n\nGot:\n===========\n" + autTransStr + "\n===========");
+	}
+
+
+
+//	// get state "q"
+//	//BDDTreeAut::StateType stateQ = stateDict.TranslateFwd("q");
+//	// get state "p"
+//	BDDTreeAut::StateType stateP = stateDict.TranslateFwd("p");
+//	// insert state "qa"
+//	BDDTreeAut::StateType stateQA = aut.AddState();
+//	stateDict.Insert(std::make_pair("qa", stateQA));
+//
+//	// add the following transition: a -> qa, to the description ...
+//	AutDescription::Transition newTransition(std::vector<std::string>(), "a", "qa");
+//	descCorrect.transitions.insert(newTransition);
+//	// ... and to the automaton
+//	aut.AddSimplyTransition(BDDTreeAut::StateTuple(),
+//		BDDTreeAut::TranslateStringToSymbol("a"), stateQA);
+//
+//	// add the following transition: a(qa, qa) -> p, to the description ...
+//	std::vector<std::string> childrenStr;
+//	childrenStr.push_back("qa");
+//	childrenStr.push_back("qa");
+//	newTransition = AutDescription::Transition(childrenStr, "a", "p");
+//	descCorrect.transitions.insert(newTransition);
+//	// ... and to the automaton
+//	BDDTreeAut::StateTuple children;
+//	children.push_back(stateQA);
+//	children.push_back(stateQA);
+//	aut.AddSimplyTransition(children, BDDTreeAut::TranslateStringToSymbol("a"),
+//		stateP);
+//
+//	std::string autOut = aut.DumpToString(serializer, &stateDict);
+//	AutDescription descOut = parser.ParseString(autOut);
+//
+//	BOOST_CHECK_MESSAGE(descCorrect == descOut,
+//		"\n\nExpecting:\n===========\n" +
+//		serializer.Serialize(descCorrect) +
+//		"===========\n\nGot:\n===========\n" + autOut + "\n===========");
 }
 
 
