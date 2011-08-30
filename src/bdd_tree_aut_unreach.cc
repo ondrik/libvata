@@ -4,7 +4,7 @@
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
  *  Description:
- *    Implementation of intersection on BDD tree automata.
+ *    Implementation of pruning unreachable states of BDD tree automata.
  *
  *****************************************************************************/
 
@@ -105,13 +105,12 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut,
 
 	UnreachableApplyFunctor unreach(result, *pTranslMap, workset);
 
-	for (auto itFst = aut.GetFinalStates().cbegin();
-		itFst != aut.GetFinalStates().cend(); ++itFst)
+	for (auto fst : aut.GetFinalStates())
 	{	// start from all final states of the original automaton
 		StateType newState = result.AddState();
 		result.SetStateFinal(newState);
-		workset.insert(std::make_pair(newState, *itFst));
-		pTranslMap->insert(std::make_pair(*itFst, newState));
+		workset.insert(std::make_pair(newState, fst));
+		pTranslMap->insert(std::make_pair(fst, newState));
 	}
 
 	while (!workset.empty())
