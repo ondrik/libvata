@@ -23,6 +23,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 
@@ -184,6 +185,41 @@ public:
 		for (auto it = st.cbegin(); it != st.cend(); ++it)
 		{	// for each element of the set
 			if (it != st.cbegin())
+			{	// if we are not at the first element
+				oss << ", ";
+			}
+
+			// the string of the element
+			oss << ToString(*it);
+		}
+
+		oss << "}";		// closing tag
+
+		// return the string
+		return oss.str();
+	}
+
+
+	/**
+	 * @brief  Converts an object to string (std::unordered_set specialization)
+	 *
+	 * Static method for conversion of an unordered set of objects of any class
+	 * with the << output operator into a string
+	 *
+	 * @param[in]  un_set  The unordered set for the conversion
+	 *
+	 * @returns  The string representation of the unordered set
+	 */
+	template <typename T>
+	static std::string ToString(const std::unordered_set<T>& un_set)
+	{
+		// the output stream for the string
+		std::ostringstream oss;
+
+		oss << "{";		// opening tag
+		for (auto it = un_set.cbegin(); it != un_set.cend(); ++it)
+		{	// for each element of the set
+			if (it != un_set.cbegin())
 			{	// if we are not at the first element
 				oss << ", ";
 			}
