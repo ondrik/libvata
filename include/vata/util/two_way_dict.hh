@@ -22,7 +22,9 @@ namespace VATA
 		template
 		<
 			typename T1,
-			typename T2
+			typename T2,
+			class Cont1,
+			class Cont2
 		>
 		class TwoWayDict;
 	}
@@ -41,7 +43,9 @@ namespace VATA
 template
 <
 	typename T1,
-	typename T2
+	typename T2,
+	class Cont1 = std::map<T1, T2>,
+	class Cont2 = std::map<T2, T1>
 >
 class VATA::Util::TwoWayDict
 {
@@ -52,8 +56,8 @@ public:   // Public data types
 
 private:  // Private data types
 
-	typedef std::map<Type1, Type2> MapFwdType;
-	typedef std::map<Type2, Type1> MapBwdType;
+	typedef Cont1 MapFwdType;
+	typedef Cont2 MapBwdType;
 
 public:   // Public data types
 
