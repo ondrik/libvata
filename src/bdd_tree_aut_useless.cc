@@ -11,6 +11,7 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_tree_aut_op.hh>
+#include <vata/mtbdd/apply1func.hh>
 #include <vata/mtbdd/void_apply1func.hh>
 #include <vata/util/graph.hh>
 
@@ -32,6 +33,7 @@ BDDTreeAut VATA::RemoveUselessStates<BDDTreeAut>(const BDDTreeAut& aut,
 	typedef AutBase::StateType StateType;
 	typedef BDDTreeAut::StateTuple StateTuple;
 	typedef BDDTreeAut::StateTupleSet StateTupleSet;
+	typedef AutBase::StateToStateMap StateToStateMap;
 
 	typedef Graph::NodeType NodeType;
 
@@ -49,6 +51,11 @@ BDDTreeAut VATA::RemoveUselessStates<BDDTreeAut>(const BDDTreeAut& aut,
 	typedef std::unordered_set<Graph::NodeType> NodeSet;
 
 	typedef std::unordered_set<StateType> StateHT;
+	typedef std::stack<StateType, std::list<StateType>> StateStack;
+
+	typedef std::pair<StateType, StateType> StatePair;
+	typedef std::stack<StatePair, std::list<StatePair>> StatePairStack;
+
 
 
 	GCC_DIAG_OFF(effc++)   // suppress missing virtual destructor warning
@@ -121,11 +128,11 @@ BDDTreeAut VATA::RemoveUselessStates<BDDTreeAut>(const BDDTreeAut& aut,
 								workset_.push(translPair);
 							}
 
-							graph_.AddEdge(tupleNode, stateNode);
+							graph_.AddEdge(stateNode, tupleNode);
 						}
 					}
 
-					graph_.AddEdge(procNode_, tupleNode);
+					graph_.AddEdge(tupleNode, procNode_);
 				}
 			}
 		}
@@ -174,7 +181,153 @@ BDDTreeAut VATA::RemoveUselessStates<BDDTreeAut>(const BDDTreeAut& aut,
 		usefulStates.insert(itOrNode->second);
 	}
 
-	assert(false);
+	while (!nodeStack.empty())
+	{
+		NodeType node = nodeStack.top();
+		nodeStack.pop();
 
-	return aut;
+		for (const NodeType& andNode : Graph::GetIngress(node))
+		{	// for each input edge of the node, remove the edge
+			if (Graph::GetEgress(andNode).erase(node) != 1)
+			{	// in case of an internal error
+				assert(false);     // fail gracefully
+			}
+		}
+
+		for (const NodeType& andNode : Graph::GetEgress(node))
+		{	// for each output edge of the node, satisfy edges
+			size_t cnt = Graph::GetIngress(andNode).erase(node);
+			assert(cnt == 1);
+
+			if (Graph::GetIngress(andNode).empty())
+			{	// in case all input edges of the AND node are satisfied
+				for (const NodeType& orNode : Graph::GetEgress(andNode))
+				{	// satisfy all output OR nodes
+					NodeToStateDict::ConstIteratorFwd itDict;
+					if ((itDict = orNodes.FindFwd(orNode)) == orNodes.EndFwd())
+					{
+						assert(false);      // fail gracefully
+					}
+
+					const StateType& state = itDict->second;
+
+					if (usefulStates.find(state) == usefulStates.end())
+					{	// in case the state hasn't been processed yet
+						usefulStates.insert(state);
+						nodeStack.push(orNode);
+					}
+				}
+			}
+		}
+	}
+
+	// perform restriction of the states of the automaton to the set of useful
+	// states
+
+	class RestrictApplyFunctor :
+		public VATA::MTBDDPkg::Apply1Functor<RestrictApplyFunctor,
+		StateTupleSet, StateTupleSet>
+	{
+	private:  // data members
+
+		BDDTreeAut& resultAut_;
+		StateToStateMap& translMap_;
+		StatePairStack& workStack_;
+		StateHT& usefulStates_;
+
+	public:   // methods
+
+		RestrictApplyFunctor(BDDTreeAut& resultAut, StateToStateMap& translMap,
+			StatePairStack& workStack, StateHT& usefulStates) :
+			resultAut_(resultAut),
+			translMap_(translMap),
+			workStack_(workStack),
+			usefulStates_(usefulStates)
+		{ }
+
+		StateTupleSet ApplyOperation(const StateTupleSet& value)
+		{
+			StateTupleSet result;
+
+			for (const StateTuple& tuple : value)
+			{	// for each tuple from the leaf
+				StateTuple resultTuple;
+				for (size_t i = 0; i < tuple.size(); ++i)
+				{	// for each position in the tuple
+					const StateType& state = tuple[i];
+
+					if (usefulStates_.find(state) == usefulStates_.end())
+					{	// in case the state is not useful
+						break;
+					}
+
+					StateType newState;
+					StateToStateMap::const_iterator itTransl;
+					if ((itTransl = translMap_.find(state)) != translMap_.end())
+					{	// if the pair is already known
+						newState = itTransl->second;
+					}
+					else
+					{	// if the pair is new
+						newState = resultAut_.AddState();
+						translMap_.insert(std::make_pair(state, newState));
+						workStack_.push(std::make_pair(newState, state));
+					}
+
+					resultTuple.push_back(newState);
+				}
+
+				if (resultTuple.size() == tuple.size())
+				{	// in case all states are useful
+					result.insert(resultTuple);
+				}
+			}
+
+			return result;
+		}
+	};
+
+	BDDTreeAut result(aut.GetTransTable());
+	StatePairStack workStack;
+
+	bool deleteTranslMap = false;
+	if (pTranslMap == nullptr)
+	{	// in case the state translation map was not provided
+		pTranslMap = new StateToStateMap();
+		deleteTranslMap = true;
+	}
+
+	assert(pTranslMap->empty());
+
+	RestrictApplyFunctor restrFunc(result, *pTranslMap, workStack, usefulStates);
+
+	for (auto fst : aut.GetFinalStates())
+	{	// start from all final states of the original automaton
+		if (usefulStates.find(fst) != usefulStates.end())
+		{	// in case the state is useful
+			StateType newState = result.AddState();
+			result.SetStateFinal(newState);
+			workStack.push(std::make_pair(newState, fst));
+			pTranslMap->insert(std::make_pair(fst, newState));
+		}
+	}
+
+	while (!workStack.empty())
+	{	// while there is something in the workset
+		StatePair stPr = workStack.top();
+		workStack.pop();
+
+		BDDTreeAut::TransMTBDD mtbdd = restrFunc(aut.getMtbdd(stPr.second));
+
+		result.setMtbdd(stPr.first, mtbdd);
+	}
+
+	if (deleteTranslMap)
+	{	// in case we need to delete the map
+		delete pTranslMap;
+	}
+
+	assert(result.isValid());
+
+	return result;
 }
