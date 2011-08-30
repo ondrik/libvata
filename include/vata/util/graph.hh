@@ -27,10 +27,7 @@ public:   // data types
 
 private:   // data types
 
-
-	struct InternalNode;
-
-	typedef std::set<InternalNode*> EdgeContainer;
+	typedef std::set<NodeType> EdgeContainer;
 
 	struct InternalNode
 	{
@@ -81,8 +78,8 @@ public:   // methods
 
 	inline void AddEdge(const NodeType& src, const NodeType& dst)
 	{
-		nodeToInternal(src)->egressEdges.insert(nodeToInternal(dst));
-		nodeToInternal(dst)->ingressEdges.insert(nodeToInternal(src));
+		nodeToInternal(src)->egressEdges.insert(dst);
+		nodeToInternal(dst)->ingressEdges.insert(src);
 	}
 
 	// NOTE: the node cannot be pointed by anything, otherwise the graph becomes
@@ -96,6 +93,16 @@ public:   // methods
 		{	// in case there was some problem erasing the node
 			assert(false);    // fail gracefully
 		}
+	}
+
+	inline static EdgeContainer& GetIngress(const NodeType& node)
+	{
+		return nodeToInternal(node)->ingressEdges;
+	}
+
+	inline static EdgeContainer& GetEgress(const NodeType& node)
+	{
+		return nodeToInternal(node)->egressEdges;
 	}
 
 	~Graph()
