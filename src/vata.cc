@@ -98,14 +98,21 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	Aut autResult;
 	bool boolResult = false;
 
+	VATA::AutBase::StringToStateDict stateDict1;
+	VATA::AutBase::StringToStateDict stateDict2;
+
+	VATA::AutBase::StateToStateMap translMap;
+
 	if (args.operands >= 1)
 	{
-		autInput1.LoadFromString(parser, VATA::Util::ReadFile(args.fileName1));
+		autInput1.LoadFromString(parser, VATA::Util::ReadFile(args.fileName1),
+			&stateDict1);
 	}
 
 	if (args.operands >= 2)
 	{
-		autInput2.LoadFromString(parser, VATA::Util::ReadFile(args.fileName2));
+		autInput2.LoadFromString(parser, VATA::Util::ReadFile(args.fileName2),
+			&stateDict2);
 	}
 
 	// get the start time
@@ -120,7 +127,7 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	{
 		if (args.operands >= 1)
 		{
-			autInput1 = RemoveUselessStates(autInput1);
+			autInput1 = RemoveUselessStates(autInput1, &translMap);
 		}
 
 		if (args.operands >= 2)
@@ -132,7 +139,7 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	{
 		if (args.operands >= 1)
 		{
-			autInput1 = RemoveUnreachableStates(autInput1);
+			autInput1 = RemoveUnreachableStates(autInput1, &translMap);
 		}
 
 		if (args.operands >= 2)
@@ -178,11 +185,21 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 
 	if (!args.dontOutputResult)
 	{	// in case output is not forbidden
-		if ((args.command == COMMAND_LOAD) ||
-			(args.command == COMMAND_UNION) ||
+		if (args.command == COMMAND_LOAD)
+		{
+			if (args.pruneUnreachable || args.pruneUseless)
+			{
+				stateDict1 = VATA::Util::RebindMap(stateDict1, translMap);
+			}
+
+			std::cout << autResult.DumpToString(serializer, &stateDict1);
+		}
+
+		if ((args.command == COMMAND_UNION) ||
 			(args.command == COMMAND_INTERSECTION))
 		{
 			std::cout << autResult.DumpToString(serializer);
+
 		}
 
 		if (args.command == COMMAND_INCLUSION)
