@@ -52,6 +52,9 @@ typedef BDDTreeAut::StateTuple StateTuple;
 const fs::path UNREACHABLE_TIMBUK_FILE =
 	AUT_DIR / "unreachable_removal_timbuk.txt";
 
+const fs::path USELESS_TIMBUK_FILE =
+	AUT_DIR / "useless_removal_timbuk.txt";
+
 const fs::path INCLUSION_TIMBUK_FILE =
 	AUT_DIR / "inclusion_timbuk.txt";
 
@@ -433,6 +436,48 @@ BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
 			"\n\nExpecting:\n===========\n" +
 			serializer.Serialize(descCorrectNoUnreach) +
 			"===========\n\nGot:\n===========\n" + autNoUnreachStr + "\n===========");
+	}
+}
+
+BOOST_AUTO_TEST_CASE(aut_remove_useless)
+{
+	auto testfileContent = ParseTestFile(USELESS_TIMBUK_FILE.string());
+
+	TimbukParser parser;
+	TimbukSerializer serializer;
+
+	for (auto testcase : testfileContent)
+	{
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 2, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
+
+		std::string inputFile = (AUT_DIR / testcase[0]).string();
+		std::string resultFile = (AUT_DIR / testcase[1]).string();
+
+		BOOST_MESSAGE("Removing useless states from " + inputFile + "...");
+
+		std::string autStr = VATA::Util::ReadFile(inputFile);
+		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
+
+		BDDTreeAut aut;
+		StringToStateDict stateDict;
+		aut.LoadFromString(parser, autStr, &stateDict);
+		AutDescription autDesc = parser.ParseString(autStr);
+
+		StateToStateMap translMap;
+		BDDTreeAut autNoUseless = VATA::RemoveUselessStates(aut, &translMap);
+
+		stateDict = VATA::Util::RebindMap(stateDict, translMap);
+		std::string autNoUselessStr =
+			autNoUseless.DumpToString(serializer, &stateDict);
+
+		AutDescription descOutNoUseless = parser.ParseString(autNoUselessStr);
+		AutDescription descCorrectNoUseless = parser.ParseString(autCorrectStr);
+
+		BOOST_CHECK_MESSAGE(descCorrectNoUseless == descOutNoUseless,
+			"\n\nExpecting:\n===========\n" +
+			serializer.Serialize(descCorrectNoUseless) +
+			"===========\n\nGot:\n===========\n" + autNoUselessStr + "\n===========");
 	}
 }
 
