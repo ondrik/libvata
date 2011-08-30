@@ -48,6 +48,10 @@ GCC_DIAG_ON(effc++)
 		AutBase::StateToStateMap* pTranslMap);
 
 	template <class Aut>
+	friend Aut RemoveUselessStates(const Aut&,
+		AutBase::StateToStateMap* pTranslMap);
+
+	template <class Aut>
 	friend bool CheckInclusion(const Aut&, const Aut&);
 
 public:   // public data types

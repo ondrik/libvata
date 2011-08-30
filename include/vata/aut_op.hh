@@ -76,6 +76,27 @@ namespace VATA
 		AutBase::StateToStateMap* pTranslMap = nullptr);
 
 	/**
+	 * @brief  Removes useless states
+	 *
+	 * The function removes useless states, which are either unreachable states,
+	 * or states from which it is not possible to terminate.
+	 *
+	 * @param[in]   aut         Input automaton
+	 * @param[out]  pTranslMap  The state-to-state translation map that gives
+	 *                          which state is translated to which. In case @p
+	 *                          nullptr is given, the parameter is ignored.
+	 *
+	 * @return  Automaton without useless states
+	 *
+	 * @see VATA::RemoveUnreachableStates
+	 *
+	 * @tparam  Aut  Automaton type
+	 */
+	template <class Aut>
+	Aut RemoveUselessStates(const Aut& aut,
+		AutBase::StateToStateMap* pTranslMap = nullptr);
+
+	/**
 	 * @brief  Checks language inclusion of two automata
 	 *
 	 * This function checks language inclusion of two automata, i.e., whether

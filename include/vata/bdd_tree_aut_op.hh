@@ -32,6 +32,10 @@ namespace VATA
 		AutBase::StateToStateMap* pTranslMap);
 
 	template <>
+	BDDTreeAut RemoveUselessStates(const BDDTreeAut& aut,
+		AutBase::StateToStateMap* pTranslMap);
+
+	template <>
 	bool CheckInclusion(const BDDTreeAut& smaller, const BDDTreeAut& bigger);
 }
 
