@@ -37,6 +37,7 @@ BDDTreeAut VATA::RemoveUselessStates<BDDTreeAut>(const BDDTreeAut& aut,
 
 	typedef std::pair<NodeType, StateType> NodeStatePair;
 	typedef std::stack<NodeStatePair, std::list<NodeStatePair>> WorkSetType;
+	typedef std::stack<NodeType, std::list<NodeType>> NodeStack;
 
 	typedef VATA::Util::TwoWayDict<NodeType, StateType,
 		std::unordered_map<NodeType, StateType>,
@@ -46,6 +47,8 @@ BDDTreeAut VATA::RemoveUselessStates<BDDTreeAut>(const BDDTreeAut& aut,
 		std::unordered_map<StateTuple, NodeType, boost::hash<StateTuple>>>
 		NodeToTupleDict;
 	typedef std::unordered_set<Graph::NodeType> NodeSet;
+
+	typedef std::unordered_set<StateType> StateHT;
 
 
 	GCC_DIAG_OFF(effc++)   // suppress missing virtual destructor warning
@@ -62,9 +65,9 @@ BDDTreeAut VATA::RemoveUselessStates<BDDTreeAut>(const BDDTreeAut& aut,
 
 		WorkSetType& workset_;
 
-		NodeToTupleDict andNodes_;
+		NodeToTupleDict& andNodes_;
 
-		NodeToStateDict orNodes_;
+		NodeToStateDict& orNodes_;
 
 		NodeSet& termNodes_;
 
@@ -152,6 +155,23 @@ BDDTreeAut VATA::RemoveUselessStates<BDDTreeAut>(const BDDTreeAut& aut,
 		workset.pop();
 
 		func(aut.getMtbdd(procPair.second));
+	}
+
+	// now perform the analysis of useful states
+	NodeStack nodeStack;
+	StateHT usefulStates;
+
+	for (const NodeType& node : termNodes)
+	{
+		nodeStack.push(node);
+
+		NodeToStateDict::ConstIteratorFwd itOrNode;
+		if ((itOrNode = orNodes.FindFwd(node)) == orNodes.end())
+		{
+			assert(false);   // fail gracefully
+		}
+
+		usefulStates.insert(itOrNode->second);
 	}
 
 	assert(false);
