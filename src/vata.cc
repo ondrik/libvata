@@ -40,7 +40,7 @@ using VATA::Util::Convert;
 const char VATA_USAGE_STRING[] =
 	"VATA: Vojnar's Army Tree Automata library interface\n"
 	"usage: vata [-r <representation>] [(-I|-O|-F) <format>] [-h|--help] [-t] [-n]\n"
-	"            [-p] <command> [<args>]\n"
+	"            [-p] [-s] <command> [<args>]\n"
 	;
 
 const char VATA_USAGE_COMMANDS[] =
@@ -71,6 +71,8 @@ const char VATA_USAGE_FLAGS[] =
 	"                            stream\n"
 	"    -n                      Do not output the result automaton\n"
 	"    -p                      Prune unreachable states first\n"
+	"    -s                      Prune useless states first (note that this is\n"
+	"                            stronger than -p\n"
 	;
 
 
@@ -114,7 +116,19 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 		throw std::runtime_error("Could not get the start time");
 	}
 
-	if (args.pruneUnreachable)
+	if (args.pruneUseless)
+	{
+		if (args.operands >= 1)
+		{
+			autInput1 = RemoveUselessStates(autInput1);
+		}
+
+		if (args.operands >= 2)
+		{
+			autInput2 = RemoveUselessStates(autInput2);
+		}
+	}
+	else if (args.pruneUnreachable)
 	{
 		if (args.operands >= 1)
 		{

@@ -45,6 +45,7 @@ struct Arguments
 	bool showTime;
 	bool dontOutputResult;
 	bool pruneUnreachable;
+	bool pruneUseless;
 
 	Arguments() :
 		command(),
@@ -56,7 +57,8 @@ struct Arguments
 		fileName2(),
 		showTime(false),
 		dontOutputResult(false),
-		pruneUnreachable(false)
+		pruneUnreachable(false),
+		pruneUseless(false)
 	{ }
 
 };

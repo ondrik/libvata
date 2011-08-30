@@ -50,6 +50,7 @@ Arguments parseArguments(int argc, char* argv[])
 	bool parsedShowTime       = false;
 	bool parsedDontOutputRes  = false;
 	bool parsedPruneUnreach   = false;
+	bool parsedPruneUseless   = false;
 
 	// initialize the structure
 	Arguments args;
@@ -61,6 +62,7 @@ Arguments parseArguments(int argc, char* argv[])
 	args.showTime             = false;
 	args.dontOutputResult     = false;
 	args.pruneUnreachable     = false;
+	args.pruneUseless         = false;
 
 	while (argc > 0)
 	{	// until we parse all arguments
@@ -91,6 +93,16 @@ Arguments parseArguments(int argc, char* argv[])
 
 				parsedPruneUnreach = true;
 				args.pruneUnreachable = true;
+			}
+			else	if (currentArg == "-s")
+			{
+				if (parsedPruneUseless)
+				{
+					throw std::runtime_error("The \'-s\' flag specified more times.");
+				}
+
+				parsedPruneUseless = true;
+				args.pruneUseless = true;
 			}
 			else	if (currentArg == "-n")
 			{
