@@ -72,7 +72,7 @@ const char VATA_USAGE_FLAGS[] =
 	"    -n                      Do not output the result automaton\n"
 	"    -p                      Prune unreachable states first\n"
 	"    -s                      Prune useless states first (note that this is\n"
-	"                            stronger than -p\n"
+	"                            stronger than -p)\n"
 	;
 
 
@@ -163,7 +163,15 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	}
 	else if (args.command == COMMAND_INCLUSION)
 	{
-		boolResult = CheckInclusion(autInput1, autInput2);
+		if (args.pruneUseless)
+		{
+			boolResult = CheckInclusionNoUseless(autInput1, autInput2);
+			//boolResult = CheckInclusion(autInput1, autInput2);
+		}
+		else
+		{
+			boolResult = CheckInclusion(autInput1, autInput2);
+		}
 	}
 	else
 	{
