@@ -115,14 +115,6 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 			&stateDict2);
 	}
 
-	// get the start time
-	timespec startTime;
-	timespec finishTime;
-	if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime))
-	{
-		throw std::runtime_error("Could not get the start time");
-	}
-
 	if (args.pruneUseless)
 	{
 		if (args.operands >= 1)
@@ -146,6 +138,14 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 		{
 			autInput2 = RemoveUnreachableStates(autInput2);
 		}
+	}
+
+	// get the start time
+	timespec startTime;
+	timespec finishTime;
+	if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime))
+	{
+		throw std::runtime_error("Could not get the start time");
 	}
 
 	// process command
