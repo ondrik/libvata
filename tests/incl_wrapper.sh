@@ -15,6 +15,9 @@ SCRIPTPATH=`dirname $SCRIPT`
 # VATA executable
 VATA="${SCRIPTPATH}/../build/src/vata"
 
+# VATA executable
+OLDVATA="${SCRIPTPATH}/old-vata"
+
 # SFTA executable
 SFTA="${SCRIPTPATH}/sfta"
 
@@ -44,6 +47,14 @@ case "${OPERATION}" in
     ;;
   symdown-ul)
     ${VATA} -t incl -s "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  olddown)
+    ${OLDVATA} -t incl "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  olddown-ul)
+    ${OLDVATA} -t incl -s "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   symdownX)
