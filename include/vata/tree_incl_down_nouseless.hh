@@ -51,6 +51,10 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 
 	typedef std::unordered_multimap<StateType, StateSet> NonInlusionCache;
 
+	typedef std::pair<StateType, StateSet> StateStateSetPair;
+	typedef std::unordered_map<StateStateSetPair, bool,
+		boost::hash<StateStateSetPair>> StateStateSetPairToBoolMap;
+
 	class DownwardInclusionFunctor
 	{
 	private:  // data types
@@ -100,7 +104,6 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 				}
 
 				return currentCf_;
-
 			}
 
 			inline bool IsLast() const
@@ -110,7 +113,6 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 		};
 
 		typedef SequentialChoiceFunctionGenerator ChoiceFunctionGenerator;
-
 
 	private:  // data members
 
@@ -123,6 +125,8 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 		WorkSetType& workset_;
 
 		NonInlusionCache& nonIncl_;
+
+		StateStateSetPairToBoolMap& expandCache_;
 
 	private:  // methods
 
@@ -261,13 +265,14 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 	public:   // methods
 
 		DownwardInclusionFunctor(const Aut& smaller, const Aut& bigger,
-			WorkSetType& workset, NonInlusionCache& nonIncl) :
+			WorkSetType& workset, NonInlusionCache& nonIncl, StateStateSetPairToBoolMap& expandCache) :
 			smaller_(smaller),
 			bigger_(bigger),
 			processingStopped_(false),
 			inclusionHolds_(true),
 			workset_(workset),
-			nonIncl_(nonIncl)
+			nonIncl_(nonIncl),
+			expandCache_(expandCache)
 		{ }
 
 		DownwardInclusionFunctor(DownwardInclusionFunctor& downFctor) :
@@ -276,7 +281,8 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 			processingStopped_(false),
 			inclusionHolds_(true),
 			workset_(downFctor.workset_),
-			nonIncl_(downFctor.nonIncl_)
+			nonIncl_(downFctor.nonIncl_),
+			expandCache_(downFctor.expandCache_)
 		{ }
 
 		void operator()(const StateTupleSet& lhs, const StateTupleSet& rhs)
@@ -345,14 +351,31 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 									}
 								}
 
-								if (expand(lhsTuple[tuplePos], rhsSetForTuplePos))
-								{	// in case inclusion holds for this case
-									found = true;
-									break;
+								typename StateStateSetPairToBoolMap::const_iterator itCache;
+								if ((itCache = expandCache_.find(std::make_pair(lhsTuple[tuplePos],
+									rhsSetForTuplePos))) != expandCache_.end())
+								{	// in case the result is cached
+									if (itCache->second)
+									{	// in case the inclusion holds
+										found = true;
+										break;
+									}
 								}
 								else
-								{	// in case inclusion does not hold, cache the result
-									processFoundNoninclusion(lhsTuple[tuplePos], rhsSetForTuplePos);
+								{
+									bool res = expand(lhsTuple[tuplePos], rhsSetForTuplePos);
+									expandCache_.insert(std::make_pair(std::make_pair(lhsTuple[tuplePos],
+										rhsSetForTuplePos), res));
+
+									if (res)
+									{	// in case inclusion holds for this case
+										found = true;
+										break;
+									}
+									else
+									{	// in case inclusion does not hold, cache the result
+										processFoundNoninclusion(lhsTuple[tuplePos], rhsSetForTuplePos);
+									}
 								}
 							}
 
@@ -386,8 +409,10 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 
 	WorkSetType workset;
 	NonInlusionCache nonIncl;
+	StateStateSetPairToBoolMap expandCache;
 
-	DownwardInclusionFunctor downFctor(smaller, bigger, workset, nonIncl);
+	DownwardInclusionFunctor downFctor(smaller, bigger, workset, nonIncl,
+		expandCache);
 
 	StateSet finalStatesBigger(bigger.GetFinalStates().begin(),
 		bigger.GetFinalStates().end());
