@@ -13,6 +13,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/util/convert.hh>
 
 // Standard library headers
 #include	<cassert>
@@ -602,6 +603,23 @@ public:
 	 */
 	template <typename DataType>
 	friend size_t hash_value(const MTBDDNodePtr<DataType>& node);
+
+	/**
+	 * @brief  Overloaded operator << for std::ostream
+	 *
+	 * This is the overloaded operator << for std::ostream that enables easy
+	 * conversion of the pointer into a string.
+	 *
+	 * @param[inout]  os    std::ostream object
+	 * @param[in]     node  Pointer to the node
+	 *
+	 * @return  Modified std::ostream object
+	 *
+	 * @tparam  Data  Data type of leaf nodes
+	 */
+	template <typename DataType>
+	friend std::ostream& operator<<(std::ostream& os,
+		const MTBDDNodePtr<DataType>& node);
 };
 
 
@@ -1106,6 +1124,17 @@ namespace VATA
 
 			boost::hash<uintptr_t> hasher;
 			return hasher(node.addr_);
+		}
+
+		template <typename Data>
+		std::ostream& operator<<(std::ostream& os, const MTBDDNodePtr<Data>& node)
+		{
+			// Assertions
+			assert(!IsNull(node));
+
+			os << VATA::Util::Convert::ToString(node.addr_);
+
+			return os;
 		}
 	}
 }
