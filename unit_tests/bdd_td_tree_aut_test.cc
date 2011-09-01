@@ -11,14 +11,14 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/aut_base.hh>
-#include <vata/bdd_tree_aut.hh>
-#include <vata/bdd_tree_aut_op.hh>
+#include <vata/bdd_td_tree_aut.hh>
+#include <vata/bdd_td_tree_aut_op.hh>
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
 #include <vata/util/util.hh>
 
 using VATA::AutBase;
-using VATA::BDDTreeAut;
+using VATA::BDDTopDownTreeAut;
 using VATA::MTBDDPkg::VarAsgn;
 using VATA::Parsing::TimbukParser;
 using VATA::Serialization::TimbukSerializer;
@@ -27,7 +27,7 @@ using VATA::Util::Convert;
 
 // Boost headers
 #define BOOST_TEST_DYN_LINK
-#define BOOST_TEST_MODULE BDDTreeAut
+#define BOOST_TEST_MODULE BDDTopDownTreeAut
 #include <boost/test/unit_test.hpp>
 
 // testing headers
@@ -42,7 +42,7 @@ typedef AutBase::StringToStateDict StringToStateDict;
 
 typedef AutBase::StateToStateMap StateToStateMap;
 typedef AutBase::StateType StateType;
-typedef BDDTreeAut::StateTuple StateTuple;
+typedef BDDTopDownTreeAut::StateTuple StateTuple;
 
 
 /******************************************************************************
@@ -73,9 +73,9 @@ const fs::path ADD_TRANS_TIMBUK_FILE =
  ******************************************************************************/
 
 /**
- * @brief  BDDTreeAut testing fixture
+ * @brief  BDDTopDownTreeAut testing fixture
  *
- * Fixture for test of BDDTreeAut
+ * Fixture for test of BDDTopDownTreeAut
  */
 class BDDTreeAutFixture : public LogFixture
 { };
@@ -98,7 +98,7 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 		BOOST_MESSAGE("Loading automaton " + filename + "...");
 		std::string autStr = VATA::Util::ReadFile(filename);
 
-		BDDTreeAut aut;
+		BDDTopDownTreeAut aut;
 
 		StringToStateDict stateDict;
 		aut.LoadFromString(parser, autStr, &stateDict);
@@ -138,7 +138,7 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 		std::string transStr = VATA::Util::ReadFile(inputTransFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-		BDDTreeAut aut;
+		BDDTopDownTreeAut aut;
 		StringToStateDict stateDict;
 		aut.LoadFromString(parser, autStr, &stateDict);
 		AutDescription autDesc = parser.ParseString(autStr);
@@ -168,7 +168,7 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 				aut.SetStateFinal(parState);
 			}
 
-			const BDDTreeAut::SymbolType& symbol =
+			const BDDTopDownTreeAut::SymbolType& symbol =
 				aut.SafelyTranslateStringToSymbol(symbolStr);
 
 			StateTuple children;
@@ -209,19 +209,19 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 
 
 //	// get state "q"
-//	//BDDTreeAut::StateType stateQ = stateDict.TranslateFwd("q");
+//	//BDDTopDownTreeAut::StateType stateQ = stateDict.TranslateFwd("q");
 //	// get state "p"
-//	BDDTreeAut::StateType stateP = stateDict.TranslateFwd("p");
+//	BDDTopDownTreeAut::StateType stateP = stateDict.TranslateFwd("p");
 //	// insert state "qa"
-//	BDDTreeAut::StateType stateQA = aut.AddState();
+//	BDDTopDownTreeAut::StateType stateQA = aut.AddState();
 //	stateDict.Insert(std::make_pair("qa", stateQA));
 //
 //	// add the following transition: a -> qa, to the description ...
 //	AutDescription::Transition newTransition(std::vector<std::string>(), "a", "qa");
 //	descCorrect.transitions.insert(newTransition);
 //	// ... and to the automaton
-//	aut.AddSimplyTransition(BDDTreeAut::StateTuple(),
-//		BDDTreeAut::TranslateStringToSymbol("a"), stateQA);
+//	aut.AddSimplyTransition(BDDTopDownTreeAut::StateTuple(),
+//		BDDTopDownTreeAut::TranslateStringToSymbol("a"), stateQA);
 //
 //	// add the following transition: a(qa, qa) -> p, to the description ...
 //	std::vector<std::string> childrenStr;
@@ -230,10 +230,10 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 //	newTransition = AutDescription::Transition(childrenStr, "a", "p");
 //	descCorrect.transitions.insert(newTransition);
 //	// ... and to the automaton
-//	BDDTreeAut::StateTuple children;
+//	BDDTopDownTreeAut::StateTuple children;
 //	children.push_back(stateQA);
 //	children.push_back(stateQA);
-//	aut.AddSimplyTransition(children, BDDTreeAut::TranslateStringToSymbol("a"),
+//	aut.AddSimplyTransition(children, BDDTopDownTreeAut::TranslateStringToSymbol("a"),
 //		stateP);
 //
 //	std::string autOut = aut.DumpToString(serializer, &stateDict);
@@ -269,17 +269,17 @@ BOOST_AUTO_TEST_CASE(aut_union_simple)
 		std::string autRhsStr = VATA::Util::ReadFile(inputRhsFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-		BDDTreeAut autLhs;
+		BDDTopDownTreeAut autLhs;
 		StringToStateDict stateDictLhs;
 		autLhs.LoadFromString(parser, autLhsStr, &stateDictLhs);
 		AutDescription autLhsDesc = parser.ParseString(autLhsStr);
 
-		BDDTreeAut autRhs(autLhs.GetTransTable());
+		BDDTopDownTreeAut autRhs(autLhs.GetTransTable());
 		StringToStateDict stateDictRhs;
 		autRhs.LoadFromString(parser, autRhsStr, &stateDictRhs);
 		AutDescription autRhsDesc = parser.ParseString(autRhsStr);
 
-		BDDTreeAut autUnion = VATA::Union(autLhs, autRhs);
+		BDDTopDownTreeAut autUnion = VATA::Union(autLhs, autRhs);
 		StringToStateDict stateDictUnion =
 			VATA::Util::CreateUnionStringToStateMap(stateDictLhs, stateDictRhs);
 
@@ -318,18 +318,18 @@ BOOST_AUTO_TEST_CASE(aut_union_trans_table_copy)
 		std::string autRhsStr = VATA::Util::ReadFile(inputRhsFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-		BDDTreeAut autLhs;
+		BDDTopDownTreeAut autLhs;
 		StringToStateDict stateDictLhs;
 		autLhs.LoadFromString(parser, autLhsStr, &stateDictLhs);
 		AutDescription autLhsDesc = parser.ParseString(autLhsStr);
 
-		BDDTreeAut autRhs;
+		BDDTopDownTreeAut autRhs;
 		StringToStateDict stateDictRhs;
 		autRhs.LoadFromString(parser, autRhsStr, &stateDictRhs);
 		AutDescription autRhsDesc = parser.ParseString(autRhsStr);
 
 		AutBase::StateToStateMap stateTranslMap;
-		BDDTreeAut autUnion = VATA::Union(autLhs, autRhs, &stateTranslMap);
+		BDDTopDownTreeAut autUnion = VATA::Union(autLhs, autRhs, &stateTranslMap);
 		StringToStateDict stateDictUnion =
 			VATA::Util::CreateUnionStringToStateMap(stateDictLhs, stateDictRhs,
 				&stateTranslMap);
@@ -369,18 +369,18 @@ BOOST_AUTO_TEST_CASE(aut_intersection)
 		std::string autRhsStr = VATA::Util::ReadFile(inputRhsFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-		BDDTreeAut autLhs;
+		BDDTopDownTreeAut autLhs;
 		StringToStateDict stateDictLhs;
 		autLhs.LoadFromString(parser, autLhsStr, &stateDictLhs);
 		AutDescription autLhsDesc = parser.ParseString(autLhsStr);
 
-		BDDTreeAut autRhs;
+		BDDTopDownTreeAut autRhs;
 		StringToStateDict stateDictRhs;
 		autRhs.LoadFromString(parser, autRhsStr, &stateDictRhs);
 		AutDescription autRhsDesc = parser.ParseString(autRhsStr);
 
 		AutBase::ProductTranslMap translMap;
-		BDDTreeAut autIntersect = VATA::Intersection(autLhs, autRhs, &translMap);
+		BDDTopDownTreeAut autIntersect = VATA::Intersection(autLhs, autRhs, &translMap);
 
 		StringToStateDict stateDictIsect = VATA::Util::CreateProductStringToStateMap(
 			stateDictLhs, stateDictRhs, translMap);
@@ -417,13 +417,13 @@ BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
 		std::string autStr = VATA::Util::ReadFile(inputFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-		BDDTreeAut aut;
+		BDDTopDownTreeAut aut;
 		StringToStateDict stateDict;
 		aut.LoadFromString(parser, autStr, &stateDict);
 		AutDescription autDesc = parser.ParseString(autStr);
 
 		StateToStateMap translMap;
-		BDDTreeAut autNoUnreach = VATA::RemoveUnreachableStates(aut, &translMap);
+		BDDTopDownTreeAut autNoUnreach = VATA::RemoveUnreachableStates(aut, &translMap);
 
 		stateDict = VATA::Util::RebindMap(stateDict, translMap);
 		std::string autNoUnreachStr =
@@ -459,13 +459,13 @@ BOOST_AUTO_TEST_CASE(aut_remove_useless)
 		std::string autStr = VATA::Util::ReadFile(inputFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-		BDDTreeAut aut;
+		BDDTopDownTreeAut aut;
 		StringToStateDict stateDict;
 		aut.LoadFromString(parser, autStr, &stateDict);
 		AutDescription autDesc = parser.ParseString(autStr);
 
 		StateToStateMap translMap;
-		BDDTreeAut autNoUseless = VATA::RemoveUselessStates(aut, &translMap);
+		BDDTopDownTreeAut autNoUseless = VATA::RemoveUselessStates(aut, &translMap);
 
 		stateDict = VATA::Util::RebindMap(stateDict, translMap);
 		std::string autNoUselessStr =
@@ -504,10 +504,10 @@ BOOST_AUTO_TEST_CASE(aut_down_inclusion)
 		std::string autSmallerStr = VATA::Util::ReadFile(inputSmallerFile);
 		std::string autBiggerStr = VATA::Util::ReadFile(inputBiggerFile);
 
-		BDDTreeAut autSmaller;
+		BDDTopDownTreeAut autSmaller;
 		autSmaller.LoadFromString(parser, autSmallerStr);
 
-		BDDTreeAut autBigger;
+		BDDTopDownTreeAut autBigger;
 		autBigger.LoadFromString(parser, autBiggerStr);
 
 		bool doesInclusionHold = VATA::CheckInclusion(autSmaller, autBigger);

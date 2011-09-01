@@ -4,32 +4,33 @@
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
  *  Description:
- *    Implementation of intersection on BDD tree automata.
+ *    Implementation of intersection on BDD top-down tree automata.
  *
  *****************************************************************************/
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_tree_aut_op.hh>
+#include <vata/bdd_td_tree_aut_op.hh>
 
 using VATA::AutBase;
-using VATA::BDDTreeAut;
+using VATA::BDDTopDownTreeAut;
 
 // Standard library headers
 #include <unordered_map>
 
 template <>
-BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
-	const BDDTreeAut& rhs, AutBase::ProductTranslMap* pTranslMap)
+BDDTopDownTreeAut VATA::Intersection<BDDTopDownTreeAut>(
+	const BDDTopDownTreeAut& lhs, const BDDTopDownTreeAut& rhs,
+	AutBase::ProductTranslMap* pTranslMap)
 {
 	// Assertions
 	assert(lhs.isValid());
 	assert(rhs.isValid());
 
-	typedef BDDTreeAut::StateType StateType;
-	typedef BDDTreeAut::StateSet StateSet;
-	typedef BDDTreeAut::StateTuple StateTuple;
-	typedef BDDTreeAut::StateTupleSet StateTupleSet;
+	typedef BDDTopDownTreeAut::StateType StateType;
+	typedef BDDTopDownTreeAut::StateSet StateSet;
+	typedef BDDTopDownTreeAut::StateTuple StateTuple;
+	typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
 	typedef std::pair<StateType, StateType> StatePair;
 	typedef std::map<StateType, StatePair> WorkSetType;
 	typedef AutBase::ProductTranslMap IntersectionTranslMap;
@@ -42,13 +43,13 @@ BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
 	GCC_DIAG_ON(effc++)
 	private:  // data members
 
-		BDDTreeAut& resultAut_;
+		BDDTopDownTreeAut& resultAut_;
 		IntersectionTranslMap& translMap_;
 		WorkSetType& workset_;
 
 	public:   // methods
 
-		IntersectionApplyFunctor(BDDTreeAut& resultAut,
+		IntersectionApplyFunctor(BDDTopDownTreeAut& resultAut,
 			IntersectionTranslMap& translMap, WorkSetType& workset) :
 			resultAut_(resultAut),
 			translMap_(translMap),
@@ -104,7 +105,7 @@ BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
 		deleteTranslMap = true;
 	}
 
-	BDDTreeAut result;
+	BDDTopDownTreeAut result;
 	WorkSetType workset;
 
 
@@ -132,7 +133,7 @@ BDDTreeAut VATA::Intersection<BDDTreeAut>(const BDDTreeAut& lhs,
 		const StatePair& procPair  = itWs->second;
 		const StateType& procState = itWs->first;
 
-		BDDTreeAut::TransMTBDD mtbdd = isect(lhs.getMtbdd(procPair.first),
+		BDDTopDownTreeAut::TransMTBDD mtbdd = isect(lhs.getMtbdd(procPair.first),
 			rhs.getMtbdd(procPair.second));
 
 		result.setMtbdd(procState, mtbdd);

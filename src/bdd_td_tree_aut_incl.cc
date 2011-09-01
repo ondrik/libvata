@@ -4,21 +4,22 @@
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
  *  Description:
- *    Implementation of inclusion on BDD tree automata
+ *    Implementation of inclusion on BDD top-down tree automata
  *
  *****************************************************************************/
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_tree_aut.hh>
-#include <vata/bdd_tree_aut_op.hh>
+#include <vata/bdd_td_tree_aut.hh>
+#include <vata/bdd_td_tree_aut_op.hh>
 #include <vata/tree_incl_down.hh>
 #include <vata/tree_incl_down_nouseless.hh>
 
-using VATA::BDDTreeAut;
+using VATA::BDDTopDownTreeAut;
 
 template <>
-bool VATA::CheckInclusion(const BDDTreeAut& smaller, const BDDTreeAut& bigger)
+bool VATA::CheckInclusion(const BDDTopDownTreeAut& smaller,
+	const BDDTopDownTreeAut& bigger)
 {
 	// Assertions
 	assert(smaller.isValid());
@@ -28,8 +29,8 @@ bool VATA::CheckInclusion(const BDDTreeAut& smaller, const BDDTreeAut& bigger)
 }
 
 template <>
-bool VATA::CheckInclusionNoUseless(const BDDTreeAut& smaller,
-	const BDDTreeAut& bigger)
+bool VATA::CheckInclusionNoUseless(const BDDTopDownTreeAut& smaller,
+	const BDDTopDownTreeAut& bigger)
 {
 	// Assertions
 	assert(smaller.isValid());

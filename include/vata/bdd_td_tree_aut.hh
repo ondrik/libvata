@@ -4,12 +4,12 @@
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
  *  Description:
- *    Header file for a BDD-based tree automaton.
+ *    Header file for a BDD-based top-down tree automaton.
  *
  *****************************************************************************/
 
-#ifndef _VATA_BDD_TREE_AUT_HH_
-#define _VATA_BDD_TREE_AUT_HH_
+#ifndef _VATA_BDD_TD_TREE_AUT_HH_
+#define _VATA_BDD_TD_TREE_AUT_HH_
 
 // VATA headers
 #include <vata/vata.hh>
@@ -29,10 +29,10 @@
 #include <cstdint>
 #include <unordered_set>
 
-namespace VATA { class BDDTreeAut; }
+namespace VATA { class BDDTopDownTreeAut; }
 
 GCC_DIAG_OFF(effc++)
-class VATA::BDDTreeAut
+class VATA::BDDTopDownTreeAut
 	: public AutBase
 {
 GCC_DIAG_ON(effc++)
@@ -124,7 +124,7 @@ private:  // methods
 
 	bool isValid() const;
 
-	void copyStates(const BDDTreeAut& src);
+	void copyStates(const BDDTopDownTreeAut& src);
 
 	static SymbolType addBaseSymbol()
 	{
@@ -223,7 +223,7 @@ private:  // methods
 
 public:   // public methods
 
-	BDDTreeAut() :
+	BDDTopDownTreeAut() :
 		states_(),
 		finalStates_(),
 		transTable_(new TransTable)
@@ -232,7 +232,7 @@ public:   // public methods
 		assert(isValid());
 	}
 
-	BDDTreeAut(TransTablePtr transTable) :
+	BDDTopDownTreeAut(TransTablePtr transTable) :
 		states_(),
 		finalStates_(),
 		transTable_(transTable)
@@ -241,8 +241,8 @@ public:   // public methods
 		assert(isValid());
 	}
 
-	BDDTreeAut(const BDDTreeAut& aut);
-	BDDTreeAut& operator=(const BDDTreeAut& rhs);
+	BDDTopDownTreeAut(const BDDTopDownTreeAut& aut);
+	BDDTopDownTreeAut& operator=(const BDDTopDownTreeAut& rhs);
 
 	inline const StateSet& GetStates() const
 	{
@@ -317,9 +317,10 @@ public:   // public methods
 		const StateType& parent);
 
 	template <class OperationFunc>
-	static void ForeachDownSymbolFromStateAndStateSetDo(const BDDTreeAut& lhs,
-		const BDDTreeAut& rhs, const StateType& lhsState,
-		const StateSetLight& rhsSet, OperationFunc& opFunc)
+	static void ForeachDownSymbolFromStateAndStateSetDo(
+		const BDDTopDownTreeAut& lhs, const BDDTopDownTreeAut& rhs,
+		const StateType& lhsState, const StateSetLight& rhsSet,
+		OperationFunc& opFunc)
 	{
 		// Assertions
 		assert(lhs.isValid());
@@ -381,7 +382,7 @@ public:   // public methods
 		return TransMTBDD::DumpToDot(stateVec);
 	}
 
-	~BDDTreeAut();
+	~BDDTopDownTreeAut();
 };
 
 #endif

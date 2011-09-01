@@ -10,7 +10,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_tree_aut.hh>
+#include <vata/bdd_td_tree_aut.hh>
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
 #include <vata/util/convert.hh>
@@ -29,7 +29,7 @@
 #include "parse_args.hh"
 
 
-using VATA::BDDTreeAut;
+using VATA::BDDTopDownTreeAut;
 using VATA::Parsing::AbstrParser;
 using VATA::Parsing::TimbukParser;
 using VATA::Serialization::AbstrSerializer;
@@ -305,7 +305,7 @@ int main(int argc, char* argv[])
 	{
 		try
 		{
-			return executeCommand<BDDTreeAut>(args);
+			return executeCommand<BDDTopDownTreeAut>(args);
 		}
 		catch (std::exception& ex)
 		{

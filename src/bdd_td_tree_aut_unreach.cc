@@ -4,33 +4,34 @@
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
  *  Description:
- *    Implementation of pruning unreachable states of BDD tree automata.
+ *    Implementation of pruning unreachable states of top-down BDD tree
+ *    automata.
  *
  *****************************************************************************/
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_tree_aut_op.hh>
+#include <vata/bdd_td_tree_aut_op.hh>
 #include <vata/mtbdd/apply1func.hh>
 
 using VATA::AutBase;
-using VATA::BDDTreeAut;
+using VATA::BDDTopDownTreeAut;
 
 // Standard library headers
 #include <unordered_map>
 
 
 template <>
-BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut,
-	AutBase::StateToStateMap* pTranslMap)
+BDDTopDownTreeAut VATA::RemoveUnreachableStates<BDDTopDownTreeAut>(
+	const BDDTopDownTreeAut& aut, AutBase::StateToStateMap* pTranslMap)
 {
 	// Assertions
 	assert(aut.isValid());
 
-	typedef BDDTreeAut::StateType StateType;
-	typedef BDDTreeAut::StateSet StateSet;
-	typedef BDDTreeAut::StateTuple StateTuple;
-	typedef BDDTreeAut::StateTupleSet StateTupleSet;
+	typedef BDDTopDownTreeAut::StateType StateType;
+	typedef BDDTopDownTreeAut::StateSet StateSet;
+	typedef BDDTopDownTreeAut::StateTuple StateTuple;
+	typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
 	typedef AutBase::StateToStateMap StateToStateMap;
 	typedef std::map<StateType, StateType> WorkSetType;
 
@@ -43,13 +44,13 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut,
 	GCC_DIAG_OFF(effc++)
 	private:  // data members
 
-		BDDTreeAut& resultAut_;
+		BDDTopDownTreeAut& resultAut_;
 		StateToStateMap& translMap_;
 		WorkSetType& workset_;
 
 	public:   // methods
 
-		UnreachableApplyFunctor(BDDTreeAut& resultAut, StateToStateMap& translMap,
+		UnreachableApplyFunctor(BDDTopDownTreeAut& resultAut, StateToStateMap& translMap,
 			WorkSetType& workset) :
 			resultAut_(resultAut),
 			translMap_(translMap),
@@ -91,7 +92,7 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut,
 		}
 	};
 
-	BDDTreeAut result(aut.GetTransTable());
+	BDDTopDownTreeAut result(aut.GetTransTable());
 	WorkSetType workset;
 
 	bool deleteTranslMap = false;
@@ -119,7 +120,7 @@ BDDTreeAut VATA::RemoveUnreachableStates<BDDTreeAut>(const BDDTreeAut& aut,
 		const StateType& newState = itWs->first;
 		const StateType& oldState = itWs->second;
 
-		BDDTreeAut::TransMTBDD mtbdd = unreach(aut.getMtbdd(oldState));
+		BDDTopDownTreeAut::TransMTBDD mtbdd = unreach(aut.getMtbdd(oldState));
 
 		result.setMtbdd(newState, mtbdd);
 

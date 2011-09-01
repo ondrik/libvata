@@ -44,7 +44,7 @@ endforeach()
 
 set(TESTS
 	"ondriks_mtbdd_c_test"
-	"bdd_tree_aut_test"
+	"bdd_td_tree_aut_test"
   "timbuk_parser_test"
 )
 

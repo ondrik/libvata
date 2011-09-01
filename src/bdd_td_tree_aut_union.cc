@@ -4,33 +4,33 @@
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
  *  Description:
- *    Implementation of union on BDD tree automata.
+ *    Implementation of union on BDD top-down tree automata.
  *
  *****************************************************************************/
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_tree_aut_op.hh>
+#include <vata/bdd_td_tree_aut_op.hh>
 #include <vata/mtbdd/apply1func.hh>
 
-using VATA::BDDTreeAut;
+using VATA::BDDTopDownTreeAut;
 
 // Standard library headers
 #include <unordered_map>
 
 
 template <>
-BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs,
-	AutBase::StateToStateMap* pTranslMap)
+BDDTopDownTreeAut VATA::Union<BDDTopDownTreeAut>(const BDDTopDownTreeAut& lhs,
+	const BDDTopDownTreeAut& rhs, AutBase::StateToStateMap* pTranslMap)
 {
 	// Assertions
 	assert(lhs.isValid());
 	assert(rhs.isValid());
 
-	typedef BDDTreeAut::StateType StateType;
-	typedef BDDTreeAut::StateSet StateSet;
-	typedef BDDTreeAut::StateTuple StateTuple;
-	typedef BDDTreeAut::StateTupleSet StateTupleSet;
+	typedef BDDTopDownTreeAut::StateType StateType;
+	typedef BDDTopDownTreeAut::StateSet StateSet;
+	typedef BDDTopDownTreeAut::StateTuple StateTuple;
+	typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
 	typedef AutBase::StateToStateMap StateToStateMap;
 
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
@@ -41,12 +41,12 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs,
 	GCC_DIAG_ON(effc++)
 	private:  // data members
 
-		BDDTreeAut& aut_;
+		BDDTopDownTreeAut& aut_;
 		StateToStateMap& dict_;
 
 	public:   // methods
 
-		RewriterApplyFunctor(BDDTreeAut& aut, StateToStateMap& dict) :
+		RewriterApplyFunctor(BDDTopDownTreeAut& aut, StateToStateMap& dict) :
 			aut_(aut),
 			dict_(dict)
 		{ }
@@ -77,7 +77,7 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs,
 
 	if (lhs.GetTransTable() == rhs.GetTransTable())
 	{	// in case the automata share their transition table
-		BDDTreeAut result = lhs;
+		BDDTopDownTreeAut result = lhs;
 		result.copyStates(rhs);
 
 		assert(result.isValid());
@@ -87,7 +87,7 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs,
 	{	// in case the automata have distinct transition tables
 
 		// start by copying the LHS automaton
-		BDDTreeAut result = lhs;
+		BDDTopDownTreeAut result = lhs;
 
 		bool deleteTranslMap = false;
 		if (pTranslMap == nullptr)
@@ -103,7 +103,7 @@ BDDTreeAut VATA::Union<BDDTreeAut>(const BDDTreeAut& lhs, const BDDTreeAut& rhs,
 		{	// for all states in the RHS automaton
 			StateType translState = result.safelyTranslateToState(*itSt, *pTranslMap);
 
-			BDDTreeAut::TransMTBDD newMtbdd = rewriter(rhs.getMtbdd(*itSt));
+			BDDTopDownTreeAut::TransMTBDD newMtbdd = rewriter(rhs.getMtbdd(*itSt));
 
 			result.setMtbdd(translState, newMtbdd);
 		}

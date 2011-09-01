@@ -4,27 +4,28 @@
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
  *  Description:
- *    Source file for a BDD-based tree automaton.
+ *    Source file for a BDD-based top-down tree automaton.
  *
  *****************************************************************************/
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_tree_aut.hh>
+#include <vata/bdd_td_tree_aut.hh>
 #include <vata/mtbdd/void_apply2func.hh>
 
-using VATA::BDDTreeAut;
+using VATA::BDDTopDownTreeAut;
 using VATA::Parsing::AbstrParser;
 using VATA::Util::AutDescription;
 using VATA::Util::Convert;
 
 
 // static class data member
-BDDTreeAut::StringToSymbolDict BDDTreeAut::symbolDict_;
+BDDTopDownTreeAut::StringToSymbolDict BDDTopDownTreeAut::symbolDict_;
 
-BDDTreeAut::SymbolType BDDTreeAut::nextBaseSymbol_(SYMBOL_VALUE_LENGTH, 0);
+BDDTopDownTreeAut::SymbolType
+	BDDTopDownTreeAut::nextBaseSymbol_(SYMBOL_VALUE_LENGTH, 0);
 
-bool BDDTreeAut::isValid() const
+bool BDDTopDownTreeAut::isValid() const
 {
 	if (transTable_.get() == nullptr)
 	{	// in case the transition table pointer is bad
@@ -45,7 +46,7 @@ bool BDDTreeAut::isValid() const
 }
 
 
-void BDDTreeAut::copyStates(const BDDTreeAut& src)
+void BDDTopDownTreeAut::copyStates(const BDDTopDownTreeAut& src)
 {
 	// Assertions
 	assert(isValid());
@@ -65,7 +66,7 @@ void BDDTreeAut::copyStates(const BDDTreeAut& src)
 	assert(isValid());
 }
 
-bool BDDTreeAut::isStandAlone() const
+bool BDDTopDownTreeAut::isStandAlone() const
 {
 	// Assertions
 	assert(isValid());
@@ -89,7 +90,7 @@ bool BDDTreeAut::isStandAlone() const
 }
 
 
-BDDTreeAut::BDDTreeAut(const BDDTreeAut& aut) :
+BDDTopDownTreeAut::BDDTopDownTreeAut(const BDDTopDownTreeAut& aut) :
 	states_(),
 	finalStates_(),
 	transTable_(aut.transTable_)
@@ -101,7 +102,7 @@ BDDTreeAut::BDDTreeAut(const BDDTreeAut& aut) :
 }
 
 
-BDDTreeAut& BDDTreeAut::operator=(const BDDTreeAut& rhs)
+BDDTopDownTreeAut& BDDTopDownTreeAut::operator=(const BDDTopDownTreeAut& rhs)
 {
 	if (this == &rhs)
 	{
@@ -123,7 +124,7 @@ BDDTreeAut& BDDTreeAut::operator=(const BDDTreeAut& rhs)
 }
 
 
-void BDDTreeAut::AddSimplyTransition(const StateTuple& children,
+void BDDTopDownTreeAut::AddSimplyTransition(const StateTuple& children,
 	SymbolType symbol, const StateType& parent)
 {
 	// Assertions
@@ -144,7 +145,7 @@ void BDDTreeAut::AddSimplyTransition(const StateTuple& children,
 }
 
 
-void BDDTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
+void BDDTopDownTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
 	StringToStateDict* pStateDict)
 {
 	// Assertions
@@ -198,7 +199,7 @@ void BDDTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
 }
 
 
-void BDDTreeAut::loadFromAutDescSymbolic(const AutDescription& /* desc */,
+void BDDTopDownTreeAut::loadFromAutDescSymbolic(const AutDescription&/* desc */,
 	StringToStateDict* /* pStateDict */)
 {
 	// Assertions
@@ -210,7 +211,7 @@ void BDDTreeAut::loadFromAutDescSymbolic(const AutDescription& /* desc */,
 }
 
 
-void BDDTreeAut::LoadFromString(AbstrParser& parser, const std::string& str,
+void BDDTopDownTreeAut::LoadFromString(AbstrParser& parser, const std::string& str,
 	StringToStateDict* pStateDict, const std::string& params)
 {
 	// Assertions
@@ -241,7 +242,7 @@ void BDDTreeAut::LoadFromString(AbstrParser& parser, const std::string& str,
 }
 
 
-AutDescription BDDTreeAut::dumpToAutDescExplicit(
+AutDescription BDDTopDownTreeAut::dumpToAutDescExplicit(
 	const StringToStateDict* pStateDict) const
 {
 	GCC_DIAG_OFF(effc++)
@@ -363,13 +364,13 @@ AutDescription BDDTreeAut::dumpToAutDescExplicit(
 	return desc;
 }
 
-AutDescription BDDTreeAut::dumpToAutDescSymbolic(
+AutDescription BDDTopDownTreeAut::dumpToAutDescSymbolic(
 	const StringToStateDict* /* pStateDict */) const
 {
 	assert(false);
 }
 
-std::string BDDTreeAut::DumpToString(
+std::string BDDTopDownTreeAut::DumpToString(
 	VATA::Serialization::AbstrSerializer& serializer,
 	const StringToStateDict* pStateDict, const std::string& params) const
 {
@@ -387,7 +388,7 @@ std::string BDDTreeAut::DumpToString(
 }
 
 
-void BDDTreeAut::AddTransition(const StateTuple& children,
+void BDDTopDownTreeAut::AddTransition(const StateTuple& children,
 	const SymbolType& symbol, const StateType& state)
 {
 	// Assertions
@@ -408,7 +409,7 @@ void BDDTreeAut::AddTransition(const StateTuple& children,
 }
 
 
-BDDTreeAut::~BDDTreeAut()
+BDDTopDownTreeAut::~BDDTopDownTreeAut()
 {
 	// Assertions
 	assert(isValid());

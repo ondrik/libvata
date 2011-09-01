@@ -4,13 +4,13 @@
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
  *  Description:
- *    Implementation of pruning useless states of BDD tree automata.
+ *    Implementation of pruning useless states of BDD top-down tree automata.
  *
  *****************************************************************************/
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_tree_aut_op.hh>
+#include <vata/bdd_td_tree_aut_op.hh>
 #include <vata/mtbdd/apply1func.hh>
 #include <vata/mtbdd/void_apply1func.hh>
 #include <vata/util/graph.hh>
@@ -19,20 +19,20 @@
 #include <stack>
 
 using VATA::AutBase;
-using VATA::BDDTreeAut;
+using VATA::BDDTopDownTreeAut;
 using VATA::Util::Convert;
 using VATA::Util::Graph;
 
 template <>
-BDDTreeAut VATA::RemoveUselessStates<BDDTreeAut>(const BDDTreeAut& aut,
-	AutBase::StateToStateMap* pTranslMap)
+BDDTopDownTreeAut VATA::RemoveUselessStates<BDDTopDownTreeAut>(
+	const BDDTopDownTreeAut& aut, AutBase::StateToStateMap* pTranslMap)
 {
 	// Assertions
 	assert(aut.isValid());
 
 	typedef AutBase::StateType StateType;
-	typedef BDDTreeAut::StateTuple StateTuple;
-	typedef BDDTreeAut::StateTupleSet StateTupleSet;
+	typedef BDDTopDownTreeAut::StateTuple StateTuple;
+	typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
 	typedef AutBase::StateToStateMap StateToStateMap;
 
 	typedef Graph::NodeType NodeType;
@@ -230,14 +230,14 @@ BDDTreeAut VATA::RemoveUselessStates<BDDTreeAut>(const BDDTreeAut& aut,
 	{
 	private:  // data members
 
-		BDDTreeAut& resultAut_;
+		BDDTopDownTreeAut& resultAut_;
 		StateToStateMap& translMap_;
 		StatePairStack& workStack_;
 		StateHT& usefulStates_;
 
 	public:   // methods
 
-		RestrictApplyFunctor(BDDTreeAut& resultAut, StateToStateMap& translMap,
+		RestrictApplyFunctor(BDDTopDownTreeAut& resultAut, StateToStateMap& translMap,
 			StatePairStack& workStack, StateHT& usefulStates) :
 			resultAut_(resultAut),
 			translMap_(translMap),
@@ -287,7 +287,7 @@ BDDTreeAut VATA::RemoveUselessStates<BDDTreeAut>(const BDDTreeAut& aut,
 		}
 	};
 
-	BDDTreeAut result(aut.GetTransTable());
+	BDDTopDownTreeAut result(aut.GetTransTable());
 	StatePairStack workStack;
 
 	bool deleteTranslMap = false;
@@ -317,7 +317,7 @@ BDDTreeAut VATA::RemoveUselessStates<BDDTreeAut>(const BDDTreeAut& aut,
 		StatePair stPr = workStack.top();
 		workStack.pop();
 
-		BDDTreeAut::TransMTBDD mtbdd = restrFunc(aut.getMtbdd(stPr.second));
+		BDDTopDownTreeAut::TransMTBDD mtbdd = restrFunc(aut.getMtbdd(stPr.second));
 
 		result.setMtbdd(stPr.first, mtbdd);
 	}
