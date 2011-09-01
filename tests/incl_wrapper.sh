@@ -42,6 +42,10 @@ case "${OPERATION}" in
     ${VATA} -t incl "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
+  symdown-ul)
+    ${VATA} -t incl -s "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
   symdownX)
     ${SFTA} -o "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
@@ -51,7 +55,9 @@ case "${OPERATION}" in
     RETVAL="$?"
     ;;
   downSimT)
-    ${TALIB} sddf <<< $(cat "${FILE_LHS}" "${FILE_RHS}")
+    LHS=$(${TALIB} n < "${FILE_LHS}")
+    RHS=$(${TALIB} n < "${FILE_RHS}")
+    ${TALIB} sddf <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
   *) die "Invalid option ${OPERATION}"
