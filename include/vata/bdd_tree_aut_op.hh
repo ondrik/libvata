@@ -37,6 +37,10 @@ namespace VATA
 
 	template <>
 	bool CheckInclusion(const BDDTreeAut& smaller, const BDDTreeAut& bigger);
+
+	template <>
+	bool CheckInclusionNoUseless(const BDDTreeAut& smaller,
+		const BDDTreeAut& bigger);
 }
 
 #endif

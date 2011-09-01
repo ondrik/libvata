@@ -112,6 +112,24 @@ namespace VATA
 	 */
 	template <class Aut>
 	bool CheckInclusion(const Aut& smaller, const Aut& bigger);
+
+	/**
+	 * @brief  Checks language inclusion of two automata w/o useless states
+	 *
+	 * This function checks language inclusion of two automata, i.e., whether
+	 * L(@p smaller) is a subset of L(@p bigger). It is necessary that the
+	 * automata do not contain useless states.
+	 *
+	 * @param[in]  smaller  The automaton with the @e smaller language
+	 * @param[in]  bigger   The automaton with the @e bigger language
+	 *
+	 * @return  @p true if L(@p smaller) is a subset of L(@p bigger), @p false
+	 *          otherwise
+	 *
+	 * @tparam  Aut  Automaton type
+	 */
+	template <class Aut>
+	bool CheckInclusionNoUseless(const Aut& smaller, const Aut& bigger);
 }
 
 #endif

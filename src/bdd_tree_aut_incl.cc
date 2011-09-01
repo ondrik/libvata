@@ -13,6 +13,7 @@
 #include <vata/bdd_tree_aut.hh>
 #include <vata/bdd_tree_aut_op.hh>
 #include <vata/tree_incl_down.hh>
+#include <vata/tree_incl_down_nouseless.hh>
 
 using VATA::BDDTreeAut;
 
@@ -24,4 +25,15 @@ bool VATA::CheckInclusion(const BDDTreeAut& smaller, const BDDTreeAut& bigger)
 	assert(bigger.isValid());
 
 	return CheckDownwardTreeInclusion(smaller, bigger);
+}
+
+template <>
+bool VATA::CheckInclusionNoUseless(const BDDTreeAut& smaller,
+	const BDDTreeAut& bigger)
+{
+	// Assertions
+	assert(smaller.isValid());
+	assert(bigger.isValid());
+
+	return CheckDownwardTreeInclusionNoUseless(smaller, bigger);
 }
