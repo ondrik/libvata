@@ -16,6 +16,7 @@
 #include <vata/aut_base.hh>
 #include <vata/aut_op.hh>
 #include <vata/mtbdd/apply2func.hh>
+#include <vata/mtbdd/void_apply1func.hh>
 #include <vata/mtbdd/void_apply2func.hh>
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
@@ -54,6 +55,9 @@ GCC_DIAG_ON(effc++)
 	template <class Aut>
 	friend bool CheckInclusion(const Aut&, const Aut&);
 
+	template <class Aut>
+	friend bool CheckInclusionNoUseless(const Aut&, const Aut&);
+
 public:   // public data types
 
 	typedef VATA::MTBDDPkg::VarAsgn SymbolType;
@@ -76,6 +80,8 @@ private:  // private data types
 	typedef VATA::Util::AutDescription AutDescription;
 
 	typedef VATA::Util::TwoWayDict<std::string, SymbolType> StringToSymbolDict;
+
+	typedef VATA::Util::Convert Convert;
 
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class UnionApplyFunctor :
@@ -352,9 +358,9 @@ public:   // public methods
 		TransMTBDD rhsUnionMtbdd((StateTupleSet()));
 
 		// collect the RHS's MTBDDs leaves
-		for (auto itRhsSt = rhsSet.cbegin(); itRhsSt != rhsSet.cend(); ++itRhsSt)
+		for (const StateType& rhsState : rhsSet)
 		{
-			rhsUnionMtbdd = unioner(rhsUnionMtbdd, rhs.getMtbdd(*itRhsSt));
+			rhsUnionMtbdd = unioner(rhsUnionMtbdd, rhs.getMtbdd(rhsState));
 		}
 
 		// create apply functor
@@ -362,6 +368,17 @@ public:   // public methods
 
 		// perform the apply operation
 		opApplyFunc(lhs.getMtbdd(lhsState), rhsUnionMtbdd);
+	}
+
+	std::string DumpToDot() const
+	{
+		std::vector<const TransMTBDD*> stateVec;
+		for (const StateType& state : states_)
+		{
+			stateVec.push_back(&getMtbdd(state));
+		}
+
+		return TransMTBDD::DumpToDot(stateVec);
 	}
 
 	~BDDTreeAut();
