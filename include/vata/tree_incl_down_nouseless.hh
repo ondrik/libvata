@@ -49,7 +49,7 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 	typedef std::unordered_multimap<typename WorkSetElement::first_type,
 		typename WorkSetElement::second_type> WorkSetType;
 
-	typedef std::unordered_multimap<StateType, StateSet> NonInlusionCache;
+	typedef std::unordered_multimap<StateType, StateSet> InclusionCache;
 
 	typedef std::pair<StateType, StateSet> StateStateSetPair;
 	typedef std::unordered_map<StateStateSetPair, bool,
@@ -124,7 +124,7 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 
 		WorkSetType& workset_;
 
-		NonInlusionCache& nonIncl_;
+		InclusionCache& nonIncl_;
 
 		StateStateSetPairToBoolMap& nonInclHT_;
 
@@ -273,7 +273,7 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 	public:   // methods
 
 		DownwardInclusionFunctor(const Aut& smaller, const Aut& bigger,
-			WorkSetType& workset, NonInlusionCache& nonIncl,
+			WorkSetType& workset, InclusionCache& nonIncl,
 			StateStateSetPairToBoolMap& nonInclHT) :
 			smaller_(smaller),
 			bigger_(bigger),
@@ -400,7 +400,7 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 	};
 
 	WorkSetType workset;
-	NonInlusionCache nonIncl;
+	InclusionCache nonIncl;
 	StateStateSetPairToBoolMap nonInclHT;
 
 	DownwardInclusionFunctor downFctor(smaller, bigger, workset, nonIncl,
