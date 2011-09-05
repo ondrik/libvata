@@ -312,6 +312,7 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 				{	// in case there also a nullary transition in the RHS
 					assert(rhs.size() == 1);
 					assert(rhs.begin()->size() == 0);
+					return;
 				}
 				else
 				{	// in case RHS cannot make this transition
@@ -333,6 +334,27 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 					}
 					else
 					{
+						// first check whether there is a bigger tuple
+						for (const StateTuple& rhsTuple : rhs)
+						{
+							bool valid = true;
+							for (size_t i = 0; i < arity; ++i)
+							{
+								if (!expand(lhsTuple[i], StateSet(rhsTuple[i])))
+								{
+									valid = false;
+									break;
+								}
+							}
+
+							if (valid)
+							{
+								return;
+							}
+						}
+
+						// in case there is not a bigger tuple
+
 						const std::vector<StateTuple>& rhsVector = rhs.ToVector();
 
 						ChoiceFunctionGenerator cfGen(rhsVector.size(), lhsTuple.size());
