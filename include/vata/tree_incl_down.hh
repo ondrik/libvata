@@ -348,6 +348,33 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 					}
 					else
 					{
+						// first check whether there is a bigger tuple
+						bool valid = false;
+						for (const StateTuple& rhsTuple : rhs)
+						{
+							valid = true;
+							for (size_t i = 0; i < arity; ++i)
+							{
+								if (!expand(lhsTuple[i], StateSet(rhsTuple[i])))
+								{
+									valid = false;
+									break;
+								}
+							}
+
+							if (valid)
+							{
+								break;
+							}
+						}
+
+						if (valid)
+						{	// in case there was a bigger tuple
+							continue;
+						}
+
+						// in case there is not a bigger tuple
+
 						const std::vector<StateTuple>& rhsVector = rhs.ToVector();
 
 						ChoiceFunctionGenerator cfGen(rhsVector.size(), lhsTuple.size());

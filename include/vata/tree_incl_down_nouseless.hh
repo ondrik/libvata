@@ -322,82 +322,86 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 			}
 			else
 			{	// in case the transition si not nullary
+				if (rhs.empty())
+				{	// in case RHS is empty
+					failProcessing();
+					return;
+				}
+
 				for (const StateTuple& lhsTuple : lhs)
 				{
 					// Assertions
 					assert(lhsTuple.size() == arity);
 
-					if (rhs.empty())
-					{	// in case RHS is empty
-						failProcessing();
-						return;
-					}
-					else
+					// first check whether there is a bigger tuple
+					bool valid = false;
+					for (const StateTuple& rhsTuple : rhs)
 					{
-						// first check whether there is a bigger tuple
-						for (const StateTuple& rhsTuple : rhs)
+						valid = true;
+						for (size_t i = 0; i < arity; ++i)
 						{
-							bool valid = true;
-							for (size_t i = 0; i < arity; ++i)
+							if (!expand(lhsTuple[i], StateSet(rhsTuple[i])))
 							{
-								if (!expand(lhsTuple[i], StateSet(rhsTuple[i])))
-								{
-									valid = false;
-									break;
-								}
-							}
-
-							if (valid)
-							{
-								return;
+								valid = false;
+								break;
 							}
 						}
 
-						// in case there is not a bigger tuple
+						if (valid)
+						{
+							break;
+						}
+					}
 
-						const std::vector<StateTuple>& rhsVector = rhs.ToVector();
+					if (valid)
+					{	// in case there was a bigger tuple
+						continue;
+					}
 
-						ChoiceFunctionGenerator cfGen(rhsVector.size(), lhsTuple.size());
-						while (!cfGen.IsLast())
-						{	// for each choice function
-							const ChoiceFunctionType& cf = cfGen.GetNext();
-							bool found = false;
+					// in case there is not a bigger tuple
 
-							for (size_t tuplePos = 0; tuplePos < arity; ++tuplePos)
-							{ // for each position of the n-tuple
-								StateSet rhsSetForTuplePos;
+					const std::vector<StateTuple>& rhsVector = rhs.ToVector();
 
-								for (size_t cfIndex = 0; cfIndex < cf.size(); ++cfIndex)
-								{	// for each element in the choice function
-									if (cf[cfIndex] == tuplePos)
-									{ // in case the choice function for given vector is at
-										// current position in the tuple
-										assert(cfIndex < rhsVector.size());
-										const StateTuple& rhsTuple = rhsVector[cfIndex];
-										assert(rhsTuple.size() == arity);
+					ChoiceFunctionGenerator cfGen(rhsVector.size(), lhsTuple.size());
+					while (!cfGen.IsLast())
+					{	// for each choice function
+						const ChoiceFunctionType& cf = cfGen.GetNext();
+						bool found = false;
 
-										// insert tuplePos-th state of the cfIndex-th tuple in the
-										// RHS into the set
-										rhsSetForTuplePos.insert(rhsTuple[tuplePos]);
-									}
-								}
+						for (size_t tuplePos = 0; tuplePos < arity; ++tuplePos)
+						{ // for each position of the n-tuple
+							StateSet rhsSetForTuplePos;
 
-								if (expand(lhsTuple[tuplePos], rhsSetForTuplePos))
-								{	// in case inclusion holds for this case
-									found = true;
-									break;
-								}
-								else
-								{	// in case inclusion does not hold, cache the result
-									processFoundNoninclusion(lhsTuple[tuplePos], rhsSetForTuplePos);
+							for (size_t cfIndex = 0; cfIndex < cf.size(); ++cfIndex)
+							{	// for each element in the choice function
+								if (cf[cfIndex] == tuplePos)
+								{ // in case the choice function for given vector is at
+									// current position in the tuple
+									assert(cfIndex < rhsVector.size());
+									const StateTuple& rhsTuple = rhsVector[cfIndex];
+									assert(rhsTuple.size() == arity);
+
+									// insert tuplePos-th state of the cfIndex-th tuple in the
+									// RHS into the set
+									rhsSetForTuplePos.insert(rhsTuple[tuplePos]);
 								}
 							}
 
-							if (!found)
-							{	// in case the inclusion does not hold
-								failProcessing();
-								return;
+							if (expand(lhsTuple[tuplePos], rhsSetForTuplePos))
+							{	// in case inclusion holds for this case
+								found = true;
+								break;
 							}
+							else
+							{	// in case inclusion does not hold, cache the result
+								processFoundNoninclusion(lhsTuple[tuplePos], rhsSetForTuplePos);
+							}
+						}
+
+						if (!found)
+						{	// in case the inclusion does not hold
+							failProcessing();
+							return;
 						}
 					}
 				}
