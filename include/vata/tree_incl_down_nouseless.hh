@@ -405,6 +405,12 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 								}
 							}
 
+							if (rhsSetForTuplePos.empty())
+							{	// in case the right-hand side set is empty, we exploit the
+								// fact that there are no useless states in any of the automata
+								continue;
+							}
+
 							if (expand(lhsTuple[tuplePos], rhsSetForTuplePos))
 							{	// in case inclusion holds for this case
 								found = true;
