@@ -162,6 +162,16 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 			// make sure the element was removed
 			assert(erased);
 
+			// cache the result
+			if (innerFctor.InclusionHolds())
+			{
+				processFoundInclusion(smallerState, biggerStateSet);
+			}
+			else
+			{
+				processFoundNoninclusion(smallerState, biggerStateSet);
+			}
+
 			return innerFctor.InclusionHolds();
 		}
 
@@ -231,6 +241,14 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 			nonInclHT_.insert(std::make_pair(elem, result));
 
 			return result;
+		}
+
+		inline void processFoundInclusion(const StateType& smallerState,
+			const StateSet& biggerStateSet)
+		{
+			// placeholders
+			assert(&smallerState != nullptr);
+			assert(&biggerStateSet != nullptr);
 		}
 
 		inline void processFoundNoninclusion(const StateType& smallerState,
@@ -334,10 +352,6 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 								// this means that the whole tuple is ``blind''
 								found = true;
 							}
-							else
-							{	// if a state from LHS can generate a tree
-								processFoundNoninclusion(lhsTupleState, StateSet());
-							}
 						}
 
 						if (!found)
@@ -406,10 +420,6 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 								{	// in case inclusion holds for this case
 									found = true;
 									break;
-								}
-								else
-								{	// in case inclusion does not hold, cache the result
-									processFoundNoninclusion(lhsTuple[tuplePos], rhsSetForTuplePos);
 								}
 							}
 

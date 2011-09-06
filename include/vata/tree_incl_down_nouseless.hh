@@ -165,6 +165,16 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 			// make sure the element was removed
 			assert(erased);
 
+			// cache the result
+			if (innerFctor.InclusionHolds())
+			{
+				processFoundInclusion(smallerState, biggerStateSet);
+			}
+			else
+			{
+				processFoundNoninclusion(smallerState, biggerStateSet);
+			}
+
 			return innerFctor.InclusionHolds();
 		}
 
@@ -234,6 +244,14 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 			nonInclHT_.insert(std::make_pair(elem, result));
 
 			return result;
+		}
+
+		inline void processFoundInclusion(const StateType& smallerState,
+			const StateSet& biggerStateSet)
+		{
+			// placeholders
+			assert(&smallerState != nullptr);
+			assert(&biggerStateSet != nullptr);
 		}
 
 		inline void processFoundNoninclusion(const StateType& smallerState,
@@ -391,10 +409,6 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 							{	// in case inclusion holds for this case
 								found = true;
 								break;
-							}
-							else
-							{	// in case inclusion does not hold, cache the result
-								processFoundNoninclusion(lhsTuple[tuplePos], rhsSetForTuplePos);
 							}
 						}
 
