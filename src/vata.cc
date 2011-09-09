@@ -11,6 +11,8 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_tree_aut.hh>
+#include <vata/explicit_tree_aut.hh>
+#include <vata/explicit_tree_aut_op.hh>
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
 #include <vata/util/convert.hh>
