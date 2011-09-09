@@ -18,8 +18,6 @@
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
 #include <vata/util/ord_vector.hh>
-//#include <vata/util/vector_map.hh>
-//#include <vata/util/util.hh>
 
 // Standard library headers
 #include <cstdint>
