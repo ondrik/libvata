@@ -82,7 +82,7 @@ protected:
 
 public:
 
-	struct TransitionIterator {
+	struct Iterator {
 
 		const ExplicitTreeAut& aut_;
 
@@ -116,7 +116,7 @@ public:
 
 		}
 
-		TransitionIterator(const ExplicitTreeAut& aut,
+		Iterator(const ExplicitTreeAut& aut,
 			typename StateToTransitionClusterMap::const_iterator pos)
 			: aut_(aut), stateClusterIterator_(pos) {
 
@@ -124,7 +124,7 @@ public:
 
 		}
 
-		bool operator==(const TransitionIterator& rhs) const {
+		bool operator==(const Iterator& rhs) const {
 
 			if (this->stateClusterIterator_ != rhs.stateClusterIterator_)
 				return false;
@@ -137,7 +137,7 @@ public:
 				
 		}
 
-		TransitionIterator& operator++() {
+		Iterator& operator++() {
 
 			this->_increment();
 
@@ -145,9 +145,9 @@ public:
 
 		}
 
-		TransitionIterator operator++(int) {
+		Iterator operator++(int) {
 
-			TransitionIterator iter = *this;
+			Iterator iter = *this;
 
 			iter._increment();
 
@@ -169,11 +169,11 @@ public:
 
 	};
 
-	typedef TransitionIterator iterator;
-	typedef TransitionIterator const_iterator;
+	typedef Iterator iterator;
+	typedef Iterator const_iterator;
 
-	TransitionIterator begin() { return TransitionIterator(*this, this->transitions_->begin()); }
-	TransitionIterator end() { return TransitionIterator(*this, this->transitions_->end()); }
+	Iterator begin() { return Iterator(*this, this->transitions_->begin()); }
+	Iterator end() { return Iterator(*this, this->transitions_->end()); }
 
 public:
 
@@ -183,7 +183,7 @@ public:
 
 		AcceptingTransitions(const ExplicitTreeAut& aut) : aut_(aut) {}
 
-		struct AcceptingIterator {
+		struct Iterator {
 	
 			const ExplicitTreeAut& aut_;
 	
@@ -226,14 +226,14 @@ public:
 	
 			}
 	
-			AcceptingIterator(const ExplicitTreeAut& aut, StateSet::const_iterator pos)
+			Iterator(const ExplicitTreeAut& aut, StateSet::const_iterator pos)
 				: aut_(aut), stateSetIterator_(pos) {
 			
 				this->_init();
 	
 			}
 	
-			bool operator==(const AcceptingIterator& rhs) const {
+			bool operator==(const Iterator& rhs) const {
 	
 				if (this->stateSetIterator_ != rhs.stateSetIterator_)
 					return false;
@@ -246,7 +246,7 @@ public:
 					
 			}
 	
-			AcceptingIterator& operator++() {
+			Iterator& operator++() {
 	
 				this->_increment();
 	
@@ -254,9 +254,9 @@ public:
 	
 			}
 	
-			AcceptingIterator operator++(int) {
+			Iterator operator++(int) {
 	
-				TransitionIterator iter = *this;
+				Iterator iter = *this;
 	
 				iter._increment();
 	
@@ -278,20 +278,11 @@ public:
 	
 		};
 
-		typedef AcceptingIterator iterator;
-		typedef AcceptingIterator const_iterator;
+		typedef Iterator iterator;
+		typedef Iterator const_iterator;
 
-		AcceptingIterator begin() {
-
-			return AcceptingIterator(this->aut_, this->aut_.finalStates_->begin());
-
-		}
-
-		AcceptingIterator end() {
-
-				return AcceptingIterator(this->aut_, this->aut_.finalStates_->end());
-
-		}
+		Iterator begin() { return Iterator(this->aut_, this->aut_.finalStates_->begin()); }
+		Iterator end() { return Iterator(this->aut_, this->aut_.finalStates_->end()); }
 
 	};
 
