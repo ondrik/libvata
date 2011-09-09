@@ -34,9 +34,6 @@ namespace VATA
 	ExplicitTreeAut<SymbolType> RemoveUnreachableStates(const ExplicitTreeAut<SymbolType>& aut,
 		AutBase::StateToStateMap* pTranslMap) {
 
-		if (!aut.transitions_)
-			return aut;
-
 		std::unordered_set<AutBase::StateType>
 			reachableStates(aut.finalStates_),
 			newStates(reachableStates);
@@ -49,9 +46,8 @@ namespace VATA
 
 				auto cluster = ExplicitTreeAut<SymbolType>::genericLookup(*aut.transitions_, state);
 
-				assert(cluster);
-
-				clusters.push_back(cluster);
+				if (cluster)
+					clusters.push_back(cluster);
 
 			}
 
@@ -103,9 +99,8 @@ namespace VATA
 
 			auto iter = aut.transitions_.find(state);
 
-			assert(iter != aut.transitions_.end());
-
-			result.transitions_.insert(std::make_pair(state, iter->second));
+			if (iter != aut.transitions_.end())
+				result.transitions_.insert(std::make_pair(state, iter->second));
 
 		}
 
