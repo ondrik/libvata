@@ -4,15 +4,15 @@
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
  *  Description:
- *    Test suite for BDD based top-down tree automaton
+ *    Test suite for BDD based bottom-up tree automaton
  *
  *****************************************************************************/
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_td_tree_aut.hh>
-#include <vata/bdd_td_tree_aut_op.hh>
+#include <vata/bdd_bu_tree_aut.hh>
+#include <vata/bdd_bu_tree_aut_op.hh>
 
-typedef VATA::BDDTopDownTreeAut AutType;
+typedef VATA::BDDBottomUpTreeAut AutType;
 
 #include "tree_aut_test.hh"
