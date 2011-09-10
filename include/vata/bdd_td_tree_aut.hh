@@ -16,6 +16,7 @@
 #include <vata/aut_base.hh>
 #include <vata/aut_op.hh>
 #include <vata/mtbdd/apply2func.hh>
+#include <vata/mtbdd/ondriks_mtbdd.hh>
 #include <vata/mtbdd/void_apply1func.hh>
 #include <vata/mtbdd/void_apply2func.hh>
 #include <vata/parsing/abstr_parser.hh>
@@ -58,7 +59,7 @@ GCC_DIAG_ON(effc++)
 	template <class Aut>
 	friend bool CheckInclusionNoUseless(const Aut&, const Aut&);
 
-public:   // public data types
+public:   // data types
 
 	typedef VATA::MTBDDPkg::VarAsgn SymbolType;
 	typedef std::vector<StateType> StateTuple;
@@ -66,13 +67,13 @@ public:   // public data types
 	typedef std::unordered_set<StateType> StateSet;
 	typedef VATA::Util::OrdVector<StateType> StateSetLight;
 
-private:  // private data types
+private:  // data types
 
 
 	typedef VATA::MTBDDPkg::OndriksMTBDD<StateTupleSet> TransMTBDD;
 	typedef VATA::MTBDDPkg::OndriksMTBDD<bool> BDD;
 
-	typedef VATA::Util::TDBDDTransTable< StateType, VATA::Util::OrdVector>
+	typedef VATA::Util::TDBDDTransTable<StateType, VATA::Util::OrdVector>
 		TransTable;
 
 	typedef std::shared_ptr<TransTable> TransTablePtr;
