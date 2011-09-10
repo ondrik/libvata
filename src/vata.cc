@@ -10,6 +10,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/bdd_bu_tree_aut.hh>
 #include <vata/bdd_td_tree_aut.hh>
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
@@ -29,6 +30,7 @@
 #include "parse_args.hh"
 
 
+using VATA::BDDBottomUpTreeAut;
 using VATA::BDDTopDownTreeAut;
 using VATA::Parsing::AbstrParser;
 using VATA::Parsing::TimbukParser;
@@ -62,7 +64,10 @@ const char VATA_USAGE_FLAGS[] =
 	"                            automata. The following representations are\n"
 	"                            supported:\n"
 	"\n"
-	"                               'bdd'     : binary decision diagrams\n"
+	"                               'bdd-td'   : binary decision diagrams,\n"
+	"                                            top-down\n"
+	"                               'bdd-bu'   : binary decision diagrams,\n"
+	"                                            bottom-up\n"
 	"    (-I|-O|-F) <format>     Specify format for input (-I), output (-O), or\n"
 	"                            both (-F). The following formats are supported:\n"
 	"\n"
@@ -166,7 +171,6 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 		if (args.pruneUseless)
 		{
 			boolResult = CheckInclusionNoUseless(autInput1, autInput2);
-			//boolResult = CheckInclusion(autInput1, autInput2);
 		}
 		else
 		{
@@ -301,21 +305,25 @@ int main(int argc, char* argv[])
 		return EXIT_SUCCESS;
 	}
 
-	if (args.representation == REPRESENTATION_BDD)
+	try
 	{
-		try
+		if (args.representation == REPRESENTATION_BDD_TD)
 		{
-			return executeCommand<BDDTopDownTreeAut>(args);
+				return executeCommand<BDDTopDownTreeAut>(args);
 		}
-		catch (std::exception& ex)
+		else if (args.representation == REPRESENTATION_BDD_BU)
 		{
-			std::cerr << "An error occured: " << ex.what() << "\n";
+				return executeCommand<BDDBottomUpTreeAut>(args);
+		}
+		else
+		{
+			std::cerr << "Internal error: invalid representation\n";
 			return EXIT_FAILURE;
 		}
 	}
-	else
+	catch (std::exception& ex)
 	{
-		std::cerr << "Internal error: invalid representation\n";
+		std::cerr << "An error occured: " << ex.what() << "\n";
 		return EXIT_FAILURE;
 	}
 }

@@ -25,7 +25,8 @@ enum CommandEnum
 
 enum RepresentationEnum
 {
-	REPRESENTATION_BDD
+	REPRESENTATION_BDD_TD,
+	REPRESENTATION_BDD_BU
 };
 
 enum FormatEnum
