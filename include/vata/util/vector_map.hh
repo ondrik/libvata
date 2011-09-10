@@ -118,7 +118,7 @@ private:  // Private data types
 
 	private:  // Private methods
 
-		void reset()
+		inline void reset()
 		{
 			state_ = ITERATOR_INVALID;
 		}
@@ -371,8 +371,7 @@ private:  // Private data members
 
 private:  // Private methods
 
-
-	const ValueType& getValueForArity0(const IndexType& lhs) const
+	inline const ValueType& getValueForArity0(const IndexType& lhs) const
 	{
 		// Assertions
 		assert(lhs.size() == 0);
@@ -380,7 +379,7 @@ private:  // Private methods
 		return container0_;
 	}
 
-	const ValueType& getValueForArity1(const IndexType& lhs) const
+	inline const ValueType& getValueForArity1(const IndexType& lhs) const
 	{
 		// Assertions
 		assert(lhs.size() == 1);
@@ -394,7 +393,7 @@ private:  // Private methods
 		return it->second;
 	}
 
-	const ValueType& getValueForArity2(const IndexType& lhs) const
+	inline const ValueType& getValueForArity2(const IndexType& lhs) const
 	{
 		// Assertions
 		assert(lhs.size() == 2);
@@ -409,7 +408,7 @@ private:  // Private methods
 		return it->second;
 	}
 
-	const ValueType& getValueForArityN(const IndexType& lhs) const
+	inline const ValueType& getValueForArityN(const IndexType& lhs) const
 	{
 		// Assertions
 		assert(lhs.size() > 2);
@@ -424,7 +423,7 @@ private:  // Private methods
 	}
 
 
-	void setValueForArity0(const IndexType& lhs, const ValueType& value)
+	inline void setValueForArity0(const IndexType& lhs, const ValueType& value)
 	{
 		// Assertions
 		assert(lhs.size() == 0);
@@ -432,7 +431,7 @@ private:  // Private methods
 		container0_ = value;
 	}
 
-	void setValueForArity1(const IndexType& lhs, const ValueType& value)
+	inline void setValueForArity1(const IndexType& lhs, const ValueType& value)
 	{
 		// Assertions
 		assert(lhs.size() == 1);
@@ -448,7 +447,7 @@ private:  // Private methods
 		}
 	}
 
-	void setValueForArity2(const IndexType& lhs, const ValueType& value)
+	inline void setValueForArity2(const IndexType& lhs, const ValueType& value)
 	{
 		// Assertions
 		assert(lhs.size() == 2);
@@ -464,7 +463,7 @@ private:  // Private methods
 		}
 	}
 
-	void setValueForArityN(const IndexType& lhs, const ValueType& value)
+	inline void setValueForArityN(const IndexType& lhs, const ValueType& value)
 	{
 		// Assertions
 		assert(lhs.size() > 2);
@@ -490,7 +489,7 @@ public:   // Public methods
 			containerN_()
 	{ }
 
-	const ValueType& GetValue(const IndexType& index) const
+	inline const ValueType& GetValue(const IndexType& index) const
 	{
 		switch (index.size())
 		{
@@ -501,7 +500,7 @@ public:   // Public methods
 		}
 	}
 
-	void SetValue(const IndexType& index, const ValueType& value)
+	inline void SetValue(const IndexType& index, const ValueType& value)
 	{
 		switch (index.size())
 		{
@@ -602,7 +601,7 @@ public:   // Public methods
 		return result;
 	}
 
-	void insert(const VectorMap& vecMap)
+	inline void insert(const VectorMap& vecMap)
 	{
 		// copy all vectors (without the nullary one)
 		container1_.insert(vecMap.container1_.begin(), vecMap.container1_.end());
@@ -610,15 +609,86 @@ public:   // Public methods
 		containerN_.insert(vecMap.containerN_.begin(), vecMap.containerN_.end());
 	}
 
-	const_iterator begin() const
+	inline void insert(const IndexValueType& ivt)
+	{
+		SetValue(ivt.first, ivt.second);
+	}
+
+	inline const ValueType& GetDefaultValue() const
+	{
+		return defaultValue_;
+	}
+
+	inline const_iterator begin() const
 	{
 		return const_iterator(this);
 	}
 
-	const_iterator end() const
+	inline const_iterator end() const
 	{
 		return const_iterator(this, true);
 	}
+
+	inline const_iterator cbegin() const
+	{
+		return begin();
+	}
+
+	inline const_iterator cend() const
+	{
+		return end();
+	}
+
+	inline bool empty() const
+	{
+		return container1_.empty() && container2_.empty() && containerN_.empty();
+	}
+
+	inline size_t size() const
+	{
+		return container1_.size() + container2_.size() + containerN_.size();
+	}
+
+	inline void clear()
+	{
+		container0_ = defaultValue_;
+		container1_.clear();
+		container2_.clear();
+		containerN_.clear();
+	}
+
+	/**
+	 * @brief  Overloaded << operator
+	 *
+	 * Overloaded << operator for output stream.
+	 *
+	 * @see  ToString()
+	 *
+	 * @param[in]  os      The output stream
+	 * @param[in]  vecMap  Vector map
+	 *
+	 * @returns  Modified output stream
+	 */
+	friend std::ostream& operator<<(std::ostream& os, const VectorMap& vecMap)
+	{
+		os << "[";		// opening tag
+		for (auto it = vecMap.cbegin(); it != vecMap.cend(); ++it)
+		{	// for each element of the unordered map
+			if (it != vecMap.cbegin())
+			{	// if we are not at the first element
+				os << ", ";
+			}
+
+			// the string of the element
+			os << Convert::ToString(it->first) << " -> " <<
+				Convert::ToString(it->second);
+		}
+
+		os << "]";		// closing tag
+
+		return os;
+	}
+
 };
 
 #endif
