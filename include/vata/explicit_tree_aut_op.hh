@@ -23,7 +23,21 @@ namespace VATA {
 
 	template <class SymbolType>
 	ExplicitTreeAut<SymbolType> Union(const ExplicitTreeAut<SymbolType>& lhs,
-		const ExplicitTreeAut<SymbolType>& rhs, AutBase::StateToStateMap* pTranslMap);
+		const ExplicitTreeAut<SymbolType>& rhs, AutBase::StateToStateMap* pTranslMap) {
+
+		AutBase::StateToStateMap translMap;
+
+		if (!pTranslMap)
+			pTranslMap = &translMap;
+
+		ExplicitTreeAut<SymbolType> res(lhs.cache_);
+
+		lhs.ReindexStates(res, pTranslMap, 0);
+		rhs.ReindexStates(res, pTranslMap, pTranslMap->size());
+
+		return res;
+
+	}
 
 	template <class SymbolType>
 	ExplicitTreeAut<SymbolType> Intersection(const ExplicitTreeAut<SymbolType>& lhs,
