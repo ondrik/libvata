@@ -355,6 +355,8 @@ public:   // public methods
 
 	}
 
+	~ExplicitTreeAut() {}
+
 	template <class StateTransFunc, class SymbolTransFunc>
 	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
 		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator,
@@ -441,7 +443,7 @@ public:   // public methods
 	void AddTransition(const StateTuple& children, const SymbolType& symbol,
 		const StateType& state) {
 
-		if (this->transitions_.unique()) {
+		if (!this->transitions_.unique()) {
 
 			this->transitions_ = StateToTransitionClusterMapPtr(
 				new StateToTransitionClusterMap(*transitions_)
@@ -474,6 +476,69 @@ public:   // public methods
 		}
 
 		tupleSet->insert(this->tupleLookup(children));
+
+	}
+
+	void ReindexStates(ExplicitTreeAut& dst, AutBase::StateToStateMap* pTranslMap,
+		const StateType& base = 0) {
+
+		AutBase::StateToStateMap translMap;
+
+		if (!pTranslMap)
+			pTranslMap = &translMap;
+
+		struct Translator {
+
+			StateType index_;
+
+			AutBase::StateToStateMap& map_;
+
+			Translator(AutBase::StateToStateMap& map, const StateType& base)
+				: index_(base), map_(map) {}
+
+			const StateType& operator()(const StateType& state) {
+
+				auto p = this->map_.insert(std::make(state, this->index_));
+
+				if (p.second)
+					++this->index_;
+
+				return p.first->second;
+
+			}
+
+		};
+
+		Translator translator(*pTransMap, base);
+
+		// TODO: consider implementing more effitiently
+
+		for (auto stateClusterPair : *this->transitions_) {
+
+			assert(stateClusterPair.second);
+
+			StateType newState = translator(stateClusterPair.first);
+
+			for (auto symbolTupleSetPair : *stateClusterPair.second) {
+
+				assert(symbolTupleSetPair.second);
+
+				for (auto tuple : *symbolTupleSetPair.second) {
+
+					assert(tuple);
+
+					StateTuple newTuple;
+
+					for (auto s : *tuple)
+						newTuple.push_back(translator(s));
+
+					dst.AddTransition(newTuple, symbolTupleSetPair.first, newState);
+					
+				}
+
+			}
+
+		}
 
 	}
 
@@ -524,8 +589,6 @@ public:   // public methods
 		}
 
 	}
-
-	~ExplicitTreeAut() {}
 
 public:
 
