@@ -19,8 +19,7 @@
 
 #include <unordered_set>
 
-namespace VATA
-{
+namespace VATA {
 
 	template <class SymbolType>
 	ExplicitTreeAut<SymbolType> Union(const ExplicitTreeAut<SymbolType>& lhs,
@@ -34,11 +33,10 @@ namespace VATA
 	ExplicitTreeAut<SymbolType> RemoveUnreachableStates(const ExplicitTreeAut<SymbolType>& aut,
 		AutBase::StateToStateMap* pTranslMap) {
 
-		std::unordered_set<AutBase::StateType>
-			reachableStates(aut.finalStates_),
-			newStates(reachableStates);
+		std::unordered_set<AutBase::StateType> reachableStates(aut.finalStates_);
+		std::vector<AutBase::StateType> newStates(reachableStates.begin(), reachableStates.end());
 
-		while (newStates.size()) {
+		while (!newStates.empty()) {
 
 			std::vector<const typename ExplicitTreeAut<SymbolType>::TransitionCluster*> clusters;
 
@@ -63,10 +61,12 @@ namespace VATA
 
 					for (auto stateTuple : *symbolStateTupleSetPtr.second) {
 
-						for (auto state : stateTuple) {
+						assert(stateTuple);
+
+						for (auto state : *stateTuple) {
 
 							if (reachableStates.insert(state).second)
-								newStates.insert(state);
+								newStates.push_back(state);
 
 						}
 						

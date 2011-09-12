@@ -23,8 +23,26 @@
 #include <cstdint>
 #include <memory>
 #include <unordered_set>
+#include <unordered_map>
 
-namespace VATA { template <class SymbolType> class ExplicitTreeAut; }
+namespace VATA {
+
+	template <class SymbolType> class ExplicitTreeAut;
+
+	struct Explicit {
+
+		typedef AutBase::StateType StateType;
+		typedef std::vector<StateType> StateTuple;
+		typedef std::set<StateTuple> TupleSet;
+		typedef std::unordered_set<StateType> StateSet;
+
+		typedef std::unordered_map<StateTuple, std::weak_ptr<StateTuple>> TupleCache;
+
+		static TupleCache tupleCache;
+
+	};
+
+}
 
 GCC_DIAG_OFF(effc++)
 template <class SymbolType>
@@ -35,37 +53,32 @@ GCC_DIAG_ON(effc++)
 	friend Aut Union(const Aut&, const Aut&, AutBase::StateToStateMap*);
 
 	template <class Aut>
-	friend Aut Intersection(const Aut&, const Aut&,
-		AutBase::ProductTranslMap*);
+	friend Aut Intersection(const Aut&, const Aut&, AutBase::ProductTranslMap*);
 
 	template <class Aut>
-	friend Aut RemoveUnreachableStates(const Aut&,
-		AutBase::StateToStateMap* pTranslMap);
+	friend Aut RemoveUnreachableStates(const Aut&, AutBase::StateToStateMap* pTranslMap);
 
 	template <class Aut>
 	friend bool CheckInclusion(const Aut&, const Aut&);
 
 public:   // public data types
 
-	typedef std::vector<StateType> StateTuple;
-	typedef std::set<StateTuple> StateTupleSet;
-	typedef std::unordered_set<StateType> StateSet;
 	typedef VATA::Util::OrdVector<StateType> StateSetLight;
+	typedef Explicit::StateType StateType;
+	typedef Explicit::StateTuple StateTuple;
+	typedef Explicit::StateSet StateSet;
+	typedef Explicit::TupleCache TupleCache;
+	typedef std::shared_ptr<StateTuple> TuplePtr;
+	typedef std::set<TuplePtr> TuplePtrSet;
 
 private:  // private data types
 
 	typedef VATA::Util::AutDescription AutDescription;
-	typedef std::shared_ptr<StateTupleSet> StateTupleSetPtr;
-	typedef std::unordered_map<SymbolType, StateTupleSetPtr> TransitionCluster;
+	typedef std::shared_ptr<TuplePtrSet> TuplePtrSetPtr;
+	typedef std::unordered_map<SymbolType, TuplePtrSetPtr> TransitionCluster;
 	typedef std::shared_ptr<TransitionCluster> TransitionClusterPtr;
 	typedef std::unordered_map<StateType, TransitionClusterPtr> StateToTransitionClusterMap;
 	typedef std::shared_ptr<StateToTransitionClusterMap> StateToTransitionClusterMapPtr;
-
-private:  // data members
-
-	StateSet finalStates_;
-
-	StateToTransitionClusterMapPtr transitions_;
 
 protected:
 
@@ -80,6 +93,31 @@ protected:
 
 	}
 
+	TuplePtr tupleLookup(const StateTuple& tuple) {
+
+		auto p = this->cache_.insert(std::make_pair(tuple, std::weak_ptr<StateTuple>(NULL)));
+
+		if (!p.second)
+			return TuplePtr(p.first->second);
+
+		struct EraseTupleF {
+			
+			TupleCache& cache_;
+
+			EraseTupleF(TupleCache& cache) : cache_(cache) {}
+
+			void operator()(StateTuple* tuple) { this->cache_.erase(*tuple); }
+
+		};
+
+		TuplePtr ptr = TuplePtr(&p.first->first, EraseTupleF(this->cache_));
+
+		p.first->second = std::weak_ptr<StateTuple>(ptr);
+
+		return ptr;
+
+	}
+
 public:
 
 	struct Iterator {
@@ -88,7 +126,7 @@ public:
 
 		typename StateToTransitionClusterMap::const_iterator stateClusterIterator_;
 		typename TransitionCluster::const_iterator symbolSetIterator_;
-		StateTupleSet::const_iterator tupleIterator_;
+		TuplePtrSet::const_iterator tupleIterator_;
 
 		void _init() {
 
@@ -156,7 +194,7 @@ public:
 		}
 
 		const StateTuple& children() const {
-			return *this->tupleIterator_;
+			return **this->tupleIterator_;
 		}
 		
 		const SymbolType& symbol() const {
@@ -189,7 +227,7 @@ public:
 	
 			StateSet::const_iterator stateSetIterator_;
 			typename TransitionCluster::const_iterator symbolSetIterator_;
-			StateTupleSet::const_iterator tupleIterator_;
+			TuplePtrSet::const_iterator tupleIterator_;
 	
 			void _init() {
 	
@@ -265,7 +303,7 @@ public:
 			}
 	
 			const StateTuple& children() const {
-				return *this->tupleIterator_;
+				return **this->tupleIterator_;
 			}
 			
 			const SymbolType& symbol() const {
@@ -288,14 +326,27 @@ public:
 
 	AcceptingTransitions accepting;
 
+private:  // data members
+
+	TupleCache& cache_;
+
+	StateSet finalStates_;
+
+	StateToTransitionClusterMapPtr transitions_;
+
 public:   // public methods
 
-	ExplicitTreeAut() : finalStates_(),
+	ExplicitTreeAut(Explicit::TupleCache& tupleCache = Explicit::tupleCache) : cache_(tupleCache),
+		finalStates_(),
 		transitions_(StateToTransitionClusterMapPtr(new StateToTransitionClusterMap())),
 		accepting(*this) {}
 
-	ExplicitTreeAut(const ExplicitTreeAut& aut)
-		: finalStates_(aut.finalStates_), transitions_(aut.transitions), accepting(*this) {}
+	ExplicitTreeAut(const ExplicitTreeAut& aut) : cache_(aut.cache_),
+		finalStates_(aut.finalStates_), transitions_(aut.transitions), accepting(*this) {}
+
+	ExplicitTreeAut(const ExplicitTreeAut& aut, Explicit::TupleCache& tupleCache)
+		: cache_(tupleCache), finalStates_(aut.finalStates_), transitions_(aut.transitions),
+		accepting(*this) {}
 
 	ExplicitTreeAut& operator=(const ExplicitTreeAut& rhs) {
 
@@ -356,7 +407,9 @@ public:   // public methods
 
 					std::vector<std::string> tupleStr;
 
-					for (auto s : tuple)
+					assert(tuple);
+
+					for (auto s : *tuple)
 						tupleStr.push_back(statePrinter(s));
 
 					desc.transitions.insert(
@@ -409,18 +462,18 @@ public:   // public methods
 		}
 
 		auto& tupleSet = cluster.insert(
-			std::make_pair(symbol, StateTupleSetPtr(NULL))
+			std::make_pair(symbol, TuplePtrSetPtr(NULL))
 		).first->second;
 
 		if (!tupleSet || !tupleSet.unique()) {
 
-			tupleSet = StateTupleSetPtr(
-				tupleSet ? (new StateTupleSet(*tupleSet)) : (new StateTupleSet())
+			tupleSet = TuplePtrSetPtr(
+				tupleSet ? (new TuplePtrSet(*tupleSet)) : (new TuplePtrSet())
 			);
 
 		}
 
-		tupleSet.insert(children);
+		tupleSet->insert(this->tupleLookup(children));
 
 	}
 
@@ -453,7 +506,18 @@ public:   // public methods
 
 				assert(leftSymbolTupleSetPair.second);
 
-				opFunc(*leftSymbolTupleSetPair.second, *rightTupleSet);
+				struct AccessElementF {
+
+					const StateTuple& operator()(const TuplePtr& tuplePtr) const {
+						return *tuplePtr;
+					}
+
+				};
+
+				opFunc(
+					*leftSymbolTupleSetPair.second, AccessElementF(),
+					*rightTupleSet, AccessElementF()
+				);
 
 			}
 

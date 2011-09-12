@@ -48,6 +48,7 @@ add_library(libvata STATIC
   bdd_tree_aut_isect.cc
   bdd_tree_aut_union.cc
   bdd_tree_aut_unreach.cc
+  explicit_tree_aut.cc
   convert.cc
   fake_file.cc
   timbuk_parser.cc
