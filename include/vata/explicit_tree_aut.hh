@@ -498,7 +498,7 @@ public:   // public methods
 
 			const StateType& operator()(const StateType& state) {
 
-				auto p = this->map_.insert(std::make(state, this->index_));
+				auto p = this->map_.insert(std::make_pair(state, this->index_));
 
 				if (p.second)
 					++this->index_;
@@ -509,7 +509,7 @@ public:   // public methods
 
 		};
 
-		Translator translator(*pTransMap, base);
+		Translator translator(*pTranslMap, base);
 
 		// TODO: consider implementing more effitiently
 
