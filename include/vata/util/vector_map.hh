@@ -149,18 +149,25 @@ private:  // Private data types
 			switch (state_)
 			{
 				case ITERATOR_NULLARY:
+					assert(vecMap_->container0_ != nullptr);
 					return std::make_pair(index, std::ref(*(vecMap_->container0_)));
 
 				case ITERATOR_UNARY:
+					assert(!vecMap_->container1_.empty());
+					assert(itUnary_ != vecMap_->container1_.end());
 					index.push_back(itUnary_->first);
 					return std::make_pair(index, std::ref(itUnary_->second));
 
 				case ITERATOR_BINARY:
+					assert(!vecMap_->container2_.empty());
+					assert(itBinary_ != vecMap_->container2_.end());
 					index.push_back(itBinary_->first.first);
 					index.push_back(itBinary_->first.second);
 					return std::make_pair(index, std::ref(itBinary_->second));
 
 				case ITERATOR_NNARY:
+					assert(!vecMap_->containerN_.empty());
+					assert(itNnary_ != vecMap_->containerN_.end());
 					return std::make_pair(itNnary_->first, std::ref(itNnary_->second));
 
 				default: assert(false);
@@ -589,7 +596,14 @@ private:  // Private methods
 		// Assertions
 		assert(lhs.size() == 0);
 
-		return iterator(this, container0_);
+		if (container0_ == nullptr)
+		{
+			return end();
+		}
+		else
+		{
+			return iterator(this, *container0_);
+		}
 	}
 
 	inline const_iterator findForArity0(const key_type& lhs) const
@@ -597,7 +611,14 @@ private:  // Private methods
 		// Assertions
 		assert(lhs.size() == 0);
 
-		return const_iterator(this, *container0_);
+		if (container0_ == nullptr)
+		{
+			return end();
+		}
+		else
+		{
+			return const_iterator(this, *container0_);
+		}
 	}
 
 	inline iterator findForArity1(const key_type& lhs)
