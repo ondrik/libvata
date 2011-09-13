@@ -29,7 +29,7 @@ namespace VATA
 		template
 		<
 			typename KeyElement,
-			typename Value
+			typename T
 		>
 		class VectorMap;
 	}
@@ -42,32 +42,31 @@ namespace VATA
  * This class implements map that projects vectors of elements to arbitrary
  * elements.
  *
- * @tparam  KeyElement   Data type that is used as contained type of the vector.
- * @tparam  Value        Data type that is used as the image of the function.
+ * @tparam  KeyElement  Data type that is used as contained type of the vector.
+ * @tparam  T           Data type that is used as the image of the function.
  */
 template
 <
 	typename KeyElement,
-	typename Value
+	typename T
 >
 class VATA::Util::VectorMap
 {
 public:   // Public data types
 
 	typedef KeyElement KeyElementType;
-	typedef Value ValueType;
+
+	typedef std::vector<KeyElementType> key_type;
+	typedef T mapped_type;
+	typedef std::pair<const key_type, mapped_type> value_type;
 
 	typedef VectorMap
 		<
 			KeyElementType,
-			ValueType
+			mapped_type
 		> Type;
 
-	typedef std::vector<KeyElementType> IndexType;
-
-	typedef std::pair<IndexType, ValueType> IndexValueType;
-
-	typedef std::vector<IndexValueType> SameLengthIndexValueVector;
+	typedef std::vector<value_type> SameLengthIndexValueVector;
 	typedef std::vector<SameLengthIndexValueVector> IndexValueArray;
 
 private:  // Private data types
@@ -76,22 +75,28 @@ private:  // Private data types
 
 	typedef std::pair<KeyElementType, KeyElementType> KeyElementPairType;
 
-	typedef std::unordered_map<KeyElementType, ValueType,
+	typedef std::unordered_map<KeyElementType, mapped_type,
 		boost::hash<KeyElementType>> HashTableUnary;
-	typedef std::unordered_map<KeyElementPairType, ValueType,
+	typedef std::unordered_map<KeyElementPairType, mapped_type,
 		boost::hash<KeyElementPairType>> HashTableBinary;
-	typedef std::unordered_map<IndexType, ValueType,
-		boost::hash<IndexType>> HashTableNnary;
+	typedef std::unordered_map<key_type, mapped_type,
+		boost::hash<key_type>> HashTableNnary;
 
 
 	/**
-	 * @brief  Constant iterator
+	 * @brief  Base iterator
 	 *
-	 * The class for constant iterator.
+	 * The class for a base iterator.
 	 */
-	struct Tconst_iterator
+	template <
+		class ContainerPtr,
+		class UnaryIter,
+		class BinaryIter,
+		class NnaryIter
+		>
+	struct Tbase_iterator
 	{
-	private:  // Private data types
+	private:  // data types
 
 		enum IteratorState
 		{
@@ -103,64 +108,84 @@ private:  // Private data types
 			ITERATOR_END
 		};
 
+	protected:// data types
+
+		typedef std::pair<key_type, mapped_type&> ref_value_type;
+		typedef std::pair<key_type, const mapped_type&> const_ref_value_type;
+
+		typedef std::pair<key_type, mapped_type*> ptr_value_type;
+		typedef std::pair<key_type, const mapped_type*> const_ptr_value_type;
+
+		typedef UnaryIter UnaryIterator;
+		typedef BinaryIter BinaryIterator;
+		typedef NnaryIter NnaryIterator;
 
 	private:  // Private data members
 
-		const Type* vecMap_;
-
-		IndexValueType indexValue_;
+		ContainerPtr vecMap_;
 
 		IteratorState state_;
 
-		typename HashTableUnary::const_iterator itUnary_;
-		typename HashTableBinary::const_iterator itBinary_;
-		typename HashTableNnary::const_iterator itNnary_;
+		UnaryIterator itUnary_;
+		BinaryIterator itBinary_;
+		NnaryIterator itNnary_;
 
 	private:  // Private methods
 
 		inline void reset()
 		{
+			// Assertions
+			assert(vecMap_ != nullptr);
+
 			state_ = ITERATOR_INVALID;
 		}
 
-		void updateIndexValue()
+		template <class Tret>
+		Tret getIndexValue() const
 		{
 			// Assertions
+			assert(vecMap_ != nullptr);
 			assert(state_ != ITERATOR_INVALID);
 			assert(state_ != ITERATOR_END);
 
-			IndexType index;
+			key_type index;
 			switch (state_)
 			{
 				case ITERATOR_NULLARY:
-					indexValue_ = std::make_pair(index, vecMap_->container0_); break;
+					return std::make_pair(index, vecMap_->container0_); break;
 
 				case ITERATOR_UNARY:
 					index.push_back(itUnary_->first);
-					indexValue_ = std::make_pair(index, itUnary_->second); break;
+					return std::make_pair(index, &(itUnary_->second)); break;
 
 				case ITERATOR_BINARY:
 					index.push_back(itBinary_->first.first);
 					index.push_back(itBinary_->first.second);
-					indexValue_ = std::make_pair(index, itBinary_->second); break;
+					return std::make_pair(index, &(itBinary_->second)); break;
 
 				case ITERATOR_NNARY:
-					indexValue_ = std::make_pair(itNnary_->first, itNnary_->second); break;
+					return std::make_pair(itNnary_->first, &(itNnary_->second)); break;
 
-				default: throw std::logic_error(__func__ +
-					std::string(": invalid iterator state")); break;
+				default: assert(false); break;
 			}
 		}
 
-	public:   // Public methods
+	protected:   // methods
 
-		explicit Tconst_iterator(const Type* vecMap, bool end = false)
-			: vecMap_(vecMap),
-				indexValue_(),
-				state_((end)? ITERATOR_END : ITERATOR_INVALID),
-				itUnary_(),
-				itBinary_(),
-				itNnary_()
+		Tbase_iterator() :
+			vecMap_(nullptr),
+			state_(ITERATOR_INVALID),
+			itUnary_(),
+			itBinary_(),
+			itNnary_()
+		{ }
+
+		explicit Tbase_iterator(ContainerPtr vecMap, bool end = false) :
+			vecMap_(vecMap),
+			state_((end)? ITERATOR_END : ITERATOR_INVALID),
+			itUnary_(),
+			itBinary_(),
+			itNnary_()
 		{
 			// Assertions
 			assert(vecMap_ != nullptr);
@@ -172,26 +197,70 @@ private:  // Private data types
 			}
 		}
 
-
-		Tconst_iterator(const Tconst_iterator& it)
-			: vecMap_(it.vecMap_),
-				indexValue_(it.indexValue_),
-				state_(it.state_),
-				itUnary_(it.itUnary_),
-				itBinary_(it.itBinary_),
-				itNnary_(it.itNnary_)
+		Tbase_iterator(const Tbase_iterator& it) :
+			vecMap_(it.vecMap_),
+			state_(it.state_),
+			itUnary_(it.itUnary_),
+			itBinary_(it.itBinary_),
+			itNnary_(it.itNnary_)
 		{
 			// Assertions
 			assert(vecMap_ != nullptr);
 		}
 
+		Tbase_iterator(ContainerPtr vecMap,
+			mapped_type& /* itNullary */) :
+			vecMap_(vecMap),
+			state_(ITERATOR_NULLARY),
+			itUnary_(),
+			itBinary_(),
+			itNnary_()
+		{
+			// Assertions
+			assert(vecMap_ != nullptr);
+		}
 
-		Tconst_iterator& operator=(const Tconst_iterator& rhs)
+		Tbase_iterator(ContainerPtr vecMap,
+			UnaryIterator& itUnary) :
+			vecMap_(vecMap),
+			state_(ITERATOR_UNARY),
+			itUnary_(itUnary),
+			itBinary_(),
+			itNnary_()
+		{
+			// Assertions
+			assert(vecMap_ != nullptr);
+		}
+
+		Tbase_iterator(ContainerPtr vecMap,
+			BinaryIterator& itBinary) :
+			vecMap_(vecMap),
+			state_(ITERATOR_BINARY),
+			itUnary_(),
+			itBinary_(itBinary),
+			itNnary_()
+		{
+			// Assertions
+			assert(vecMap_ != nullptr);
+		}
+
+		Tbase_iterator(ContainerPtr vecMap,
+			NnaryIterator& itNnary) :
+			vecMap_(vecMap),
+			state_(ITERATOR_NNARY),
+			itUnary_(),
+			itBinary_(),
+			itNnary_(itNnary)
+		{
+			// Assertions
+			assert(vecMap_ != nullptr);
+		}
+
+		Tbase_iterator& operator=(const Tbase_iterator& rhs)
 		{
 			if (&rhs != this)
 			{
 				vecMap_ = rhs.vecMap_;
-				indexValue_ = rhs.indexValue_;
 				state_ = rhs.state_;
 				itUnary_ = rhs.itUnary_;
 				itBinary_ = rhs.itBinary_;
@@ -201,107 +270,25 @@ private:  // Private data types
 			return *this;
 		}
 
-
-		Tconst_iterator& operator++()
+		inline const_ptr_value_type const_deref() const
 		{
 			// Assertions
 			assert(vecMap_ != nullptr);
+			assert(state_ != ITERATOR_INVALID);
 
-			bool sound = false;
-
-			while (!sound)
-			{	// until we reach a sound value
-				switch (state_)
-				{
-					case ITERATOR_INVALID:
-						state_ = ITERATOR_NULLARY;
-						if (vecMap_->container0_ != vecMap_->defaultValue_)
-						{
-							sound = true;
-							updateIndexValue();
-						}
-
-						break;
-
-					case ITERATOR_NULLARY:
-						state_ = ITERATOR_UNARY;
-						itUnary_ = vecMap_->container1_.begin();
-						if (itUnary_ != vecMap_->container1_.end())
-						{
-							sound = true;
-							updateIndexValue();
-							++itUnary_;
-						}
-
-						break;
-
-					case ITERATOR_UNARY:
-						if (itUnary_ == vecMap_->container1_.end())
-						{
-							state_ = ITERATOR_BINARY;
-							itBinary_ = vecMap_->container2_.begin();
-							if (itBinary_ != vecMap_->container2_.end())
-							{
-								sound = true;
-								updateIndexValue();
-								++itBinary_;
-							}
-						}
-						else
-						{
-							sound = true;
-							updateIndexValue();
-							++itUnary_;
-						}
-
-						break;
-
-					case ITERATOR_BINARY:
-						if (itBinary_ == vecMap_->container2_.end())
-						{
-							state_ = ITERATOR_NNARY;
-							itNnary_ = vecMap_->containerN_.begin();
-							if (itNnary_ != vecMap_->containerN_.end())
-							{
-								sound = true;
-								updateIndexValue();
-								++itNnary_;
-							}
-						}
-						else
-						{
-							sound = true;
-							updateIndexValue();
-							++itBinary_;
-						}
-
-						break;
-
-					case ITERATOR_NNARY:
-						if (itNnary_ == vecMap_->containerN_.end())
-						{
-							sound = true;
-							state_ = ITERATOR_END;
-						}
-						else
-						{
-							sound = true;
-							updateIndexValue();
-							++itNnary_;
-						}
-
-						break;
-
-					default: throw std::logic_error(__func__ +
-						std::string(": invalid attempt to increment iterator")); break;
-				}
-			}
-
-			return *this;
+			return getIndexValue<const_ptr_value_type>();
 		}
 
+		inline ptr_value_type deref() const
+		{
+			// Assertions
+			assert(vecMap_ != nullptr);
+			assert(state_ != ITERATOR_INVALID);
 
-		bool operator==(const Tconst_iterator& rhs) const
+			return getIndexValue<ptr_value_type>();
+		}
+
+		bool operator==(const Tbase_iterator& rhs) const
 		{
 			// Assertions
 			assert(state_ != ITERATOR_INVALID);
@@ -331,37 +318,268 @@ private:  // Private data types
 			}
 		}
 
-		inline bool operator!=(const Tconst_iterator& rhs) const
+		inline bool operator!=(const Tbase_iterator& rhs) const
 		{
+			// Assertions
+			assert(vecMap_ != nullptr);
+
 			return !(*this == rhs);
 		}
 
-		inline const IndexValueType& operator*() const
+	public:
+
+		Tbase_iterator& operator++()
 		{
 			// Assertions
-			assert(state_ != ITERATOR_INVALID);
+			assert(vecMap_ != nullptr);
 
-			return indexValue_;
-		}
+			bool sound = false;
 
-		inline const IndexValueType* operator->() const
-		{
-			// Assertions
-			assert(state_ != ITERATOR_INVALID);
+			while (!sound)
+			{	// until we reach a sound value
+				switch (state_)
+				{
+					case ITERATOR_INVALID:
+						state_ = ITERATOR_NULLARY;
+						if (vecMap_->container0_)
+						{
+							sound = true;
+						}
 
-			return &indexValue_;
+						break;
+
+					case ITERATOR_NULLARY:
+						state_ = ITERATOR_UNARY;
+						itUnary_ = vecMap_->container1_.begin();
+						if (itUnary_ != vecMap_->container1_.end())
+						{
+							sound = true;
+							++itUnary_;
+						}
+
+						break;
+
+					case ITERATOR_UNARY:
+						if (itUnary_ == vecMap_->container1_.end())
+						{
+							state_ = ITERATOR_BINARY;
+							itBinary_ = vecMap_->container2_.begin();
+							if (itBinary_ != vecMap_->container2_.end())
+							{
+								sound = true;
+								++itBinary_;
+							}
+						}
+						else
+						{
+							sound = true;
+							++itUnary_;
+						}
+
+						break;
+
+					case ITERATOR_BINARY:
+						if (itBinary_ == vecMap_->container2_.end())
+						{
+							state_ = ITERATOR_NNARY;
+							itNnary_ = vecMap_->containerN_.begin();
+							if (itNnary_ != vecMap_->containerN_.end())
+							{
+								sound = true;
+								++itNnary_;
+							}
+						}
+						else
+						{
+							sound = true;
+							++itBinary_;
+						}
+
+						break;
+
+					case ITERATOR_NNARY:
+						if (itNnary_ == vecMap_->containerN_.end())
+						{
+							sound = true;
+							state_ = ITERATOR_END;
+						}
+						else
+						{
+							sound = true;
+							++itNnary_;
+						}
+
+						break;
+
+					default: throw std::logic_error(__func__ +
+						std::string(": invalid attempt to increment iterator")); break;
+				}
+			}
+
+			return *this;
 		}
 	};
+
+
+	struct Titerator;
+
+	GCC_DIAG_OFF(effc++)
+	struct Tconst_iterator :
+		public Tbase_iterator<
+			const Type*,
+			typename HashTableUnary::const_iterator,
+			typename HashTableBinary::const_iterator,
+			typename HashTableNnary::const_iterator
+		>
+	{
+	GCC_DIAG_ON(effc++)
+
+	private:  // data types
+
+		typedef Tbase_iterator<
+			const Type*,
+			typename HashTableUnary::const_iterator,
+			typename HashTableBinary::const_iterator,
+			typename HashTableNnary::const_iterator
+			> BaseType;
+
+		typedef typename BaseType::ref_value_type ref_value_type;
+		typedef typename BaseType::const_ref_value_type const_ref_value_type;
+
+	public:   // methods
+
+		Tconst_iterator() :
+			BaseType()
+		{ }
+
+		explicit Tconst_iterator(const Type* vecMap, bool end = false) :
+			BaseType(vecMap, end)
+		{ }
+
+		Tconst_iterator(const Tconst_iterator& it) :
+			BaseType(it)
+		{ }
+
+		Tconst_iterator(const Type* vecMap,
+			const mapped_type& itNullary) :
+			BaseType(vecMap, itNullary)
+		{ }
+
+		Tconst_iterator(const Type* vecMap,
+			typename BaseType::UnaryIterator itUnary) :
+			BaseType(vecMap, itUnary)
+		{ }
+
+		Tconst_iterator(const Type* vecMap,
+			typename BaseType::BinaryIterator itBinary) :
+			BaseType(vecMap, itBinary)
+		{ }
+
+		Tconst_iterator(const Type* vecMap,
+			typename BaseType::NnaryIterator itNnary) :
+			BaseType(vecMap, itNnary)
+		{ }
+
+		inline const_ref_value_type operator*() const
+		{
+			auto ptr = BaseType::const_deref();
+			return std::make_pair(ptr.first, std::ref(*(ptr.second)));
+		}
+
+		bool operator==(const Tconst_iterator& rhs) const
+		{
+			return BaseType::operator==(rhs);
+		}
+
+		bool operator!=(const Tconst_iterator& rhs) const
+		{
+			return !operator==(rhs);
+		}
+	};
+
+	GCC_DIAG_OFF(effc++)
+	struct Titerator :
+		public Tbase_iterator <
+			Type*,
+			typename HashTableUnary::iterator,
+			typename HashTableBinary::iterator,
+			typename HashTableNnary::iterator
+		>
+	{
+	GCC_DIAG_ON(effc++)
+
+	private:  // data types
+
+		typedef Tbase_iterator<
+			Type*,
+			typename HashTableUnary::iterator,
+			typename HashTableBinary::iterator,
+			typename HashTableNnary::iterator
+			> BaseType;
+
+		typedef typename BaseType::ref_value_type ref_value_type;
+		typedef typename BaseType::const_ref_value_type const_ref_value_type;
+
+	public:   // methods
+
+		Titerator() :
+			BaseType()
+		{ }
+
+		explicit Titerator(Type* vecMap, bool end = false) :
+			BaseType(vecMap, end)
+		{ }
+
+		Titerator(const Titerator& it) :
+			BaseType(it)
+		{ }
+
+		Titerator(Type* vecMap,
+			mapped_type& itNullary) :
+			BaseType(vecMap, itNullary)
+		{ }
+
+		Titerator(Type* vecMap,
+			typename BaseType::UnaryIterator itUnary) :
+			BaseType(vecMap, itUnary)
+		{ }
+
+		Titerator(Type* vecMap,
+			typename BaseType::BinaryIterator itBinary) :
+			BaseType(vecMap, itBinary)
+		{ }
+
+		Titerator(Type* vecMap,
+			typename BaseType::NnaryIterator itNnary) :
+			BaseType(vecMap, itNnary)
+		{ }
+
+		inline ref_value_type operator*()
+		{
+			auto ptr = BaseType::deref();
+			return make_pair(ptr.first, std::ref(*ptr.second));
+		}
+
+		bool operator==(const Titerator& rhs) const
+		{
+			return BaseType::operator==(rhs);
+		}
+
+		bool operator!=(const Titerator& rhs) const
+		{
+			return !operator==(rhs);
+		}
+	};
+
 
 public:   // Public data types
 
 	typedef Tconst_iterator const_iterator;
+	typedef Titerator iterator;
 
 private:  // Private data members
 
-	ValueType defaultValue_;
-
-	ValueType container0_;
+	mapped_type* container0_;
 
 	HashTableUnary container1_;
 
@@ -371,145 +589,271 @@ private:  // Private data members
 
 private:  // Private methods
 
-	inline const ValueType& getValueForArity0(const IndexType& lhs) const
+	inline iterator findForArity0(const key_type& lhs)
 	{
 		// Assertions
 		assert(lhs.size() == 0);
 
-		return container0_;
+		return iterator(this, container0_);
 	}
 
-	inline const ValueType& getValueForArity1(const IndexType& lhs) const
-	{
-		// Assertions
-		assert(lhs.size() == 1);
-
-		typename HashTableUnary::const_iterator it;
-		if ((it = container1_.find(lhs[0])) == container1_.end())
-		{	// in case the value is not in the hash table
-			return defaultValue_;
-		}
-
-		return it->second;
-	}
-
-	inline const ValueType& getValueForArity2(const IndexType& lhs) const
-	{
-		// Assertions
-		assert(lhs.size() == 2);
-
-		typename HashTableBinary::const_iterator it;
-		if ((it = container2_.find(std::make_pair(lhs[0], lhs[1]))) ==
-			container2_.end())
-		{	// in case the value is not in the hash table
-			return defaultValue_;
-		}
-
-		return it->second;
-	}
-
-	inline const ValueType& getValueForArityN(const IndexType& lhs) const
-	{
-		// Assertions
-		assert(lhs.size() > 2);
-
-		typename HashTableNnary::const_iterator it;
-		if ((it = containerN_.find(lhs)) == containerN_.end())
-		{	// in case the key is not in the hash table
-			return defaultValue_;
-		}
-
-		return it->second;
-	}
-
-
-	inline void setValueForArity0(const IndexType& lhs, const ValueType& value)
+	inline const_iterator findForArity0(const key_type& lhs) const
 	{
 		// Assertions
 		assert(lhs.size() == 0);
 
-		container0_ = value;
+		return const_iterator(this, *container0_);
 	}
 
-	inline void setValueForArity1(const IndexType& lhs, const ValueType& value)
+	inline iterator findForArity1(const key_type& lhs)
 	{
 		// Assertions
 		assert(lhs.size() == 1);
 
-		typename HashTableUnary::iterator itHash;
-		if ((itHash = container1_.find(lhs[0])) == container1_.end())
-		{
-			container1_.insert(std::make_pair(lhs[0], value));
-		}
-		else
-		{
-			itHash->second = value;
-		}
+		return iterator(this, container1_.find(lhs[0]));
 	}
 
-	inline void setValueForArity2(const IndexType& lhs, const ValueType& value)
+	inline const_iterator findForArity1(const key_type& lhs) const
+	{
+		// Assertions
+		assert(lhs.size() == 1);
+
+		return const_iterator(this, container1_.find(lhs[0]));
+	}
+
+	inline iterator findForArity2(const key_type& lhs)
 	{
 		// Assertions
 		assert(lhs.size() == 2);
 
-		typename HashTableBinary::iterator itHash;
-		if ((itHash = container2_.find(std::make_pair(lhs[0], lhs[1]))) == container2_.end())
-		{
-			container2_.insert(std::make_pair(std::make_pair(lhs[0], lhs[1]), value));
-		}
-		else
-		{
-			itHash->second = value;
-		}
+		return iterator(this, container2_.find(std::make_pair(lhs[0], lhs[1])));
 	}
 
-	inline void setValueForArityN(const IndexType& lhs, const ValueType& value)
+	inline const_iterator findForArity2(const key_type& lhs) const
+	{
+		// Assertions
+		assert(lhs.size() == 2);
+
+		return const_iterator(this, container2_.find(std::make_pair(lhs[0], lhs[1])));
+	}
+
+	inline iterator findForArityN(const key_type& lhs)
 	{
 		// Assertions
 		assert(lhs.size() > 2);
 
-		typename HashTableNnary::iterator itHash;
-		if ((itHash = containerN_.find(lhs)) == containerN_.end())
-		{
-			containerN_.insert(std::make_pair(lhs, value));
+		return iterator(this, containerN_.find(lhs));
+	}
+
+	inline const_iterator findForArityN(const key_type& lhs) const
+	{
+		// Assertions
+		assert(lhs.size() > 2);
+
+		return const_iterator(this, containerN_.find(lhs));
+	}
+
+	inline std::pair<iterator, bool> insertForArity0(const value_type& ivt)
+	{
+		// Assertions
+		assert(ivt.first.size() == 0);
+
+		if (container0_ != nullptr)
+		{	// in case there is something
+			return std::make_pair(iterator(this, container0_), false);
 		}
 		else
-		{
-			itHash->second = value;
+		{	// in case there is nothing
+			container0_ = new mapped_type(ivt.second);
+			return std::make_pair(iterator(this, container0_), true);
 		}
 	}
+
+	inline std::pair<iterator, bool> insertForArity1(const value_type& ivt)
+	{
+		// Assertions
+		assert(ivt.first.size() == 1);
+
+		assert(false);
+	}
+
+	inline std::pair<iterator, bool> insertForArity2(const value_type& ivt)
+	{
+		// Assertions
+		assert(ivt.first.size() == 2);
+
+		assert(false);
+	}
+
+	inline std::pair<iterator, bool> insertForArityN(const value_type& ivt)
+	{
+		// Assertions
+		assert(ivt.first.size() > 2);
+
+		assert(false);
+	}
+
+//	inline void setValueForArity0(const key_type& lhs, const mapped_type& value)
+//	{
+//		// Assertions
+//		assert(lhs.size() == 0);
+//
+//		container0_ = value;
+//	}
+//
+//	inline void setValueForArity1(const key_type& lhs, const mapped_type& value)
+//	{
+//		// Assertions
+//		assert(lhs.size() == 1);
+//
+//		typename HashTableUnary::iterator itHash;
+//		if ((itHash = container1_.find(lhs[0])) == container1_.end())
+//		{
+//			container1_.insert(std::make_pair(lhs[0], value));
+//		}
+//		else
+//		{
+//			itHash->second = value;
+//		}
+//	}
+//
+//	inline void setValueForArity2(const key_type& lhs, const mapped_type& value)
+//	{
+//		// Assertions
+//		assert(lhs.size() == 2);
+//
+//		typename HashTableBinary::iterator itHash;
+//		if ((itHash = container2_.find(std::make_pair(lhs[0], lhs[1]))) == container2_.end())
+//		{
+//			container2_.insert(std::make_pair(std::make_pair(lhs[0], lhs[1]), value));
+//		}
+//		else
+//		{
+//			itHash->second = value;
+//		}
+//	}
+//
+//	inline void setValueForArityN(const key_type& lhs, const mapped_type& value)
+//	{
+//		// Assertions
+//		assert(lhs.size() > 2);
+//
+//		typename HashTableNnary::iterator itHash;
+//		if ((itHash = containerN_.find(lhs)) == containerN_.end())
+//		{
+//			containerN_.insert(std::make_pair(lhs, value));
+//		}
+//		else
+//		{
+//			itHash->second = value;
+//		}
+//	}
 
 public:   // Public methods
 
-	VectorMap(const ValueType& defaultValue)
-		: defaultValue_(defaultValue),
-			container0_(defaultValue_),
+	VectorMap()
+		: container0_(nullptr),
 			container1_(),
 			container2_(),
 			containerN_()
 	{ }
 
-	inline const ValueType& GetValue(const IndexType& index) const
+	VectorMap(const VectorMap& vecMap)
+		: container0_((vecMap.container0_ == nullptr)?
+				nullptr : new mapped_type(*(vecMap.container0_))),
+			container1_(vecMap.container1_),
+			container2_(vecMap.container2_),
+			containerN_(vecMap.containerN_)
+	{ }
+
+	VectorMap(VectorMap&& vecMap)
+		: container0_(vecMap.container0_),
+			container1_(vecMap.container1_),
+			container2_(vecMap.container2_),
+			containerN_(vecMap.containerN_)
+	{
+		vecMap.container0_ = nullptr;
+	}
+
+	VectorMap& operator=(const VectorMap& vecMap)
+	{
+		if (&vecMap != this)
+		{
+			if (vecMap.container0_ != nullptr)
+			{
+				container0_ = new mapped_type(*(vecMap.container0_));
+			}
+			else
+			{
+				container0_ = nullptr;
+			}
+
+			container1_ = vecMap.container1_;
+			container2_ = vecMap.container2_;
+			containerN_ = vecMap.containerN_;
+		}
+
+		return *this;
+	}
+
+	VectorMap& operator=(VectorMap&& vecMap)
+	{
+		if (&vecMap != this)
+		{
+			container0_ = vecMap.container0_;
+			vecMap.container0_ = nullptr;
+			container1_ = vecMap.container1_;
+			container2_ = vecMap.container2_;
+			containerN_ = vecMap.containerN_;
+		}
+
+		return *this;
+	}
+
+	inline iterator find(const key_type& index)
 	{
 		switch (index.size())
 		{
-			case 0: return getValueForArity0(index); break;
-			case 1: return getValueForArity1(index); break;
-			case 2: return getValueForArity2(index); break;
-			default: return getValueForArityN(index); break;
+			case 0: return findForArity0(index); break;
+			case 1: return findForArity1(index); break;
+			case 2: return findForArity2(index); break;
+			default: return findForArityN(index); break;
 		}
 	}
 
-	inline void SetValue(const IndexType& index, const ValueType& value)
+	inline const_iterator find(const key_type& index) const
 	{
 		switch (index.size())
 		{
-			case 0: setValueForArity0(index, value); break;
-			case 1: setValueForArity1(index, value); break;
-			case 2: setValueForArity2(index, value); break;
-			default: setValueForArityN(index, value); break;
+			case 0: return findForArity0(index); break;
+			case 1: return findForArity1(index); break;
+			case 2: return findForArity2(index); break;
+			default: return findForArityN(index); break;
 		}
 	}
+
+	inline std::pair<iterator, bool> insert(const value_type& ivt)
+	{
+		switch (ivt.first.size())
+		{
+			case 0: return insertForArity0(ivt); break;
+			case 1: return insertForArity1(ivt); break;
+			case 2: return insertForArity2(ivt); break;
+			default: return insertForArityN(ivt); break;
+		}
+	}
+
+
+//	inline void SetValue(const key_type& index, const mapped_type& value)
+//	{
+//		switch (index.size())
+//		{
+//			case 0: setValueForArity0(index, value); break;
+//			case 1: setValueForArity1(index, value); break;
+//			case 2: setValueForArity2(index, value); break;
+//			default: setValueForArityN(index, value); break;
+//		}
+//	}
 
 	template <template <typename> class TSet>
 	IndexValueArray GetItemsWith(const KeyElementType& elem,
@@ -524,9 +868,9 @@ public:   // Public methods
 			typename HashTableUnary::const_iterator itUnary;
 			if ((itUnary = container1_.find(elem)) != container1_.end())
 			{	// in case the value is in the hash table
-				IndexType index;
+				key_type index;
 				index.push_back(elem);
-				IndexValueType valuePair = std::make_pair(index, itUnary->second);
+				value_type valuePair = std::make_pair(index, itUnary->second);
 
 				result[1].push_back(valuePair);
 			}
@@ -545,10 +889,10 @@ public:   // Public methods
 			typename HashTableBinary::const_iterator itBinary;
 			if ((itBinary = container2_.find(binaryKey)) != container2_.end())
 			{	// in case the value is in the hash table
-				IndexType index;
+				key_type index;
 				index.push_back(elem);
 				index.push_back(*itDom);
-				IndexValueType valuePair = std::make_pair(index, itBinary->second);
+				value_type valuePair = std::make_pair(index, itBinary->second);
 
 				result[2].push_back(valuePair);
 			}
@@ -564,10 +908,10 @@ public:   // Public methods
 
 			if ((itBinary = container2_.find(binaryKey)) != container2_.end())
 			{	// in case the value is in the hash table
-				IndexType index;
+				key_type index;
 				index.push_back(*itDom);
 				index.push_back(elem);
-				IndexValueType valuePair = std::make_pair(index, itBinary->second);
+				value_type valuePair = std::make_pair(index, itBinary->second);
 
 				result[2].push_back(valuePair);
 			}
@@ -578,13 +922,12 @@ public:   // Public methods
 		for (typename HashTableNnary::const_iterator itNnary = containerN_.begin();
 			itNnary != containerN_.end(); ++itNnary)
 		{	// traverse the whole container
-			const IndexType& vec = itNnary->first;
-			for (typename IndexType::const_iterator itIndex = vec.begin();
-				itIndex != vec.end(); ++itIndex)
+			const key_type& vec = itNnary->first;
+			for (auto indexElem : vec)
 			{	// try to find desired element in the vector
-				if (*itIndex == elem)
+				if (indexElem == elem)
 				{	// in case it is there
-					IndexValueType valuePair = std::make_pair(vec, itNnary->second);
+					value_type valuePair = std::make_pair(vec, itNnary->second);
 
 					while (result.size() <= vec.size())
 					{
@@ -609,19 +952,14 @@ public:   // Public methods
 		containerN_.insert(vecMap.containerN_.begin(), vecMap.containerN_.end());
 	}
 
-	inline void insert(const IndexValueType& ivt)
-	{
-		SetValue(ivt.first, ivt.second);
-	}
-
-	inline const ValueType& GetDefaultValue() const
-	{
-		return defaultValue_;
-	}
-
 	inline const_iterator begin() const
 	{
 		return const_iterator(this);
+	}
+
+	inline iterator begin()
+	{
+		return iterator(this);
 	}
 
 	inline const_iterator end() const
@@ -629,7 +967,17 @@ public:   // Public methods
 		return const_iterator(this, true);
 	}
 
+	inline iterator end()
+	{
+		return iterator(this, true);
+	}
+
 	inline const_iterator cbegin() const
+	{
+		return begin();
+	}
+
+	inline iterator cbegin()
 	{
 		return begin();
 	}
@@ -639,19 +987,26 @@ public:   // Public methods
 		return end();
 	}
 
+	inline iterator cend()
+	{
+		return end();
+	}
+
 	inline bool empty() const
 	{
-		return container1_.empty() && container2_.empty() && containerN_.empty();
+		return (container0_ == nullptr) && container1_.empty() &&
+			container2_.empty() && containerN_.empty();
 	}
 
 	inline size_t size() const
 	{
-		return container1_.size() + container2_.size() + containerN_.size();
+		return ((container0_ != nullptr)? 1 : 0) + container1_.size() +
+			container2_.size() + containerN_.size();
 	}
 
 	inline void clear()
 	{
-		container0_ = defaultValue_;
+		container0_ = nullptr;
 		container1_.clear();
 		container2_.clear();
 		containerN_.clear();
@@ -689,6 +1044,13 @@ public:   // Public methods
 		return os;
 	}
 
+	~VectorMap()
+	{
+		if (container0_ != nullptr)
+		{
+			delete container0_;
+		}
+	}
 };
 
 #endif
