@@ -68,16 +68,64 @@ public:   // public data types
 	typedef Explicit::StateTuple StateTuple;
 	typedef Explicit::StateSet StateSet;
 	typedef Explicit::TupleCache TupleCache;
-	typedef std::shared_ptr<StateTuple> TuplePtr;
-	typedef std::set<TuplePtr> TuplePtrSet;
 
 private:  // private data types
 
 	typedef VATA::Util::AutDescription AutDescription;
+	typedef std::shared_ptr<StateTuple> TuplePtr;
+	typedef std::set<TuplePtr> TuplePtrSet;
 	typedef std::shared_ptr<TuplePtrSet> TuplePtrSetPtr;
-	typedef std::unordered_map<SymbolType, TuplePtrSetPtr> TransitionCluster;
+
+	class TransitionCluster : public std::unordered_map<SymbolType, TuplePtrSetPtr> {
+
+	public:
+
+		const TuplePtrSetPtr& uniqueTuplePtrSet(const SymbolType& symbol) {
+	
+			auto& tupleSet = this->insert(
+				std::make_pair(symbol, TuplePtrSetPtr(NULL))
+			).first->second;
+	
+			if (!tupleSet || !tupleSet.unique()) {
+	
+				tupleSet = TuplePtrSetPtr(
+					tupleSet ? (new TuplePtrSet(*tupleSet)) : (new TuplePtrSet())
+				);
+	
+			}
+	
+			return tupleSet;
+	
+		}
+
+	};
+
 	typedef std::shared_ptr<TransitionCluster> TransitionClusterPtr;
-	typedef std::unordered_map<StateType, TransitionClusterPtr> StateToTransitionClusterMap;
+
+	class StateToTransitionClusterMap : public std::unordered_map<StateType, TransitionClusterPtr> {
+
+	public:
+
+		const TransitionClusterPtr& uniqueCluster(const StateType& state) {
+	
+			auto& cluster = this->insert(
+				std::make_pair(state, TransitionClusterPtr(NULL))
+			).first->second;
+	
+			if (!cluster || !cluster.unique()) {
+	
+				cluster = TransitionClusterPtr(
+					cluster ? (new TransitionCluster(*cluster)) : (new TransitionCluster())
+				);
+	
+			}
+	
+			return cluster;
+	
+		}
+		
+	};
+
 	typedef std::shared_ptr<StateToTransitionClusterMap> StateToTransitionClusterMapPtr;
 
 protected:
@@ -115,6 +163,22 @@ protected:
 		p.first->second = std::weak_ptr<StateTuple>(ptr);
 
 		return ptr;
+
+	}
+
+	const StateToTransitionClusterMapPtr& uniqueClusterMap() {
+
+		assert(this->transitions_);
+
+		if (!this->transitions_.unique()) {
+
+			this->transitions_ = StateToTransitionClusterMapPtr(
+				new StateToTransitionClusterMap(*transitions_)
+			);
+
+		}
+
+		return this->transitions_;
 
 	}
 
@@ -443,39 +507,10 @@ public:   // public methods
 	void AddTransition(const StateTuple& children, const SymbolType& symbol,
 		const StateType& state) {
 
-		if (!this->transitions_.unique()) {
-
-			this->transitions_ = StateToTransitionClusterMapPtr(
-				new StateToTransitionClusterMap(*transitions_)
-			);
-
-		}
-
-		auto& cluster = this->transitions_.insert(
-			std::make_pair(state, TransitionClusterPtr(NULL))
-		).first->second;
-
-		if (!cluster || !cluster.unique()) {
-
-			cluster = TransitionClusterPtr(
-				cluster ? (new TransitionCluster(*cluster)) : (new TransitionCluster())
-			);
-
-		}
-
-		auto& tupleSet = cluster.insert(
-			std::make_pair(symbol, TuplePtrSetPtr(NULL))
-		).first->second;
-
-		if (!tupleSet || !tupleSet.unique()) {
-
-			tupleSet = TuplePtrSetPtr(
-				tupleSet ? (new TuplePtrSet(*tupleSet)) : (new TuplePtrSet())
-			);
-
-		}
-
-		tupleSet->insert(this->tupleLookup(children));
+		this->uniqueClusterMap()
+			->uniqueCluster(state)
+			->uniqueTuplePtrSet(symbol)
+			->insert(this->tupleLookup(children));
 
 	}
 
@@ -511,17 +546,19 @@ public:   // public methods
 
 		Translator translator(*pTranslMap, base);
 
-		// TODO: consider implementing more effitiently
+		auto clusterMap = dst.uniqueClusterMap();
 
 		for (auto stateClusterPair : *this->transitions_) {
 
 			assert(stateClusterPair.second);
 
-			StateType newState = translator(stateClusterPair.first);
+			auto cluster = clusterMap->uniqueCluster(translator(stateClusterPair.first));
 
 			for (auto symbolTupleSetPair : *stateClusterPair.second) {
 
 				assert(symbolTupleSetPair.second);
+
+				auto tuplePtrSet = cluster->uniqueTuplePtrSet(symbolTupleSetPair.first);
 
 				for (auto tuple : *symbolTupleSetPair.second) {
 
@@ -532,8 +569,8 @@ public:   // public methods
 					for (auto s : *tuple)
 						newTuple.push_back(translator(s));
 
-					dst.AddTransition(newTuple, symbolTupleSetPair.first, newState);
-					
+					tuplePtrSet->insert(dst.tupleLookup(newTuple));
+
 				}
 
 			}
