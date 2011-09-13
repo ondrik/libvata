@@ -113,9 +113,6 @@ private:  // Private data types
 		typedef std::pair<key_type, mapped_type&> ref_value_type;
 		typedef std::pair<key_type, const mapped_type&> const_ref_value_type;
 
-		typedef std::pair<key_type, mapped_type*> ptr_value_type;
-		typedef std::pair<key_type, const mapped_type*> const_ptr_value_type;
-
 		typedef UnaryIter UnaryIterator;
 		typedef BinaryIter BinaryIterator;
 		typedef NnaryIter NnaryIterator;
@@ -152,21 +149,21 @@ private:  // Private data types
 			switch (state_)
 			{
 				case ITERATOR_NULLARY:
-					return std::make_pair(index, vecMap_->container0_); break;
+					return std::make_pair(index, std::ref(*(vecMap_->container0_)));
 
 				case ITERATOR_UNARY:
 					index.push_back(itUnary_->first);
-					return std::make_pair(index, &(itUnary_->second)); break;
+					return std::make_pair(index, std::ref(itUnary_->second));
 
 				case ITERATOR_BINARY:
 					index.push_back(itBinary_->first.first);
 					index.push_back(itBinary_->first.second);
-					return std::make_pair(index, &(itBinary_->second)); break;
+					return std::make_pair(index, std::ref(itBinary_->second));
 
 				case ITERATOR_NNARY:
-					return std::make_pair(itNnary_->first, &(itNnary_->second)); break;
+					return std::make_pair(itNnary_->first, std::ref(itNnary_->second));
 
-				default: assert(false); break;
+				default: assert(false);
 			}
 		}
 
@@ -270,22 +267,22 @@ private:  // Private data types
 			return *this;
 		}
 
-		inline const_ptr_value_type const_deref() const
+		inline const_ref_value_type const_deref() const
 		{
 			// Assertions
 			assert(vecMap_ != nullptr);
 			assert(state_ != ITERATOR_INVALID);
 
-			return getIndexValue<const_ptr_value_type>();
+			return getIndexValue<const_ref_value_type>();
 		}
 
-		inline ptr_value_type deref() const
+		inline ref_value_type deref() const
 		{
 			// Assertions
 			assert(vecMap_ != nullptr);
 			assert(state_ != ITERATOR_INVALID);
 
-			return getIndexValue<ptr_value_type>();
+			return getIndexValue<ref_value_type>();
 		}
 
 		bool operator==(const Tbase_iterator& rhs) const
@@ -482,8 +479,7 @@ private:  // Private data types
 
 		inline const_ref_value_type operator*() const
 		{
-			auto ptr = BaseType::const_deref();
-			return std::make_pair(ptr.first, std::ref(*(ptr.second)));
+			return BaseType::const_deref();
 		}
 
 		bool operator==(const Tconst_iterator& rhs) const
@@ -556,8 +552,7 @@ private:  // Private data types
 
 		inline ref_value_type operator*()
 		{
-			auto ptr = BaseType::deref();
-			return make_pair(ptr.first, std::ref(*ptr.second));
+			return BaseType::deref();
 		}
 
 		bool operator==(const Titerator& rhs) const
