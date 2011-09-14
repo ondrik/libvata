@@ -46,6 +46,9 @@ typedef AutType::StateTuple StateTuple;
  *                                  Constants                                 *
  ******************************************************************************/
 
+const fs::path LOAD_TIMBUK_FILE =
+	AUT_DIR / "load_timbuk.txt";
+
 const fs::path UNREACHABLE_TIMBUK_FILE =
 	AUT_DIR / "unreachable_removal_timbuk.txt";
 
@@ -86,12 +89,17 @@ BOOST_FIXTURE_TEST_SUITE(suite, BDDTreeAutFixture)
 
 BOOST_AUTO_TEST_CASE(timbuk_import_export)
 {
+	auto testfileContent = ParseTestFile(LOAD_TIMBUK_FILE.string());
+
 	TimbukParser parser;
 	TimbukSerializer serializer;
 
-	auto filenames = GetTimbukAutFilenames();
-	for (const std::string& filename : filenames)
+	for (auto testcase : testfileContent)
 	{
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 1, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
+
+		std::string filename = (AUT_DIR / testcase[0]).string();
 		BOOST_MESSAGE("Loading automaton " + filename + "...");
 		std::string autStr = VATA::Util::ReadFile(filename);
 
@@ -343,178 +351,178 @@ BOOST_AUTO_TEST_CASE(aut_union_trans_table_copy)
 }
 
 
-//BOOST_AUTO_TEST_CASE(aut_intersection)
-//{
-//	auto testfileContent = ParseTestFile(INTERSECTION_TIMBUK_FILE.string());
-//
-//	TimbukParser parser;
-//	TimbukSerializer serializer;
-//
-//	for (auto testcase : testfileContent)
-//	{
-//		BOOST_REQUIRE_MESSAGE(testcase.size() == 3, "Invalid format of a testcase: " +
-//			Convert::ToString(testcase));
-//
-//		std::string inputLhsFile = (AUT_DIR / testcase[0]).string();
-//		std::string inputRhsFile = (AUT_DIR / testcase[1]).string();
-//		std::string resultFile = (AUT_DIR / testcase[2]).string();
-//
-//		BOOST_MESSAGE("Performing intersection of " + inputLhsFile + " and "
-//			+ inputRhsFile + "...");
-//
-//		std::string autLhsStr = VATA::Util::ReadFile(inputLhsFile);
-//		std::string autRhsStr = VATA::Util::ReadFile(inputRhsFile);
-//		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
-//
-//		AutType autLhs;
-//		StringToStateDict stateDictLhs;
-//		autLhs.LoadFromString(parser, autLhsStr, &stateDictLhs);
-//		AutDescription autLhsDesc = parser.ParseString(autLhsStr);
-//
-//		AutType autRhs;
-//		StringToStateDict stateDictRhs;
-//		autRhs.LoadFromString(parser, autRhsStr, &stateDictRhs);
-//		AutDescription autRhsDesc = parser.ParseString(autRhsStr);
-//
-//		AutBase::ProductTranslMap translMap;
-//		AutType autIntersect = VATA::Intersection(autLhs, autRhs, &translMap);
-//
-//		StringToStateDict stateDictIsect = VATA::Util::CreateProductStringToStateMap(
-//			stateDictLhs, stateDictRhs, translMap);
-//
-//		std::string autIntersectStr = autIntersect.DumpToString(serializer,
-//			&stateDictIsect);
-//
-//		AutDescription descOut = parser.ParseString(autIntersectStr);
-//		AutDescription descCorrect = parser.ParseString(autCorrectStr);
-//
-//		BOOST_CHECK_MESSAGE(descOut == descCorrect,
-//			"\n\nExpecting:\n===========\n" + autCorrectStr +
-//			"===========\n\nGot:\n===========\n" + autIntersectStr + "\n===========");
-//	}
-//}
-//
-//BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
-//{
-//	auto testfileContent = ParseTestFile(UNREACHABLE_TIMBUK_FILE.string());
-//
-//	TimbukParser parser;
-//	TimbukSerializer serializer;
-//
-//	for (auto testcase : testfileContent)
-//	{
-//		BOOST_REQUIRE_MESSAGE(testcase.size() == 2, "Invalid format of a testcase: " +
-//			Convert::ToString(testcase));
-//
-//		std::string inputFile = (AUT_DIR / testcase[0]).string();
-//		std::string resultFile = (AUT_DIR / testcase[1]).string();
-//
-//		BOOST_MESSAGE("Removing unreachable states from " + inputFile + "...");
-//
-//		std::string autStr = VATA::Util::ReadFile(inputFile);
-//		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
-//
-//		AutType aut;
-//		StringToStateDict stateDict;
-//		aut.LoadFromString(parser, autStr, &stateDict);
-//		AutDescription autDesc = parser.ParseString(autStr);
-//
-//		StateToStateMap translMap;
-//		AutType autNoUnreach = VATA::RemoveUnreachableStates(aut, &translMap);
-//
-//		stateDict = VATA::Util::RebindMap(stateDict, translMap);
-//		std::string autNoUnreachStr =
-//			autNoUnreach.DumpToString(serializer, &stateDict);
-//
-//		AutDescription descOutNoUnreach = parser.ParseString(autNoUnreachStr);
-//		AutDescription descCorrectNoUnreach = parser.ParseString(autCorrectStr);
-//
-//		BOOST_CHECK_MESSAGE(descCorrectNoUnreach == descOutNoUnreach,
-//			"\n\nExpecting:\n===========\n" +
-//			serializer.Serialize(descCorrectNoUnreach) +
-//			"===========\n\nGot:\n===========\n" + autNoUnreachStr + "\n===========");
-//	}
-//}
-//
-//BOOST_AUTO_TEST_CASE(aut_remove_useless)
-//{
-//	auto testfileContent = ParseTestFile(USELESS_TIMBUK_FILE.string());
-//
-//	TimbukParser parser;
-//	TimbukSerializer serializer;
-//
-//	for (auto testcase : testfileContent)
-//	{
-//		BOOST_REQUIRE_MESSAGE(testcase.size() == 2, "Invalid format of a testcase: " +
-//			Convert::ToString(testcase));
-//
-//		std::string inputFile = (AUT_DIR / testcase[0]).string();
-//		std::string resultFile = (AUT_DIR / testcase[1]).string();
-//
-//		BOOST_MESSAGE("Removing useless states from " + inputFile + "...");
-//
-//		std::string autStr = VATA::Util::ReadFile(inputFile);
-//		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
-//
-//		AutType aut;
-//		StringToStateDict stateDict;
-//		aut.LoadFromString(parser, autStr, &stateDict);
-//		AutDescription autDesc = parser.ParseString(autStr);
-//
-//		StateToStateMap translMap;
-//		AutType autNoUseless = VATA::RemoveUselessStates(aut, &translMap);
-//
-//		stateDict = VATA::Util::RebindMap(stateDict, translMap);
-//		std::string autNoUselessStr =
-//			autNoUseless.DumpToString(serializer, &stateDict);
-//
-//		AutDescription descOutNoUseless = parser.ParseString(autNoUselessStr);
-//		AutDescription descCorrectNoUseless = parser.ParseString(autCorrectStr);
-//
-//		BOOST_CHECK_MESSAGE(descCorrectNoUseless == descOutNoUseless,
-//			"\n\nExpecting:\n===========\n" +
-//			serializer.Serialize(descCorrectNoUseless) +
-//			"===========\n\nGot:\n===========\n" + autNoUselessStr + "\n===========");
-//	}
-//}
-//
-//BOOST_AUTO_TEST_CASE(aut_down_inclusion)
-//{
-//	auto testfileContent = ParseTestFile(INCLUSION_TIMBUK_FILE.string());
-//
-//	TimbukParser parser;
-//	TimbukSerializer serializer;
-//
-//	for (auto testcase : testfileContent)
-//	{
-//		BOOST_REQUIRE_MESSAGE(testcase.size() == 3, "Invalid format of a testcase: " +
-//			Convert::ToString(testcase));
-//
-//		std::string inputSmallerFile = (AUT_DIR / testcase[0]).string();
-//		std::string inputBiggerFile = (AUT_DIR / testcase[1]).string();
-//		unsigned expectedResult = static_cast<bool>(
-//			Convert::FromString<unsigned>(testcase[2]));
-//
-//		BOOST_MESSAGE("Testing inclusion " + inputSmallerFile + " <= " +
-//			inputBiggerFile  + "...");
-//
-//		std::string autSmallerStr = VATA::Util::ReadFile(inputSmallerFile);
-//		std::string autBiggerStr = VATA::Util::ReadFile(inputBiggerFile);
-//
-//		AutType autSmaller;
-//		autSmaller.LoadFromString(parser, autSmallerStr);
-//
-//		AutType autBigger;
-//		autBigger.LoadFromString(parser, autBiggerStr);
-//
-//		bool doesInclusionHold = VATA::CheckInclusion(autSmaller, autBigger);
-//
-//		BOOST_CHECK_MESSAGE(expectedResult == doesInclusionHold,
-//			"\n\nError checking inclusion " + inputSmallerFile + " <= " +
-//			inputBiggerFile + ": expected " + Convert::ToString(expectedResult) +
-//			", got " + Convert::ToString(doesInclusionHold));
-//	}
-//}
+BOOST_AUTO_TEST_CASE(aut_intersection)
+{
+	auto testfileContent = ParseTestFile(INTERSECTION_TIMBUK_FILE.string());
+
+	TimbukParser parser;
+	TimbukSerializer serializer;
+
+	for (auto testcase : testfileContent)
+	{
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 3, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
+
+		std::string inputLhsFile = (AUT_DIR / testcase[0]).string();
+		std::string inputRhsFile = (AUT_DIR / testcase[1]).string();
+		std::string resultFile = (AUT_DIR / testcase[2]).string();
+
+		BOOST_MESSAGE("Performing intersection of " + inputLhsFile + " and "
+			+ inputRhsFile + "...");
+
+		std::string autLhsStr = VATA::Util::ReadFile(inputLhsFile);
+		std::string autRhsStr = VATA::Util::ReadFile(inputRhsFile);
+		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
+
+		AutType autLhs;
+		StringToStateDict stateDictLhs;
+		autLhs.LoadFromString(parser, autLhsStr, &stateDictLhs);
+		AutDescription autLhsDesc = parser.ParseString(autLhsStr);
+
+		AutType autRhs;
+		StringToStateDict stateDictRhs;
+		autRhs.LoadFromString(parser, autRhsStr, &stateDictRhs);
+		AutDescription autRhsDesc = parser.ParseString(autRhsStr);
+
+		AutBase::ProductTranslMap translMap;
+		AutType autIntersect = VATA::Intersection(autLhs, autRhs, &translMap);
+
+		StringToStateDict stateDictIsect = VATA::Util::CreateProductStringToStateMap(
+			stateDictLhs, stateDictRhs, translMap);
+
+		std::string autIntersectStr = autIntersect.DumpToString(serializer,
+			&stateDictIsect);
+
+		AutDescription descOut = parser.ParseString(autIntersectStr);
+		AutDescription descCorrect = parser.ParseString(autCorrectStr);
+
+		BOOST_CHECK_MESSAGE(descOut == descCorrect,
+			"\n\nExpecting:\n===========\n" + autCorrectStr +
+			"===========\n\nGot:\n===========\n" + autIntersectStr + "\n===========");
+	}
+}
+
+BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
+{
+	auto testfileContent = ParseTestFile(UNREACHABLE_TIMBUK_FILE.string());
+
+	TimbukParser parser;
+	TimbukSerializer serializer;
+
+	for (auto testcase : testfileContent)
+	{
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 2, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
+
+		std::string inputFile = (AUT_DIR / testcase[0]).string();
+		std::string resultFile = (AUT_DIR / testcase[1]).string();
+
+		BOOST_MESSAGE("Removing unreachable states from " + inputFile + "...");
+
+		std::string autStr = VATA::Util::ReadFile(inputFile);
+		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
+
+		AutType aut;
+		StringToStateDict stateDict;
+		aut.LoadFromString(parser, autStr, &stateDict);
+		AutDescription autDesc = parser.ParseString(autStr);
+
+		StateToStateMap translMap;
+		AutType autNoUnreach = VATA::RemoveUnreachableStates(aut, &translMap);
+
+		stateDict = VATA::Util::RebindMap(stateDict, translMap);
+		std::string autNoUnreachStr =
+			autNoUnreach.DumpToString(serializer, &stateDict);
+
+		AutDescription descOutNoUnreach = parser.ParseString(autNoUnreachStr);
+		AutDescription descCorrectNoUnreach = parser.ParseString(autCorrectStr);
+
+		BOOST_CHECK_MESSAGE(descCorrectNoUnreach == descOutNoUnreach,
+			"\n\nExpecting:\n===========\n" +
+			serializer.Serialize(descCorrectNoUnreach) +
+			"===========\n\nGot:\n===========\n" + autNoUnreachStr + "\n===========");
+	}
+}
+
+BOOST_AUTO_TEST_CASE(aut_remove_useless)
+{
+	auto testfileContent = ParseTestFile(USELESS_TIMBUK_FILE.string());
+
+	TimbukParser parser;
+	TimbukSerializer serializer;
+
+	for (auto testcase : testfileContent)
+	{
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 2, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
+
+		std::string inputFile = (AUT_DIR / testcase[0]).string();
+		std::string resultFile = (AUT_DIR / testcase[1]).string();
+
+		BOOST_MESSAGE("Removing useless states from " + inputFile + "...");
+
+		std::string autStr = VATA::Util::ReadFile(inputFile);
+		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
+
+		AutType aut;
+		StringToStateDict stateDict;
+		aut.LoadFromString(parser, autStr, &stateDict);
+		AutDescription autDesc = parser.ParseString(autStr);
+
+		StateToStateMap translMap;
+		AutType autNoUseless = VATA::RemoveUselessStates(aut, &translMap);
+
+		stateDict = VATA::Util::RebindMap(stateDict, translMap);
+		std::string autNoUselessStr =
+			autNoUseless.DumpToString(serializer, &stateDict);
+
+		AutDescription descOutNoUseless = parser.ParseString(autNoUselessStr);
+		AutDescription descCorrectNoUseless = parser.ParseString(autCorrectStr);
+
+		BOOST_CHECK_MESSAGE(descCorrectNoUseless == descOutNoUseless,
+			"\n\nExpecting:\n===========\n" +
+			serializer.Serialize(descCorrectNoUseless) +
+			"===========\n\nGot:\n===========\n" + autNoUselessStr + "\n===========");
+	}
+}
+
+BOOST_AUTO_TEST_CASE(aut_down_inclusion)
+{
+	auto testfileContent = ParseTestFile(INCLUSION_TIMBUK_FILE.string());
+
+	TimbukParser parser;
+	TimbukSerializer serializer;
+
+	for (auto testcase : testfileContent)
+	{
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 3, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
+
+		std::string inputSmallerFile = (AUT_DIR / testcase[0]).string();
+		std::string inputBiggerFile = (AUT_DIR / testcase[1]).string();
+		unsigned expectedResult = static_cast<bool>(
+			Convert::FromString<unsigned>(testcase[2]));
+
+		BOOST_MESSAGE("Testing inclusion " + inputSmallerFile + " <= " +
+			inputBiggerFile  + "...");
+
+		std::string autSmallerStr = VATA::Util::ReadFile(inputSmallerFile);
+		std::string autBiggerStr = VATA::Util::ReadFile(inputBiggerFile);
+
+		AutType autSmaller;
+		autSmaller.LoadFromString(parser, autSmallerStr);
+
+		AutType autBigger;
+		autBigger.LoadFromString(parser, autBiggerStr);
+
+		bool doesInclusionHold = VATA::CheckInclusion(autSmaller, autBigger);
+
+		BOOST_CHECK_MESSAGE(expectedResult == doesInclusionHold,
+			"\n\nError checking inclusion " + inputSmallerFile + " <= " +
+			inputBiggerFile + ": expected " + Convert::ToString(expectedResult) +
+			", got " + Convert::ToString(doesInclusionHold));
+	}
+}
 
 BOOST_AUTO_TEST_SUITE_END()
 
