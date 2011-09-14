@@ -49,7 +49,7 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 	typedef std::unordered_multimap<typename WorkSetElement::first_type,
 		typename WorkSetElement::second_type> WorkSetType;
 
-	typedef std::unordered_multimap<StateType, StateSet> NonInlusionCache;
+	typedef std::unordered_multimap<StateType, StateSet> InclusionCache;
 
 	typedef std::pair<StateType, StateSet> StateStateSetPair;
 	typedef std::unordered_map<StateStateSetPair, bool,
@@ -124,9 +124,11 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 
 		WorkSetType& workset_;
 
-		NonInlusionCache& nonIncl_;
+		InclusionCache& nonIncl_;
 
 		StateStateSetPairToBoolMap& nonInclHT_;
+
+		InclusionCache childrenCache_;
 
 	private:  // methods
 
@@ -141,6 +143,10 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 			else if (isNoninclusionImplied(key))
 			{	// in case we know that the inclusion does not hold
 				return false;
+			}
+			else if (isImpliedByChildren(key))
+			{
+				return true;
 			}
 
 			workset_.insert(key);
@@ -164,6 +170,16 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 
 			// make sure the element was removed
 			assert(erased);
+
+			// cache the result
+			if (innerFctor.InclusionHolds())
+			{
+				processFoundInclusion(smallerState, biggerStateSet);
+			}
+			else
+			{
+				processFoundNoninclusion(smallerState, biggerStateSet);
+			}
 
 			return innerFctor.InclusionHolds();
 		}
@@ -210,6 +226,22 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 			return false;
 		}
 
+		inline bool isImpliedByChildren(const WorkSetElement& elem) const
+		{
+			for (auto keyRange = childrenCache_.equal_range(elem.first);
+				keyRange.first != keyRange.second; ++(keyRange.first))
+			{	// for all items with proper key
+				const StateSet& wsBigger = (keyRange.first)->second;
+
+				if (wsBigger.IsSubsetOf(elem.second))
+				{	// if there is a smaller set in the cache
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		inline bool isNoninclusionImplied(const WorkSetElement& elem) const
 		{
 			typename StateStateSetPairToBoolMap::const_iterator itCache;
@@ -225,7 +257,7 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 				const StateSet& wsBigger = (keyRange.first)->second;
 
 				if (elem.second.IsSubsetOf(wsBigger))
-				{	// if there is a bigger set in the workset
+				{	// if there is a bigger set in the cache
 					result = true;
 					break;
 				}
@@ -234,6 +266,40 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 			nonInclHT_.insert(std::make_pair(elem, result));
 
 			return result;
+		}
+
+		inline void processFoundInclusion(const StateType& smallerState,
+			const StateSet& biggerStateSet)
+		{
+			auto keyRange = childrenCache_.equal_range(smallerState);
+			for (auto itRange = keyRange.first; itRange != keyRange.second; ++itRange)
+			{	// for all elements for smallerState
+				const StateSet& wsBigger = (keyRange.first)->second;
+				if (wsBigger.IsSubsetOf(biggerStateSet))
+				{	// if there is a smaller set in the cache, skip
+					return;
+				}
+			}
+
+			while (keyRange.first != keyRange.second)
+			{	// until we process all elements for smallerState
+				const StateSet& wsBigger = (keyRange.first)->second;
+
+				if (biggerStateSet.IsSubsetOf(wsBigger) &&
+					(biggerStateSet.size() < wsBigger.size()))
+				{	// if there is a _strictly_ smaller set in the workset
+					auto nextPtr = keyRange.first;
+					++nextPtr;
+					childrenCache_.erase(keyRange.first);
+					keyRange.first = nextPtr;
+				}
+				else
+				{
+					++(keyRange.first);
+				}
+			}
+
+			childrenCache_.insert(std::make_pair(smallerState, biggerStateSet));
 		}
 
 		inline void processFoundNoninclusion(const StateType& smallerState,
@@ -273,7 +339,7 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 	public:   // methods
 
 		DownwardInclusionFunctor(const Aut& smaller, const Aut& bigger,
-			WorkSetType& workset, NonInlusionCache& nonIncl,
+			WorkSetType& workset, InclusionCache& nonIncl,
 			StateStateSetPairToBoolMap& nonInclHT) :
 			smaller_(smaller),
 			bigger_(bigger),
@@ -281,7 +347,8 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 			inclusionHolds_(true),
 			workset_(workset),
 			nonIncl_(nonIncl),
-			nonInclHT_(nonInclHT)
+			nonInclHT_(nonInclHT),
+			childrenCache_()
 		{ }
 
 		DownwardInclusionFunctor(DownwardInclusionFunctor& downFctor) :
@@ -291,7 +358,8 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 			inclusionHolds_(true),
 			workset_(downFctor.workset_),
 			nonIncl_(downFctor.nonIncl_),
-			nonInclHT_(downFctor.nonInclHT_)
+			nonInclHT_(downFctor.nonInclHT_),
+			childrenCache_()
 		{ }
 
 		void operator()(const StateTupleSet& lhs, const StateTupleSet& rhs)
@@ -312,6 +380,7 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 				{	// in case there also a nullary transition in the RHS
 					assert(rhs.size() == 1);
 					assert(rhs.begin()->size() == 0);
+					return;
 				}
 				else
 				{	// in case RHS cannot make this transition
@@ -321,61 +390,88 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 			}
 			else
 			{	// in case the transition si not nullary
+				if (rhs.empty())
+				{	// in case RHS is empty
+					failProcessing();
+					return;
+				}
+
 				for (const StateTuple& lhsTuple : lhs)
 				{
 					// Assertions
 					assert(lhsTuple.size() == arity);
 
-					if (rhs.empty())
-					{	// in case RHS is empty
-						failProcessing();
-						return;
-					}
-					else
+					// first check whether there is a bigger tuple
+					bool valid = false;
+					for (const StateTuple& rhsTuple : rhs)
 					{
-						const std::vector<StateTuple>& rhsVector = rhs.ToVector();
+						valid = true;
+						for (size_t i = 0; i < arity; ++i)
+						{
+							if (!expand(lhsTuple[i], StateSet(rhsTuple[i])))
+							{
+								valid = false;
+								break;
+							}
+						}
 
-						ChoiceFunctionGenerator cfGen(rhsVector.size(), lhsTuple.size());
-						while (!cfGen.IsLast())
-						{	// for each choice function
-							const ChoiceFunctionType& cf = cfGen.GetNext();
-							bool found = false;
+						if (valid)
+						{
+							break;
+						}
+					}
 
-							for (size_t tuplePos = 0; tuplePos < arity; ++tuplePos)
-							{ // for each position of the n-tuple
-								StateSet rhsSetForTuplePos;
+					if (valid)
+					{	// in case there was a bigger tuple
+						continue;
+					}
 
-								for (size_t cfIndex = 0; cfIndex < cf.size(); ++cfIndex)
-								{	// for each element in the choice function
-									if (cf[cfIndex] == tuplePos)
-									{ // in case the choice function for given vector is at
-										// current position in the tuple
-										assert(cfIndex < rhsVector.size());
-										const StateTuple& rhsTuple = rhsVector[cfIndex];
-										assert(rhsTuple.size() == arity);
+					// in case there is not a bigger tuple
 
-										// insert tuplePos-th state of the cfIndex-th tuple in the
-										// RHS into the set
-										rhsSetForTuplePos.insert(rhsTuple[tuplePos]);
-									}
-								}
+					const std::vector<StateTuple>& rhsVector = rhs.ToVector();
 
-								if (expand(lhsTuple[tuplePos], rhsSetForTuplePos))
-								{	// in case inclusion holds for this case
-									found = true;
-									break;
-								}
-								else
-								{	// in case inclusion does not hold, cache the result
-									processFoundNoninclusion(lhsTuple[tuplePos], rhsSetForTuplePos);
+					ChoiceFunctionGenerator cfGen(rhsVector.size(), lhsTuple.size());
+					while (!cfGen.IsLast())
+					{	// for each choice function
+						const ChoiceFunctionType& cf = cfGen.GetNext();
+						bool found = false;
+
+						for (size_t tuplePos = 0; tuplePos < arity; ++tuplePos)
+						{ // for each position of the n-tuple
+							StateSet rhsSetForTuplePos;
+
+							for (size_t cfIndex = 0; cfIndex < cf.size(); ++cfIndex)
+							{	// for each element in the choice function
+								if (cf[cfIndex] == tuplePos)
+								{ // in case the choice function for given vector is at
+									// current position in the tuple
+									assert(cfIndex < rhsVector.size());
+									const StateTuple& rhsTuple = rhsVector[cfIndex];
+									assert(rhsTuple.size() == arity);
+
+									// insert tuplePos-th state of the cfIndex-th tuple in the
+									// RHS into the set
+									rhsSetForTuplePos.insert(rhsTuple[tuplePos]);
 								}
 							}
 
-							if (!found)
-							{	// in case the inclusion does not hold
-								failProcessing();
-								return;
+							if (rhsSetForTuplePos.empty())
+							{	// in case the right-hand side set is empty, we exploit the
+								// fact that there are no useless states in any of the automata
+								continue;
 							}
+
+							if (expand(lhsTuple[tuplePos], rhsSetForTuplePos))
+							{	// in case inclusion holds for this case
+								found = true;
+								break;
+							}
+						}
+
+						if (!found)
+						{	// in case the inclusion does not hold
+							failProcessing();
+							return;
 						}
 					}
 				}
@@ -400,7 +496,7 @@ bool VATA::CheckDownwardTreeInclusionNoUseless(const Aut& smaller,
 	};
 
 	WorkSetType workset;
-	NonInlusionCache nonIncl;
+	InclusionCache nonIncl;
 	StateStateSetPairToBoolMap nonInclHT;
 
 	DownwardInclusionFunctor downFctor(smaller, bigger, workset, nonIncl,

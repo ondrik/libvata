@@ -38,6 +38,9 @@ if [ "$#" -ne 3 ]; then
   die "usage: $0 <method> <file1> <file2>"
 fi
 
+LHS=$(${TALIB} n < "${FILE_LHS}")
+RHS=$(${TALIB} n < "${FILE_RHS}")
+
 RETVAL="?"
 
 case "${OPERATION}" in
@@ -62,13 +65,15 @@ case "${OPERATION}" in
     RETVAL="$?"
     ;;
   downT)
-    ${TALIB} sdif <<< $(cat "${FILE_LHS}" "${FILE_RHS}")
+    ${TALIB} sdif <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
   downSimT)
-    LHS=$(${TALIB} n < "${FILE_LHS}")
-    RHS=$(${TALIB} n < "${FILE_RHS}")
     ${TALIB} sddf <<< $(echo "${LHS}" "${RHS}")
+    RETVAL="$?"
+    ;;
+  upT)
+    ${TALIB} suif <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
   *) die "Invalid option ${OPERATION}"
