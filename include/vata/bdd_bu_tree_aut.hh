@@ -23,9 +23,11 @@
 
 namespace VATA { class BDDBottomUpTreeAut; }
 
+GCC_DIAG_OFF(effc++)
 class VATA::BDDBottomUpTreeAut
 	: public AutBase
 {
+GCC_DIAG_ON(effc++)
 
 	template <class Aut>
 	friend Aut Union(const Aut&, const Aut&, AutBase::StateToStateMap*);
@@ -98,6 +100,7 @@ private:  // data members
 	StateHT finalStates_;
 	TransTablePtr transTable_;
 	TupleToMTBDDMap mtbddMap_;
+	MTBDDHandle defaultTrFuncHandle_;
 
 	static StringToSymbolDict symbolDict_;
 	static SymbolType nextSymbol_;
@@ -128,7 +131,15 @@ private:  // methods
 		// Assertions
 		assert(isValid());
 
-		return mtbddMap_.GetValue(children);
+		typename TupleToMTBDDMap::const_iterator it;
+		if ((it = mtbddMap_.find(children)) == mtbddMap_.end())
+		{
+			return defaultTrFuncHandle_;
+		}
+		else
+		{
+			return (*it).second;
+		}
 	}
 
 	inline const TransMTBDD& getMtbdd(const MTBDDHandle& handle) const
@@ -147,12 +158,56 @@ private:  // methods
 		return getMtbdd(getMtbddHandle(children));
 	}
 
-	inline void setMtbdd(const MTBDDHandle& handle, const TransMTBDD& mtbdd)
+	inline void decrementHandleRefCnt(const StateTuple& children)
 	{
 		// Assertions
 		assert(isValid());
 
+		typename TupleToMTBDDMap::iterator it;
+		if ((it = mtbddMap_.find(children)) != mtbddMap_.end())
+		{	// in case there is something
+			transTable_->DecrementHandleRefCnt((*it).second);
+		}
+	}
+
+	inline void setMtbdd(const MTBDDHandle& handle, const TransMTBDD& mtbdd)
+	{
+		// Assertions
+		assert(isValid());
+		assert(transTable_->GetHandleRefCnt(handle) == 1);
+
+		std::vector<const TransMTBDD*> vec = {&mtbdd};
+
 		transTable_->SetMtbdd(handle, mtbdd);
+	}
+
+	inline void setMtbdd(const StateTuple& children, const TransMTBDD& mtbdd)
+	{
+		// Assertions
+		assert(isValid());
+
+		typename TupleToMTBDDMap::iterator it;
+		if ((it = mtbddMap_.find(children)) == mtbddMap_.end())
+		{	// in case the value is unknown
+			MTBDDHandle handle = transTable_->AddHandle();
+			setMtbdd(handle, mtbdd);
+			mtbddMap_.insert(std::make_pair(children, handle));
+		}
+		else
+		{
+			MTBDDHandle& handle = (*it).second;
+
+			if (transTable_->GetHandleRefCnt(handle) == 1)
+			{	// in case there is only one reference to the MTBDD
+				setMtbdd(handle, mtbdd);
+			}
+			else
+			{
+				transTable_->DecrementHandleRefCnt(handle);
+				handle = transTable_->AddHandle();
+				setMtbdd(handle, mtbdd);
+			}
+		}
 	}
 
 	template <typename T, class Container>
@@ -199,8 +254,6 @@ private:  // methods
 		}
 
 		mtbddMap_.clear();
-
-		transTable_->DecrementHandleRefCnt(mtbddMap_.GetDefaultValue());
 	}
 
 public:   // methods
@@ -208,7 +261,8 @@ public:   // methods
 	BDDBottomUpTreeAut() :
 		finalStates_(),
 		transTable_(new TransTable),
-		mtbddMap_(transTable_->AddHandle())
+		mtbddMap_(),
+		defaultTrFuncHandle_(transTable_->AddHandle())
 	{
 		// Assertions
 		assert(isValid());
@@ -217,19 +271,43 @@ public:   // methods
 	BDDBottomUpTreeAut(TransTablePtr transTable) :
 		finalStates_(),
 		transTable_(transTable),
-		mtbddMap_(transTable_->AddHandle())
+		mtbddMap_(),
+		defaultTrFuncHandle_(transTable_->AddHandle())
 	{
 		// Assertions
 		assert(isValid());
 	}
 
+	BDDBottomUpTreeAut(const BDDBottomUpTreeAut& aut) :
+		finalStates_(),
+		transTable_(aut.transTable_),
+		mtbddMap_(),
+		defaultTrFuncHandle_(transTable_->AddHandle())
+	{
+		copyStates(aut);
+
+		// Assertions
+		assert(isValid());
+	}
+
+	BDDBottomUpTreeAut(BDDBottomUpTreeAut&& aut) :
+		finalStates_(aut.finalStates_),
+		transTable_(aut.transTable_),
+		mtbddMap_(aut.mtbddMap_),
+		defaultTrFuncHandle_(aut.defaultTrFuncHandle_)
+	{
+		aut.transTable_ = nullptr;
+
+		// Assertions
+		assert(isValid());
+	}
+
+	BDDBottomUpTreeAut& operator=(const BDDBottomUpTreeAut& rhs);
+
 	inline TransTablePtr& GetTransTable() const
 	{
 		return const_cast<TransTablePtr&>(transTable_);
 	}
-
-	BDDBottomUpTreeAut(const BDDBottomUpTreeAut& aut);
-	BDDBottomUpTreeAut& operator=(const BDDBottomUpTreeAut& rhs);
 
 	inline StateType AddState()
 	{
@@ -254,6 +332,20 @@ public:   // methods
 		finalStates_.insert(state);
 	}
 
+	inline const TupleToMTBDDMap& GetTuples() const
+	{
+		return mtbddMap_;
+	}
+
+	inline const StateHT& GetFinalStates() const
+	{
+		// Assertions
+		assert(isValid());
+
+		return finalStates_;
+	}
+
+
 	void LoadFromString(VATA::Parsing::AbstrParser& parser,
 		const std::string& str,
 		StringToStateDict* pStateDict = nullptr,
@@ -262,6 +354,17 @@ public:   // methods
 	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
 		const StringToStateDict* pStateDict = nullptr,
 		const std::string& params = "") const;
+
+	std::string DumpToDot() const
+	{
+		std::vector<const TransMTBDD*> tupleVec;
+		for (auto tupleHandlePair : mtbddMap_)
+		{
+			tupleVec.push_back(&getMtbdd(tupleHandlePair.second));
+		}
+
+		return TransMTBDD::DumpToDot(tupleVec);
+	}
 
 	~BDDBottomUpTreeAut();
 };

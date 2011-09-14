@@ -44,11 +44,11 @@ bool BDDBottomUpTreeAut::isStandAlone() const
 	// TODO: couldn't this be done only on the empty tuple?
 
 	// check whether the automaton has some shared states
-	for (auto itMM = mtbddMap_.cbegin(); itMM != mtbddMap_.cend(); ++itMM)
+	for (auto tupleHandlePair : mtbddMap_)
 	{	// iterate through all states
-		assert(transTable_->GetHandleRefCnt(itMM->second) > 0);
+		assert(transTable_->GetHandleRefCnt(tupleHandlePair.second) > 0);
 
-		if (transTable_->GetHandleRefCnt(itMM->second) > 1)
+		if (transTable_->GetHandleRefCnt(tupleHandlePair.second) > 1)
 		{	// in case there is some state which is shared
 			return false;
 		}
@@ -66,16 +66,27 @@ void BDDBottomUpTreeAut::copyStates(const BDDBottomUpTreeAut& src)
 	assert(transTable_ == src.transTable_);
 
 	// copy tuples and increment their reference counters
-	for (auto itMM = src.mtbddMap_.cbegin(); itMM != src.mtbddMap_.cend(); ++itMM)
+	for (auto childrenHandlePair : src.mtbddMap_)
 	{
-		VATA_LOGGER_INFO("Copying state " + Convert::ToString(itMM->second));
-		transTable_->IncrementHandleRefCnt(itMM->second);
-		mtbddMap_.insert(*itMM);
+		typename TupleToMTBDDMap::iterator it;
+		if ((it = mtbddMap_.find(childrenHandlePair.first)) != mtbddMap_.end())
+		{
+			if ((*it).second != childrenHandlePair.second)
+			{	// in case they are not the same
+				transTable_->IncrementHandleRefCnt(childrenHandlePair.second);
+				transTable_->DecrementHandleRefCnt((*it).second);
+				(*it).second = childrenHandlePair.second;
+			}
+		}
+		else
+		{
+			transTable_->IncrementHandleRefCnt(childrenHandlePair.second);
+			mtbddMap_.insert(childrenHandlePair);
+		}
 	}
 
-	transTable_->IncrementHandleRefCnt(src.mtbddMap_.GetDefaultValue());
+	StateTuple tuple;
 
-	VATA_LOGGER_INFO("Copying aut");
 	// simply copy final states
 	finalStates_.insert(src.finalStates_.begin(), src.finalStates_.end());
 
@@ -114,12 +125,17 @@ void BDDBottomUpTreeAut::AddSimplyTransition(const StateTuple& children,
 
 	UnionApplyFunctor unioner;
 
-	MTBDDHandle handle = getMtbddHandle(children);
+	MTBDDHandle handle;
 
-	if (handle == mtbddMap_.GetDefaultValue())
-	{	// if it is the default
+	TupleToMTBDDMap::iterator it;
+	if ((it = mtbddMap_.find(children)) == mtbddMap_.end())
+	{
 		handle = transTable_->AddHandle();
-		mtbddMap_.SetValue(children, handle);
+		mtbddMap_.insert(std::make_pair(children, handle));
+	}
+	else
+	{
+		handle = getMtbddHandle(children);
 	}
 
 	const TransMTBDD& oldMtbdd = getMtbdd(handle);
@@ -279,24 +295,24 @@ AutDescription BDDBottomUpTreeAut::dumpToAutDescExplicit(
 	AutDescription desc;
 
 	// copy final states
-	for (auto itSt = finalStates_.cbegin(); itSt != finalStates_.cend(); ++itSt)
+	for (auto fst : finalStates_)
 	{	// copy final states
 		if (translateStates)
 		{	// if there is a dictionary, use it
-			desc.finalStates.insert(pStateDict->TranslateBwd(*itSt));
+			desc.finalStates.insert(pStateDict->TranslateBwd(fst));
 		}
 		else
 		{	// if there is not a dictionary, generate strings
-			desc.finalStates.insert(Convert::ToString(*itSt));
+			desc.finalStates.insert(Convert::ToString(fst));
 		}
 	}
 
 	CondColApplyFunctor collector;
 
 	// copy states, transitions and symbols
-	for (auto itMM = mtbddMap_.cbegin(); itMM != mtbddMap_.cend(); ++itMM)
+	for (auto tupleHandlePair : mtbddMap_)
 	{	// for all states
-		const StateTuple& children = itMM->first;
+		const StateTuple& children = tupleHandlePair.first;
 
 		std::vector<std::string> tupleStr;
 
@@ -318,7 +334,7 @@ AutDescription BDDBottomUpTreeAut::dumpToAutDescExplicit(
 			desc.states.insert(stateStr);
 		}
 
-		const TransMTBDD& transMtbdd = getMtbdd(children);
+		const TransMTBDD& transMtbdd = getMtbdd(tupleHandlePair.second);
 
 		for (auto itSym = symbolDict_.BeginFwd();
 			itSym != symbolDict_.EndFwd(); ++itSym)
@@ -381,9 +397,12 @@ std::string BDDBottomUpTreeAut::DumpToString(
 BDDBottomUpTreeAut::~BDDBottomUpTreeAut()
 {
 	// Assertions
-	assert(isValid());
+	assert(isValid() || (transTable_ == nullptr));
 
-	deallocateTuples();
-
-	assert(mtbddMap_.empty());
+	if (transTable_ != nullptr)
+	{
+		deallocateTuples();
+		assert(mtbddMap_.empty());
+		transTable_->DecrementHandleRefCnt(defaultTrFuncHandle_);
+	}
 }
