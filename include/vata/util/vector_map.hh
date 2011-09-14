@@ -757,62 +757,6 @@ private:  // Private methods
 		return std::make_pair(iterator(this, res.first), res.second);
 	}
 
-//	inline void setValueForArity0(const key_type& lhs, const mapped_type& value)
-//	{
-//		// Assertions
-//		assert(lhs.size() == 0);
-//
-//		container0_ = value;
-//	}
-//
-//	inline void setValueForArity1(const key_type& lhs, const mapped_type& value)
-//	{
-//		// Assertions
-//		assert(lhs.size() == 1);
-//
-//		typename HashTableUnary::iterator itHash;
-//		if ((itHash = container1_.find(lhs[0])) == container1_.end())
-//		{
-//			container1_.insert(std::make_pair(lhs[0], value));
-//		}
-//		else
-//		{
-//			itHash->second = value;
-//		}
-//	}
-//
-//	inline void setValueForArity2(const key_type& lhs, const mapped_type& value)
-//	{
-//		// Assertions
-//		assert(lhs.size() == 2);
-//
-//		typename HashTableBinary::iterator itHash;
-//		if ((itHash = container2_.find(std::make_pair(lhs[0], lhs[1]))) == container2_.end())
-//		{
-//			container2_.insert(std::make_pair(std::make_pair(lhs[0], lhs[1]), value));
-//		}
-//		else
-//		{
-//			itHash->second = value;
-//		}
-//	}
-//
-//	inline void setValueForArityN(const key_type& lhs, const mapped_type& value)
-//	{
-//		// Assertions
-//		assert(lhs.size() > 2);
-//
-//		typename HashTableNnary::iterator itHash;
-//		if ((itHash = containerN_.find(lhs)) == containerN_.end())
-//		{
-//			containerN_.insert(std::make_pair(lhs, value));
-//		}
-//		else
-//		{
-//			itHash->second = value;
-//		}
-//	}
-
 public:   // Public methods
 
 	VectorMap()
@@ -843,12 +787,17 @@ public:   // Public methods
 	{
 		if (&vecMap != this)
 		{
-			if (vecMap.container0_ != nullptr)
+			if ((container0_ != nullptr) && (vecMap.container0_ != nullptr))
+			{
+				*container0_ = *(vecMap.container0_);
+			}
+			else if ((container0_ == nullptr) && vecMap.container0_ != nullptr)
 			{
 				container0_ = new mapped_type(*(vecMap.container0_));
 			}
-			else
+			else if ((container0_ != nullptr) && vecMap.container0_ == nullptr)
 			{
+				delete container0_;
 				container0_ = nullptr;
 			}
 
@@ -1070,7 +1019,12 @@ public:   // Public methods
 
 	inline void clear()
 	{
-		container0_ = nullptr;
+		if (container0_ != nullptr)
+		{
+			delete container0_;
+			container0_ = nullptr;
+		}
+
 		container1_.clear();
 		container2_.clear();
 		containerN_.clear();
