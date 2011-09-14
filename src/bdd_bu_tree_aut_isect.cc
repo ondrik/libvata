@@ -24,5 +24,9 @@ BDDBottomUpTreeAut VATA::Intersection<BDDBottomUpTreeAut>(
 	assert(lhs.isValid());
 	assert(rhs.isValid());
 
+
+
+	assert(pTranslMap != nullptr);
+
 	assert(false);
 }

@@ -23,5 +23,6 @@ BDDBottomUpTreeAut VATA::RemoveUnreachableStates<BDDBottomUpTreeAut>(
 	// Assertions
 	assert(aut.isValid());
 
+	assert(pTranslMap != nullptr);
 	assert(false);
 }

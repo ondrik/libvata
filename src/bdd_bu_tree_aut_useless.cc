@@ -27,5 +27,6 @@ BDDBottomUpTreeAut VATA::RemoveUselessStates<BDDBottomUpTreeAut>(
 	// Assertions
 	assert(aut.isValid());
 
+	assert(pTranslMap != nullptr);
 	assert(false);
 }
