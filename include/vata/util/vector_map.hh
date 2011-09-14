@@ -100,8 +100,7 @@ private:  // Private data types
 
 		enum IteratorState
 		{
-			ITERATOR_INVALID = 0,
-			ITERATOR_NULLARY,
+			ITERATOR_NULLARY = 0,
 			ITERATOR_UNARY,
 			ITERATOR_BINARY,
 			ITERATOR_NNARY,
@@ -134,7 +133,29 @@ private:  // Private data types
 			// Assertions
 			assert(vecMap_ != nullptr);
 
-			state_ = ITERATOR_INVALID;
+			if (vecMap_->container0_ != nullptr)
+			{
+				state_ = ITERATOR_NULLARY;
+			}
+			else if (!vecMap_->container1_.empty())
+			{
+				state_ = ITERATOR_UNARY;
+				itUnary_ = vecMap_->container1_.begin();
+			}
+			else if (!vecMap_->container2_.empty())
+			{
+				state_ = ITERATOR_BINARY;
+				itBinary_ = vecMap_->container2_.begin();
+			}
+			else if (!vecMap_->containerN_.empty())
+			{
+				state_ = ITERATOR_NNARY;
+				itNnary_ = vecMap_->containerN_.begin();
+			}
+			else
+			{
+				state_ = ITERATOR_END;
+			}
 		}
 
 		template <class Tret>
@@ -142,7 +163,6 @@ private:  // Private data types
 		{
 			// Assertions
 			assert(vecMap_ != nullptr);
-			assert(state_ != ITERATOR_INVALID);
 			assert(state_ != ITERATOR_END);
 
 			key_type index;
@@ -153,7 +173,7 @@ private:  // Private data types
 					return std::make_pair(index, std::ref(*(vecMap_->container0_)));
 
 				case ITERATOR_UNARY:
-					assert(!vecMap_->container1_.empty());
+					assert(!(vecMap_->container1_.empty()));
 					assert(itUnary_ != vecMap_->container1_.end());
 					index.push_back(itUnary_->first);
 					return std::make_pair(index, std::ref(itUnary_->second));
@@ -178,15 +198,15 @@ private:  // Private data types
 
 		Tbase_iterator() :
 			vecMap_(nullptr),
-			state_(ITERATOR_INVALID),
+			state_(ITERATOR_END),
 			itUnary_(),
 			itBinary_(),
 			itNnary_()
 		{ }
 
-		explicit Tbase_iterator(ContainerPtr vecMap, bool end = false) :
+		explicit Tbase_iterator(ContainerPtr vecMap) :
 			vecMap_(vecMap),
-			state_((end)? ITERATOR_END : ITERATOR_INVALID),
+			state_(ITERATOR_NULLARY),
 			itUnary_(),
 			itBinary_(),
 			itNnary_()
@@ -194,11 +214,7 @@ private:  // Private data types
 			// Assertions
 			assert(vecMap_ != nullptr);
 
-			if (state_ != ITERATOR_END)
-			{
-				reset();
-				++(*this);
-			}
+			reset();
 		}
 
 		Tbase_iterator(const Tbase_iterator& it) :
@@ -213,7 +229,7 @@ private:  // Private data types
 		}
 
 		Tbase_iterator(ContainerPtr vecMap,
-			mapped_type& /* itNullary */) :
+			const mapped_type& /* itNullary */) :
 			vecMap_(vecMap),
 			state_(ITERATOR_NULLARY),
 			itUnary_(),
@@ -234,6 +250,11 @@ private:  // Private data types
 		{
 			// Assertions
 			assert(vecMap_ != nullptr);
+
+			if (itUnary_ == vecMap_->container1_.end())
+			{
+				state_ = ITERATOR_END;
+			}
 		}
 
 		Tbase_iterator(ContainerPtr vecMap,
@@ -246,6 +267,11 @@ private:  // Private data types
 		{
 			// Assertions
 			assert(vecMap_ != nullptr);
+
+			if (itBinary_ == vecMap_->container2_.end())
+			{
+				state_ = ITERATOR_END;
+			}
 		}
 
 		Tbase_iterator(ContainerPtr vecMap,
@@ -258,6 +284,11 @@ private:  // Private data types
 		{
 			// Assertions
 			assert(vecMap_ != nullptr);
+
+			if (itNnary_ == vecMap_->containerN_.end())
+			{
+				state_ = ITERATOR_END;
+			}
 		}
 
 		Tbase_iterator& operator=(const Tbase_iterator& rhs)
@@ -278,7 +309,6 @@ private:  // Private data types
 		{
 			// Assertions
 			assert(vecMap_ != nullptr);
-			assert(state_ != ITERATOR_INVALID);
 
 			return getIndexValue<const_ref_value_type>();
 		}
@@ -287,16 +317,20 @@ private:  // Private data types
 		{
 			// Assertions
 			assert(vecMap_ != nullptr);
-			assert(state_ != ITERATOR_INVALID);
 
 			return getIndexValue<ref_value_type>();
 		}
 
 		bool operator==(const Tbase_iterator& rhs) const
 		{
+			if (state_ == ITERATOR_END || rhs.state_ == ITERATOR_END)
+			{
+				return state_ == rhs.state_;
+			}
+
 			// Assertions
-			assert(state_ != ITERATOR_INVALID);
 			assert(vecMap_ != nullptr);
+			assert(rhs.vecMap_ != nullptr);
 
 			if (vecMap_ != rhs.vecMap_)
 			{
@@ -311,12 +345,11 @@ private:  // Private data types
 
 			switch (state_)
 			{
-				case ITERATOR_INVALID: return false; break;
 				case ITERATOR_NULLARY: return true; break;
 				case ITERATOR_UNARY: return itUnary_ == rhs.itUnary_; break;
 				case ITERATOR_BINARY: return itBinary_ == rhs.itBinary_; break;
 				case ITERATOR_NNARY: return itNnary_ == rhs.itNnary_; break;
-				case ITERATOR_END: return true; break;
+				case ITERATOR_END: assert(false); break;
 				default: throw std::logic_error(__func__ +
 					std::string(": invalid state")); break;
 			}
@@ -338,32 +371,33 @@ private:  // Private data types
 			assert(vecMap_ != nullptr);
 
 			bool sound = false;
+			bool increment = true;
 
 			while (!sound)
 			{	// until we reach a sound value
 				switch (state_)
 				{
-					case ITERATOR_INVALID:
-						state_ = ITERATOR_NULLARY;
-						if (vecMap_->container0_)
-						{
-							sound = true;
-						}
-
-						break;
-
 					case ITERATOR_NULLARY:
 						state_ = ITERATOR_UNARY;
 						itUnary_ = vecMap_->container1_.begin();
 						if (itUnary_ != vecMap_->container1_.end())
 						{
 							sound = true;
-							++itUnary_;
+						}
+						else
+						{
+							increment = false;
 						}
 
 						break;
 
 					case ITERATOR_UNARY:
+						if (increment)
+						{
+							++itUnary_;
+							increment = false;
+						}
+
 						if (itUnary_ == vecMap_->container1_.end())
 						{
 							state_ = ITERATOR_BINARY;
@@ -371,18 +405,22 @@ private:  // Private data types
 							if (itBinary_ != vecMap_->container2_.end())
 							{
 								sound = true;
-								++itBinary_;
 							}
 						}
 						else
 						{
 							sound = true;
-							++itUnary_;
 						}
 
 						break;
 
 					case ITERATOR_BINARY:
+						if (increment)
+						{
+							++itBinary_;
+							increment = false;
+						}
+
 						if (itBinary_ == vecMap_->container2_.end())
 						{
 							state_ = ITERATOR_NNARY;
@@ -390,18 +428,22 @@ private:  // Private data types
 							if (itNnary_ != vecMap_->containerN_.end())
 							{
 								sound = true;
-								++itNnary_;
 							}
 						}
 						else
 						{
 							sound = true;
-							++itBinary_;
 						}
 
 						break;
 
 					case ITERATOR_NNARY:
+						if (increment)
+						{
+							++itNnary_;
+							increment = false;
+						}
+
 						if (itNnary_ == vecMap_->containerN_.end())
 						{
 							sound = true;
@@ -410,7 +452,6 @@ private:  // Private data types
 						else
 						{
 							sound = true;
-							++itNnary_;
 						}
 
 						break;
@@ -456,8 +497,8 @@ private:  // Private data types
 			BaseType()
 		{ }
 
-		explicit Tconst_iterator(const Type* vecMap, bool end = false) :
-			BaseType(vecMap, end)
+		explicit Tconst_iterator(const Type* vecMap) :
+			BaseType(vecMap)
 		{ }
 
 		Tconst_iterator(const Tconst_iterator& it) :
@@ -529,8 +570,8 @@ private:  // Private data types
 			BaseType()
 		{ }
 
-		explicit Titerator(Type* vecMap, bool end = false) :
-			BaseType(vecMap, end)
+		explicit Titerator(Type* vecMap) :
+			BaseType(vecMap)
 		{ }
 
 		Titerator(const Titerator& it) :
@@ -676,12 +717,12 @@ private:  // Private methods
 
 		if (container0_ != nullptr)
 		{	// in case there is something
-			return std::make_pair(iterator(this, container0_), false);
+			return std::make_pair(iterator(this, *container0_), false);
 		}
 		else
 		{	// in case there is nothing
 			container0_ = new mapped_type(ivt.second);
-			return std::make_pair(iterator(this, container0_), true);
+			return std::make_pair(iterator(this, *container0_), true);
 		}
 	}
 
@@ -690,7 +731,9 @@ private:  // Private methods
 		// Assertions
 		assert(ivt.first.size() == 1);
 
-		assert(false);
+		auto res = container1_.insert(std::make_pair(ivt.first[0], ivt.second));
+
+		return std::make_pair(iterator(this, res.first), res.second);
 	}
 
 	inline std::pair<iterator, bool> insertForArity2(const value_type& ivt)
@@ -698,7 +741,10 @@ private:  // Private methods
 		// Assertions
 		assert(ivt.first.size() == 2);
 
-		assert(false);
+		auto res = container2_.insert(std::make_pair(std::make_pair(ivt.first[0],
+			ivt.first[1]), ivt.second));
+
+		return std::make_pair(iterator(this, res.first), res.second);
 	}
 
 	inline std::pair<iterator, bool> insertForArityN(const value_type& ivt)
@@ -706,7 +752,9 @@ private:  // Private methods
 		// Assertions
 		assert(ivt.first.size() > 2);
 
-		assert(false);
+		auto res = containerN_.insert(ivt);
+
+		return std::make_pair(iterator(this, res.first), res.second);
 	}
 
 //	inline void setValueForArity0(const key_type& lhs, const mapped_type& value)
@@ -980,12 +1028,12 @@ public:   // Public methods
 
 	inline const_iterator end() const
 	{
-		return const_iterator(this, true);
+		return const_iterator();
 	}
 
 	inline iterator end()
 	{
-		return iterator(this, true);
+		return iterator();
 	}
 
 	inline const_iterator cbegin() const
@@ -1051,8 +1099,8 @@ public:   // Public methods
 			}
 
 			// the string of the element
-			os << Convert::ToString(it->first) << " -> " <<
-				Convert::ToString(it->second);
+			os << Convert::ToString((*it).first) << " -> " <<
+				Convert::ToString((*it).second);
 		}
 
 		os << "]";		// closing tag
