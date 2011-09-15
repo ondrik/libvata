@@ -28,5 +28,5 @@ BDDBottomUpTreeAut VATA::Intersection<BDDBottomUpTreeAut>(
 
 	assert(pTranslMap != nullptr);
 
-	assert(false);
+	throw std::runtime_error("Unimplemented");
 }

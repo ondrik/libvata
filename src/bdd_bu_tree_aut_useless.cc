@@ -28,5 +28,5 @@ BDDBottomUpTreeAut VATA::RemoveUselessStates<BDDBottomUpTreeAut>(
 	assert(aut.isValid());
 
 	assert(pTranslMap != nullptr);
-	assert(false);
+	throw std::runtime_error("Unimplemented");
 }
