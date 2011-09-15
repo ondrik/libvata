@@ -17,6 +17,7 @@
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
 #include <vata/util/convert.hh>
+#include <vata/util/transl_strict.hh>
 #include <vata/util/util.hh>
 
 // Log4cpp headers
@@ -32,6 +33,7 @@
 #include "parse_args.hh"
 
 
+using VATA::AutBase;
 using VATA::BDDBottomUpTreeAut;
 using VATA::BDDTopDownTreeAut;
 using VATA::Parsing::AbstrParser;
@@ -41,6 +43,17 @@ using VATA::Serialization::TimbukSerializer;
 using VATA::Util::Convert;
 
 typedef VATA::ExplicitTreeAut<size_t> ExplicitTreeAut;
+
+typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
+	StateTranslatorWeak;
+typedef VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>
+	StateBackTranslatorStrict;
+
+typedef VATA::Util::TranslatorWeak<BDDTopDownTreeAut::StringToSymbolDict>
+	SymbolTranslatorWeak;
+
+typedef VATA::Util::TranslatorStrict<BDDTopDownTreeAut::StringToSymbolDict>
+	SymbolTranslatorStrict;
 
 const char VATA_USAGE_STRING[] =
 	"VATA: Vojnar's Army Tree Automata library interface\n"
@@ -84,6 +97,7 @@ const char VATA_USAGE_FLAGS[] =
 	"                            stronger than -p)\n"
 	;
 
+const size_t BDD_SIZE = 16;
 
 void printHelp(bool full = false)
 {
@@ -109,19 +123,26 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 
 	VATA::AutBase::StringToStateDict stateDict1;
 	VATA::AutBase::StringToStateDict stateDict2;
+	typename Aut::StringToSymbolDict symbolDict;
 
 	VATA::AutBase::StateToStateMap translMap;
 
 	if (args.operands >= 1)
 	{
 		autInput1.LoadFromString(parser, VATA::Util::ReadFile(args.fileName1),
-			&stateDict1);
+			StateTranslatorWeak(stateDict1,
+			[&autInput1]{return autInput1.AddState();}),
+			SymbolTranslatorWeak(autInput1.GetSymbolDict(),
+			[&autInput1]{return autInput1.AddSymbol();}));
 	}
 
 	if (args.operands >= 2)
 	{
 		autInput2.LoadFromString(parser, VATA::Util::ReadFile(args.fileName2),
-			&stateDict2);
+			StateTranslatorWeak(stateDict2,
+			[&autInput2]{return autInput2.AddState();}),
+			SymbolTranslatorWeak(autInput2.GetSymbolDict(),
+			[&autInput2]{return autInput2.AddSymbol();}));
 	}
 
 	if (args.pruneUseless)
@@ -208,14 +229,16 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 				stateDict1 = VATA::Util::RebindMap(stateDict1, translMap);
 			}
 
-			std::cout << autResult.DumpToString(serializer, &stateDict1);
+			std::cout << autResult.DumpToString(serializer,
+				StateBackTranslatorStrict(stateDict1.GetReverseMap()),
+				SymbolTranslatorStrict(autInput2.GetSymbolDict()));
 		}
 
 		if ((args.command == COMMAND_UNION) ||
 			(args.command == COMMAND_INTERSECTION))
 		{
-			std::cout << autResult.DumpToString(serializer);
-
+			std::cout << autResult.DumpToString(serializer,
+				SymbolTranslatorStrict(autResult.GetSymbolDict()));
 		}
 
 		if (args.command == COMMAND_INCLUSION)
@@ -309,6 +332,16 @@ int main(int argc, char* argv[])
 		return EXIT_SUCCESS;
 	}
 
+	// create the symbol directory for the BDD-based automata
+	BDDTopDownTreeAut::StringToSymbolDict symbolDict;
+	BDDTopDownTreeAut::SetSymbolDictPtr(&symbolDict);
+	BDDBottomUpTreeAut::SetSymbolDictPtr(&symbolDict);
+
+	// create the ``next symbol'' variable for the BDD-based automata
+	BDDTopDownTreeAut::SymbolType nextSymbol(BDD_SIZE, 0);
+	BDDTopDownTreeAut::SetNextSymbolPtr(&nextSymbol);
+	BDDBottomUpTreeAut::SetNextSymbolPtr(&nextSymbol);
+
 	try
 	{
 		if (args.representation == REPRESENTATION_BDD_TD)
@@ -321,7 +354,8 @@ int main(int argc, char* argv[])
 		}
 		else if (args.representation == REPRESENTATION_EXPLICIT)
 		{
-				return executeCommand<ExplicitTreeAut>(args);
+				throw std::runtime_error("Unimplemented");
+				//return executeCommand<ExplicitTreeAut>(args);
 		}
 		else
 		{
