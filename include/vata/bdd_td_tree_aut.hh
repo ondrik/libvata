@@ -25,6 +25,7 @@
 #include <vata/util/td_bdd_trans_table.hh>
 #include <vata/util/vector_map.hh>
 #include <vata/util/util.hh>
+#include <vata/util/transl_weak.hh>
 
 // Standard library headers
 #include <cstdint>
@@ -67,6 +68,8 @@ public:   // data types
 	typedef std::unordered_set<StateType> StateSet;
 	typedef VATA::Util::OrdVector<StateType> StateSetLight;
 
+	typedef VATA::Util::TwoWayDict<std::string, SymbolType> StringToSymbolDict;
+
 private:  // data types
 
 
@@ -79,8 +82,6 @@ private:  // data types
 	typedef std::shared_ptr<TransTable> TransTablePtr;
 
 	typedef VATA::Util::AutDescription AutDescription;
-
-	typedef VATA::Util::TwoWayDict<std::string, SymbolType> StringToSymbolDict;
 
 	typedef VATA::Util::Convert Convert;
 
@@ -118,19 +119,14 @@ private:  // data members
 	StateSet finalStates_;
 	TransTablePtr transTable_;
 
-	static StringToSymbolDict symbolDict_;
-	static SymbolType nextBaseSymbol_;
+	static StringToSymbolDict* pSymbolDict_;
+	static SymbolType* pNextBaseSymbol_;
 
 private:  // methods
 
 	bool isValid() const;
 
 	void copyStates(const BDDTopDownTreeAut& src);
-
-	static SymbolType addBaseSymbol()
-	{
-		return nextBaseSymbol_++;
-	}
 
 	inline void deallocateStates()
 	{
@@ -168,17 +164,159 @@ private:  // methods
 		return states_.empty() && finalStates_.empty();
 	}
 
+	template <class StateTransFunc, class SymbolTransFunc>
 	void loadFromAutDescExplicit(const AutDescription& desc,
-		StringToStateDict* pStateDict);
+		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator)
+	{
+		// Assertions
+		assert(hasEmptyStateSet());
 
-	void loadFromAutDescSymbolic(const AutDescription& desc,
-		StringToStateDict* pStateDict);
+		for (auto fst : desc.finalStates)
+		{	// traverse final states
+			finalStates_.insert(stateTranslator(fst));
+		}
 
-	AutDescription dumpToAutDescExplicit(
-		const StringToStateDict* pStateDict) const;
+		assert(isValid());
 
+		for (auto tr : desc.transitions)
+		{	// traverse the transitions
+			const AutDescription::StateTuple& childrenStr = tr.first;
+			const std::string& symbolStr = tr.second;
+			const AutDescription::State& parentStr = tr.third;
+
+			// translate the parent state
+			StateType parent = stateTranslator(parentStr);
+
+			// translate children
+			StateTuple children;
+			for (auto tupSt : childrenStr)
+			{	// for all children states
+				children.push_back(stateTranslator(tupSt));
+			}
+
+			// translate the symbol
+			SymbolType symbol = symbolTranslator(symbolStr);
+
+			AddSimplyTransition(children, symbol, parent);
+			assert(isValid());
+		}
+
+		assert(isValid());
+	}
+
+	template <class StateTransFunc, class SymbolTransFunc>
+	void loadFromAutDescSymbolic(const AutDescription&/* desc */,
+		StateTransFunc /* stateTranslator */, SymbolTransFunc /* symbolTranslator */)
+	{
+		// Assertions
+		assert(hasEmptyStateSet());
+
+		assert(false);
+
+		assert(isValid());
+	}
+
+	template <class StateBackTransFunc, class SymbolBackTransFunc>
+	AutDescription dumpToAutDescExplicit(StateBackTransFunc stateBackTranslator,
+		SymbolBackTransFunc /* symbolTranslator */) const
+	{
+		// Assertions
+		assert(pSymbolDict_ != nullptr);
+
+		GCC_DIAG_OFF(effc++)
+		class CondColApplyFunctor :
+			public VATA::MTBDDPkg::VoidApply2Functor<CondColApplyFunctor,
+			StateTupleSet, bool>
+		{
+		GCC_DIAG_ON(effc++)
+
+		public:   // data types
+
+			typedef std::list<StateTuple> AccumulatorType;
+
+		private:  // data members
+
+			AccumulatorType accumulator_;
+
+		public:
+
+			CondColApplyFunctor() :
+				accumulator_()
+			{ }
+
+			inline const AccumulatorType& GetAccumulator() const
+			{
+				return accumulator_;
+			}
+
+			inline void Clear()
+			{
+				accumulator_.clear();
+			}
+
+			inline void ApplyOperation(const StateTupleSet& lhs, const bool& rhs)
+			{
+				if (rhs)
+				{
+					accumulator_.insert(accumulator_.end(), lhs.begin(), lhs.end());
+				}
+			}
+		};
+
+		AutDescription desc;
+
+		// copy final states
+		for (auto fst : finalStates_)
+		{	// copy final states
+			desc.finalStates.insert(stateBackTranslator(fst));
+		}
+
+		CondColApplyFunctor collector;
+
+		// copy states, transitions and symbols
+		for (auto state : states_)
+		{	// for all states
+			std::string stateStr;
+
+			// copy the state
+			stateStr = stateBackTranslator(state);
+
+			desc.states.insert(stateStr);
+
+			const TransMTBDD& transMtbdd = getMtbdd(state);
+
+			for (auto sym : *pSymbolDict_)
+			{	// iterate over all known symbols
+				const std::string& symbol = sym.first;
+				BDD symbolBdd(sym.second, true, false);
+
+				collector.Clear();
+				collector(transMtbdd, symbolBdd);
+
+				for (auto tuple : collector.GetAccumulator())
+				{	// for each state tuple for which there is a transition
+					std::vector<std::string> tupleStr;
+					for (auto tupState : tuple)
+					{	// for each element in the tuple
+						tupleStr.push_back(stateBackTranslator(tupState));
+					}
+
+					desc.transitions.insert(AutDescription::Transition(tupleStr, symbol,
+						stateStr));
+				}
+			}
+		}
+
+		return desc;
+	}
+
+	template <class StateBackTransFunc, class SymbolTransFunc>
 	AutDescription dumpToAutDescSymbolic(
-		const StringToStateDict* pStateDict) const;
+		StateBackTransFunc /* stateBackTranslator */,
+		SymbolTransFunc /* symbolTranslator */) const
+	{
+		throw std::runtime_error("Unimplemented");
+	}
 
 	bool isStandAlone() const;
 
@@ -260,14 +398,68 @@ public:   // public methods
 		return const_cast<TransTablePtr&>(transTable_);
 	}
 
-	void LoadFromString(VATA::Parsing::AbstrParser& parser,
-		const std::string& str,
-		StringToStateDict* pStateDict = nullptr,
-		const std::string& params = "");
+	template <class SymbolTransFunc>
+	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
+		SymbolTransFunc symbolTranslator)
+	{
+		typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
+			StateTranslator;
 
+		AutBase::StringToStateDict dict;
+
+		LoadFromString(parser, str, StateTranslator(dict, *this), symbolTranslator);
+	}
+
+	template <class StateTransFunc, class SymbolTransFunc>
+	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
+		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator,
+		const std::string& params = "")
+	{
+		// Assertions
+		assert(hasEmptyStateSet());
+
+		if (params == "symbolic")
+		{
+			loadFromAutDescSymbolic(parser.ParseString(str), stateTranslator,
+				symbolTranslator);
+		}
+		else
+		{
+			loadFromAutDescExplicit(parser.ParseString(str), stateTranslator,
+				symbolTranslator);
+		}
+
+		assert(isValid());
+	}
+
+	template <class StateBackTransFunc, class SymbolTransFunc>
 	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
-		const StringToStateDict* pStateDict = nullptr,
-		const std::string& params = "") const;
+		StateBackTransFunc stateBackTranslator, SymbolTransFunc symbolTranslator,
+		const std::string& params = "") const
+	{
+		AutDescription desc;
+		if (params == "symbolic")
+		{
+			desc = dumpToAutDescSymbolic(stateBackTranslator, symbolTranslator);
+		}
+		else
+		{
+			desc = dumpToAutDescExplicit(stateBackTranslator, symbolTranslator);
+		}
+
+		return serializer.Serialize(desc);
+	}
+
+	template <class SymbolTransFunc>
+	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
+		SymbolTransFunc symbolTranslator,
+		const std::string& params = "") const
+	{
+		return DumpToString(serializer,
+			[](const StateType& state){return Convert::ToString(state);},
+			symbolTranslator, params);
+	}
+
 
 	inline StateType AddState()
 	{
@@ -289,26 +481,6 @@ public:   // public methods
 		assert(isStateLocal(state));
 
 		finalStates_.insert(state);
-	}
-
-	inline static const SymbolType& TranslateStringToSymbol(const std::string& str)
-	{
-		return symbolDict_.TranslateFwd(str);
-	}
-
-	inline static const SymbolType& SafelyTranslateStringToSymbol(
-		const std::string& str)
-	{
-		StringToSymbolDict::ConstIteratorFwd itSym;
-		if ((itSym = symbolDict_.FindFwd(str)) != symbolDict_.EndFwd())
-		{	// in case the state name is known
-			return itSym->second;
-		}
-		else
-		{	// in case there is no translation for the state name
-			SymbolType symbol = addBaseSymbol();
-			return symbolDict_.insert(std::make_pair(str, symbol)).first->second;
-		}
 	}
 
 	void AddTransition(const StateTuple& children, const SymbolType& symbol,
@@ -381,6 +553,46 @@ public:   // public methods
 		}
 
 		return TransMTBDD::DumpToDot(stateVec);
+	}
+
+	inline SymbolType AddSymbol()
+	{
+		// Assertions
+		assert(pNextBaseSymbol_ != nullptr);
+
+		return (*pNextBaseSymbol_)++;
+	}
+
+	inline StringToSymbolDict& GetSymbolDict()
+	{
+		// Assertions
+		assert(pSymbolDict_ != nullptr);
+
+		return *pSymbolDict_;
+	}
+
+	inline const StringToSymbolDict& GetSymbolDict() const
+	{
+		// Assertions
+		assert(pSymbolDict_ != nullptr);
+
+		return *pSymbolDict_;
+	}
+
+	inline static void SetSymbolDictPtr(StringToSymbolDict* pSymbolDict)
+	{
+		// Assertions
+		assert(pSymbolDict != nullptr);
+
+		pSymbolDict_ = pSymbolDict;
+	}
+
+	inline static void SetNextSymbolPtr(SymbolType* pNextBaseSymbol)
+	{
+		// Assertions
+		assert(pNextBaseSymbol != nullptr);
+
+		pNextBaseSymbol_ = pNextBaseSymbol;
 	}
 
 	~BDDTopDownTreeAut();

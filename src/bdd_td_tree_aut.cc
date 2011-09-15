@@ -20,10 +20,11 @@ using VATA::Util::Convert;
 
 
 // static class data member
-BDDTopDownTreeAut::StringToSymbolDict BDDTopDownTreeAut::symbolDict_;
+BDDTopDownTreeAut::StringToSymbolDict* BDDTopDownTreeAut::pSymbolDict_ =
+	nullptr;
 
-BDDTopDownTreeAut::SymbolType
-	BDDTopDownTreeAut::nextBaseSymbol_(SYMBOL_VALUE_LENGTH, 0);
+BDDTopDownTreeAut::SymbolType* BDDTopDownTreeAut::pNextBaseSymbol_ =
+	nullptr;
 
 bool BDDTopDownTreeAut::isValid() const
 {
@@ -33,10 +34,9 @@ bool BDDTopDownTreeAut::isValid() const
 	}
 
 	// check that final states are a subset of states
-	for (auto itFst = finalStates_.cbegin();
-		itFst != finalStates_.cend(); ++itFst)
+	for (auto fst : finalStates_)
 	{
-		if (states_.find(*itFst) == states_.end())
+		if (states_.find(fst) == states_.end())
 		{	// in case the final state is not in the set of states
 			return false;
 		}
@@ -142,249 +142,6 @@ void BDDTopDownTreeAut::AddSimplyTransition(const StateTuple& children,
 	setMtbdd(parent, unioner(oldMtbdd, addedMtbdd));
 
 	assert(isValid());
-}
-
-
-void BDDTopDownTreeAut::loadFromAutDescExplicit(const AutDescription& desc,
-	StringToStateDict* pStateDict)
-{
-	// Assertions
-	assert(hasEmptyStateSet());
-	assert(pStateDict != nullptr);
-
-	for (auto itFst = desc.finalStates.cbegin();
-		itFst != desc.finalStates.cend(); ++itFst)
-	{	// traverse final states
-		finalStates_.insert(safelyTranslateToState(*itFst, *pStateDict));
-	}
-
-	assert(isValid());
-
-	for (auto itTr = desc.transitions.cbegin();
-		itTr != desc.transitions.cend(); ++itTr)
-	{	// traverse the transitions
-		const AutDescription::StateTuple& childrenStr = itTr->first;
-		const std::string& symbolStr = itTr->second;
-		const AutDescription::State& parentStr = itTr->third;
-
-		// translate the parent state
-		StateType parent = safelyTranslateToState(parentStr, *pStateDict);
-
-		// translate children
-		StateTuple children;
-		for (auto itTup = childrenStr.cbegin();
-			itTup != childrenStr.cend(); ++itTup)
-		{	// for all children states
-			children.push_back(safelyTranslateToState(*itTup, *pStateDict));
-		}
-
-		// translate the symbol
-		SymbolType symbol(0);
-		StringToSymbolDict::ConstIteratorFwd itSym;
-		if ((itSym = symbolDict_.FindFwd(symbolStr)) != symbolDict_.EndFwd())
-		{	// in case the state name is known
-			symbol = itSym->second;
-		}
-		else
-		{	// in case there is no translation for the state name
-			symbol = addBaseSymbol();
-			symbolDict_.Insert(std::make_pair(symbolStr, symbol));
-		}
-
-		AddSimplyTransition(children, symbol, parent);
-		assert(isValid());
-	}
-
-	assert(isValid());
-}
-
-
-void BDDTopDownTreeAut::loadFromAutDescSymbolic(const AutDescription&/* desc */,
-	StringToStateDict* /* pStateDict */)
-{
-	// Assertions
-	assert(hasEmptyStateSet());
-
-	assert(false);
-
-	assert(isValid());
-}
-
-
-void BDDTopDownTreeAut::LoadFromString(AbstrParser& parser, const std::string& str,
-	StringToStateDict* pStateDict, const std::string& params)
-{
-	// Assertions
-	assert(hasEmptyStateSet());
-
-	bool delStateDict = false;
-	if (pStateDict == nullptr)
-	{	// in case we do not wish to retain the string-to-state dictionary
-		delStateDict = true;
-		pStateDict = new StringToStateDict();
-	}
-
-	if (params == "symbolic")
-	{
-		loadFromAutDescSymbolic(parser.ParseString(str), pStateDict);
-	}
-	else
-	{
-		loadFromAutDescExplicit(parser.ParseString(str), pStateDict);
-	}
-
-	if (delStateDict)
-	{	// in case we do not need the dictionary
-		delete pStateDict;
-	}
-
-	assert(isValid());
-}
-
-
-AutDescription BDDTopDownTreeAut::dumpToAutDescExplicit(
-	const StringToStateDict* pStateDict) const
-{
-	GCC_DIAG_OFF(effc++)
-	class CondColApplyFunctor :
-		public VATA::MTBDDPkg::VoidApply2Functor<CondColApplyFunctor,
-		StateTupleSet, bool>
-	{
-	GCC_DIAG_ON(effc++)
-
-	public:   // data types
-
-		typedef std::list<StateTuple> AccumulatorType;
-
-	private:  // data members
-
-		AccumulatorType accumulator_;
-
-	public:
-
-		CondColApplyFunctor() :
-			accumulator_()
-		{ }
-
-		inline const AccumulatorType& GetAccumulator() const
-		{
-			return accumulator_;
-		}
-
-		inline void Clear()
-		{
-			accumulator_.clear();
-		}
-
-		inline void ApplyOperation(const StateTupleSet& lhs, const bool& rhs)
-		{
-			if (rhs)
-			{
-				accumulator_.insert(accumulator_.end(), lhs.begin(), lhs.end());
-			}
-		}
-	};
-
-	bool translateStates = false;
-	if (pStateDict != nullptr)
-	{	// in case there is provided dictionary
-		translateStates = true;
-	}
-
-	AutDescription desc;
-
-	// copy final states
-	for (auto itSt = finalStates_.cbegin(); itSt != finalStates_.cend(); ++itSt)
-	{	// copy final states
-		if (translateStates)
-		{	// if there is a dictionary, use it
-			desc.finalStates.insert(pStateDict->TranslateBwd(*itSt));
-		}
-		else
-		{	// if there is not a dictionary, generate strings
-			desc.finalStates.insert(Convert::ToString(*itSt));
-		}
-	}
-
-	CondColApplyFunctor collector;
-
-	// copy states, transitions and symbols
-	for (auto itSt = states_.cbegin(); itSt != states_.cend(); ++itSt)
-	{	// for all states
-		const StateType& state = *itSt;
-		std::string stateStr;
-
-		// copy the state
-		if (translateStates)
-		{	// if there is a dictionary, use it
-			stateStr = pStateDict->TranslateBwd(state);
-		}
-		else
-		{	// if there is not a dictionary, generate strings
-			stateStr = Convert::ToString(state);
-		}
-
-		desc.states.insert(stateStr);
-
-		const TransMTBDD& transMtbdd = getMtbdd(state);
-
-		for (auto itSym = symbolDict_.BeginFwd();
-			itSym != symbolDict_.EndFwd(); ++itSym)
-		{	// iterate over all known symbols
-			const std::string& symbol = itSym->first;
-			BDD symbolBdd(itSym->second, true, false);
-
-			collector.Clear();
-			collector(transMtbdd, symbolBdd);
-
-			for (auto itCol = collector.GetAccumulator().cbegin();
-				itCol != collector.GetAccumulator().cend(); ++itCol)
-			{	// for each state tuple for which there is a transition
-				const StateTuple& tuple = *itCol;
-
-				std::vector<std::string> tupleStr;
-				for (auto itTup = tuple.cbegin(); itTup != tuple.cend(); ++itTup)
-				{	// for each element in the tuple
-					if (translateStates)
-					{	// if there is a dictionary, use it
-						tupleStr.push_back(pStateDict->TranslateBwd(*itTup));
-					}
-					else
-					{	// if there is not a dictionary, generate strings
-						tupleStr.push_back(Convert::ToString(*itTup));
-					}
-				}
-
-				desc.transitions.insert(AutDescription::Transition(tupleStr, symbol,
-					stateStr));
-			}
-		}
-	}
-
-	return desc;
-}
-
-AutDescription BDDTopDownTreeAut::dumpToAutDescSymbolic(
-	const StringToStateDict* /* pStateDict */) const
-{
-	assert(false);
-}
-
-std::string BDDTopDownTreeAut::DumpToString(
-	VATA::Serialization::AbstrSerializer& serializer,
-	const StringToStateDict* pStateDict, const std::string& params) const
-{
-	AutDescription desc;
-	if (params == "symbolic")
-	{
-		desc = dumpToAutDescSymbolic(pStateDict);
-	}
-	else
-	{
-		desc = dumpToAutDescExplicit(pStateDict);
-	}
-
-	return serializer.Serialize(desc);
 }
 
 
