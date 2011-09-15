@@ -54,7 +54,8 @@ public:   // Public data types
 	typedef T1 Type1;
 	typedef T2 Type2;
 
-private:  // Private data types
+	typedef Type1 key_type;
+	typedef Type2 mapped_type;
 
 	typedef Cont1 MapFwdType;
 	typedef Cont2 MapBwdType;
@@ -185,6 +186,11 @@ public:   // Public methods
 		}
 
 		return result;
+	}
+
+	inline const MapBwdType& GetReverseMap() const
+	{
+		return bwdMap_;
 	}
 
 	friend std::ostream& operator<<(std::ostream& os,
