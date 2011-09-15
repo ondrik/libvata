@@ -17,6 +17,7 @@
 #include <vata/aut_op.hh>
 #include <vata/mtbdd/apply2func.hh>
 #include <vata/mtbdd/ondriks_mtbdd.hh>
+#include <vata/mtbdd/void_apply2func.hh>
 #include <vata/util/bdd_trans_table.hh>
 #include <vata/util/ord_vector.hh>
 #include <vata/util/vector_map.hh>
@@ -58,6 +59,8 @@ public:   // public data types
 	typedef VATA::Util::OrdVector<StateType> StateSet;
 	typedef std::vector<StateType> StateTuple;
 
+	typedef VATA::Util::TwoWayDict<std::string, SymbolType> StringToSymbolDict;
+
 private:  // private data types
 
 	typedef size_t MTBDDHandle;
@@ -71,8 +74,6 @@ private:  // private data types
 	typedef std::shared_ptr<TransTable> TransTablePtr;
 
 	typedef VATA::Util::VectorMap<StateType, MTBDDHandle> TupleToMTBDDMap;
-
-	typedef VATA::Util::TwoWayDict<std::string, SymbolType> StringToSymbolDict;
 
 	typedef VATA::Util::Convert Convert;
 
@@ -102,8 +103,8 @@ private:  // data members
 	TupleToMTBDDMap mtbddMap_;
 	MTBDDHandle defaultTrFuncHandle_;
 
-	static StringToSymbolDict symbolDict_;
-	static SymbolType nextSymbol_;
+	static StringToSymbolDict* pSymbolDict_;
+	static SymbolType* pNextSymbol_;
 
 private:  // methods
 
@@ -120,11 +121,6 @@ private:  // methods
 	}
 
 	void copyStates(const BDDBottomUpTreeAut& src);
-
-	static SymbolType addSymbol()
-	{
-		return nextSymbol_++;
-	}
 
 	inline const MTBDDHandle& getMtbddHandle(const StateTuple& children) const
 	{
@@ -231,17 +227,161 @@ private:  // methods
 		return state;
 	}
 
+	template <class StateTransFunc, class SymbolTransFunc>
 	void loadFromAutDescExplicit(const AutDescription& desc,
-		StringToStateDict* pStateDict);
+		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator)
+	{
+		// Assertions
+		assert(hasEmptyStateSet());
+		assert(pSymbolDict_ != nullptr);
 
-	void loadFromAutDescSymbolic(const AutDescription& desc,
-		StringToStateDict* pStateDict);
+		for (auto fst : desc.finalStates)
+		{	// traverse final states
+			finalStates_.insert(stateTranslator(fst));
+		}
 
+		assert(isValid());
+
+		for (auto trans : desc.transitions)
+		{	// traverse the transitions
+			const AutDescription::StateTuple& childrenStr = trans.first;
+			const std::string& symbolStr = trans.second;
+			const AutDescription::State& parentStr = trans.third;
+
+			// translate the parent state
+			StateType parent = stateTranslator(parentStr);
+
+			// translate children
+			StateTuple children;
+			for (auto tupState : childrenStr)
+			{	// for all children states
+				children.push_back(stateTranslator(tupState));
+			}
+
+			// translate the symbol
+			SymbolType symbol = symbolTranslator(symbolStr);
+
+			AddSimplyTransition(children, symbol, parent);
+			assert(isValid());
+		}
+
+		assert(isValid());
+	}
+
+
+	template <class StateTransFunc, class SymbolTransFunc>
+	void loadFromAutDescSymbolic(const AutDescription&/* desc */,
+		StateTransFunc /* stateTranslator */, SymbolTransFunc /* symbolTranslator */)
+	{
+		// Assertions
+		assert(hasEmptyStateSet());
+
+		assert(false);
+
+		assert(isValid());
+	}
+
+
+	template <class StateBackTransFunc, class SymbolBackTransFunc>
 	AutDescription dumpToAutDescExplicit(
-		const StringToStateDict* pStateDict) const;
+		StateBackTransFunc stateBackTranslator,
+		SymbolBackTransFunc /* symbolBackTranslator */) const
+	{
+		GCC_DIAG_OFF(effc++)
+		class CondColApplyFunctor :
+			public VATA::MTBDDPkg::VoidApply2Functor<CondColApplyFunctor,
+			StateSet, bool>
+		{
+		GCC_DIAG_ON(effc++)
 
+		public:   // data types
+
+			typedef std::list<StateType> AccumulatorType;
+
+		private:  // data members
+
+			AccumulatorType accumulator_;
+
+		public:
+
+			CondColApplyFunctor() :
+				accumulator_()
+			{ }
+
+			inline const AccumulatorType& GetAccumulator() const
+			{
+				return accumulator_;
+			}
+
+			inline void Clear()
+			{
+				accumulator_.clear();
+			}
+
+			inline void ApplyOperation(const StateSet& lhs, const bool& rhs)
+			{
+				if (rhs)
+				{
+					accumulator_.insert(accumulator_.end(), lhs.begin(), lhs.end());
+				}
+			}
+		};
+
+		AutDescription desc;
+
+		// copy final states
+		for (auto fst : finalStates_)
+		{	// copy final states
+			desc.finalStates.insert(stateBackTranslator(fst));
+		}
+
+		CondColApplyFunctor collector;
+
+		// copy states, transitions and symbols
+		for (auto tupleHandlePair : mtbddMap_)
+		{	// for all states
+			const StateTuple& children = tupleHandlePair.first;
+
+			std::vector<std::string> tupleStr;
+
+			for (auto state : children)
+			{
+				std::string stateStr = stateBackTranslator(state);
+
+				tupleStr.push_back(stateStr);
+				desc.states.insert(stateStr);
+			}
+
+			const TransMTBDD& transMtbdd = getMtbdd(tupleHandlePair.second);
+
+			for (auto sym : *pSymbolDict_)
+			{	// iterate over all known symbols
+				const std::string& symbol = sym.first;
+				BDD symbolBdd(sym.second, true, false);
+
+				collector.Clear();
+				collector(transMtbdd, symbolBdd);
+
+				for (auto state : collector.GetAccumulator())
+				{	// for each state tuple for which there is a transition
+					std::string stateStr = stateBackTranslator(state);
+
+					desc.transitions.insert(AutDescription::Transition(tupleStr, symbol,
+						stateStr));
+				}
+			}
+		}
+
+		return desc;
+	}
+
+	template <class StateBackTransFunc, class SymbolTransFunc>
 	AutDescription dumpToAutDescSymbolic(
-		const StringToStateDict* pStateDict) const;
+		StateBackTransFunc /* stateBackTranslator */,
+		SymbolTransFunc /* symbolTranslator */) const
+	{
+		throw std::runtime_error("Unimplemented");
+	}
 
 	inline void deallocateTuples()
 	{
@@ -346,14 +486,55 @@ public:   // methods
 	}
 
 
-	void LoadFromString(VATA::Parsing::AbstrParser& parser,
-		const std::string& str,
-		StringToStateDict* pStateDict = nullptr,
-		const std::string& params = "");
+	template <class StateTransFunc, class SymbolTransFunc>
+	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
+		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator,
+		const std::string& params = "")
+	{
+		// Assertions
+		assert(hasEmptyStateSet());
 
+		if (params == "symbolic")
+		{
+			loadFromAutDescSymbolic(parser.ParseString(str), stateTranslator,
+				symbolTranslator);
+		}
+		else
+		{
+			loadFromAutDescExplicit(parser.ParseString(str), stateTranslator,
+				symbolTranslator);
+		}
+
+		assert(isValid());
+	}
+
+	template <class StateBackTransFunc, class SymbolTransFunc>
 	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
-		const StringToStateDict* pStateDict = nullptr,
-		const std::string& params = "") const;
+		StateBackTransFunc stateBackTranslator, SymbolTransFunc symbolTranslator,
+		const std::string& params = "") const
+	{
+		AutDescription desc;
+		if (params == "symbolic")
+		{
+			desc = dumpToAutDescSymbolic(stateBackTranslator, symbolTranslator);
+		}
+		else
+		{
+			desc = dumpToAutDescExplicit(stateBackTranslator, symbolTranslator);
+		}
+
+		return serializer.Serialize(desc);
+	}
+
+	template <class SymbolTransFunc>
+	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
+		SymbolTransFunc symbolTranslator,
+		const std::string& params = "") const
+	{
+		return DumpToString(serializer,
+			[](const StateType& state){return Convert::ToString(state);},
+			symbolTranslator, params);
+	}
 
 	std::string DumpToDot() const
 	{
@@ -364,6 +545,46 @@ public:   // methods
 		}
 
 		return TransMTBDD::DumpToDot(tupleVec);
+	}
+
+	inline SymbolType AddSymbol()
+	{
+		// Assertions
+		assert(pNextSymbol_ != nullptr);
+
+		return (*pNextSymbol_)++;
+	}
+
+	inline StringToSymbolDict& GetSymbolDict()
+	{
+		// Assertions
+		assert(pSymbolDict_ != nullptr);
+
+		return *pSymbolDict_;
+	}
+
+	inline const StringToSymbolDict& GetSymbolDict() const
+	{
+		// Assertions
+		assert(pSymbolDict_ != nullptr);
+
+		return *pSymbolDict_;
+	}
+
+	inline static void SetSymbolDictPtr(StringToSymbolDict* pSymbolDict)
+	{
+		// Assertions
+		assert(pSymbolDict != nullptr);
+
+		pSymbolDict_ = pSymbolDict;
+	}
+
+	inline static void SetNextSymbolPtr(SymbolType* pNextSymbol)
+	{
+		// Assertions
+		assert(pNextSymbol != nullptr);
+
+		pNextSymbol_ = pNextSymbol;
 	}
 
 	~BDDBottomUpTreeAut();
