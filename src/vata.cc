@@ -10,7 +10,8 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_tree_aut.hh>
+#include <vata/bdd_bu_tree_aut.hh>
+#include <vata/bdd_td_tree_aut.hh>
 #include <vata/explicit_tree_aut.hh>
 #include <vata/explicit_tree_aut_op.hh>
 #include <vata/parsing/timbuk_parser.hh>
@@ -31,7 +32,8 @@
 #include "parse_args.hh"
 
 
-using VATA::BDDTreeAut;
+using VATA::BDDBottomUpTreeAut;
+using VATA::BDDTopDownTreeAut;
 using VATA::Parsing::AbstrParser;
 using VATA::Parsing::TimbukParser;
 using VATA::Serialization::AbstrSerializer;
@@ -42,7 +44,7 @@ using VATA::Util::Convert;
 const char VATA_USAGE_STRING[] =
 	"VATA: Vojnar's Army Tree Automata library interface\n"
 	"usage: vata [-r <representation>] [(-I|-O|-F) <format>] [-h|--help] [-t] [-n]\n"
-	"            [-p] <command> [<args>]\n"
+	"            [-p] [-s] <command> [<args>]\n"
 	;
 
 const char VATA_USAGE_COMMANDS[] =
@@ -64,7 +66,10 @@ const char VATA_USAGE_FLAGS[] =
 	"                            automata. The following representations are\n"
 	"                            supported:\n"
 	"\n"
-	"                               'bdd'     : binary decision diagrams\n"
+	"                               'bdd-td'   : binary decision diagrams,\n"
+	"                                            top-down\n"
+	"                               'bdd-bu'   : binary decision diagrams,\n"
+	"                                            bottom-up\n"
 	"    (-I|-O|-F) <format>     Specify format for input (-I), output (-O), or\n"
 	"                            both (-F). The following formats are supported:\n"
 	"\n"
@@ -73,6 +78,8 @@ const char VATA_USAGE_FLAGS[] =
 	"                            stream\n"
 	"    -n                      Do not output the result automaton\n"
 	"    -p                      Prune unreachable states first\n"
+	"    -s                      Prune useless states first (note that this is\n"
+	"                            stronger than -p)\n"
 	;
 
 
@@ -98,14 +105,46 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	Aut autResult;
 	bool boolResult = false;
 
+	VATA::AutBase::StringToStateDict stateDict1;
+	VATA::AutBase::StringToStateDict stateDict2;
+
+	VATA::AutBase::StateToStateMap translMap;
+
 	if (args.operands >= 1)
 	{
-		autInput1.LoadFromString(parser, VATA::Util::ReadFile(args.fileName1));
+		autInput1.LoadFromString(parser, VATA::Util::ReadFile(args.fileName1),
+			&stateDict1);
 	}
 
 	if (args.operands >= 2)
 	{
-		autInput2.LoadFromString(parser, VATA::Util::ReadFile(args.fileName2));
+		autInput2.LoadFromString(parser, VATA::Util::ReadFile(args.fileName2),
+			&stateDict2);
+	}
+
+	if (args.pruneUseless)
+	{
+		if (args.operands >= 1)
+		{
+			autInput1 = RemoveUselessStates(autInput1, &translMap);
+		}
+
+		if (args.operands >= 2)
+		{
+			autInput2 = RemoveUselessStates(autInput2);
+		}
+	}
+	else if (args.pruneUnreachable)
+	{
+		if (args.operands >= 1)
+		{
+			autInput1 = RemoveUnreachableStates(autInput1, &translMap);
+		}
+
+		if (args.operands >= 2)
+		{
+			autInput2 = RemoveUnreachableStates(autInput2);
+		}
 	}
 
 	// get the start time
@@ -114,19 +153,6 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime))
 	{
 		throw std::runtime_error("Could not get the start time");
-	}
-
-	if (args.pruneUnreachable)
-	{
-		if (args.operands >= 1)
-		{
-			autInput1 = RemoveUnreachableStates(autInput1);
-		}
-
-		if (args.operands >= 2)
-		{
-			autInput2 = RemoveUnreachableStates(autInput2);
-		}
 	}
 
 	// process command
@@ -144,7 +170,14 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	}
 	else if (args.command == COMMAND_INCLUSION)
 	{
-		boolResult = CheckInclusion(autInput1, autInput2);
+		if (args.pruneUseless)
+		{
+			boolResult = CheckInclusionNoUseless(autInput1, autInput2);
+		}
+		else
+		{
+			boolResult = CheckInclusion(autInput1, autInput2);
+		}
 	}
 	else
 	{
@@ -166,11 +199,21 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 
 	if (!args.dontOutputResult)
 	{	// in case output is not forbidden
-		if ((args.command == COMMAND_LOAD) ||
-			(args.command == COMMAND_UNION) ||
+		if (args.command == COMMAND_LOAD)
+		{
+			if (args.pruneUnreachable || args.pruneUseless)
+			{
+				stateDict1 = VATA::Util::RebindMap(stateDict1, translMap);
+			}
+
+			std::cout << autResult.DumpToString(serializer, &stateDict1);
+		}
+
+		if ((args.command == COMMAND_UNION) ||
 			(args.command == COMMAND_INTERSECTION))
 		{
 			std::cout << autResult.DumpToString(serializer);
+
 		}
 
 		if (args.command == COMMAND_INCLUSION)
@@ -264,21 +307,25 @@ int main(int argc, char* argv[])
 		return EXIT_SUCCESS;
 	}
 
-	if (args.representation == REPRESENTATION_BDD)
+	try
 	{
-		try
+		if (args.representation == REPRESENTATION_BDD_TD)
 		{
-			return executeCommand<BDDTreeAut>(args);
+				return executeCommand<BDDTopDownTreeAut>(args);
 		}
-		catch (std::exception& ex)
+		else if (args.representation == REPRESENTATION_BDD_BU)
 		{
-			std::cerr << "An error occured: " << ex.what() << "\n";
+				return executeCommand<BDDBottomUpTreeAut>(args);
+		}
+		else
+		{
+			std::cerr << "Internal error: invalid representation\n";
 			return EXIT_FAILURE;
 		}
 	}
-	else
+	catch (std::exception& ex)
 	{
-		std::cerr << "Internal error: invalid representation\n";
+		std::cerr << "An error occured: " << ex.what() << "\n";
 		return EXIT_FAILURE;
 	}
 }

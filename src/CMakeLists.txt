@@ -43,11 +43,18 @@ bison_target(timbuk_parser timbuk.y ${CMAKE_CURRENT_BINARY_DIR}/timbuk.y.cc)
 add_flex_bison_dependency(timbuk_scanner timbuk_parser)
 
 add_library(libvata STATIC
-  bdd_tree_aut.cc
-  bdd_tree_aut_incl.cc
-  bdd_tree_aut_isect.cc
-  bdd_tree_aut_union.cc
-  bdd_tree_aut_unreach.cc
+	bdd_bu_tree_aut.cc
+  bdd_bu_tree_aut_incl.cc
+  bdd_bu_tree_aut_isect.cc
+  bdd_bu_tree_aut_union.cc
+  bdd_bu_tree_aut_unreach.cc
+  bdd_bu_tree_aut_useless.cc
+  bdd_td_tree_aut.cc
+  bdd_td_tree_aut_incl.cc
+  bdd_td_tree_aut_isect.cc
+  bdd_td_tree_aut_union.cc
+  bdd_td_tree_aut_unreach.cc
+  bdd_td_tree_aut_useless.cc
   explicit_tree_aut.cc
   convert.cc
   fake_file.cc

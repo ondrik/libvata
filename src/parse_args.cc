@@ -50,17 +50,19 @@ Arguments parseArguments(int argc, char* argv[])
 	bool parsedShowTime       = false;
 	bool parsedDontOutputRes  = false;
 	bool parsedPruneUnreach   = false;
+	bool parsedPruneUseless   = false;
 
 	// initialize the structure
 	Arguments args;
 	args.command              = COMMAND_HELP;
-	args.representation       = REPRESENTATION_BDD;
+	args.representation       = REPRESENTATION_BDD_TD;
 	args.inputFormat          = FORMAT_TIMBUK;
 	args.outputFormat         = FORMAT_TIMBUK;
 	args.operands             = 0;
 	args.showTime             = false;
 	args.dontOutputResult     = false;
 	args.pruneUnreachable     = false;
+	args.pruneUseless         = false;
 
 	while (argc > 0)
 	{	// until we parse all arguments
@@ -92,6 +94,16 @@ Arguments parseArguments(int argc, char* argv[])
 				parsedPruneUnreach = true;
 				args.pruneUnreachable = true;
 			}
+			else	if (currentArg == "-s")
+			{
+				if (parsedPruneUseless)
+				{
+					throw std::runtime_error("The \'-s\' flag specified more times.");
+				}
+
+				parsedPruneUseless = true;
+				args.pruneUseless = true;
+			}
 			else	if (currentArg == "-n")
 			{
 				if (parsedDontOutputRes)
@@ -120,9 +132,13 @@ Arguments parseArguments(int argc, char* argv[])
 				}
 
 				currentArg = argv[0];
-				if (currentArg == "bdd")
+				if (currentArg == "bdd-td")
 				{
-					args.representation = REPRESENTATION_BDD;
+					args.representation = REPRESENTATION_BDD_TD;
+				}
+				else if (currentArg == "bdd-bu")
+				{
+					args.representation = REPRESENTATION_BDD_BU;
 				}
 				else
 				{

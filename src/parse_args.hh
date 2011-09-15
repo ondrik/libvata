@@ -25,7 +25,8 @@ enum CommandEnum
 
 enum RepresentationEnum
 {
-	REPRESENTATION_BDD
+	REPRESENTATION_BDD_TD,
+	REPRESENTATION_BDD_BU
 };
 
 enum FormatEnum
@@ -45,6 +46,7 @@ struct Arguments
 	bool showTime;
 	bool dontOutputResult;
 	bool pruneUnreachable;
+	bool pruneUseless;
 
 	Arguments() :
 		command(),
@@ -56,7 +58,8 @@ struct Arguments
 		fileName2(),
 		showTime(false),
 		dontOutputResult(false),
-		pruneUnreachable(false)
+		pruneUnreachable(false),
+		pruneUseless(false)
 	{ }
 
 };

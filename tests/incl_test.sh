@@ -12,7 +12,8 @@ SCRIPT=`readlink -f $0`
 SCRIPTPATH=`dirname $SCRIPT`
 
 #METHODS=("symdown" "symdownX" "downT")
-METHODS=("symdown" "downT" "downSimT")
+#METHODS=("symdown" "symdown-ul" "olddown" "olddown-ul" "downT" "downSimT" "upT")
+METHODS=("symdown" "symdown-ul" "downT" "downSimT" "upT")
 
 ################################# FUNCTIONS ##################################
 

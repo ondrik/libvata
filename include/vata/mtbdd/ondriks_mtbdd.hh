@@ -114,6 +114,10 @@ private:  // private data types
 	typedef std::unordered_map<DataType, NodePtrType,
 		boost::hash<DataType>> LeafCacheType;
 
+	typedef VATA::Util::Convert Convert;
+
+	typedef std::unordered_set<NodePtrType, boost::hash<NodePtrType>> NodePtrSet;
+
 private:  // private data members
 
 	NodePtrType root_;
@@ -308,6 +312,36 @@ private:  // private methods
 		return result;
 	}
 
+	static std::string mtbddNodeToDotString(const NodePtrType& ptr, NodePtrSet& cache)
+	{
+		// Assertions
+		assert(!IsNull(ptr));
+
+		if (cache.find(ptr) != cache.end())
+		{
+			return "";
+		}
+
+		cache.insert(ptr);
+
+		if (IsLeaf(ptr))
+		{
+			return Convert::ToString(ptr) + " [label = \"" +
+				Convert::ToString(GetDataFromLeaf(ptr)) + "\"]" + "\n";
+		}
+		else
+		{
+			assert(IsInternal(ptr));
+
+			return Convert::ToString(ptr) + " -> " +
+				Convert::ToString(GetLowFromInternal(ptr)) + " [style = dashed];\n" +
+				Convert::ToString(ptr) + " -> " +
+				Convert::ToString(GetHighFromInternal(ptr)) + " [style = solid];\n" +
+				mtbddNodeToDotString(GetLowFromInternal(ptr), cache) +
+				mtbddNodeToDotString(GetHighFromInternal(ptr), cache);
+		}
+	}
+
 public:   // public methods
 
 
@@ -410,6 +444,22 @@ public:   // public methods
 		}
 
 		return GetDataFromLeaf(node);
+	}
+
+	static std::string DumpToDot(const std::vector<const OndriksMTBDD*>& mtbdds)
+	{
+		std::string result = "digraph mtbdd {\n";
+
+		NodePtrSet cache;
+
+		for (const OndriksMTBDD* bdd : mtbdds)
+		{
+			assert(bdd != nullptr);
+
+			result +=	mtbddNodeToDotString(bdd->getRoot(), cache);
+		}
+
+		return result + "}";
 	}
 
 	~OndriksMTBDD()

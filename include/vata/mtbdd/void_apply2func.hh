@@ -95,7 +95,6 @@ private:  // Private methods
 		typename CacheHashTable::iterator itHt;
 		if ((itHt = ht.find(cacheAddress)) != ht.end())
 		{	// if the result is already known
-			assert(!IsNull(itHt->second));
 			return;
 		}
 

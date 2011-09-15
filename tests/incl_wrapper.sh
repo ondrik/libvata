@@ -15,6 +15,9 @@ SCRIPTPATH=`dirname $SCRIPT`
 # VATA executable
 VATA="${SCRIPTPATH}/../build/src/vata"
 
+# VATA executable
+OLDVATA="${SCRIPTPATH}/old-vata"
+
 # SFTA executable
 SFTA="${SCRIPTPATH}/sfta"
 
@@ -35,6 +38,9 @@ if [ "$#" -ne 3 ]; then
   die "usage: $0 <method> <file1> <file2>"
 fi
 
+LHS=$(${TALIB} n < "${FILE_LHS}")
+RHS=$(${TALIB} n < "${FILE_RHS}")
+
 RETVAL="?"
 
 case "${OPERATION}" in
@@ -42,16 +48,32 @@ case "${OPERATION}" in
     ${VATA} -t incl "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
+  symdown-ul)
+    ${VATA} -t incl -s "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  olddown)
+    ${OLDVATA} -t incl "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  olddown-ul)
+    ${OLDVATA} -t incl -s "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
   symdownX)
     ${SFTA} -o "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   downT)
-    ${TALIB} sdif <<< $(cat "${FILE_LHS}" "${FILE_RHS}")
+    ${TALIB} sdif <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
   downSimT)
-    ${TALIB} sddf <<< $(cat "${FILE_LHS}" "${FILE_RHS}")
+    ${TALIB} sddf <<< $(echo "${LHS}" "${RHS}")
+    RETVAL="$?"
+    ;;
+  upT)
+    ${TALIB} suif <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
   *) die "Invalid option ${OPERATION}"
