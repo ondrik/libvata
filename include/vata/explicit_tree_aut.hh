@@ -81,21 +81,21 @@ private:  // private data types
 	public:
 
 		const TuplePtrSetPtr& uniqueTuplePtrSet(const SymbolType& symbol) {
-	
+
 			auto& tupleSet = this->insert(
-				std::make_pair(symbol, TuplePtrSetPtr(NULL))
+				std::make_pair(symbol, TuplePtrSetPtr(nullptr))
 			).first->second;
-	
+
 			if (!tupleSet || !tupleSet.unique()) {
-	
+
 				tupleSet = TuplePtrSetPtr(
 					tupleSet ? (new TuplePtrSet(*tupleSet)) : (new TuplePtrSet())
 				);
-	
+
 			}
-	
+
 			return tupleSet;
-	
+
 		}
 
 	};
@@ -107,23 +107,23 @@ private:  // private data types
 	public:
 
 		const TransitionClusterPtr& uniqueCluster(const StateType& state) {
-	
+
 			auto& cluster = this->insert(
-				std::make_pair(state, TransitionClusterPtr(NULL))
+				std::make_pair(state, TransitionClusterPtr(nullptr))
 			).first->second;
-	
+
 			if (!cluster || !cluster.unique()) {
-	
+
 				cluster = TransitionClusterPtr(
 					cluster ? (new TransitionCluster(*cluster)) : (new TransitionCluster())
 				);
-	
+
 			}
-	
+
 			return cluster;
-	
+
 		}
-		
+
 	};
 
 	typedef std::shared_ptr<StateToTransitionClusterMap> StateToTransitionClusterMapPtr;
@@ -135,7 +135,7 @@ protected:
 
 		auto iter = cont.find(key);
 		if (iter == cont.end())
-			return NULL;
+			return nullptr;
 
 		return iter->second.get();
 
@@ -143,13 +143,13 @@ protected:
 
 	TuplePtr tupleLookup(const StateTuple& tuple) {
 
-		auto p = this->cache_.insert(std::make_pair(tuple, std::weak_ptr<StateTuple>(NULL)));
+		auto p = this->cache_.insert(std::make_pair(tuple, std::weak_ptr<StateTuple>(nullptr)));
 
 		if (!p.second)
 			return TuplePtr(p.first->second);
 
 		struct EraseTupleF {
-			
+
 			TupleCache& cache_;
 
 			EraseTupleF(TupleCache& cache) : cache_(cache) {}
@@ -212,7 +212,7 @@ public:
 				this->tupleIterator_ = this->symbolSetIterator_->second->begin();
 				return;
 			}
-			
+
 			++this->stateClusterIterator_;
 			this->_init();
 
@@ -236,7 +236,7 @@ public:
 
 			return (this->symbolSetIterator_ == rhs.symbolSetIterator_) &&
 				(this->tupleIterator_ == rhs.tupleIterator_);
-				
+
 		}
 
 		Iterator& operator++() {
@@ -260,11 +260,11 @@ public:
 		const StateTuple& children() const {
 			return **this->tupleIterator_;
 		}
-		
+
 		const SymbolType& symbol() const {
 			return this->symbolSetIterator_->first;
 		}
-		
+
 		const StateType& state() const {
 			return this->stateClusterIterator_->first;
 		}
@@ -286,17 +286,17 @@ public:
 		AcceptingTransitions(const ExplicitTreeAut& aut) : aut_(aut) {}
 
 		struct Iterator {
-	
+
 			const ExplicitTreeAut& aut_;
-	
+
 			StateSet::const_iterator stateSetIterator_;
 			typename TransitionCluster::const_iterator symbolSetIterator_;
 			TuplePtrSet::const_iterator tupleIterator_;
-	
+
 			void _init() {
-	
+
 				typename StateToTransitionClusterMap::const_iterator iter;
-	
+
 				while (1) {
 					if (this->stateSetIterator_ == this->aut.finalStates_->end())
 						return;
@@ -305,79 +305,79 @@ public:
 						break;
 					++this->stateSetIterator_;
 				}
-				
+
 				this->symbolSetIterator_ = iter->second->begin();
 				this->tupleIterator_ = this->symbolSetIterator_->second->begin();
-	
+
 			}
-	
+
 			void _increment() {
-	
+
 				++this->tupleIterator_;
 				if (this->tupleIterator_ != this->symbolSetIterator_->second->end())
 					return;
-	
+
 				++this->symbolSetIterator_;
 				if (this->symbolSetIterator_ != this->stateClusterIterator_->second->end()) {
 					this->tupleIterator_ = this->symbolSetIterator_->second->begin();
 					return;
 				}
-				
+
 				++this->stateSetIterator_;
 				this->_init();
-	
+
 			}
-	
+
 			Iterator(const ExplicitTreeAut& aut, StateSet::const_iterator pos)
 				: aut_(aut), stateSetIterator_(pos) {
-			
+
 				this->_init();
-	
+
 			}
-	
+
 			bool operator==(const Iterator& rhs) const {
-	
+
 				if (this->stateSetIterator_ != rhs.stateSetIterator_)
 					return false;
-	
+
 				if (this->stateSetIterator_ == this->aut.finalStates_->end())
 					return true;
-	
+
 				return (this->symbolSetIterator_ == rhs.symbolSetIterator_) &&
 					(this->tupleIterator_ == rhs.tupleIterator_);
-					
+
 			}
-	
+
 			Iterator& operator++() {
-	
+
 				this->_increment();
-	
+
 				return *this;
-	
+
 			}
-	
+
 			Iterator operator++(int) {
-	
+
 				Iterator iter = *this;
-	
+
 				iter._increment();
-	
+
 				return iter;
-	
+
 			}
-	
+
 			const StateTuple& children() const {
 				return **this->tupleIterator_;
 			}
-			
+
 			const SymbolType& symbol() const {
 				return this->symbolSetIterator_->first;
 			}
-			
+
 			const StateType& state() const {
 				return *this->stateIterator_;
 			}
-	
+
 		};
 
 		typedef Iterator iterator;
@@ -437,7 +437,7 @@ public:   // public methods
 			const AutDescription::StateTuple& childrenStr = t.first;
 			const std::string& symbolStr = t.second;
 			const AutDescription::State& parentStr = t.third;
-	
+
 			// translate children
 			StateTuple children;
 			for (auto c : childrenStr) {
@@ -445,8 +445,8 @@ public:   // public methods
 				children.push_back(stateTranslator(c));
 			}
 
-			this->AddTransition(children, symbolTranslator(symbolStr), stateTranslator(parentStr));	
-	
+			this->AddTransition(children, symbolTranslator(symbolStr), stateTranslator(parentStr));
+
 		}
 
 	}
@@ -485,15 +485,15 @@ public:   // public methods
 							statePrinter(stateClusterPair.first)
 						)
 					);
-					
+
 				}
 
 			}
 
 		}
-		
+
 		return serializer.Serialize(desc);
-		
+
 	}
 
 	inline const StateSet& GetFinalStates() const {

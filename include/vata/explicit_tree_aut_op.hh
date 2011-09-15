@@ -83,7 +83,7 @@ namespace VATA {
 								newStates.push_back(state);
 
 						}
-						
+
 					}
 
 				}
@@ -93,7 +93,7 @@ namespace VATA {
 		}
 
 		if (pTranslMap) {
-			
+
 			for (auto state : reachableStates)
 				pTranslMap->insert(std::make_pair(state, state));
 
