@@ -1,18 +1,19 @@
 BUILD_DIR=build
+#MAKE_FLAGS=-j
 
 .PHONY: all debug release doc clean
 
 all:
-	cd $(BUILD_DIR) && make -j || echo "Type either \"make debug\" or \"make release\"!"
+	cd $(BUILD_DIR) && make $(MAKE_FLAGS) || echo "Type either \"make debug\" or \"make release\"!"
 
 debug:
-	cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Debug .. && make -j
+	cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Debug .. && make $(MAKE_FLAGS)
 
 release:
-	cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Release .. && make -j
+	cd $(BUILD_DIR) && cmake -DCMAKE_BUILD_TYPE=Release .. && make $(MAKE_FLAGS)
 
 doc:
-	cd $(BUILD_DIR) && make doc -j
+	cd $(BUILD_DIR) && make $(MAKE_FLAGS) doc 
 
 test:
 	cd $(BUILD_DIR) && make test
