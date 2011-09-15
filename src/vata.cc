@@ -40,6 +40,7 @@ using VATA::Serialization::AbstrSerializer;
 using VATA::Serialization::TimbukSerializer;
 using VATA::Util::Convert;
 
+typedef VATA::ExplicitTreeAut<size_t> ExplicitTreeAut;
 
 const char VATA_USAGE_STRING[] =
 	"VATA: Vojnar's Army Tree Automata library interface\n"
@@ -65,15 +66,16 @@ const char VATA_USAGE_FLAGS[] =
 	"    -r <representation>     Use <representation> for internal storage of\n"
 	"                            automata. The following representations are\n"
 	"                            supported:\n"
-	"\n"
 	"                               'bdd-td'   : binary decision diagrams,\n"
 	"                                            top-down\n"
 	"                               'bdd-bu'   : binary decision diagrams,\n"
 	"                                            bottom-up\n"
+	"                               'explicit' : explicit\n"
+	"\n"
 	"    (-I|-O|-F) <format>     Specify format for input (-I), output (-O), or\n"
 	"                            both (-F). The following formats are supported:\n"
-	"\n"
 	"                               'timbuk'  : binary decision diagrams\n"
+	"\n"
 	"    -t                      Print the time the operation took to error output\n"
 	"                            stream\n"
 	"    -n                      Do not output the result automaton\n"
@@ -316,6 +318,10 @@ int main(int argc, char* argv[])
 		else if (args.representation == REPRESENTATION_BDD_BU)
 		{
 				return executeCommand<BDDBottomUpTreeAut>(args);
+		}
+		else if (args.representation == REPRESENTATION_EXPLICIT)
+		{
+				return executeCommand<ExplicitTreeAut>(args);
 		}
 		else
 		{

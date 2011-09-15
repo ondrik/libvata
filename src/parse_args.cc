@@ -140,6 +140,10 @@ Arguments parseArguments(int argc, char* argv[])
 				{
 					args.representation = REPRESENTATION_BDD_BU;
 				}
+				else if (currentArg == "explicit")
+				{
+					args.representation = REPRESENTATION_EXPLICIT;
+				}
 				else
 				{
 					throw std::runtime_error("Unsupported representation: " + currentArg);
