@@ -14,6 +14,8 @@
 #include <vata/aut_op.hh>
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
+#include <vata/util/transl_strict.hh>
+#include <vata/util/transl_weak.hh>
 #include <vata/util/util.hh>
 
 using VATA::AutBase;
@@ -40,6 +42,17 @@ typedef AutBase::StringToStateDict StringToStateDict;
 typedef AutBase::StateToStateMap StateToStateMap;
 typedef AutBase::StateType StateType;
 typedef AutType::StateTuple StateTuple;
+
+typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
+	StateTranslatorWeak;
+typedef VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>
+	StateBackTranslatorStrict;
+
+typedef VATA::Util::TranslatorWeak<AutType::StringToSymbolDict>
+	SymbolTranslatorWeak;
+typedef VATA::Util::TranslatorStrict<AutType::StringToSymbolDict>
+	SymbolTranslatorStrict;
+
 
 
 /******************************************************************************
@@ -68,6 +81,8 @@ const fs::path ADD_TRANS_TIMBUK_FILE =
 	AUT_DIR / "add_trans_timbuk.txt";
 
 
+const size_t BDD_SIZE = 16;
+
 /******************************************************************************
  *                                  Fixtures                                  *
  ******************************************************************************/
@@ -78,7 +93,42 @@ const fs::path ADD_TRANS_TIMBUK_FILE =
  * Fixture for test of BDDTopDownTreeAut
  */
 class BDDTreeAutFixture : public LogFixture
-{ };
+{
+protected:
+
+	TimbukParser parser_;
+	TimbukSerializer serializer_;
+
+	AutType::StringToSymbolDict symbolDict_;
+	AutType::SymbolType nextSymbol_;
+
+protected:
+
+	BDDTreeAutFixture() :
+		parser_(),
+		serializer_(),
+		symbolDict_(),
+		nextSymbol_(BDD_SIZE, 0)
+	{
+		AutType::SetSymbolDictPtr(&symbolDict_);
+		AutType::SetNextSymbolPtr(&nextSymbol_);
+	}
+
+	void readAut(AutType& aut, StringToStateDict& stateDict, const std::string& str)
+	{
+		aut.LoadFromString(parser_, str,
+			StateTranslatorWeak(stateDict, [&aut]{return aut.AddState();}),
+			SymbolTranslatorWeak(aut.GetSymbolDict(),
+			[&aut]{return aut.AddSymbol();}));
+	}
+
+	std::string dumpAut(const AutType& aut, const StringToStateDict& stateDict)
+	{
+		return aut.DumpToString(serializer_,
+			StateBackTranslatorStrict(stateDict.GetReverseMap()),
+			SymbolTranslatorStrict(aut.GetSymbolDict()));
+	}
+};
 
 /******************************************************************************
  *                              Start of testing                              *
@@ -91,9 +141,6 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 {
 	auto testfileContent = ParseTestFile(LOAD_TIMBUK_FILE.string());
 
-	TimbukParser parser;
-	TimbukSerializer serializer;
-
 	for (auto testcase : testfileContent)
 	{
 		BOOST_REQUIRE_MESSAGE(testcase.size() == 1, "Invalid format of a testcase: " +
@@ -103,15 +150,14 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 		BOOST_MESSAGE("Loading automaton " + filename + "...");
 		std::string autStr = VATA::Util::ReadFile(filename);
 
-		AutType aut;
-
 		StringToStateDict stateDict;
-		aut.LoadFromString(parser, autStr, &stateDict);
+		AutType aut;
+		readAut(aut, stateDict, autStr);
 
-		std::string autOut = aut.DumpToString(serializer, &stateDict);
+		std::string autOut = dumpAut(aut, stateDict);
 
-		AutDescription descOrig = parser.ParseString(autStr);
-		AutDescription descOut = parser.ParseString(autOut);
+		AutDescription descOrig = parser_.ParseString(autStr);
+		AutDescription descOut = parser_.ParseString(autOut);
 
 		BOOST_CHECK_MESSAGE(descOrig == descOut,
 			"\n\nExpecting:\n===========\n" +
@@ -123,9 +169,6 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 //BOOST_AUTO_TEST_CASE(adding_transitions)
 //{
 //	auto testfileContent = ParseTestFile(ADD_TRANS_TIMBUK_FILE.string());
-//
-//	TimbukParser parser;
-//	TimbukSerializer serializer;
 //
 //	for (auto testcase : testfileContent)
 //	{
@@ -145,10 +188,10 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 //
 //		AutType aut;
 //		StringToStateDict stateDict;
-//		aut.LoadFromString(parser, autStr, &stateDict);
-//		AutDescription autDesc = parser.ParseString(autStr);
+//		aut.LoadFromString(parser_, autStr, &stateDict);
+//		AutDescription autDesc = parser_.ParseString(autStr);
 //
-//		AutDescription transDesc = parser.ParseString(transStr);
+//		AutDescription transDesc = parser_.ParseString(transStr);
 //
 //		for (const AutDescription::Transition& trans : transDesc.transitions)
 //		{
@@ -201,10 +244,10 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 //			aut.AddSimplyTransition(children, symbol, parState);
 //		}
 //
-//		std::string autTransStr = aut.DumpToString(serializer, &stateDict);
+//		std::string autTransStr = aut.DumpToString(serializer_, &stateDict);
 //
-//		AutDescription descOut = parser.ParseString(autTransStr);
-//		AutDescription descCorrect = parser.ParseString(autCorrectStr);
+//		AutDescription descOut = parser_.ParseString(autTransStr);
+//		AutDescription descCorrect = parser_.ParseString(autCorrectStr);
 //
 //		BOOST_CHECK_MESSAGE(descOut == descCorrect,
 //			"\n\nExpecting:\n===========\n" + autCorrectStr +
@@ -241,12 +284,12 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 ////	aut.AddSimplyTransition(children, BDDTopDownTreeAut::TranslateStringToSymbol("a"),
 ////		stateP);
 ////
-////	std::string autOut = aut.DumpToString(serializer, &stateDict);
-////	AutDescription descOut = parser.ParseString(autOut);
+////	std::string autOut = aut.DumpToString(serializer_, &stateDict);
+////	AutDescription descOut = parser_.ParseString(autOut);
 ////
 ////	BOOST_CHECK_MESSAGE(descCorrect == descOut,
 ////		"\n\nExpecting:\n===========\n" +
-////		serializer.Serialize(descCorrect) +
+////		serializer_.Serialize(descCorrect) +
 ////		"===========\n\nGot:\n===========\n" + autOut + "\n===========");
 //}
 
@@ -254,9 +297,6 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 BOOST_AUTO_TEST_CASE(aut_union_simple)
 {
 	auto testfileContent = ParseTestFile(UNION_TIMBUK_FILE.string());
-
-	TimbukParser parser;
-	TimbukSerializer serializer;
 
 	for (auto testcase : testfileContent)
 	{
@@ -274,24 +314,24 @@ BOOST_AUTO_TEST_CASE(aut_union_simple)
 		std::string autRhsStr = VATA::Util::ReadFile(inputRhsFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-		AutType autLhs;
 		StringToStateDict stateDictLhs;
-		autLhs.LoadFromString(parser, autLhsStr, &stateDictLhs);
-		AutDescription autLhsDesc = parser.ParseString(autLhsStr);
+		AutType autLhs;
+		readAut(autLhs, stateDictLhs, autLhsStr);
+		AutDescription autLhsDesc = parser_.ParseString(autLhsStr);
 
-		AutType autRhs(autLhs.GetTransTable());
 		StringToStateDict stateDictRhs;
-		autRhs.LoadFromString(parser, autRhsStr, &stateDictRhs);
-		AutDescription autRhsDesc = parser.ParseString(autRhsStr);
+		AutType autRhs(autLhs.GetTransTable());
+		readAut(autRhs, stateDictRhs, autRhsStr);
+		AutDescription autRhsDesc = parser_.ParseString(autRhsStr);
 
 		AutType autUnion = VATA::Union(autLhs, autRhs);
 		StringToStateDict stateDictUnion =
 			VATA::Util::CreateUnionStringToStateMap(stateDictLhs, stateDictRhs);
 
-		std::string autUnionStr = autUnion.DumpToString(serializer, &stateDictUnion);
+		std::string autUnionStr = dumpAut(autUnion, stateDictUnion);
 
-		AutDescription descOut = parser.ParseString(autUnionStr);
-		AutDescription descCorrect = parser.ParseString(autCorrectStr);
+		AutDescription descOut = parser_.ParseString(autUnionStr);
+		AutDescription descCorrect = parser_.ParseString(autCorrectStr);
 
 		BOOST_CHECK_MESSAGE(descOut == descCorrect,
 			"\n\nExpecting:\n===========\n" + autCorrectStr +
@@ -304,9 +344,6 @@ BOOST_AUTO_TEST_CASE(aut_union_trans_table_copy)
 {
 	auto testfileContent = ParseTestFile(UNION_TIMBUK_FILE.string());
 
-	TimbukParser parser;
-	TimbukSerializer serializer;
-
 	for (auto testcase : testfileContent)
 	{
 		BOOST_REQUIRE_MESSAGE(testcase.size() == 3, "Invalid format of a testcase: " +
@@ -323,15 +360,15 @@ BOOST_AUTO_TEST_CASE(aut_union_trans_table_copy)
 		std::string autRhsStr = VATA::Util::ReadFile(inputRhsFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-		AutType autLhs;
 		StringToStateDict stateDictLhs;
-		autLhs.LoadFromString(parser, autLhsStr, &stateDictLhs);
-		AutDescription autLhsDesc = parser.ParseString(autLhsStr);
+		AutType autLhs;
+		readAut(autLhs, stateDictLhs, autLhsStr);
+		AutDescription autLhsDesc = parser_.ParseString(autLhsStr);
 
-		AutType autRhs;
 		StringToStateDict stateDictRhs;
-		autRhs.LoadFromString(parser, autRhsStr, &stateDictRhs);
-		AutDescription autRhsDesc = parser.ParseString(autRhsStr);
+		AutType autRhs;
+		readAut(autRhs, stateDictRhs, autRhsStr);
+		AutDescription autRhsDesc = parser_.ParseString(autRhsStr);
 
 		AutBase::StateToStateMap stateTranslMap;
 		AutType autUnion = VATA::Union(autLhs, autRhs, &stateTranslMap);
@@ -339,10 +376,10 @@ BOOST_AUTO_TEST_CASE(aut_union_trans_table_copy)
 			VATA::Util::CreateUnionStringToStateMap(stateDictLhs, stateDictRhs,
 				&stateTranslMap);
 
-		std::string autUnionStr = autUnion.DumpToString(serializer, &stateDictUnion);
+		std::string autUnionStr = dumpAut(autUnion, stateDictUnion);
 
-		AutDescription descOut = parser.ParseString(autUnionStr);
-		AutDescription descCorrect = parser.ParseString(autCorrectStr);
+		AutDescription descOut = parser_.ParseString(autUnionStr);
+		AutDescription descCorrect = parser_.ParseString(autCorrectStr);
 
 		BOOST_CHECK_MESSAGE(descOut == descCorrect,
 			"\n\nExpecting:\n===========\n" + autCorrectStr +
@@ -354,9 +391,6 @@ BOOST_AUTO_TEST_CASE(aut_union_trans_table_copy)
 BOOST_AUTO_TEST_CASE(aut_intersection)
 {
 	auto testfileContent = ParseTestFile(INTERSECTION_TIMBUK_FILE.string());
-
-	TimbukParser parser;
-	TimbukSerializer serializer;
 
 	for (auto testcase : testfileContent)
 	{
@@ -374,15 +408,15 @@ BOOST_AUTO_TEST_CASE(aut_intersection)
 		std::string autRhsStr = VATA::Util::ReadFile(inputRhsFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-		AutType autLhs;
 		StringToStateDict stateDictLhs;
-		autLhs.LoadFromString(parser, autLhsStr, &stateDictLhs);
-		AutDescription autLhsDesc = parser.ParseString(autLhsStr);
+		AutType autLhs;
+		readAut(autLhs, stateDictLhs, autLhsStr);
+		AutDescription autLhsDesc = parser_.ParseString(autLhsStr);
 
-		AutType autRhs;
 		StringToStateDict stateDictRhs;
-		autRhs.LoadFromString(parser, autRhsStr, &stateDictRhs);
-		AutDescription autRhsDesc = parser.ParseString(autRhsStr);
+		AutType autRhs;
+		readAut(autRhs, stateDictRhs, autRhsStr);
+		AutDescription autRhsDesc = parser_.ParseString(autRhsStr);
 
 		AutBase::ProductTranslMap translMap;
 		AutType autIntersect = VATA::Intersection(autLhs, autRhs, &translMap);
@@ -390,11 +424,10 @@ BOOST_AUTO_TEST_CASE(aut_intersection)
 		StringToStateDict stateDictIsect = VATA::Util::CreateProductStringToStateMap(
 			stateDictLhs, stateDictRhs, translMap);
 
-		std::string autIntersectStr = autIntersect.DumpToString(serializer,
-			&stateDictIsect);
+		std::string autIntersectStr = dumpAut(autIntersect, stateDictIsect);
 
-		AutDescription descOut = parser.ParseString(autIntersectStr);
-		AutDescription descCorrect = parser.ParseString(autCorrectStr);
+		AutDescription descOut = parser_.ParseString(autIntersectStr);
+		AutDescription descCorrect = parser_.ParseString(autCorrectStr);
 
 		BOOST_CHECK_MESSAGE(descOut == descCorrect,
 			"\n\nExpecting:\n===========\n" + autCorrectStr +
@@ -405,9 +438,6 @@ BOOST_AUTO_TEST_CASE(aut_intersection)
 BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
 {
 	auto testfileContent = ParseTestFile(UNREACHABLE_TIMBUK_FILE.string());
-
-	TimbukParser parser;
-	TimbukSerializer serializer;
 
 	for (auto testcase : testfileContent)
 	{
@@ -422,24 +452,23 @@ BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
 		std::string autStr = VATA::Util::ReadFile(inputFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-		AutType aut;
 		StringToStateDict stateDict;
-		aut.LoadFromString(parser, autStr, &stateDict);
-		AutDescription autDesc = parser.ParseString(autStr);
+		AutType aut;
+		readAut(aut, stateDict, autStr);
+		AutDescription autDesc = parser_.ParseString(autStr);
 
 		StateToStateMap translMap;
 		AutType autNoUnreach = VATA::RemoveUnreachableStates(aut, &translMap);
 
 		stateDict = VATA::Util::RebindMap(stateDict, translMap);
-		std::string autNoUnreachStr =
-			autNoUnreach.DumpToString(serializer, &stateDict);
+		std::string autNoUnreachStr = dumpAut(autNoUnreach, stateDict);
 
-		AutDescription descOutNoUnreach = parser.ParseString(autNoUnreachStr);
-		AutDescription descCorrectNoUnreach = parser.ParseString(autCorrectStr);
+		AutDescription descOutNoUnreach = parser_.ParseString(autNoUnreachStr);
+		AutDescription descCorrectNoUnreach = parser_.ParseString(autCorrectStr);
 
 		BOOST_CHECK_MESSAGE(descCorrectNoUnreach == descOutNoUnreach,
 			"\n\nExpecting:\n===========\n" +
-			serializer.Serialize(descCorrectNoUnreach) +
+			serializer_.Serialize(descCorrectNoUnreach) +
 			"===========\n\nGot:\n===========\n" + autNoUnreachStr + "\n===========");
 	}
 }
@@ -447,9 +476,6 @@ BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
 BOOST_AUTO_TEST_CASE(aut_remove_useless)
 {
 	auto testfileContent = ParseTestFile(USELESS_TIMBUK_FILE.string());
-
-	TimbukParser parser;
-	TimbukSerializer serializer;
 
 	for (auto testcase : testfileContent)
 	{
@@ -464,24 +490,23 @@ BOOST_AUTO_TEST_CASE(aut_remove_useless)
 		std::string autStr = VATA::Util::ReadFile(inputFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-		AutType aut;
 		StringToStateDict stateDict;
-		aut.LoadFromString(parser, autStr, &stateDict);
-		AutDescription autDesc = parser.ParseString(autStr);
+		AutType aut;
+		readAut(aut, stateDict, autStr);
+		AutDescription autDesc = parser_.ParseString(autStr);
 
 		StateToStateMap translMap;
 		AutType autNoUseless = VATA::RemoveUselessStates(aut, &translMap);
 
 		stateDict = VATA::Util::RebindMap(stateDict, translMap);
-		std::string autNoUselessStr =
-			autNoUseless.DumpToString(serializer, &stateDict);
+		std::string autNoUselessStr = dumpAut(autNoUseless, stateDict);
 
-		AutDescription descOutNoUseless = parser.ParseString(autNoUselessStr);
-		AutDescription descCorrectNoUseless = parser.ParseString(autCorrectStr);
+		AutDescription descOutNoUseless = parser_.ParseString(autNoUselessStr);
+		AutDescription descCorrectNoUseless = parser_.ParseString(autCorrectStr);
 
 		BOOST_CHECK_MESSAGE(descCorrectNoUseless == descOutNoUseless,
 			"\n\nExpecting:\n===========\n" +
-			serializer.Serialize(descCorrectNoUseless) +
+			serializer_.Serialize(descCorrectNoUseless) +
 			"===========\n\nGot:\n===========\n" + autNoUselessStr + "\n===========");
 	}
 }
@@ -489,9 +514,6 @@ BOOST_AUTO_TEST_CASE(aut_remove_useless)
 BOOST_AUTO_TEST_CASE(aut_down_inclusion)
 {
 	auto testfileContent = ParseTestFile(INCLUSION_TIMBUK_FILE.string());
-
-	TimbukParser parser;
-	TimbukSerializer serializer;
 
 	for (auto testcase : testfileContent)
 	{
@@ -509,11 +531,13 @@ BOOST_AUTO_TEST_CASE(aut_down_inclusion)
 		std::string autSmallerStr = VATA::Util::ReadFile(inputSmallerFile);
 		std::string autBiggerStr = VATA::Util::ReadFile(inputBiggerFile);
 
+		StringToStateDict stateDictSmaller;
 		AutType autSmaller;
-		autSmaller.LoadFromString(parser, autSmallerStr);
+		readAut(autSmaller, stateDictSmaller, autSmallerStr);
 
+		StringToStateDict stateDictBigger;
 		AutType autBigger;
-		autBigger.LoadFromString(parser, autBiggerStr);
+		readAut(autBigger, stateDictBigger, autBiggerStr);
 
 		bool doesInclusionHold = VATA::CheckInclusion(autSmaller, autBigger);
 
