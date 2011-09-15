@@ -145,9 +145,9 @@ private:  // Private methods
 
 public:   // Public methods
 
-	explicit VarAsgn(size_t size)
-		: variablesCount_(size),
-			vars_(numberOfChars(size))
+	explicit VarAsgn(size_t size) :
+		variablesCount_(size),
+		vars_(numberOfChars(size))
 	{
 		for (size_t i = 0; i < size; ++i)
 		{	// for each variable
@@ -155,9 +155,9 @@ public:   // Public methods
 		}
 	}
 
-	VarAsgn(size_t size, size_t n)
-		: variablesCount_(size),
-			vars_(numberOfChars(size))
+	VarAsgn(size_t size, size_t n) :
+		variablesCount_(size),
+		vars_(numberOfChars(size))
 	{
 		for (size_t i = 0; i < size; ++i)
 		{	// for each variable
