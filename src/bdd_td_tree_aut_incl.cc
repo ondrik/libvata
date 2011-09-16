@@ -12,8 +12,9 @@
 #include <vata/vata.hh>
 #include <vata/bdd_td_tree_aut.hh>
 #include <vata/bdd_td_tree_aut_op.hh>
+#include <vata/down_tree_incl_fctor.hh>
+#include <vata/down_tree_incl_nouseless_fctor.hh>
 #include <vata/tree_incl_down.hh>
-#include <vata/tree_incl_down_nouseless.hh>
 
 using VATA::BDDTopDownTreeAut;
 
@@ -25,7 +26,8 @@ bool VATA::CheckInclusion(const BDDTopDownTreeAut& smaller,
 	assert(smaller.isValid());
 	assert(bigger.isValid());
 
-	return CheckDownwardTreeInclusion(smaller, bigger);
+	return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
+		VATA::DownwardInclusionFunctor>(smaller, bigger);
 }
 
 template <>
@@ -36,5 +38,6 @@ bool VATA::CheckInclusionNoUseless(const BDDTopDownTreeAut& smaller,
 	assert(smaller.isValid());
 	assert(bigger.isValid());
 
-	return CheckDownwardTreeInclusionNoUseless(smaller, bigger);
+	return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
+		VATA::DownwardInclusionNoUselessFunctor>(smaller, bigger);
 }
