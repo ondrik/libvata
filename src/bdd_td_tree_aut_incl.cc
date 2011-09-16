@@ -18,7 +18,6 @@
 
 using VATA::BDDTopDownTreeAut;
 
-template <>
 bool VATA::CheckInclusion(const BDDTopDownTreeAut& smaller,
 	const BDDTopDownTreeAut& bigger)
 {
@@ -30,7 +29,6 @@ bool VATA::CheckInclusion(const BDDTopDownTreeAut& smaller,
 		VATA::DownwardInclusionFunctor>(smaller, bigger);
 }
 
-template <>
 bool VATA::CheckInclusionNoUseless(const BDDTopDownTreeAut& smaller,
 	const BDDTopDownTreeAut& bigger)
 {

@@ -13,8 +13,8 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/aut_op.hh>
 #include <vata/down_tree_incl_fctor.hh>
+#include <vata/down_tree_incl_nouseless_fctor.hh>
 #include <vata/explicit_tree_aut.hh>
 #include <vata/tree_incl_down.hh>
 
@@ -24,7 +24,8 @@ namespace VATA {
 
 	template <class SymbolType>
 	ExplicitTreeAut<SymbolType> Union(const ExplicitTreeAut<SymbolType>& lhs,
-		const ExplicitTreeAut<SymbolType>& rhs, AutBase::StateToStateMap* pTranslMap) {
+		const ExplicitTreeAut<SymbolType>& rhs,
+		AutBase::StateToStateMap* pTranslMap = nullptr) {
 
 		AutBase::StateToStateMap translMap;
 
@@ -41,8 +42,18 @@ namespace VATA {
 	}
 
 	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> Intersection(const ExplicitTreeAut<SymbolType>& lhs,
-		const ExplicitTreeAut<SymbolType>& rhs, AutBase::ProductTranslMap* pTranslMap)
+	ExplicitTreeAut<SymbolType> Intersection(
+		const ExplicitTreeAut<SymbolType>& /* lhs */,
+		const ExplicitTreeAut<SymbolType>& /* rhs */,
+		AutBase::ProductTranslMap* /* pTranslMap */ = nullptr)
+	{
+		throw std::runtime_error("Unimplemented");
+	}
+
+	template <class SymbolType>
+	ExplicitTreeAut<SymbolType> RemoveUselessStates(
+		const ExplicitTreeAut<SymbolType>& /* aut */,
+		AutBase::StateToStateMap* /* pTranslMap */ = nullptr)
 	{
 		throw std::runtime_error("Unimplemented");
 	}
@@ -50,7 +61,7 @@ namespace VATA {
 	template <class SymbolType>
 	ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
 		const ExplicitTreeAut<SymbolType>& aut,
-		AutBase::StateToStateMap* pTranslMap) {
+		AutBase::StateToStateMap* pTranslMap = nullptr) {
 
 		typedef ExplicitTreeAut<SymbolType> ExplicitTA;
 		typedef typename ExplicitTA::StateToTransitionClusterMapPtr
@@ -137,6 +148,15 @@ namespace VATA {
 
 		return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
 			VATA::DownwardInclusionFunctor>(smaller, bigger);
+
+	}
+
+	template <class SymbolType>
+	bool CheckInclusionNoUseless(const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger) {
+
+		return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
+			VATA::DownwardInclusionNoUselessFunctor>(smaller, bigger);
 
 	}
 

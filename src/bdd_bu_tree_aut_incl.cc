@@ -15,7 +15,6 @@
 
 using VATA::BDDBottomUpTreeAut;
 
-template <>
 bool VATA::CheckInclusionNoUseless(const BDDBottomUpTreeAut& smaller,
 	const BDDBottomUpTreeAut& bigger)
 {
@@ -26,7 +25,6 @@ bool VATA::CheckInclusionNoUseless(const BDDBottomUpTreeAut& smaller,
 	return CheckInclusion(smaller, bigger);
 }
 
-template <>
 bool VATA::CheckInclusion(const BDDBottomUpTreeAut& smaller,
 	const BDDBottomUpTreeAut& bigger)
 {

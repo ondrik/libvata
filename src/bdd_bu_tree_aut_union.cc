@@ -20,8 +20,7 @@ using VATA::Util::Convert;
 #include <unordered_map>
 
 
-template <>
-BDDBottomUpTreeAut VATA::Union<BDDBottomUpTreeAut>(const BDDBottomUpTreeAut& lhs,
+BDDBottomUpTreeAut VATA::Union(const BDDBottomUpTreeAut& lhs,
 	const BDDBottomUpTreeAut& rhs, AutBase::StateToStateMap* pTranslMap)
 {
 	// Assertions

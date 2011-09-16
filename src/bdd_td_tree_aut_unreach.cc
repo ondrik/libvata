@@ -21,9 +21,8 @@ using VATA::BDDTopDownTreeAut;
 #include <unordered_map>
 
 
-template <>
-BDDTopDownTreeAut VATA::RemoveUnreachableStates<BDDTopDownTreeAut>(
-	const BDDTopDownTreeAut& aut, AutBase::StateToStateMap* pTranslMap)
+BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut,
+	AutBase::StateToStateMap* pTranslMap)
 {
 	// Assertions
 	assert(aut.isValid());

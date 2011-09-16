@@ -13,33 +13,28 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/aut_op.hh>
 #include <vata/bdd_bu_tree_aut.hh>
 
 
 namespace VATA
 {
-	template <>
 	BDDBottomUpTreeAut Union(const BDDBottomUpTreeAut& lhs,
-		const BDDBottomUpTreeAut& rhs, AutBase::StateToStateMap* pTranslMap);
+		const BDDBottomUpTreeAut& rhs,
+		AutBase::StateToStateMap* pTranslMap = nullptr);
 
-	template <>
 	BDDBottomUpTreeAut Intersection(const BDDBottomUpTreeAut& lhs,
-		const BDDBottomUpTreeAut& rhs, AutBase::ProductTranslMap* pTranslMap);
+		const BDDBottomUpTreeAut& rhs,
+		AutBase::ProductTranslMap* pTranslMap = nullptr);
 
-	template <>
 	BDDBottomUpTreeAut RemoveUnreachableStates(const BDDBottomUpTreeAut& aut,
-		AutBase::StateToStateMap* pTranslMap);
+		AutBase::StateToStateMap* pTranslMap = nullptr);
 
-	template <>
 	BDDBottomUpTreeAut RemoveUselessStates(const BDDBottomUpTreeAut& aut,
-		AutBase::StateToStateMap* pTranslMap);
+		AutBase::StateToStateMap* pTranslMap = nullptr);
 
-	template <>
 	bool CheckInclusion(const BDDBottomUpTreeAut& smaller,
 		const BDDBottomUpTreeAut& bigger);
 
-	template <>
 	bool CheckInclusionNoUseless(const BDDBottomUpTreeAut& smaller,
 		const BDDBottomUpTreeAut& bigger);
 }

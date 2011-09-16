@@ -16,9 +16,8 @@
 using VATA::AutBase;
 using VATA::BDDBottomUpTreeAut;
 
-template <>
-BDDBottomUpTreeAut VATA::RemoveUnreachableStates<BDDBottomUpTreeAut>(
-	const BDDBottomUpTreeAut& aut, AutBase::StateToStateMap* pTranslMap)
+BDDBottomUpTreeAut VATA::RemoveUnreachableStates(const BDDBottomUpTreeAut& aut,
+	AutBase::StateToStateMap* pTranslMap)
 {
 	// Assertions
 	assert(aut.isValid());

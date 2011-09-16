@@ -23,9 +23,8 @@ using VATA::BDDTopDownTreeAut;
 using VATA::Util::Convert;
 using VATA::Util::Graph;
 
-template <>
-BDDTopDownTreeAut VATA::RemoveUselessStates<BDDTopDownTreeAut>(
-	const BDDTopDownTreeAut& aut, AutBase::StateToStateMap* pTranslMap)
+BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut,
+	AutBase::StateToStateMap* pTranslMap)
 {
 	// Assertions
 	assert(aut.isValid());

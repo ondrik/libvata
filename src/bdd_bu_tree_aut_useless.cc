@@ -20,9 +20,8 @@ using VATA::AutBase;
 using VATA::BDDBottomUpTreeAut;
 using VATA::Util::Convert;
 
-template <>
-BDDBottomUpTreeAut VATA::RemoveUselessStates<BDDBottomUpTreeAut>(
-	const BDDBottomUpTreeAut& aut, AutBase::StateToStateMap* pTranslMap)
+BDDBottomUpTreeAut VATA::RemoveUselessStates(const BDDBottomUpTreeAut& aut,
+	AutBase::StateToStateMap* pTranslMap)
 {
 	// Assertions
 	assert(aut.isValid());

@@ -14,7 +14,6 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/aut_base.hh>
-#include <vata/aut_op.hh>
 #include <vata/mtbdd/apply2func.hh>
 #include <vata/mtbdd/ondriks_mtbdd.hh>
 #include <vata/mtbdd/void_apply2func.hh>
@@ -32,26 +31,23 @@ class VATA::BDDBottomUpTreeAut
 {
 GCC_DIAG_ON(effc++)
 
-	template <class Aut>
-	friend Aut Union(const Aut&, const Aut&, AutBase::StateToStateMap*);
+	friend BDDBottomUpTreeAut Union(const BDDBottomUpTreeAut&,
+		const BDDBottomUpTreeAut&, AutBase::StateToStateMap*);
 
-	template <class Aut>
-	friend Aut Intersection(const Aut&, const Aut&,
-		AutBase::ProductTranslMap*);
+	friend BDDBottomUpTreeAut Intersection(const BDDBottomUpTreeAut&,
+		const BDDBottomUpTreeAut&, AutBase::ProductTranslMap*);
 
-	template <class Aut>
-	friend Aut RemoveUnreachableStates(const Aut&,
+	friend BDDBottomUpTreeAut RemoveUnreachableStates(const BDDBottomUpTreeAut&,
 		AutBase::StateToStateMap* pTranslMap);
 
-	template <class Aut>
-	friend Aut RemoveUselessStates(const Aut&,
+	friend BDDBottomUpTreeAut RemoveUselessStates(const BDDBottomUpTreeAut&,
 		AutBase::StateToStateMap* pTranslMap);
 
-	template <class Aut>
-	friend bool CheckInclusion(const Aut&, const Aut&);
+	friend bool CheckInclusion(const BDDBottomUpTreeAut&,
+		const BDDBottomUpTreeAut&);
 
-	template <class Aut>
-	friend bool CheckInclusionNoUseless(const Aut&, const Aut&);
+	friend bool CheckInclusionNoUseless(const BDDBottomUpTreeAut&,
+		const BDDBottomUpTreeAut&);
 
 public:   // public data types
 

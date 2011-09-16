@@ -19,8 +19,7 @@ using VATA::BDDTopDownTreeAut;
 #include <unordered_map>
 
 
-template <>
-BDDTopDownTreeAut VATA::Union<BDDTopDownTreeAut>(const BDDTopDownTreeAut& lhs,
+BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
 	const BDDTopDownTreeAut& rhs, AutBase::StateToStateMap* pTranslMap)
 {
 	// Assertions

@@ -18,8 +18,7 @@ using VATA::BDDTopDownTreeAut;
 // Standard library headers
 #include <unordered_map>
 
-template <>
-BDDTopDownTreeAut VATA::Intersection<BDDTopDownTreeAut>(
+BDDTopDownTreeAut VATA::Intersection(
 	const BDDTopDownTreeAut& lhs, const BDDTopDownTreeAut& rhs,
 	AutBase::ProductTranslMap* pTranslMap)
 {

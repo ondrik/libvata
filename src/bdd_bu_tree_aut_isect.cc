@@ -15,10 +15,8 @@
 using VATA::AutBase;
 using VATA::BDDBottomUpTreeAut;
 
-template <>
-BDDBottomUpTreeAut VATA::Intersection<BDDBottomUpTreeAut>(
-	const BDDBottomUpTreeAut& lhs, const BDDBottomUpTreeAut& rhs,
-	AutBase::ProductTranslMap* pTranslMap)
+BDDBottomUpTreeAut VATA::Intersection(const BDDBottomUpTreeAut& lhs,
+	const BDDBottomUpTreeAut& rhs, AutBase::ProductTranslMap* pTranslMap)
 {
 	// Assertions
 	assert(lhs.isValid());

@@ -14,7 +14,6 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/aut_base.hh>
-#include <vata/aut_op.hh>
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
 #include <vata/util/ord_vector.hh>
@@ -51,18 +50,22 @@ template <class Symbol>
 class VATA::ExplicitTreeAut : public AutBase {
 GCC_DIAG_ON(effc++)
 
-	template <class Aut>
-	friend Aut Union(const Aut&, const Aut&, AutBase::StateToStateMap*);
+	template <class SymbolType>
+	friend ExplicitTreeAut<SymbolType> Union(const ExplicitTreeAut<SymbolType>&,
+		const ExplicitTreeAut<SymbolType>&, AutBase::StateToStateMap*);
 
-	template <class Aut>
-	friend Aut Intersection(const Aut&, const Aut&, AutBase::ProductTranslMap*);
+	template <class SymbolType>
+	friend ExplicitTreeAut<SymbolType> Intersection(
+		const ExplicitTreeAut<SymbolType>&, const ExplicitTreeAut<SymbolType>&,
+		AutBase::ProductTranslMap*);
 
 	template <class SymbolType>
 	friend ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
 		const ExplicitTreeAut<SymbolType>&, AutBase::StateToStateMap*);
 
-	template <class Aut>
-	friend bool CheckInclusion(const Aut&, const Aut&);
+	template <class SymbolType>
+	friend bool CheckInclusion(const ExplicitTreeAut<SymbolType>&,
+		const ExplicitTreeAut<SymbolType>&);
 
 public:   // public data types
 
