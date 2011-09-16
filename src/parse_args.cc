@@ -140,7 +140,7 @@ Arguments parseArguments(int argc, char* argv[])
 				{
 					args.representation = REPRESENTATION_BDD_BU;
 				}
-				else if (currentArg == "explicit")
+				else if (currentArg == "expl")
 				{
 					args.representation = REPRESENTATION_EXPLICIT;
 				}

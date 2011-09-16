@@ -80,7 +80,7 @@ const char VATA_USAGE_FLAGS[] =
 	"                                            top-down\n"
 	"                               'bdd-bu'   : binary decision diagrams,\n"
 	"                                            bottom-up\n"
-	"                               'explicit' : explicit\n"
+	"                               'expl'     : explicit\n"
 	"\n"
 	"    (-I|-O|-F) <format>     Specify format for input (-I), output (-O), or\n"
 	"                            both (-F). The following formats are supported:\n"
