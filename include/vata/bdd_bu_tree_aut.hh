@@ -20,6 +20,7 @@
 #include <vata/mtbdd/void_apply2func.hh>
 #include <vata/util/bdd_trans_table.hh>
 #include <vata/util/ord_vector.hh>
+#include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
 #include <vata/util/vector_map.hh>
 
@@ -61,6 +62,10 @@ public:   // public data types
 	typedef std::vector<StateType> StateTuple;
 
 	typedef VATA::Util::TwoWayDict<std::string, SymbolType> StringToSymbolDict;
+
+	typedef VATA::Util::TranslatorStrict<StringToSymbolDict> SymbolTranslatorStrict;
+	typedef VATA::Util::TranslatorStrict<typename StringToSymbolDict::MapBwdType>
+		SymbolBackTranslatorStrict;
 
 private:  // private data types
 

@@ -25,6 +25,7 @@
 #include <vata/util/td_bdd_trans_table.hh>
 #include <vata/util/vector_map.hh>
 #include <vata/util/util.hh>
+#include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
 
 // Standard library headers
@@ -69,6 +70,10 @@ public:   // data types
 	typedef VATA::Util::OrdVector<StateType> StateSetLight;
 
 	typedef VATA::Util::TwoWayDict<std::string, SymbolType> StringToSymbolDict;
+
+	typedef VATA::Util::TranslatorStrict<StringToSymbolDict> SymbolTranslatorStrict;
+	typedef VATA::Util::TranslatorStrict<typename StringToSymbolDict::MapBwdType>
+		SymbolBackTranslatorStrict;
 
 private:  // data types
 
@@ -532,7 +537,8 @@ public:   // public methods
 			inline void ApplyOperation(const StateTupleSet& lhs,
 				const StateTupleSet& rhs)
 			{
-				opFunc_(lhs, rhs);
+				auto AccessElementF = [](const StateTuple& tuple){return tuple;};
+				opFunc_(lhs, AccessElementF, rhs, AccessElementF);
 
 				if (opFunc_.IsProcessingStopped())
 				{	// in case the operator wants to stop processing

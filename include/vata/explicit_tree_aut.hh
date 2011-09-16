@@ -18,6 +18,8 @@
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
 #include <vata/util/ord_vector.hh>
+#include <vata/util/transl_strict.hh>
+#include <vata/util/transl_weak.hh>
 
 // Standard library headers
 #include <cstdint>
@@ -68,6 +70,14 @@ public:   // public data types
 	typedef Explicit::StateTuple StateTuple;
 	typedef Explicit::StateSet StateSet;
 	typedef Explicit::TupleCache TupleCache;
+
+	typedef Symbol SymbolType;
+
+	typedef VATA::Util::TwoWayDict<std::string, SymbolType> StringToSymbolDict;
+
+	typedef VATA::Util::TranslatorStrict<StringToSymbolDict> SymbolTranslatorStrict;
+	typedef VATA::Util::TranslatorStrict<typename StringToSymbolDict::MapBwdType>
+		SymbolBackTranslatorStrict;
 
 private:  // private data types
 
