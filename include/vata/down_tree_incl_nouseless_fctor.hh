@@ -30,7 +30,8 @@ public:   // data types
 	typedef typename Aut::StateType StateType;
 	typedef typename VATA::Util::OrdVector<StateType> StateSet;
 	typedef typename Aut::StateTuple StateTuple;
-	typedef typename Aut::StateTupleSet StateTupleSet;
+	typedef typename Aut::DownInclStateTupleSet StateTupleSet;
+	typedef typename Aut::DownInclStateTupleVector StateTupleVector;
 	typedef std::unordered_multimap<StateType, StateSet> InclusionCache;
 
 	typedef std::pair<StateType, StateSet> StateStateSetPair;
@@ -420,7 +421,8 @@ public:   // methods
 
 				// in case there is not a bigger tuple
 
-				const std::vector<StateTuple>& rhsVector = rhs.ToVector();
+				// TODO: could be done more smartly (without conversion to vector)
+				StateTupleVector rhsVector = Aut::StateTupleSetToVector(rhs);
 
 				ChoiceFunctionGenerator cfGen(rhsVector.size(), lhsTuple.size());
 				while (!cfGen.IsLast())
@@ -438,7 +440,7 @@ public:   // methods
 							{ // in case the choice function for given vector is at
 								// current position in the tuple
 								assert(cfIndex < rhsVector.size());
-								const StateTuple& rhsTuple = rhsVector[cfIndex];
+								const StateTuple& rhsTuple = rhsElemAccess(rhsVector[cfIndex]);
 								assert(rhsTuple.size() == arity);
 
 								// insert tuplePos-th state of the cfIndex-th tuple in the
