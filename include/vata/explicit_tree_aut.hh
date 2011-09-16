@@ -68,6 +68,11 @@ public:   // public data types
 	typedef VATA::Util::OrdVector<StateType> StateSetLight;
 	typedef Explicit::StateType StateType;
 	typedef Explicit::StateTuple StateTuple;
+	typedef std::shared_ptr<StateTuple> TuplePtr;
+	typedef std::vector<TuplePtr> StateTupleSet;
+	typedef std::set<TuplePtr> DownInclStateTupleSet;
+	typedef std::vector<TuplePtr> DownInclStateTupleVector;
+
 	typedef Explicit::StateSet StateSet;
 	typedef Explicit::TupleCache TupleCache;
 
@@ -82,7 +87,6 @@ public:   // public data types
 private:  // private data types
 
 	typedef VATA::Util::AutDescription AutDescription;
-	typedef std::shared_ptr<StateTuple> TuplePtr;
 	typedef std::set<TuplePtr> TuplePtrSet;
 	typedef std::shared_ptr<TuplePtrSet> TuplePtrSetPtr;
 
@@ -639,6 +643,12 @@ public:   // public methods
 
 public:
 
+
+	inline static DownInclStateTupleVector StateTupleSetToVector(
+		const DownInclStateTupleSet& tupleSet)
+	{
+		return DownInclStateTupleVector(tupleSet.begin(), tupleSet.end());
+	}
 };
 
 #endif

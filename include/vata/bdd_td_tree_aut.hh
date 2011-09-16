@@ -66,6 +66,8 @@ public:   // data types
 	typedef VATA::MTBDDPkg::VarAsgn SymbolType;
 	typedef std::vector<StateType> StateTuple;
 	typedef VATA::Util::OrdVector<StateTuple> StateTupleSet;
+	typedef StateTupleSet DownInclStateTupleSet;
+	typedef const std::vector<StateTuple>& DownInclStateTupleVector;
 	typedef std::unordered_set<StateType> StateSet;
 	typedef VATA::Util::OrdVector<StateType> StateSetLight;
 
@@ -612,6 +614,12 @@ public:   // public methods
 		assert(pNextBaseSymbol != nullptr);
 
 		pNextBaseSymbol_ = pNextBaseSymbol;
+	}
+
+	inline static DownInclStateTupleVector StateTupleSetToVector(
+		const DownInclStateTupleSet& tupleSet)
+	{
+		return tupleSet.ToVector();
 	}
 
 	~BDDTopDownTreeAut();
