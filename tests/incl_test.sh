@@ -13,7 +13,7 @@ SCRIPTPATH=`dirname $SCRIPT`
 
 #METHODS=("symdown" "symdownX" "downT")
 #METHODS=("symdown" "symdown-ul" "olddown" "olddown-ul" "downT" "downSimT" "upT")
-METHODS=("symdown" "symdown-ul" "downT" "downSimT" "upT")
+METHODS=("symdown" "symdown-ul" "expldown" "downT" "downSimT" "upT")
 
 ################################# FUNCTIONS ##################################
 

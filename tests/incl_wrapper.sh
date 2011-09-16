@@ -45,11 +45,19 @@ RETVAL="?"
 
 case "${OPERATION}" in
   symdown)
-    ${VATA} -t incl "${FILE_LHS}" "${FILE_RHS}"
+    ${VATA} -r bdd-td -t incl "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   symdown-ul)
-    ${VATA} -t incl -s "${FILE_LHS}" "${FILE_RHS}"
+    ${VATA} -r bdd-td -t incl -s "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  expldown)
+    ${VATA} -r expl -t incl "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  expldown-ul)
+    ${VATA} -r expl -t incl -s "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   olddown)
