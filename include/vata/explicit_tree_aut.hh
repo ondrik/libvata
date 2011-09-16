@@ -37,7 +37,8 @@ namespace VATA {
 		typedef std::set<StateTuple> TupleSet;
 		typedef std::unordered_set<StateType> StateSet;
 
-		typedef std::unordered_map<StateTuple, std::weak_ptr<StateTuple>> TupleCache;
+		typedef std::unordered_map<StateTuple, std::weak_ptr<StateTuple>,
+			boost::hash<StateTuple>> TupleCache;
 
 		static TupleCache tupleCache;
 
@@ -576,7 +577,7 @@ public:   // public methods
 	}
 
 	void ReindexStates(ExplicitTreeAut& dst, AutBase::StateToStateMap* pTranslMap,
-		const StateType& base = 0) {
+		const StateType& base = 0) const {
 
 		AutBase::StateToStateMap translMap;
 
