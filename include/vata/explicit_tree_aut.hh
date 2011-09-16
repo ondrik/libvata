@@ -734,11 +734,31 @@ public:
 		pNextSymbol_ = pNextSymbol;
 	}
 
+	inline static void SetNextStatePtr(StateType* pNextState)
+	{
+		// Assertions
+		assert(pNextState != nullptr);
+
+		pNextState_ = pNextState;
+	}
+
 	inline static DownInclStateTupleVector StateTupleSetToVector(
 		const DownInclStateTupleSet& tupleSet)
 	{
 		return DownInclStateTupleVector(tupleSet.begin(), tupleSet.end());
 	}
 };
+
+template <class Symbol>
+typename VATA::ExplicitTreeAut<Symbol>::StringToSymbolDict*
+	VATA::ExplicitTreeAut<Symbol>::pSymbolDict_ = nullptr;
+
+template <class Symbol>
+typename VATA::ExplicitTreeAut<Symbol>::StateType*
+	VATA::ExplicitTreeAut<Symbol>::pNextState_ = nullptr;
+
+template <class Symbol>
+typename VATA::ExplicitTreeAut<Symbol>::SymbolType*
+	VATA::ExplicitTreeAut<Symbol>::pNextSymbol_ = nullptr;
 
 #endif
