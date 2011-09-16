@@ -14,6 +14,7 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/aut_op.hh>
+#include <vata/down_tree_incl_fctor.hh>
 #include <vata/explicit_tree_aut.hh>
 #include <vata/tree_incl_down.hh>
 
@@ -41,22 +42,30 @@ namespace VATA {
 
 	template <class SymbolType>
 	ExplicitTreeAut<SymbolType> Intersection(const ExplicitTreeAut<SymbolType>& lhs,
-		const ExplicitTreeAut<SymbolType>& rhs, AutBase::ProductTranslMap* pTranslMap);
+		const ExplicitTreeAut<SymbolType>& rhs, AutBase::ProductTranslMap* pTranslMap)
+	{
+		throw std::runtime_error("Unimplemented");
+	}
 
 	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> RemoveUnreachableStates(const ExplicitTreeAut<SymbolType>& aut,
+	ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
+		const ExplicitTreeAut<SymbolType>& aut,
 		AutBase::StateToStateMap* pTranslMap) {
 
-		std::unordered_set<AutBase::StateType> reachableStates(aut.finalStates_);
+		typedef ExplicitTreeAut<SymbolType> ExplicitTA;
+		typedef typename ExplicitTA::StateToTransitionClusterMapPtr
+			StateToTransitionClusterMapPtr;
+
+		std::unordered_set<AutBase::StateType> reachableStates(aut.GetFinalStates());
 		std::vector<AutBase::StateType> newStates(reachableStates.begin(), reachableStates.end());
 
 		while (!newStates.empty()) {
 
-			std::vector<const typename ExplicitTreeAut<SymbolType>::TransitionCluster*> clusters;
+			std::vector<const typename ExplicitTA::TransitionCluster*> clusters;
 
 			for (auto state : newStates) {
 
-				auto cluster = ExplicitTreeAut<SymbolType>::genericLookup(*aut.transitions_, state);
+				auto cluster = ExplicitTA::genericLookup(*aut.transitions_, state);
 
 				if (cluster)
 					clusters.push_back(cluster);
@@ -99,22 +108,22 @@ namespace VATA {
 
 		}
 
-		if (reachableStates.size() == aut.transitions_.size())
+		if (reachableStates.size() == aut.transitions_->size())
 			return aut;
 
-		ExplicitTreeAut<SymbolType> result;
+		ExplicitTA result;
 
 		result.finalStates_ = aut.finalStates_;
-		result.transitions_ = ExplicitTreeAut<SymbolType>::StateToTransitionClusterMapPtr(
-				new typename ExplicitTreeAut<SymbolType>::StateToTransitionClusterMap()
+		result.transitions_ = StateToTransitionClusterMapPtr(
+				new typename ExplicitTA::StateToTransitionClusterMap()
 		);
 
 		for (auto state : reachableStates) {
 
-			auto iter = aut.transitions_.find(state);
+			auto iter = aut.transitions_->find(state);
 
-			if (iter != aut.transitions_.end())
-				result.transitions_.insert(std::make_pair(state, iter->second));
+			if (iter != aut.transitions_->end())
+				result.transitions_->insert(std::make_pair(state, iter->second));
 
 		}
 
@@ -126,7 +135,8 @@ namespace VATA {
 	bool CheckInclusion(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger) {
 
-		return CheckDownwardTreeInclusion(smaller, bigger);
+		return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
+			VATA::DownwardInclusionFunctor>(smaller, bigger);
 
 	}
 

@@ -29,7 +29,7 @@
 
 namespace VATA {
 
-	template <class SymbolType> class ExplicitTreeAut;
+	template <class Symbol> class ExplicitTreeAut;
 
 	struct Explicit {
 
@@ -47,7 +47,7 @@ namespace VATA {
 }
 
 GCC_DIAG_OFF(effc++)
-template <class SymbolType>
+template <class Symbol>
 class VATA::ExplicitTreeAut : public AutBase {
 GCC_DIAG_ON(effc++)
 
@@ -57,8 +57,9 @@ GCC_DIAG_ON(effc++)
 	template <class Aut>
 	friend Aut Intersection(const Aut&, const Aut&, AutBase::ProductTranslMap*);
 
-	template <class Aut>
-	friend Aut RemoveUnreachableStates(const Aut&, AutBase::StateToStateMap* pTranslMap);
+	template <class SymbolType>
+	friend ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
+		const ExplicitTreeAut<SymbolType>&, AutBase::StateToStateMap*);
 
 	template <class Aut>
 	friend bool CheckInclusion(const Aut&, const Aut&);
@@ -90,7 +91,11 @@ private:  // private data types
 	typedef std::set<TuplePtr> TuplePtrSet;
 	typedef std::shared_ptr<TuplePtrSet> TuplePtrSetPtr;
 
+	typedef VATA::Util::Convert Convert;
+
+	GCC_DIAG_OFF(effc++)
 	class TransitionCluster : public std::unordered_map<SymbolType, TuplePtrSetPtr> {
+	GCC_DIAG_ON(effc++)
 
 	public:
 
@@ -116,7 +121,9 @@ private:  // private data types
 
 	typedef std::shared_ptr<TransitionCluster> TransitionClusterPtr;
 
+	GCC_DIAG_OFF(effc++)
 	class StateToTransitionClusterMap : public std::unordered_map<StateType, TransitionClusterPtr> {
+	GCC_DIAG_ON(effc++)
 
 	public:
 
@@ -145,7 +152,7 @@ private:  // private data types
 protected:
 
 	template <class T>
-	static const typename T::mapped_type::element_type* genericLookup(const T& cont, const typename T::Key& key) {
+	static const typename T::mapped_type::element_type* genericLookup(const T& cont, const typename T::key_type& key) {
 
 		auto iter = cont.find(key);
 		if (iter == cont.end())
@@ -157,7 +164,7 @@ protected:
 
 	TuplePtr tupleLookup(const StateTuple& tuple) {
 
-		auto p = this->cache_.insert(std::make_pair(tuple, std::weak_ptr<StateTuple>(nullptr)));
+		auto p = this->cache_.insert(std::make_pair(tuple, std::weak_ptr<StateTuple>()));
 
 		if (!p.second)
 			return TuplePtr(p.first->second);
@@ -172,7 +179,8 @@ protected:
 
 		};
 
-		TuplePtr ptr = TuplePtr(&p.first->first, EraseTupleF(this->cache_));
+		TuplePtr ptr = TuplePtr(const_cast<StateTuple*>(&p.first->first),
+			EraseTupleF(this->cache_));
 
 		p.first->second = std::weak_ptr<StateTuple>(ptr);
 
@@ -412,33 +420,59 @@ private:  // data members
 
 	StateToTransitionClusterMapPtr transitions_;
 
+	static StringToSymbolDict* pSymbolDict_;
+	static SymbolType* pNextSymbol_;
+	static StateType* pNextState_;
+
 public:   // public methods
 
-	ExplicitTreeAut(Explicit::TupleCache& tupleCache = Explicit::tupleCache) : cache_(tupleCache),
+	ExplicitTreeAut(Explicit::TupleCache& tupleCache = Explicit::tupleCache) :
+		accepting(*this),
+		cache_(tupleCache),
 		finalStates_(),
-		transitions_(StateToTransitionClusterMapPtr(new StateToTransitionClusterMap())),
-		accepting(*this) {}
+		transitions_(StateToTransitionClusterMapPtr(new StateToTransitionClusterMap()))
+	{ }
 
-	ExplicitTreeAut(const ExplicitTreeAut& aut) : cache_(aut.cache_),
-		finalStates_(aut.finalStates_), transitions_(aut.transitions), accepting(*this) {}
+	ExplicitTreeAut(const ExplicitTreeAut& aut) :
+		accepting(*this),
+		cache_(aut.cache_),
+		finalStates_(aut.finalStates_),
+		transitions_(aut.transitions_)
+	{ }
 
 	ExplicitTreeAut(const ExplicitTreeAut& aut, Explicit::TupleCache& tupleCache)
 		: cache_(tupleCache), finalStates_(aut.finalStates_), transitions_(aut.transitions),
 		accepting(*this) {}
 
 	ExplicitTreeAut& operator=(const ExplicitTreeAut& rhs) {
+		if (this != &rhs)
+		{
+			this->finalStates_ = rhs.finalStates_;
+			this->transitions_ = rhs.transitions_;
+		}
 
-		this->finalStates_ = rhs.finalStates_;
-		this->transitions_ = rhs.transitions_;
-
+		return *this;
 	}
 
 	~ExplicitTreeAut() {}
 
+	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
+		StringToStateDict& stateDict)
+	{
+		typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
+			StateTranslator;
+		typedef VATA::Util::TranslatorWeak<StringToSymbolDict>
+			SymbolTranslator;
+
+		LoadFromString(parser, str,
+			StateTranslator(stateDict, [this]{return this->AddState();}),
+			SymbolTranslator(GetSymbolDict(), [this]{return this->AddSymbol();}));
+	}
+
 	template <class StateTransFunc, class SymbolTransFunc>
 	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
 		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator,
-		const std::string& params = "") {
+		const std::string& /* params */ = "") {
 
 		AutDescription desc = parser.ParseString(str);
 
@@ -465,15 +499,25 @@ public:   // public methods
 
 	}
 
+	template <class SymbolTransFunc>
+	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
+		SymbolTransFunc symbolTranslator,
+		const std::string& params = "") const
+	{
+		return DumpToString(serializer,
+			[](const StateType& state){return Convert::ToString(state);},
+			symbolTranslator, params);
+	}
+
 	template <class StatePrintFunc, class SymbolPrintFunc>
 	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
 		StatePrintFunc statePrinter, SymbolPrintFunc symbolPrinter,
-		const std::string& params = "") const {
+		const std::string& /* params */ = "") const {
 
 		AutDescription desc;
 
 		for (auto s : this->finalStates_)
-			desc.finalStates.insert(s);
+			desc.finalStates.insert(Convert::ToString(s));
 
 		for (auto stateClusterPair : *this->transitions_) {
 
@@ -622,17 +666,12 @@ public:   // public methods
 
 				assert(leftSymbolTupleSetPair.second);
 
-				struct AccessElementF {
-
-					const StateTuple& operator()(const TuplePtr& tuplePtr) const {
-						return *tuplePtr;
-					}
-
-				};
+				auto AccessElementF = [](const TuplePtr& tuplePtr){return *tuplePtr;};
 
 				opFunc(
-					*leftSymbolTupleSetPair.second, AccessElementF(),
-					*rightTupleSet, AccessElementF()
+					*leftSymbolTupleSetPair.second,
+					AccessElementF,
+					*rightTupleSet, AccessElementF
 				);
 
 			}
@@ -643,6 +682,53 @@ public:   // public methods
 
 public:
 
+	inline StateType AddState()
+	{
+		// Assertions
+		assert(pNextState_ != nullptr);
+
+		return (*pNextState_)++;
+	}
+
+	inline SymbolType AddSymbol()
+	{
+		// Assertions
+		assert(pNextSymbol_ != nullptr);
+
+		return (*pNextSymbol_)++;
+	}
+
+	inline StringToSymbolDict& GetSymbolDict()
+	{
+		// Assertions
+		assert(pSymbolDict_ != nullptr);
+
+		return *pSymbolDict_;
+	}
+
+	inline const StringToSymbolDict& GetSymbolDict() const
+	{
+		// Assertions
+		assert(pSymbolDict_ != nullptr);
+
+		return *pSymbolDict_;
+	}
+
+	inline static void SetSymbolDictPtr(StringToSymbolDict* pSymbolDict)
+	{
+		// Assertions
+		assert(pSymbolDict != nullptr);
+
+		pSymbolDict_ = pSymbolDict;
+	}
+
+	inline static void SetNextSymbolPtr(SymbolType* pNextSymbol)
+	{
+		// Assertions
+		assert(pNextSymbol != nullptr);
+
+		pNextSymbol_ = pNextSymbol;
+	}
 
 	inline static DownInclStateTupleVector StateTupleSetToVector(
 		const DownInclStateTupleSet& tupleSet)
