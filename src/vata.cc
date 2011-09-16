@@ -11,7 +11,9 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_bu_tree_aut.hh>
+#include <vata/bdd_bu_tree_aut_op.hh>
 #include <vata/bdd_td_tree_aut.hh>
+#include <vata/bdd_td_tree_aut_op.hh>
 #include <vata/explicit_tree_aut.hh>
 #include <vata/explicit_tree_aut_op.hh>
 #include <vata/parsing/timbuk_parser.hh>
@@ -327,14 +329,26 @@ int main(int argc, char* argv[])
 	}
 
 	// create the symbol directory for the BDD-based automata
-	BDDTopDownTreeAut::StringToSymbolDict symbolDict;
-	BDDTopDownTreeAut::SetSymbolDictPtr(&symbolDict);
-	BDDBottomUpTreeAut::SetSymbolDictPtr(&symbolDict);
+	BDDTopDownTreeAut::StringToSymbolDict bddSymbolDict;
+	BDDTopDownTreeAut::SetSymbolDictPtr(&bddSymbolDict);
+	BDDBottomUpTreeAut::SetSymbolDictPtr(&bddSymbolDict);
 
 	// create the ``next symbol'' variable for the BDD-based automata
-	BDDTopDownTreeAut::SymbolType nextSymbol(BDD_SIZE, 0);
-	BDDTopDownTreeAut::SetNextSymbolPtr(&nextSymbol);
-	BDDBottomUpTreeAut::SetNextSymbolPtr(&nextSymbol);
+	BDDTopDownTreeAut::SymbolType bddNextSymbol(BDD_SIZE, 0);
+	BDDTopDownTreeAut::SetNextSymbolPtr(&bddNextSymbol);
+	BDDBottomUpTreeAut::SetNextSymbolPtr(&bddNextSymbol);
+
+	// create the symbol directory for explicit automata
+	ExplicitTreeAut::StringToSymbolDict explSymbolDict;
+	ExplicitTreeAut::SetSymbolDictPtr(&explSymbolDict);
+
+	// create the ``next symbol'' variable for the explicit automaton
+	ExplicitTreeAut::SymbolType explNextSymbol(0);
+	ExplicitTreeAut::SetNextSymbolPtr(&explNextSymbol);
+
+	// create the ``next state'' variable
+	AutBase::StateType nextState(0);
+	ExplicitTreeAut::SetNextStatePtr(&nextState);
 
 	try
 	{
