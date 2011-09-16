@@ -398,6 +398,19 @@ public:   // public methods
 		return const_cast<TransTablePtr&>(transTable_);
 	}
 
+	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
+		StringToStateDict& stateDict)
+	{
+		typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
+			StateTranslator;
+		typedef VATA::Util::TranslatorWeak<StringToSymbolDict>
+			SymbolTranslator;
+
+		LoadFromString(parser, str,
+			StateTranslator(stateDict, [this]{return this->AddState();}),
+			SymbolTranslator(GetSymbolDict(), [this]{return this->AddSymbol();}));
+	}
+
 	template <class SymbolTransFunc>
 	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
 		SymbolTransFunc symbolTranslator)

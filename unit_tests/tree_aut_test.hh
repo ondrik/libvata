@@ -116,10 +116,7 @@ protected:
 
 	void readAut(AutType& aut, StringToStateDict& stateDict, const std::string& str)
 	{
-		aut.LoadFromString(parser_, str,
-			StateTranslatorWeak(stateDict, [&aut]{return aut.AddState();}),
-			SymbolTranslatorWeak(aut.GetSymbolDict(),
-			[&aut]{return aut.AddSymbol();}));
+		aut.LoadFromString(parser_, str, stateDict);
 	}
 
 	std::string dumpAut(const AutType& aut, const StringToStateDict& stateDict)

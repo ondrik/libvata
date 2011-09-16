@@ -20,6 +20,7 @@
 #include <vata/mtbdd/void_apply2func.hh>
 #include <vata/util/bdd_trans_table.hh>
 #include <vata/util/ord_vector.hh>
+#include <vata/util/transl_weak.hh>
 #include <vata/util/vector_map.hh>
 
 namespace VATA { class BDDBottomUpTreeAut; }
@@ -485,6 +486,18 @@ public:   // methods
 		return finalStates_;
 	}
 
+	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
+		StringToStateDict& stateDict)
+	{
+		typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
+			StateTranslator;
+		typedef VATA::Util::TranslatorWeak<StringToSymbolDict>
+			SymbolTranslator;
+
+		LoadFromString(parser, str,
+			StateTranslator(stateDict, [this]{return this->AddState();}),
+			SymbolTranslator(GetSymbolDict(), [this]{return this->AddSymbol();}));
+	}
 
 	template <class StateTransFunc, class SymbolTransFunc>
 	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
