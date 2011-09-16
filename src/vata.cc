@@ -52,9 +52,6 @@ typedef VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>
 typedef VATA::Util::TranslatorWeak<BDDTopDownTreeAut::StringToSymbolDict>
 	SymbolTranslatorWeak;
 
-typedef VATA::Util::TranslatorStrict<BDDTopDownTreeAut::StringToSymbolDict>
-	SymbolTranslatorStrict;
-
 const char VATA_USAGE_STRING[] =
 	"VATA: Vojnar's Army Tree Automata library interface\n"
 	"usage: vata [-r <representation>] [(-I|-O|-F) <format>] [-h|--help] [-t] [-n]\n"
@@ -116,6 +113,9 @@ template <class Aut>
 int performOperation(const Arguments& args, AbstrParser& parser,
 	AbstrSerializer& serializer)
 {
+	typedef typename Aut::SymbolTranslatorStrict SymbolTranslatorStrict;
+	typedef typename Aut::SymbolBackTranslatorStrict SymbolBackTranslatorStrict;
+
 	Aut autInput1;
 	Aut autInput2;
 	Aut autResult;
@@ -130,19 +130,13 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	if (args.operands >= 1)
 	{
 		autInput1.LoadFromString(parser, VATA::Util::ReadFile(args.fileName1),
-			StateTranslatorWeak(stateDict1,
-			[&autInput1]{return autInput1.AddState();}),
-			SymbolTranslatorWeak(autInput1.GetSymbolDict(),
-			[&autInput1]{return autInput1.AddSymbol();}));
+			stateDict1);
 	}
 
 	if (args.operands >= 2)
 	{
 		autInput2.LoadFromString(parser, VATA::Util::ReadFile(args.fileName2),
-			StateTranslatorWeak(stateDict2,
-			[&autInput2]{return autInput2.AddState();}),
-			SymbolTranslatorWeak(autInput2.GetSymbolDict(),
-			[&autInput2]{return autInput2.AddSymbol();}));
+			stateDict2);
 	}
 
 	if (args.pruneUseless)
@@ -231,14 +225,14 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 
 			std::cout << autResult.DumpToString(serializer,
 				StateBackTranslatorStrict(stateDict1.GetReverseMap()),
-				SymbolTranslatorStrict(autInput2.GetSymbolDict()));
+				SymbolBackTranslatorStrict(autInput2.GetSymbolDict().GetReverseMap()));
 		}
 
 		if ((args.command == COMMAND_UNION) ||
 			(args.command == COMMAND_INTERSECTION))
 		{
 			std::cout << autResult.DumpToString(serializer,
-				SymbolTranslatorStrict(autResult.GetSymbolDict()));
+				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
 		}
 
 		if (args.command == COMMAND_INCLUSION)
@@ -346,16 +340,15 @@ int main(int argc, char* argv[])
 	{
 		if (args.representation == REPRESENTATION_BDD_TD)
 		{
-				return executeCommand<BDDTopDownTreeAut>(args);
+			return executeCommand<BDDTopDownTreeAut>(args);
 		}
 		else if (args.representation == REPRESENTATION_BDD_BU)
 		{
-				return executeCommand<BDDBottomUpTreeAut>(args);
+			return executeCommand<BDDBottomUpTreeAut>(args);
 		}
 		else if (args.representation == REPRESENTATION_EXPLICIT)
 		{
-				throw std::runtime_error("Unimplemented");
-				//return executeCommand<ExplicitTreeAut>(args);
+			return executeCommand<ExplicitTreeAut>(args);
 		}
 		else
 		{
