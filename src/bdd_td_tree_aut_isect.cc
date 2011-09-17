@@ -60,18 +60,16 @@ BDDTopDownTreeAut VATA::Intersection(
 		{
 			StateTupleSet result;
 
-			for (StateTupleSet::const_iterator itLhs = lhs.begin();
-				itLhs != lhs.end(); ++itLhs)
+			for (auto lhsTuple : lhs)
 			{	// for each tuple from LHS
-				for (StateTupleSet::const_iterator itRhs = rhs.begin();
-					itRhs != rhs.end(); ++itRhs)
+				for (auto rhsTuple : rhs)
 				{	// for each tuple from RHS
-					assert(itLhs->size() == itRhs->size());
+					assert(lhsTuple.size() == rhsTuple.size());
 
 					StateTuple resultTuple;
-					for (size_t i = 0; i < itLhs->size(); ++i)
+					for (size_t i = 0; i < lhsTuple.size(); ++i)
 					{	// for each position in the tuples
-						StatePair newPair = std::make_pair((*itLhs)[i], (*itRhs)[i]);
+						StatePair newPair = std::make_pair(lhsTuple[i], rhsTuple[i]);
 
 						StateType state;
 						IntersectionTranslMap::const_iterator itTransl;
@@ -107,13 +105,11 @@ BDDTopDownTreeAut VATA::Intersection(
 	WorkSetType workset;
 
 
-	for (StateSet::const_iterator itFstLhs = lhs.GetFinalStates().begin();
-		itFstLhs != lhs.GetFinalStates().end(); ++itFstLhs)
+	for (auto lhsFst : lhs.GetFinalStates())
 	{	// iterate over LHS's final states
-		for (StateSet::const_iterator itFstRhs = rhs.GetFinalStates().begin();
-			itFstRhs != rhs.GetFinalStates().end(); ++itFstRhs)
+		for (auto rhsFst : rhs.GetFinalStates())
 		{	// iterate over RHS's final states
-			StatePair origStates = std::make_pair(*itFstLhs, *itFstRhs);
+			StatePair origStates = std::make_pair(lhsFst, rhsFst);
 
 			StateType newState = result.AddState();
 			result.SetStateFinal(newState);
