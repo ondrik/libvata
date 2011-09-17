@@ -395,6 +395,8 @@ private:  // methods
 			transTable_->DecrementHandleRefCnt(tupleHandlePair.second);
 		}
 
+		transTable_->DecrementHandleRefCnt(defaultTrFuncHandle_);
+
 		mtbddMap_.clear();
 	}
 
@@ -445,6 +447,21 @@ public:   // methods
 	}
 
 	BDDBottomUpTreeAut& operator=(const BDDBottomUpTreeAut& rhs);
+
+	BDDBottomUpTreeAut& operator=(BDDBottomUpTreeAut&& rhs)
+	{
+		if (this != &rhs)
+		{
+			deallocateTuples();
+
+			finalStates_ = std::move(rhs.finalStates_);
+			transTable_ = std::move(rhs.transTable_);
+			mtbddMap_ = std::move(rhs.mtbddMap_);
+			defaultTrFuncHandle_ = std::move(rhs.defaultTrFuncHandle_);
+		}
+
+		return *this;
+	}
 
 	inline TransTablePtr& GetTransTable() const
 	{

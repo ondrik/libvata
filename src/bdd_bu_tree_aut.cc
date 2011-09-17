@@ -155,6 +155,5 @@ BDDBottomUpTreeAut::~BDDBottomUpTreeAut()
 	{
 		deallocateTuples();
 		assert(mtbddMap_.empty());
-		transTable_->DecrementHandleRefCnt(defaultTrFuncHandle_);
 	}
 }
