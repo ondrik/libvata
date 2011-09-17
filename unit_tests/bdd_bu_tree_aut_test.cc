@@ -13,6 +13,28 @@
 #include <vata/bdd_bu_tree_aut.hh>
 #include <vata/bdd_bu_tree_aut_op.hh>
 
-typedef VATA::BDDBottomUpTreeAut AutType;
+class AutTypeFixture
+{
+protected:// data types
+
+	typedef VATA::BDDBottomUpTreeAut AutType;
+
+private:  // constants
+
+	static const size_t BDD_SIZE = 16;
+
+protected:// data members
+
+	AutType::SymbolType nextSymbol_;
+
+protected:// methods
+
+	AutTypeFixture() :
+		nextSymbol_(BDD_SIZE, 0)
+	{ }
+
+	virtual ~AutTypeFixture() { }
+
+};
 
 #include "tree_aut_test.hh"

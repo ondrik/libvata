@@ -32,25 +32,6 @@ using VATA::Util::Convert;
 #include "log_fixture.hh"
 
 
-/******************************************************************************
- *                                    Types                                   *
- ******************************************************************************/
-
-typedef AutBase::StringToStateDict StringToStateDict;
-
-typedef AutBase::StateToStateMap StateToStateMap;
-typedef AutBase::StateType StateType;
-typedef AutType::StateTuple StateTuple;
-
-typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
-	StateTranslatorWeak;
-typedef VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>
-	StateBackTranslatorStrict;
-
-typedef VATA::Util::TranslatorWeak<AutType::StringToSymbolDict>
-	SymbolTranslatorWeak;
-typedef VATA::Util::TranslatorStrict<AutType::StringToSymbolDict>
-	SymbolTranslatorStrict;
 
 
 
@@ -80,34 +61,46 @@ const fs::path ADD_TRANS_TIMBUK_FILE =
 	AUT_DIR / "add_trans_timbuk.txt";
 
 
-const size_t BDD_SIZE = 16;
-
 /******************************************************************************
  *                                  Fixtures                                  *
  ******************************************************************************/
 
 /**
- * @brief  BDDTopDownTreeAut testing fixture
+ * @brief  TreeAut testing fixture
  *
- * Fixture for test of BDDTopDownTreeAut
+ * Fixture for test of TreeAut
  */
-class BDDTreeAutFixture : public LogFixture
+class TreeAutFixture : public LogFixture, public AutTypeFixture
 {
-protected:
+protected:// data types
+
+	typedef AutTypeFixture::AutType AutType;
+
+	typedef AutBase::StringToStateDict StringToStateDict;
+
+	typedef AutBase::StateToStateMap StateToStateMap;
+	typedef AutBase::StateType StateType;
+	typedef AutType::StateTuple StateTuple;
+
+	typedef VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>
+		StateBackTranslatorStrict;
+
+	typedef VATA::Util::TranslatorStrict<AutType::StringToSymbolDict::MapBwdType>
+		SymbolBackTranslatorStrict;
+
+protected:// data members
 
 	TimbukParser parser_;
 	TimbukSerializer serializer_;
 
 	AutType::StringToSymbolDict symbolDict_;
-	AutType::SymbolType nextSymbol_;
 
-protected:
+protected:// methods
 
-	BDDTreeAutFixture() :
+	TreeAutFixture() :
 		parser_(),
 		serializer_(),
-		symbolDict_(),
-		nextSymbol_(BDD_SIZE, 0)
+		symbolDict_()
 	{
 		AutType::SetSymbolDictPtr(&symbolDict_);
 		AutType::SetNextSymbolPtr(&nextSymbol_);
@@ -122,7 +115,7 @@ protected:
 	{
 		return aut.DumpToString(serializer_,
 			StateBackTranslatorStrict(stateDict.GetReverseMap()),
-			SymbolTranslatorStrict(aut.GetSymbolDict()));
+			SymbolBackTranslatorStrict(aut.GetSymbolDict().GetReverseMap()));
 	}
 };
 
@@ -131,7 +124,7 @@ protected:
  ******************************************************************************/
 
 
-BOOST_FIXTURE_TEST_SUITE(suite, BDDTreeAutFixture)
+BOOST_FIXTURE_TEST_SUITE(suite, TreeAutFixture)
 
 BOOST_AUTO_TEST_CASE(timbuk_import_export)
 {
@@ -290,6 +283,7 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 //}
 
 
+#if 0
 BOOST_AUTO_TEST_CASE(aut_union_simple)
 {
 	auto testfileContent = ParseTestFile(UNION_TIMBUK_FILE.string());
@@ -334,6 +328,7 @@ BOOST_AUTO_TEST_CASE(aut_union_simple)
 			"===========\n\nGot:\n===========\n" + autUnionStr + "\n===========");
 	}
 }
+#endif
 
 
 BOOST_AUTO_TEST_CASE(aut_union_trans_table_copy)
