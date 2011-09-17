@@ -58,7 +58,7 @@ public:   // Public data types
 
 	typedef std::vector<KeyElementType> key_type;
 	typedef T mapped_type;
-	typedef std::pair<const key_type, mapped_type> value_type;
+	typedef std::pair<key_type, mapped_type> value_type;
 
 	typedef VectorMap
 		<
@@ -775,13 +775,11 @@ public:   // Public methods
 	{ }
 
 	VectorMap(VectorMap&& vecMap)
-		: container0_(vecMap.container0_),
-			container1_(vecMap.container1_),
-			container2_(vecMap.container2_),
-			containerN_(vecMap.containerN_)
-	{
-		vecMap.container0_ = nullptr;
-	}
+		: container0_(std::move(vecMap.container0_)),
+			container1_(std::move(vecMap.container1_)),
+			container2_(std::move(vecMap.container2_)),
+			containerN_(std::move(vecMap.containerN_))
+	{ }
 
 	VectorMap& operator=(const VectorMap& vecMap)
 	{
@@ -813,11 +811,10 @@ public:   // Public methods
 	{
 		if (&vecMap != this)
 		{
-			container0_ = vecMap.container0_;
-			vecMap.container0_ = nullptr;
-			container1_ = vecMap.container1_;
-			container2_ = vecMap.container2_;
-			containerN_ = vecMap.containerN_;
+			container0_ = std::move(vecMap.container0_);
+			container1_ = std::move(vecMap.container1_);
+			container2_ = std::move(vecMap.container2_);
+			containerN_ = std::move(vecMap.containerN_);
 		}
 
 		return *this;
@@ -857,22 +854,11 @@ public:   // Public methods
 	}
 
 
-//	inline void SetValue(const key_type& index, const mapped_type& value)
-//	{
-//		switch (index.size())
-//		{
-//			case 0: setValueForArity0(index, value); break;
-//			case 1: setValueForArity1(index, value); break;
-//			case 2: setValueForArity2(index, value); break;
-//			default: setValueForArityN(index, value); break;
-//		}
-//	}
-
-	template <template <typename> class TSet>
+	template <class TSet>
 	IndexValueArray GetItemsWith(const KeyElementType& elem,
-		const TSet<KeyElementType>& elemDomain) const
+		const TSet& elemDomain) const
 	{
-		typedef TSet<KeyElementType> DomainSetType;
+		typedef TSet DomainSetType;
 		// start with arrays for nullary, unary and binary vectors
 		IndexValueArray result(3);
 
@@ -881,8 +867,7 @@ public:   // Public methods
 			typename HashTableUnary::const_iterator itUnary;
 			if ((itUnary = container1_.find(elem)) != container1_.end())
 			{	// in case the value is in the hash table
-				key_type index;
-				index.push_back(elem);
+				key_type index = {elem};
 				value_type valuePair = std::make_pair(index, itUnary->second);
 
 				result[1].push_back(valuePair);
@@ -891,39 +876,34 @@ public:   // Public methods
 
 
 		// for binary items
-		for (typename DomainSetType::const_iterator itDom = elemDomain.begin();
-			itDom != elemDomain.end(); ++itDom)
+		for (auto domElem : elemDomain)
 		{
 			// when desired element is at the first position
 			KeyElementPairType binaryKey;
 			binaryKey.first = elem;
-			binaryKey.second = *itDom;
+			binaryKey.second = domElem;
 
 			typename HashTableBinary::const_iterator itBinary;
 			if ((itBinary = container2_.find(binaryKey)) != container2_.end())
 			{	// in case the value is in the hash table
-				key_type index;
-				index.push_back(elem);
-				index.push_back(*itDom);
+				key_type index = {elem, domElem};
 				value_type valuePair = std::make_pair(index, itBinary->second);
 
 				result[2].push_back(valuePair);
 			}
 
-			if (elem == *itDom)
+			if (elem == domElem)
 			{	// in case the first and second element is the same, return only once
 				continue;
 			}
 
 			// when desired element is at the second position
-			binaryKey.first = *itDom;
+			binaryKey.first = domElem;
 			binaryKey.second = elem;
 
 			if ((itBinary = container2_.find(binaryKey)) != container2_.end())
 			{	// in case the value is in the hash table
-				key_type index;
-				index.push_back(*itDom);
-				index.push_back(elem);
+				key_type index = {domElem, elem};
 				value_type valuePair = std::make_pair(index, itBinary->second);
 
 				result[2].push_back(valuePair);
