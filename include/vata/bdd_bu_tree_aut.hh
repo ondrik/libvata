@@ -100,6 +100,7 @@ private:  // constants
 
 private:  // data members
 
+	StateHT states_;
 	StateHT finalStates_;
 	TransTablePtr transTable_;
 	TupleToMTBDDMap mtbddMap_;
@@ -403,6 +404,7 @@ private:  // methods
 public:   // methods
 
 	BDDBottomUpTreeAut() :
+		states_(),
 		finalStates_(),
 		transTable_(new TransTable),
 		mtbddMap_(),
@@ -413,6 +415,7 @@ public:   // methods
 	}
 
 	BDDBottomUpTreeAut(TransTablePtr transTable) :
+		states_(),
 		finalStates_(),
 		transTable_(transTable),
 		mtbddMap_(),
@@ -423,6 +426,7 @@ public:   // methods
 	}
 
 	BDDBottomUpTreeAut(const BDDBottomUpTreeAut& aut) :
+		states_(),
 		finalStates_(),
 		transTable_(aut.transTable_),
 		mtbddMap_(),
@@ -435,6 +439,7 @@ public:   // methods
 	}
 
 	BDDBottomUpTreeAut(BDDBottomUpTreeAut&& aut) :
+		states_(aut.states_),
 		finalStates_(aut.finalStates_),
 		transTable_(aut.transTable_),
 		mtbddMap_(aut.mtbddMap_),
@@ -454,6 +459,7 @@ public:   // methods
 		{
 			deallocateTuples();
 
+			states_ = std::move(rhs.states_);
 			finalStates_ = std::move(rhs.finalStates_);
 			transTable_ = std::move(rhs.transTable_);
 			mtbddMap_ = std::move(rhs.mtbddMap_);
@@ -474,6 +480,11 @@ public:   // methods
 		assert(isValid());
 
 		StateType newState = transTable_->AddState();
+
+		if (!states_.insert(newState).second)
+		{	// in case the state is already there
+			assert(false);
+		}
 
 		assert(isValid());
 
@@ -502,6 +513,11 @@ public:   // methods
 	inline const TupleToMTBDDMap& GetTuples() const
 	{
 		return mtbddMap_;
+	}
+
+	inline const StateHT& GetStates() const
+	{
+		return states_;
 	}
 
 	inline const StateHT& GetFinalStates() const

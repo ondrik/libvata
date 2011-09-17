@@ -87,7 +87,8 @@ void BDDBottomUpTreeAut::copyStates(const BDDBottomUpTreeAut& src)
 
 	StateTuple tuple;
 
-	// simply copy final states
+	// simply copy states and final states
+	states_.insert(src.finalStates_.begin(), src.finalStates_.end());
 	finalStates_.insert(src.finalStates_.begin(), src.finalStates_.end());
 
 	assert(isValid());
