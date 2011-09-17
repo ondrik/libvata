@@ -521,7 +521,7 @@ public:   // public methods
 		AutDescription desc;
 
 		for (auto s : this->finalStates_)
-			desc.finalStates.insert(Convert::ToString(s));
+			desc.finalStates.insert(statePrinter(s));
 
 		for (auto stateClusterPair : *this->transitions_) {
 
