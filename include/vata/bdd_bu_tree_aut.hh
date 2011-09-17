@@ -491,6 +491,14 @@ public:   // methods
 		finalStates_.insert(state);
 	}
 
+	inline bool IsStateFinal(const StateType& state) const
+	{
+		// Assertions
+		assert(isValid());
+
+		return finalStates_.find(state) != finalStates_.end();
+	}
+
 	inline const TupleToMTBDDMap& GetTuples() const
 	{
 		return mtbddMap_;
