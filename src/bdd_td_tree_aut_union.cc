@@ -88,11 +88,10 @@ BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
 		// start by copying the LHS automaton
 		BDDTopDownTreeAut result = lhs;
 
-		bool deleteTranslMap = false;
+		StateToStateMap translMap;
 		if (pTranslMap == nullptr)
-		{
-			pTranslMap = new StateToStateMap;
-			deleteTranslMap = true;
+		{	// in case no translation map was given
+			pTranslMap = &translMap;
 		}
 
 		RewriterApplyFunctor rewriter(result, *pTranslMap);
@@ -111,11 +110,6 @@ BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
 			itFst != rhs.GetFinalStates().end(); ++itFst)
 		{	// for all final states in the RHS automaton
 			result.SetStateFinal(result.safelyTranslateToState(*itFst, *pTranslMap));
-		}
-
-		if (deleteTranslMap)
-		{
-			delete pTranslMap;
 		}
 
 		assert(result.isValid());

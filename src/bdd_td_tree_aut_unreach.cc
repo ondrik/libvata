@@ -94,11 +94,10 @@ BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut,
 	BDDTopDownTreeAut result(aut.GetTransTable());
 	WorkSetType workset;
 
-	bool deleteTranslMap = false;
+	StateToStateMap translMap;
 	if (pTranslMap == nullptr)
 	{	// in case the state translation map was not provided
-		pTranslMap = new StateToStateMap();
-		deleteTranslMap = true;
+		pTranslMap = &translMap;
 	}
 
 	assert(pTranslMap->empty());
@@ -124,11 +123,6 @@ BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut,
 		result.setMtbdd(newState, mtbdd);
 
 		workset.erase(itWs);
-	}
-
-	if (deleteTranslMap)
-	{	// in case we need to delete the map
-		delete pTranslMap;
 	}
 
 	assert(result.isValid());

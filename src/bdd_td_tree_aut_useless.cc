@@ -289,11 +289,10 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut,
 	BDDTopDownTreeAut result(aut.GetTransTable());
 	StatePairStack workStack;
 
-	bool deleteTranslMap = false;
+	StateToStateMap translMap;
 	if (pTranslMap == nullptr)
 	{	// in case the state translation map was not provided
-		pTranslMap = new StateToStateMap();
-		deleteTranslMap = true;
+		pTranslMap = &translMap;
 	}
 
 	assert(pTranslMap->empty());
@@ -319,11 +318,6 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut,
 		BDDTopDownTreeAut::TransMTBDD mtbdd = restrFunc(aut.getMtbdd(stPr.second));
 
 		result.setMtbdd(stPr.first, mtbdd);
-	}
-
-	if (deleteTranslMap)
-	{	// in case we need to delete the map
-		delete pTranslMap;
 	}
 
 	assert(result.isValid());

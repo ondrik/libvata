@@ -87,11 +87,10 @@ BDDBottomUpTreeAut VATA::Union(const BDDBottomUpTreeAut& lhs,
 		// start by copying the LHS automaton
 		BDDBottomUpTreeAut result = lhs;
 
-		bool deleteTranslMap = false;
+		StateToStateMap translMap;
 		if (pTranslMap == nullptr)
 		{
-			pTranslMap = new StateToStateMap;
-			deleteTranslMap = true;
+			pTranslMap = &translMap;
 		}
 
 		StateTuple tuple;
@@ -120,11 +119,6 @@ BDDBottomUpTreeAut VATA::Union(const BDDBottomUpTreeAut& lhs,
 
 		const TransMTBDD& rhsMTBDD = result.getMtbdd(tuple);
 		result.setMtbdd(tuple, unionFunc(lhsMTBDD, rhsMTBDD));
-
-		if (deleteTranslMap)
-		{
-			delete pTranslMap;
-		}
 
 		assert(result.isValid());
 

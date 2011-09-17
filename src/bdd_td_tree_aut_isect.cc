@@ -97,11 +97,10 @@ BDDTopDownTreeAut VATA::Intersection(
 		}
 	};
 
-	bool deleteTranslMap = false;
+	IntersectionTranslMap translMap;
 	if (pTranslMap == nullptr)
-	{
-		pTranslMap = new IntersectionTranslMap();
-		deleteTranslMap = true;
+	{	// if no translation map was given
+		pTranslMap = &translMap;
 	}
 
 	BDDTopDownTreeAut result;
@@ -139,11 +138,6 @@ BDDTopDownTreeAut VATA::Intersection(
 
 		// remove the processed state from the workset
 		workset.erase(itWs);
-	}
-
-	if (deleteTranslMap)
-	{
-		delete pTranslMap;
 	}
 
 	assert(result.isValid());
