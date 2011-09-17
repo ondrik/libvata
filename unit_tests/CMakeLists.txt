@@ -44,9 +44,10 @@ endforeach()
 
 set(TESTS
 	"ondriks_mtbdd_c_test"
+  "timbuk_parser_test"
 	"bdd_bu_tree_aut_test"
 	"bdd_td_tree_aut_test"
-  "timbuk_parser_test"
+  "explicit_tree_aut_test"
 )
 
 foreach (TEST ${TESTS})
