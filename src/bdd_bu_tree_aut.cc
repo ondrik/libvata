@@ -104,11 +104,15 @@ BDDBottomUpTreeAut& BDDBottomUpTreeAut::operator=(const BDDBottomUpTreeAut& rhs)
 
 	deallocateTuples();
 	mtbddMap_.clear();
+	states_.clear();
 	finalStates_.clear();
 
 	// NB: need to copy the transition table before copying states!
 	transTable_ = rhs.transTable_;
 	copyStates(rhs);
+
+	defaultTrFuncHandle_ = rhs.defaultTrFuncHandle_;
+	transTable_->IncrementHandleRefCnt(defaultTrFuncHandle_);
 
 	// Assertions
 	assert(isValid());

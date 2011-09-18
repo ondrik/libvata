@@ -175,8 +175,6 @@ private:  // methods
 		assert(isValid());
 		assert(transTable_->GetHandleRefCnt(handle) == 1);
 
-		std::vector<const TransMTBDD*> vec = {&mtbdd};
-
 		transTable_->SetMtbdd(handle, mtbdd);
 	}
 
@@ -430,23 +428,22 @@ public:   // methods
 		finalStates_(),
 		transTable_(aut.transTable_),
 		mtbddMap_(),
-		defaultTrFuncHandle_(transTable_->AddHandle())
+		defaultTrFuncHandle_(aut.defaultTrFuncHandle_)
 	{
 		copyStates(aut);
+		transTable_->IncrementHandleRefCnt(defaultTrFuncHandle_);
 
 		// Assertions
 		assert(isValid());
 	}
 
 	BDDBottomUpTreeAut(BDDBottomUpTreeAut&& aut) :
-		states_(aut.states_),
-		finalStates_(aut.finalStates_),
-		transTable_(aut.transTable_),
-		mtbddMap_(aut.mtbddMap_),
-		defaultTrFuncHandle_(aut.defaultTrFuncHandle_)
+		states_(std::move(aut.states_)),
+		finalStates_(std::move(aut.finalStates_)),
+		transTable_(std::move(aut.transTable_)),
+		mtbddMap_(std::move(aut.mtbddMap_)),
+		defaultTrFuncHandle_(std::move(aut.defaultTrFuncHandle_))
 	{
-		aut.transTable_ = nullptr;
-
 		// Assertions
 		assert(isValid());
 	}
