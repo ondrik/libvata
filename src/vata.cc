@@ -127,7 +127,8 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	VATA::AutBase::StringToStateDict stateDict2;
 	typename Aut::StringToSymbolDict symbolDict;
 
-	VATA::AutBase::StateToStateMap translMap;
+	VATA::AutBase::StateToStateMap translMap1;
+	VATA::AutBase::StateToStateMap translMap2;
 
 	if (args.operands >= 1)
 	{
@@ -145,26 +146,42 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	{
 		if (args.operands >= 1)
 		{
-			autInput1 = RemoveUselessStates(autInput1, &translMap);
+			autInput1 = RemoveUselessStates(autInput1, &translMap1);
 		}
 
 		if (args.operands >= 2)
 		{
-			autInput2 = RemoveUselessStates(autInput2);
+			autInput2 = RemoveUselessStates(autInput2, &translMap2);
 		}
 	}
 	else if (args.pruneUnreachable)
 	{
 		if (args.operands >= 1)
 		{
-			autInput1 = RemoveUnreachableStates(autInput1, &translMap);
+			autInput1 = RemoveUnreachableStates(autInput1, &translMap1);
 		}
 
 		if (args.operands >= 2)
 		{
-			autInput2 = RemoveUnreachableStates(autInput2);
+			autInput2 = RemoveUnreachableStates(autInput2, &translMap2);
 		}
 	}
+
+	if (args.pruneUseless || args.pruneUnreachable)
+	{
+		if (args.operands >= 1)
+		{
+			stateDict1 = VATA::Util::RebindMap(stateDict1, translMap1);
+		}
+
+		if (args.operands >= 2)
+		{
+			stateDict2 = VATA::Util::RebindMap(stateDict2, translMap2);
+		}
+	}
+
+	AutBase::StateToStateMap opTranslMap;
+	AutBase::ProductTranslMap prodTranslMap;
 
 	// get the start time
 	timespec startTime;
@@ -181,11 +198,11 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	}
 	else if (args.command == COMMAND_UNION)
 	{
-		autResult = Union(autInput1, autInput2);
+		autResult = Union(autInput1, autInput2, &opTranslMap);
 	}
 	else if (args.command == COMMAND_INTERSECTION)
 	{
-		autResult = Intersection(autInput1, autInput2);
+		autResult = Intersection(autInput1, autInput2, &prodTranslMap);
 	}
 	else if (args.command == COMMAND_INCLUSION)
 	{
@@ -220,20 +237,28 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	{	// in case output is not forbidden
 		if (args.command == COMMAND_LOAD)
 		{
-			if (args.pruneUnreachable || args.pruneUseless)
-			{
-				stateDict1 = VATA::Util::RebindMap(stateDict1, translMap);
-			}
-
 			std::cout << autResult.DumpToString(serializer,
 				StateBackTranslatorStrict(stateDict1.GetReverseMap()),
 				SymbolBackTranslatorStrict(autInput2.GetSymbolDict().GetReverseMap()));
+		}
+
+		if (args.command == COMMAND_UNION)
+		{
+			stateDict1 = VATA::Util::CreateUnionStringToStateMap(
+				stateDict1, stateDict2, &opTranslMap);
+		}
+
+		if (args.command == COMMAND_INTERSECTION)
+		{
+			stateDict1 = VATA::Util::CreateProductStringToStateMap(
+				stateDict1, stateDict2, prodTranslMap);
 		}
 
 		if ((args.command == COMMAND_UNION) ||
 			(args.command == COMMAND_INTERSECTION))
 		{
 			std::cout << autResult.DumpToString(serializer,
+				StateBackTranslatorStrict(stateDict1.GetReverseMap()),
 				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
 		}
 
