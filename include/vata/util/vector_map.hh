@@ -779,7 +779,9 @@ public:   // Public methods
 			container1_(std::move(vecMap.container1_)),
 			container2_(std::move(vecMap.container2_)),
 			containerN_(std::move(vecMap.containerN_))
-	{ }
+	{
+		vecMap.container0_ = nullptr;
+	}
 
 	VectorMap& operator=(const VectorMap& vecMap)
 	{
@@ -812,6 +814,7 @@ public:   // Public methods
 		if (&vecMap != this)
 		{
 			container0_ = std::move(vecMap.container0_);
+			vecMap.container0_ = nullptr;
 			container1_ = std::move(vecMap.container1_);
 			container2_ = std::move(vecMap.container2_);
 			containerN_ = std::move(vecMap.containerN_);
