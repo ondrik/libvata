@@ -657,33 +657,42 @@ public:   // public methods
 		if (!leftCluster)
 			return;
 
-		for (auto rhsState : rhsSet) {
+		std::vector<const TransitionCluster*> rightClusters;
 
+		for (auto rhsState : rhsSet) {
+	
 			auto rightCluster = ExplicitTreeAut::genericLookup(*rhs.transitions_, rhsState);
 
-			if (!rightCluster)
-				continue;
+			if (rightCluster)
+				rightClusters.push_back(rightCluster);
 
-			for (auto leftSymbolTupleSetPair : *leftCluster) {
+		}
 
+		for (auto leftSymbolTupleSetPair : *leftCluster) {
+
+			TuplePtrSet rightTuples;
+
+			for (auto rightCluster : rightClusters) {
+	
 				auto rightTupleSet = ExplicitTreeAut::genericLookup(
 					*rightCluster, leftSymbolTupleSetPair.first
 				);
-
+	
 				if (!rightTupleSet)
 					continue;
-
-				assert(leftSymbolTupleSetPair.second);
-
-				auto AccessElementF = [](const TuplePtr& tuplePtr){return *tuplePtr;};
-
-				opFunc(
-					*leftSymbolTupleSetPair.second,
-					AccessElementF,
-					*rightTupleSet, AccessElementF
-				);
-
+	
+				rightTuples.insert(rightTupleSet->begin(), rightTupleSet->end());
+	
 			}
+			
+			auto AccessElementF = [](const TuplePtr& tuplePtr){return *tuplePtr;};
+	
+			assert(leftSymbolTupleSetPair.second);
+
+			opFunc(
+				*leftSymbolTupleSetPair.second, AccessElementF,
+				rightTuples, AccessElementF
+			);
 
 		}
 
