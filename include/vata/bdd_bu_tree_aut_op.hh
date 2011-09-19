@@ -20,7 +20,8 @@ namespace VATA
 {
 	BDDBottomUpTreeAut Union(const BDDBottomUpTreeAut& lhs,
 		const BDDBottomUpTreeAut& rhs,
-		AutBase::StateToStateMap* pTranslMap = nullptr);
+		AutBase::StateToStateMap* pTranslMapLhs = nullptr,
+		AutBase::StateToStateMap* pTranslMapRhs = nullptr);
 
 	BDDBottomUpTreeAut Intersection(const BDDBottomUpTreeAut& lhs,
 		const BDDBottomUpTreeAut& rhs,

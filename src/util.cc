@@ -73,7 +73,8 @@ VATA::AutBase::StringToStateDict VATA::Util::CreateProductStringToStateMap(
 VATA::AutBase::StringToStateDict VATA::Util::CreateUnionStringToStateMap(
 	const VATA::AutBase::StringToStateDict& lhsCont,
 	const VATA::AutBase::StringToStateDict& rhsCont,
-	const AutBase::StateToStateMap* translMap)
+	const AutBase::StateToStateMap* translMapLhs,
+	const AutBase::StateToStateMap* translMapRhs)
 {
 	typedef VATA::AutBase::StateType StateType;
 	typedef VATA::AutBase::StateToStateMap StateToStateMap;
@@ -83,16 +84,28 @@ VATA::AutBase::StringToStateDict VATA::Util::CreateUnionStringToStateMap(
 
 	for (auto dictElem : lhsCont)
 	{
-		result.insert(std::make_pair(dictElem.first + "_1", dictElem.second));
+		StateType state = dictElem.second;
+		if (translMapLhs != nullptr)
+		{	// in case there should be translation
+			StateToStateMap::const_iterator itTransl;
+			if ((itTransl = translMapLhs->find(state)) == translMapLhs->end())
+			{
+				assert(false);    // fail gracefully
+			}
+
+			state = itTransl->second;
+		}
+
+		result.insert(std::make_pair(dictElem.first + "_1", state));
 	}
 
 	for (auto dictElem : rhsCont)
 	{
 		StateType state = dictElem.second;
-		if (translMap != nullptr)
+		if (translMapRhs != nullptr)
 		{	// in case there should be translation
 			StateToStateMap::const_iterator itTransl;
-			if ((itTransl = translMap->find(state)) == translMap->end())
+			if ((itTransl = translMapRhs->find(state)) == translMapRhs->end())
 			{
 				assert(false);    // fail gracefully
 			}

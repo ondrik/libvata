@@ -21,7 +21,8 @@ using VATA::Util::Convert;
 
 
 BDDBottomUpTreeAut VATA::Union(const BDDBottomUpTreeAut& lhs,
-	const BDDBottomUpTreeAut& rhs, AutBase::StateToStateMap* pTranslMap)
+	const BDDBottomUpTreeAut& rhs, AutBase::StateToStateMap* pTranslMapLhs,
+	AutBase::StateToStateMap* pTranslMapRhs)
 {
 	// Assertions
 	assert(lhs.isValid());
@@ -87,23 +88,35 @@ BDDBottomUpTreeAut VATA::Union(const BDDBottomUpTreeAut& lhs,
 		// start by copying the LHS automaton
 		BDDBottomUpTreeAut result = lhs;
 
-		StateToStateMap translMap;
-		if (pTranslMap == nullptr)
-		{
-			pTranslMap = &translMap;
+		StateToStateMap translMapLhs;
+		if (pTranslMapLhs != nullptr)
+		{	// copy states
+			for (const StateType& state : lhs.GetStates())
+			{
+				pTranslMapLhs->insert(std::make_pair(state, state));
+			}
 		}
+
+		StateToStateMap translMapRhs;
+		if (pTranslMapRhs == nullptr)
+		{
+			pTranslMapRhs = &translMapRhs;
+		}
+
+
 
 		StateTuple tuple;
 		const TransMTBDD& lhsMTBDD = result.getMtbdd(tuple);
 
-		RewriterApplyFunctor rewriter(result, *pTranslMap);
+		RewriterApplyFunctor rewriter(result, *pTranslMapRhs);
 
 		for (auto tupleHandlePair : rhs.GetTuples())
 		{	// for all states in the RHS automaton
 			StateTuple translTuple;
 			for (const StateType& state : tupleHandlePair.first)
 			{
-				translTuple.push_back(result.safelyTranslateToState(state, *pTranslMap));
+				translTuple.push_back(result.safelyTranslateToState(state,
+					*pTranslMapRhs));
 			}
 
 			BDDBottomUpTreeAut::TransMTBDD newMtbdd =
@@ -114,7 +127,8 @@ BDDBottomUpTreeAut VATA::Union(const BDDBottomUpTreeAut& lhs,
 
 		for (auto finalState : rhs.GetFinalStates())
 		{	// for all final states in the RHS automaton
-			result.SetStateFinal(result.safelyTranslateToState(finalState, *pTranslMap));
+			result.SetStateFinal(result.safelyTranslateToState(finalState,
+				*pTranslMapRhs));
 		}
 
 		const TransMTBDD& rhsMTBDD = result.getMtbdd(tuple);
