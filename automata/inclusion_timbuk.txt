@@ -3,3 +3,5 @@ small_timbuk/inclusion_2_smaller     small_timbuk/inclusion_2_bigger     1
 small_timbuk/inclusion_2_bigger      small_timbuk/inclusion_2_smaller    0
 small_timbuk/inclusion_3_smaller     small_timbuk/inclusion_3_bigger     1
 small_timbuk/inclusion_3_bigger      small_timbuk/inclusion_3_smaller    1
+small_timbuk/inclusion_4_smaller     small_timbuk/inclusion_4_bigger     0
+small_timbuk/inclusion_4_smaller     small_timbuk/inclusion_4_smaller    1
