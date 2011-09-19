@@ -9,8 +9,8 @@
  *
  *****************************************************************************/
 
-#ifndef _TREE_INCL_DOWN_HH_
-#define _TREE_INCL_DOWN_HH_
+#ifndef _VATA_TREE_INCL_DOWN_HH_
+#define _VATA_TREE_INCL_DOWN_HH_
 
 // VATA headers
 #include <vata/vata.hh>

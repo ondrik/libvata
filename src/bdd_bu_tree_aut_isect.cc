@@ -30,7 +30,7 @@ BDDBottomUpTreeAut VATA::Intersection(const BDDBottomUpTreeAut& lhs,
 	typedef AutBase::ProductTranslMap IntersectionTranslMap;
 	typedef BDDBottomUpTreeAut::TransMTBDD MTBDD;
 	typedef BDDBottomUpTreeAut::MTBDDHandle MTBDDHandle;
-	typedef BDDBottomUpTreeAut::TupleToMTBDDMap::IndexValueArray IndexValueArray;
+	typedef BDDBottomUpTreeAut::IndexValueArray IndexValueArray;
 
 	GCC_DIAG_OFF(effc++)
 	class IntersectionApplyFunctor :

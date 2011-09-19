@@ -392,7 +392,7 @@ public:   // methods
 					{
 						if (expand(lhsTupleState, StateSet()))
 						{	// if there a state from LHS cannot generate a tree (note that
-							// this means that the whole tuple is ``blind''
+							// this means that the whole tuple is ``blind'')
 							found = true;
 						}
 					}
