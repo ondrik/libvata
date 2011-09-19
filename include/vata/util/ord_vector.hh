@@ -93,9 +93,22 @@ public:   // Public methods
 		assert(vectorIsSorted());
 	}
 
-
 	explicit OrdVector(const VectorType& vec) :
 		vec_(vec)
+	{
+		// sort
+		std::sort(vec_.begin(), vec_.end());
+
+		// remove duplicates
+		auto it = std::unique(vec_.begin(), vec_.end());
+		vec_.resize(it - vec_.begin());
+
+		// Assertions
+		assert(vectorIsSorted());
+	}
+
+	OrdVector(std::initializer_list<Key> list) :
+		vec_(list)
 	{
 		// sort
 		std::sort(vec_.begin(), vec_.end());
