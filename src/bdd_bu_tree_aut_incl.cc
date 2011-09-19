@@ -12,6 +12,8 @@
 #include <vata/vata.hh>
 #include <vata/bdd_bu_tree_aut.hh>
 #include <vata/bdd_bu_tree_aut_op.hh>
+#include <vata/tree_incl_up.hh>
+#include <vata/up_tree_incl_fctor.hh>
 
 using VATA::BDDBottomUpTreeAut;
 
@@ -32,5 +34,6 @@ bool VATA::CheckInclusion(const BDDBottomUpTreeAut& smaller,
 	assert(smaller.isValid());
 	assert(bigger.isValid());
 
-	throw std::runtime_error("Unimplemented");
+	return CheckUpwardTreeInclusion<BDDBottomUpTreeAut,
+		VATA::UpwardInclusionFunctor>(smaller, bigger);
 }
