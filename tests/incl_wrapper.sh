@@ -52,6 +52,14 @@ case "${OPERATION}" in
     ${VATA} -r bdd-td -t incl -s "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
+  symup)
+    ${VATA} -r bdd-bu -t incl "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  symup-ul)
+    ${VATA} -r bdd-bu -t incl -s "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
   expldown)
     ${VATA} -r expl -t incl "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
