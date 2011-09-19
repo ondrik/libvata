@@ -49,13 +49,14 @@ GCC_DIAG_ON(effc++)
 	friend bool CheckInclusionNoUseless(const BDDBottomUpTreeAut&,
 		const BDDBottomUpTreeAut&);
 
-public:   // public data types
+public:   // data types
 
 	typedef VATA::MTBDDPkg::VarAsgn SymbolType;
 
 	typedef std::unordered_set<StateType> StateHT;
 	typedef VATA::Util::OrdVector<StateType> StateSet;
 	typedef std::vector<StateType> StateTuple;
+	typedef VATA::Util::OrdVector<StateTuple> StateTupleSet;
 
 	typedef VATA::Util::TwoWayDict<std::string, SymbolType> StringToSymbolDict;
 
@@ -63,7 +64,7 @@ public:   // public data types
 	typedef VATA::Util::TranslatorStrict<typename StringToSymbolDict::MapBwdType>
 		SymbolBackTranslatorStrict;
 
-private:  // private data types
+private:  // data types
 
 	typedef size_t MTBDDHandle;
 	typedef VATA::MTBDDPkg::OndriksMTBDD<StateSet> TransMTBDD;
@@ -79,7 +80,6 @@ private:  // private data types
 
 	typedef VATA::Util::Convert Convert;
 
-
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class UnionApplyFunctor :
 		public VATA::MTBDDPkg::Apply2Functor<UnionApplyFunctor, StateSet,
@@ -93,6 +93,10 @@ private:  // private data types
 			return lhs.Union(rhs);
 		}
 	};
+
+public:   // data types
+
+	typedef typename TupleToMTBDDMap::IndexValueArray IndexValueArray;
 
 private:  // constants
 
@@ -637,6 +641,61 @@ public:   // methods
 		assert(pNextSymbol != nullptr);
 
 		pNextSymbol_ = pNextSymbol;
+	}
+
+	template <class OperationFunc>
+	static void ForeachUpSymbolFromTupleAndTupleSetDo(
+		const BDDBottomUpTreeAut& lhs, const BDDBottomUpTreeAut& rhs,
+		const StateTuple& lhsTuple, const StateTupleSet& rhsTupleSet,
+		OperationFunc& opFunc)
+	{
+		// Assertions
+		assert(lhs.isValid());
+		assert(rhs.isValid());
+
+		GCC_DIAG_OFF(effc++)
+		class OperationApplyFunctor :
+			public VATA::MTBDDPkg::VoidApply2Functor<OperationApplyFunctor,
+			StateSet, StateSet>
+		{
+		GCC_DIAG_ON(effc++)
+
+		private:  // data members
+
+			OperationFunc& opFunc_;
+
+		public:   // methods
+
+			OperationApplyFunctor(OperationFunc& opFunc) :
+				opFunc_(opFunc)
+			{ }
+
+			inline void ApplyOperation(const StateSet& lhs, const StateSet& rhs)
+			{
+				auto AccessElementF = [](const StateType& state){return state;};
+				opFunc_(lhs, AccessElementF, rhs, AccessElementF);
+
+				if (opFunc_.IsProcessingStopped())
+				{	// in case the operator wants to stop processing
+					this->stopProcessing();
+				}
+			}
+		};
+
+		UnionApplyFunctor unioner;
+		TransMTBDD rhsUnionMtbdd((StateSet()));
+
+		// collect the RHS's MTBDDs leaves
+		for (auto tuple : rhsTupleSet)
+		{
+			rhsUnionMtbdd = unioner(rhsUnionMtbdd, rhs.getMtbdd(tuple));
+		}
+
+		// create apply functor
+		OperationApplyFunctor opApplyFunc(opFunc);
+
+		// perform the apply operation
+		opApplyFunc(lhs.getMtbdd(lhsTuple), rhsUnionMtbdd);
 	}
 
 	~BDDBottomUpTreeAut();
