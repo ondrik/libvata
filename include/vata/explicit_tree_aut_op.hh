@@ -27,28 +27,20 @@ namespace VATA {
 		const ExplicitTreeAut<SymbolType>& rhs,
 		AutBase::StateToStateMap* pTranslMapLhs = nullptr,
 		AutBase::StateToStateMap* pTranslMapRhs = nullptr) {
-		assert(&lhs != nullptr);
-		assert(&rhs != nullptr);
-		assert(pTranslMapLhs != nullptr);
-		assert(pTranslMapRhs != nullptr);
 
-		throw std::runtime_error("Unimplemented");
-	}
+		AutBase::StateToStateMap translMapLhs;
+		AutBase::StateToStateMap translMapRhs;
 
-	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> Union(const ExplicitTreeAut<SymbolType>& lhs,
-		const ExplicitTreeAut<SymbolType>& rhs,
-		AutBase::StateToStateMap* pTranslMap = nullptr) {
+		if (!pTranslMapLhs)
+			pTranslMapLhs = &translMapLhs;
 
-		AutBase::StateToStateMap translMap;
-
-		if (!pTranslMap)
-			pTranslMap = &translMap;
+		if (!pTranslMapRhs)
+			pTranslMapRhs = &translMapRhs;
 
 		ExplicitTreeAut<SymbolType> res(lhs.cache_);
 
-		lhs.ReindexStates(res, pTranslMap, 0);
-		rhs.ReindexStates(res, pTranslMap, pTranslMap->size());
+		lhs.ReindexStates(res, pTranslMapLhs, 0);
+		rhs.ReindexStates(res, pTranslMapRhs, pTranslMapLhs->size());
 
 		return res;
 
@@ -135,7 +127,7 @@ namespace VATA {
 		if (reachableStates.size() == aut.transitions_->size())
 			return aut;
 
-		ExplicitTA result;
+		ExplicitTA result(aut.cache_);
 
 		result.finalStates_ = aut.finalStates_;
 		result.transitions_ = StateToTransitionClusterMapPtr(

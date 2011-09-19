@@ -609,6 +609,10 @@ public:   // public methods
 
 		Translator translator(*pTranslMap, base);
 
+		for (auto state : this->finalStates_)
+
+			dst.SetStateFinal(translator(state));
+
 		auto clusterMap = dst.uniqueClusterMap();
 
 		for (auto stateClusterPair : *this->transitions_) {
