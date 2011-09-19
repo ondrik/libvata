@@ -160,9 +160,8 @@ bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 				bool allElementsInAntichain = true;
 				for (size_t index = 0; index < arity; ++index)
 				{
-					if (index == tupleIndexPair.second)
+					if (tuple[index] == procState)
 					{	// skip when it is the processed state
-						assert(tuple[index] == procState);
 						continue;
 					}
 
@@ -180,10 +179,11 @@ bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 
 				// create a tuple of sets of states
 				StateSetTuple stateSetTuple(arity);
+				bool isEmpty = false;
 
 				for (size_t index = 0; index < arity; ++index)
 				{
-					if (index == tupleIndexPair.second)
+					if (tuple[index] == procState)
 					{	// special processing for the processed state
 						stateSetTuple[index].insert(procSet.begin(), procSet.end());
 					}
@@ -197,17 +197,18 @@ bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 							stateSetTuple[index].insert((keyRange.first)->second.begin(),
 								(keyRange.first)->second.end());
 						}
+					}
 
-						if (stateSetTuple[index].empty())
-						{
-							break;
-						}
+					if (stateSetTuple[index].empty())
+					{
+						isEmpty = true;
+						break;
 					}
 				}
 
 				StateTupleSet tupleSet;
 
-				if (stateSetTuple.size() == arity)
+				if (!isEmpty)
 				{	// if there are some tuples
 
 					// generate all tuples
