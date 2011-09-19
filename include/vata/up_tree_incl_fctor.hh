@@ -86,10 +86,10 @@ private:  // methods
 			antichain_.end();
 	}
 
-	inline void cachePair(const StateType& smallerState,
+	inline bool cachePair(const StateType& smallerState,
 		const StateSet& biggerSet) const
 	{
-		antichain_.insert(std::make_pair(smallerState, biggerSet));
+		return antichain_.insert(std::make_pair(smallerState, biggerSet)).second;
 	}
 
 	inline void addToWorkset(const StateType& smallerState,
@@ -114,8 +114,6 @@ public:   // methods
 	void operator()(const StateSet& lhs, ElementAccessorLHS lhsElemAccess,
 		const StateSet& rhs, ElementAccessorRHS rhsElemAccess)
 	{
-		VATA_LOGGER_INFO("Processing " + Convert::ToString(lhs) + " <= " + Convert::ToString(rhs));
-
 		for (auto stateLhsElem : lhs)
 		{
 			const StateType& stateLhs = lhsElemAccess(stateLhsElem);
@@ -124,7 +122,6 @@ public:   // methods
 				bool rhsHasFinal = false;
 				if (smaller_.IsStateFinal(stateLhs))
 				{	// if the state is final in the smaller automaton
-					VATA_LOGGER_INFO("Smaller is final");
 					for (auto stateRhsElem : rhs)
 					{
 						const StateType& stateRhs = rhsElemAccess(stateRhsElem);
@@ -137,14 +134,15 @@ public:   // methods
 
 					if (!rhsHasFinal)
 					{	// in case there is a counterexample
-						VATA_LOGGER_INFO("Found a counterexample");
 						failProcessing();
 						return;
 					}
 				}
 
-				cachePair(stateLhs, rhs);
-				addToWorkset(stateLhs, rhs);
+				if (cachePair(stateLhs, rhs))
+				{	// if the pair is not implied by the antichain
+					addToWorkset(stateLhs, rhs);
+				}
 			}
 		}
 	}

@@ -88,14 +88,14 @@ public:
 		return end();
 	}
 
-	inline iterator insert(const value_type& value)
+	inline std::pair<iterator, bool> insert(const value_type& value)
 	{
 		auto keyRange = container_.equal_range(value.first);
 		for (auto itRange = keyRange.first; itRange != keyRange.second; ++itRange)
 		{	// for all items with proper key
 			if (comparer_(*itRange, value))
 			{	// if there is a bigger set in the cache
-				return itRange;
+				return std::make_pair(itRange, false);
 			}
 		}
 
@@ -114,7 +114,7 @@ public:
 			}
 		}
 
-		return container_.insert(value);
+		return std::make_pair(container_.insert(value), true);
 	}
 
 	inline iterator begin()
@@ -135,6 +135,11 @@ public:
 	inline void erase(iterator position)
 	{
 		container_.erase(position);
+	}
+
+	inline std::pair<iterator, iterator> equal_range(const key_type& key)
+	{
+		return container_.equal_range(key);
 	}
 
 	friend std::ostream& operator<<(std::ostream& os, const Antichain2C& ac)

@@ -46,6 +46,79 @@ bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 
 	typedef VATA::Util::Convert Convert;
 
+	class ChoiceFunctionGenerator
+	{
+	private:  // data types
+
+		typedef typename StateSetTuple::value_type InternalContainerType;
+		typedef std::vector<typename InternalContainerType::const_iterator>
+			ChoiceFunctionType;
+		typedef StateSetTuple DomainType;
+		typedef std::vector<StateType> ResultType;
+
+
+	private:  // data members
+
+		const DomainType& domain_;
+		ChoiceFunctionType currentCf_;
+		ResultType currentResult_;
+
+		char lastCnt_;
+
+	public:   // methods
+
+		ChoiceFunctionGenerator(const DomainType& domain) :
+			domain_(domain),
+			currentCf_(),
+			currentResult_(),
+			lastCnt_(2)   // 2 because the initial GetNext() decrements it
+		{
+			// Assertions
+			assert(!domain_.empty());
+
+			for (auto it = domain_.begin(); it != domain_.end(); ++it)
+			{
+				assert(!it->empty());
+				currentCf_.push_back(--(it->end()));
+				currentResult_.push_back(*(it->begin()));
+			}
+
+			// Assertions
+			assert(currentCf_.size() == domain_.size());
+			assert(currentResult_.size() == domain_.size());
+		}
+
+		inline const ResultType& GetNext()
+		{
+			// Assertions
+			assert(!IsLast());
+
+			// move to the next choice function
+			size_t index = 0;
+			while (++(currentCf_[index]) == domain_[index].end()) {
+				currentCf_[index] = domain_[index].begin(); // reset this counter
+				currentResult_[index] = *(currentCf_[index]);
+				++index;               // move to the next counter
+
+				if (index == currentCf_.size()) {
+					// if we drop out from the n-tuple
+					--lastCnt_;
+					index = 0;
+					break;
+				}
+				assert(currentCf_[index] != domain_[index].end());
+			}
+
+			currentResult_[index] = *(currentCf_[index]);
+
+			return currentResult_;
+		}
+
+		inline bool IsLast() const
+		{
+			return lastCnt_ == 0;
+		}
+	};
 
 	AntichainType workset;
 	AntichainType antichain;
@@ -68,7 +141,8 @@ bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 		const StateSet& procSet = procPair.second;
 		workset.erase(workset.begin());
 
-		VATA_LOGGER_INFO("Checking " + Convert::ToString(procPair));
+		//VATA_LOGGER_INFO("Processing " + Convert::ToString(procPair));
+		//VATA_LOGGER_INFO("Antichain " + Convert::ToString(antichain));
 
 		// get all tuples with the smaller state from the smaller automaton
 		IndexValueArray smallerTuples = smaller.GetTuples().GetItemsWith(
@@ -83,8 +157,6 @@ bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 
 				const StateTuple& tuple = tupleIndexPair.first;
 
-				VATA_LOGGER_INFO("Processing tuple " + Convert::ToString(tuple));
-				VATA_LOGGER_INFO("Antichain: " + Convert::ToString(antichain));
 				bool allElementsInAntichain = true;
 				for (size_t index = 0; index < arity; ++index)
 				{
@@ -113,28 +185,41 @@ bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 				{
 					if (index == tupleIndexPair.second)
 					{	// special processing for the processed state
-						stateSetTuple[index] = procSet;
+						stateSetTuple[index].insert(procSet.begin(), procSet.end());
 					}
 					else
 					{
 						auto keyRange = antichain.equal_range(tuple[index]);
-						// TODO : continue here
-					if ( == antichain.end())
-					{
-						allElementsInAntichain = false;
-						break;
-					}
+						assert(keyRange.first != antichain.end());
 
+						for (; keyRange.first != keyRange.second; ++(keyRange.first))
+						{
+							stateSetTuple[index].insert((keyRange.first)->second.begin(),
+								(keyRange.first)->second.end());
+						}
+
+						if (stateSetTuple[index].empty())
+						{
+							break;
+						}
 					}
 				}
 
-
-
-				// TODO: do something else
 				StateTupleSet tupleSet;
 
+				if (stateSetTuple.size() == arity)
+				{	// if there are some tuples
 
-				Aut::ForeachUpSymbolFromTupleAndTupleSetDo(smaller, bigger, tuple, tupleSet, upFctor);
+					// generate all tuples
+					ChoiceFunctionGenerator cfGen(stateSetTuple);
+					while (!cfGen.IsLast())
+					{	// for each choice function
+						tupleSet.insert(cfGen.GetNext());
+					}
+				}
+
+				Aut::ForeachUpSymbolFromTupleAndTupleSetDo(smaller, bigger, tuple,
+					tupleSet, upFctor);
 			}
 		}
 
