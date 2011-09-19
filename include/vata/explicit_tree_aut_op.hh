@@ -25,6 +25,19 @@ namespace VATA {
 	template <class SymbolType>
 	ExplicitTreeAut<SymbolType> Union(const ExplicitTreeAut<SymbolType>& lhs,
 		const ExplicitTreeAut<SymbolType>& rhs,
+		AutBase::StateToStateMap* pTranslMapLhs = nullptr,
+		AutBase::StateToStateMap* pTranslMapRhs = nullptr) {
+		assert(&lhs != nullptr);
+		assert(&rhs != nullptr);
+		assert(pTranslMapLhs != nullptr);
+		assert(pTranslMapRhs != nullptr);
+
+		throw std::runtime_error("Unimplemented");
+	}
+
+	template <class SymbolType>
+	ExplicitTreeAut<SymbolType> Union(const ExplicitTreeAut<SymbolType>& lhs,
+		const ExplicitTreeAut<SymbolType>& rhs,
 		AutBase::StateToStateMap* pTranslMap = nullptr) {
 
 		AutBase::StateToStateMap translMap;

@@ -180,7 +180,8 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 		}
 	}
 
-	AutBase::StateToStateMap opTranslMap;
+	AutBase::StateToStateMap opTranslMap1;
+	AutBase::StateToStateMap opTranslMap2;
 	AutBase::ProductTranslMap prodTranslMap;
 
 	// get the start time
@@ -198,7 +199,7 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	}
 	else if (args.command == COMMAND_UNION)
 	{
-		autResult = Union(autInput1, autInput2, &opTranslMap);
+		autResult = Union(autInput1, autInput2, &opTranslMap1, &opTranslMap2);
 	}
 	else if (args.command == COMMAND_INTERSECTION)
 	{
@@ -245,7 +246,7 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 		if (args.command == COMMAND_UNION)
 		{
 			stateDict1 = VATA::Util::CreateUnionStringToStateMap(
-				stateDict1, stateDict2, &opTranslMap);
+				stateDict1, stateDict2, &opTranslMap1, &opTranslMap2);
 		}
 
 		if (args.command == COMMAND_INTERSECTION)

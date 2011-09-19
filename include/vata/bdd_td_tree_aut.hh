@@ -40,7 +40,8 @@ class VATA::BDDTopDownTreeAut
 GCC_DIAG_ON(effc++)
 
 	friend BDDTopDownTreeAut Union(const BDDTopDownTreeAut&,
-		const BDDTopDownTreeAut&, AutBase::StateToStateMap*);
+		const BDDTopDownTreeAut&, AutBase::StateToStateMap*,
+		AutBase::StateToStateMap*);
 
 	friend BDDTopDownTreeAut Intersection(const BDDTopDownTreeAut&,
 		const BDDTopDownTreeAut&, AutBase::ProductTranslMap*);

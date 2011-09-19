@@ -32,7 +32,8 @@ class VATA::BDDBottomUpTreeAut
 GCC_DIAG_ON(effc++)
 
 	friend BDDBottomUpTreeAut Union(const BDDBottomUpTreeAut&,
-		const BDDBottomUpTreeAut&, AutBase::StateToStateMap*);
+		const BDDBottomUpTreeAut&, AutBase::StateToStateMap*,
+		AutBase::StateToStateMap*);
 
 	friend BDDBottomUpTreeAut Intersection(const BDDBottomUpTreeAut&,
 		const BDDBottomUpTreeAut&, AutBase::ProductTranslMap*);

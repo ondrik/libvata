@@ -361,11 +361,13 @@ BOOST_AUTO_TEST_CASE(aut_union_trans_table_copy)
 		readAut(autRhs, stateDictRhs, autRhsStr);
 		AutDescription autRhsDesc = parser_.ParseString(autRhsStr);
 
-		AutBase::StateToStateMap stateTranslMap;
-		AutType autUnion = VATA::Union(autLhs, autRhs, &stateTranslMap);
+		AutBase::StateToStateMap stateTranslMapLhs;
+		AutBase::StateToStateMap stateTranslMapRhs;
+		AutType autUnion = VATA::Union(autLhs, autRhs, &stateTranslMapLhs,
+			&stateTranslMapRhs);
 		StringToStateDict stateDictUnion =
 			VATA::Util::CreateUnionStringToStateMap(stateDictLhs, stateDictRhs,
-				&stateTranslMap);
+				&stateTranslMapLhs, &stateTranslMapRhs);
 
 		std::string autUnionStr = dumpAut(autUnion, stateDictUnion);
 

@@ -20,7 +20,8 @@ using VATA::BDDTopDownTreeAut;
 
 
 BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
-	const BDDTopDownTreeAut& rhs, AutBase::StateToStateMap* pTranslMap)
+	const BDDTopDownTreeAut& rhs, AutBase::StateToStateMap* pTranslMapLhs,
+	AutBase::StateToStateMap* pTranslMapRhs)
 {
 	// Assertions
 	assert(lhs.isValid());
@@ -88,18 +89,27 @@ BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
 		// start by copying the LHS automaton
 		BDDTopDownTreeAut result = lhs;
 
-		StateToStateMap translMap;
-		if (pTranslMap == nullptr)
-		{	// in case no translation map was given
-			pTranslMap = &translMap;
+		StateToStateMap translMapLhs;
+		if (pTranslMapLhs != nullptr)
+		{	// copy states
+			for (const StateType& state : lhs.GetStates())
+			{
+				pTranslMapLhs->insert(std::make_pair(state, state));
+			}
 		}
 
-		RewriterApplyFunctor rewriter(result, *pTranslMap);
+		StateToStateMap translMapRhs;
+		if (pTranslMapRhs == nullptr)
+		{
+			pTranslMapRhs = &translMapRhs;
+		}
+
+		RewriterApplyFunctor rewriter(result, *pTranslMapRhs);
 
 		for (StateSet::const_iterator itSt = rhs.GetStates().begin();
 			itSt != rhs.GetStates().end(); ++itSt)
 		{	// for all states in the RHS automaton
-			StateType translState = result.safelyTranslateToState(*itSt, *pTranslMap);
+			StateType translState = result.safelyTranslateToState(*itSt, *pTranslMapRhs);
 
 			BDDTopDownTreeAut::TransMTBDD newMtbdd = rewriter(rhs.getMtbdd(*itSt));
 
@@ -109,7 +119,7 @@ BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
 		for (StateSet::const_iterator itFst = rhs.GetFinalStates().begin();
 			itFst != rhs.GetFinalStates().end(); ++itFst)
 		{	// for all final states in the RHS automaton
-			result.SetStateFinal(result.safelyTranslateToState(*itFst, *pTranslMap));
+			result.SetStateFinal(result.safelyTranslateToState(*itFst, *pTranslMapRhs));
 		}
 
 		assert(result.isValid());
