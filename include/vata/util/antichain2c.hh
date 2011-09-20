@@ -79,7 +79,7 @@ public:
 		for (auto keyRange = container_.equal_range(value.first);
 			keyRange.first != keyRange.second; ++(keyRange.first))
 		{	// for all items with proper key
-			if (comparer_(value, *(keyRange.first)))
+			if (comparer_(*(keyRange.first), value))
 			{	// if there is a bigger set in the cache
 				return keyRange.first;
 			}
