@@ -55,18 +55,28 @@ public:   // data types
 
 	typedef typename Container::iterator iterator;
 
+private:  // data types
+
+	typedef std::pair<typename value_type::second_type,
+		typename value_type::second_type> SecondComponentCacheElement;
+	typedef std::unordered_map<SecondComponentCacheElement, bool,
+		boost::hash<SecondComponentCacheElement>> SecondComponentCache;
+
 private:  // data members
 
 	Container container_;
 	Compare comparer_;
 	CompareStrict comparerStrict_;
 
+	SecondComponentCache secCompCache_;
+
 public:
 
 	Antichain2C() :
 		container_(),
 		comparer_(),
-		comparerStrict_()
+		comparerStrict_(),
+		secCompCache_()
 	{ }
 
 	inline iterator find(const key_type& key)
@@ -79,9 +89,30 @@ public:
 		for (auto keyRange = container_.equal_range(value.first);
 			keyRange.first != keyRange.second; ++(keyRange.first))
 		{	// for all items with proper key
+			typename SecondComponentCache::const_iterator itSecCache;
+			if ((itSecCache = secCompCache_.find(std::make_pair(
+				(keyRange.first)->second, value.second))) != secCompCache_.end())
+			{
+				if (itSecCache->second)
+				{
+					return keyRange.first;
+				}
+				else
+				{
+					return end();
+				}
+			}
+
 			if (comparer_(*(keyRange.first), value))
 			{	// if there is a bigger set in the cache
+				secCompCache_.insert(std::make_pair(std::make_pair(
+					(keyRange.first)->second, value.second), true));
 				return keyRange.first;
+			}
+			else
+			{
+				secCompCache_.insert(std::make_pair(std::make_pair(
+					(keyRange.first)->second, value.second), false));
 			}
 		}
 
