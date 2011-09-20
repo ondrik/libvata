@@ -141,9 +141,6 @@ bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 		const StateSet& procSet = procPair.second;
 		workset.erase(workset.begin());
 
-		//VATA_LOGGER_INFO("Processing " + Convert::ToString(procPair));
-		//VATA_LOGGER_INFO("Antichain " + Convert::ToString(antichain));
-
 		// get all tuples with the smaller state from the smaller automaton
 		IndexValueArray smallerTuples = smaller.GetTuples().GetItemsWith(
 			procState, smaller.GetStates());

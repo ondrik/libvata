@@ -24,7 +24,7 @@ bool VATA::CheckInclusionNoUseless(const BDDBottomUpTreeAut& smaller,
 	assert(smaller.isValid());
 	assert(bigger.isValid());
 
-	return CheckInclusion(smaller, bigger);
+	throw std::runtime_error("Unimplemented");
 }
 
 bool VATA::CheckInclusion(const BDDBottomUpTreeAut& smaller,
