@@ -15,8 +15,16 @@
 #include <unordered_map>
 #include <memory>
 
+// insert class to proper namespace
+namespace VATA {
+	namespace Util {
+		template <class T> class Cache;
+		template <class T, class V> class CachedBinaryOp;
+	}
+}
+
 template <class T>
-class Cache {
+class VATA::Util::Cache {
 
 public:
 
@@ -65,7 +73,7 @@ public:
 };
 
 template <class T, class V>
-class CachedBinaryOp {
+class VATA::Util::CachedBinaryOp {
 
 public:
 
