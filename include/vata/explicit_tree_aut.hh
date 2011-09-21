@@ -178,18 +178,8 @@ protected:
 		if (!p.second)
 			return TuplePtr(p.first->second);
 
-		struct EraseTupleF {
-
-			TupleCache& cache_;
-
-			EraseTupleF(TupleCache& cache) : cache_(cache) {}
-
-			void operator()(StateTuple* tuple) { this->cache_.erase(*tuple); }
-
-		};
-
 		TuplePtr ptr = TuplePtr(const_cast<StateTuple*>(&p.first->first),
-			EraseTupleF(this->cache_));
+			[this](StateTuple* tuple) { this->cache_.erase(*tuple); });
 
 		p.first->second = std::weak_ptr<StateTuple>(ptr);
 
