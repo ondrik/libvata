@@ -34,9 +34,9 @@ public:   // data types
 	typedef typename AutType::StateTuple StateTuple;
 	typedef typename AutType::StateTupleSet StateTupleSet;
 
-	typedef std::pair<StateType, StateSet> ACPair;
-
 private:  // data types
+
+	typedef std::pair<StateType, StateSet> ACPair;
 
 	struct ACComparer{bool operator()(const ACPair& lhs, const ACPair& rhs)
 	{

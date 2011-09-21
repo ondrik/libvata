@@ -32,16 +32,59 @@ public:   // data types
 	typedef typename Aut::StateTuple StateTuple;
 	typedef typename Aut::DownInclStateTupleSet StateTupleSet;
 	typedef typename Aut::DownInclStateTupleVector StateTupleVector;
-	typedef std::unordered_multimap<StateType, StateSet> InclusionCache;
-
-	typedef std::pair<StateType, StateSet> StateStateSetPair;
-	typedef std::unordered_map<StateStateSetPair, bool,
-		boost::hash<StateStateSetPair>> StateStateSetPairToBoolMap;
 
 	typedef std::pair<StateType, StateSet> WorkSetElement;
 
 	typedef std::unordered_multimap<typename WorkSetElement::first_type,
 		typename WorkSetElement::second_type> WorkSetType;
+
+private:  // data types
+
+	typedef std::pair<StateType, StateSet> ACPair;
+
+	struct InclACComparer{bool operator()(const ACPair& lhs, const ACPair& rhs)
+	{
+		return lhs.second.IsSubsetOf(rhs.second);
+	}};
+
+	struct InclACComparerStrict{
+		bool operator()(const ACPair& lhs, const ACPair& rhs)
+	{
+		return lhs.second.IsSubsetOf(rhs.second) &&
+			lhs.second.size() < rhs.second.size();
+	}};
+
+	struct NonInclACComparer{bool operator()(const ACPair& lhs, const ACPair& rhs)
+	{
+		return rhs.second.IsSubsetOf(lhs.second);
+	}};
+
+	struct NonInclACComparerStrict{
+		bool operator()(const ACPair& lhs, const ACPair& rhs)
+	{
+		return rhs.second.IsSubsetOf(lhs.second) &&
+			rhs.second.size() < lhs.second.size();
+	}};
+
+	typedef VATA::Util::Convert Convert;
+
+public:   // data types
+
+	typedef VATA::Util::Antichain2C
+	<
+		StateType,
+		StateSet,
+		InclACComparer,
+		InclACComparerStrict
+	> InclAntichainType;
+
+	typedef VATA::Util::Antichain2C
+	<
+		StateType,
+		StateSet,
+		NonInclACComparer,
+		NonInclACComparerStrict
+	> NonInclAntichainType;
 
 private:  // data types
 
@@ -110,11 +153,9 @@ private:  // data members
 
 	WorkSetType& workset_;
 
-	InclusionCache& nonIncl_;
+	NonInclAntichainType& nonIncl_;
 
-	StateStateSetPairToBoolMap& nonInclHT_;
-
-	InclusionCache childrenCache_;
+	InclAntichainType childrenCache_;
 
 private:  // methods
 
@@ -195,126 +236,36 @@ private:  // methods
 
 	inline bool isImpliedByChildren(const WorkSetElement& elem) const
 	{
-		for (auto keyRange = childrenCache_.equal_range(elem.first);
-			keyRange.first != keyRange.second; ++(keyRange.first))
-		{	// for all items with proper key
-			const StateSet& wsBigger = (keyRange.first)->second;
-
-			if (wsBigger.IsSubsetOf(elem.second))
-			{	// if there is a smaller set in the cache
-				return true;
-			}
-		}
-
-		return false;
+		return (childrenCache_.find(elem) != childrenCache_.end());
 	}
 
 	inline bool isNoninclusionImplied(const WorkSetElement& elem) const
 	{
-		typename StateStateSetPairToBoolMap::const_iterator itCache;
-		if ((itCache = nonInclHT_.find(elem)) != nonInclHT_.end())
-		{	// in case the result is cached
-			return itCache->second;
-		}
-
-		bool result = false;
-		for (auto keyRange = nonIncl_.equal_range(elem.first);
-			keyRange.first != keyRange.second; ++(keyRange.first))
-		{	// for all items with proper key
-			const StateSet& wsBigger = (keyRange.first)->second;
-
-			if (elem.second.IsSubsetOf(wsBigger))
-			{	// if there is a bigger set in the cache
-				result = true;
-				break;
-			}
-		}
-
-		nonInclHT_.insert(std::make_pair(elem, result));
-
-		return result;
+		return (nonIncl_.find(elem) != nonIncl_.end());
 	}
 
 	inline void processFoundInclusion(const StateType& smallerState,
 		const StateSet& biggerStateSet)
 	{
-		auto keyRange = childrenCache_.equal_range(smallerState);
-		for (auto itRange = keyRange.first; itRange != keyRange.second; ++itRange)
-		{	// for all elements for smallerState
-			const StateSet& wsBigger = (keyRange.first)->second;
-			if (wsBigger.IsSubsetOf(biggerStateSet))
-			{	// if there is a smaller set in the cache, skip
-				return;
-			}
-		}
-
-		while (keyRange.first != keyRange.second)
-		{	// until we process all elements for smallerState
-			const StateSet& wsBigger = (keyRange.first)->second;
-
-			if (biggerStateSet.IsSubsetOf(wsBigger) &&
-				(biggerStateSet.size() < wsBigger.size()))
-			{	// if there is a _strictly_ smaller set in the workset
-				auto nextPtr = keyRange.first;
-				++nextPtr;
-				childrenCache_.erase(keyRange.first);
-				keyRange.first = nextPtr;
-			}
-			else
-			{
-				++(keyRange.first);
-			}
-		}
-
 		childrenCache_.insert(std::make_pair(smallerState, biggerStateSet));
 	}
 
 	inline void processFoundNoninclusion(const StateType& smallerState,
 		const StateSet& biggerStateSet)
 	{
-		auto keyRange = nonIncl_.equal_range(smallerState);
-		for (auto itRange = keyRange.first; itRange != keyRange.second; ++itRange)
-		{	// for all elements for smallerState
-			const StateSet& wsBigger = (keyRange.first)->second;
-			if (biggerStateSet.IsSubsetOf(wsBigger))
-			{	// if there is a bigger set in the workset, skip
-				return;
-			}
-		}
-
-		while (keyRange.first != keyRange.second)
-		{	// until we process all elements for smallerState
-			const StateSet& wsBigger = (keyRange.first)->second;
-
-			if (wsBigger.IsSubsetOf(biggerStateSet) &&
-				(wsBigger.size() < biggerStateSet.size()))
-			{	// if there is a _strictly_ smaller set in the workset
-				auto nextPtr = keyRange.first;
-				++nextPtr;
-				nonIncl_.erase(keyRange.first);
-				keyRange.first = nextPtr;
-			}
-			else
-			{
-				++(keyRange.first);
-			}
-		}
-
 		nonIncl_.insert(std::make_pair(smallerState, biggerStateSet));
 	}
 
 public:   // methods
 
 	DownwardInclusionNoUselessFunctor(const Aut& smaller, const Aut& bigger,
-		WorkSetType& workset, InclusionCache& nonIncl,
-		StateStateSetPairToBoolMap& nonInclHT) :
+		WorkSetType& workset, NonInclAntichainType& nonIncl) :
 		smaller_(smaller),
 		bigger_(bigger),
 		processingStopped_(false),
 		inclusionHolds_(true),
 		workset_(workset),
 		nonIncl_(nonIncl),
-		nonInclHT_(nonInclHT),
 		childrenCache_()
 	{ }
 
@@ -326,7 +277,6 @@ public:   // methods
 		inclusionHolds_(true),
 		workset_(downFctor.workset_),
 		nonIncl_(downFctor.nonIncl_),
-		nonInclHT_(downFctor.nonInclHT_),
 		childrenCache_()
 	{ }
 

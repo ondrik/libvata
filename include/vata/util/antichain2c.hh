@@ -54,6 +54,7 @@ public:   // data types
 	typedef std::pair<key_type, mapped_type> value_type;
 
 	typedef typename Container::iterator iterator;
+	typedef typename Container::const_iterator const_iterator;
 
 private:  // data types
 
@@ -119,6 +120,11 @@ public:
 		return end();
 	}
 
+	inline const_iterator find(const value_type& value) const
+	{
+		return const_cast<Antichain2C*>(this)->find(value);
+	}
+
 	inline std::pair<iterator, bool> insert(const value_type& value)
 	{
 		auto keyRange = container_.equal_range(value.first);
@@ -153,7 +159,17 @@ public:
 		return container_.begin();
 	}
 
+	inline const_iterator begin() const
+	{
+		return container_.begin();
+	}
+
 	inline iterator end()
+	{
+		return container_.end();
+	}
+
+	inline const_iterator end() const
 	{
 		return container_.end();
 	}

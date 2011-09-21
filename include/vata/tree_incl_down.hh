@@ -38,15 +38,12 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 	typedef typename InclFctor::StateSet StateSet;
 
 	typedef typename InclFctor::WorkSetType WorkSetType;
-	typedef typename InclFctor::InclusionCache InclusionCache;
-	typedef typename InclFctor::StateStateSetPairToBoolMap
-		StateStateSetPairToBoolMap;
+	typedef typename InclFctor::NonInclAntichainType NonInclusionCache;
 
 	WorkSetType workset;
-	InclusionCache nonIncl;
-	StateStateSetPairToBoolMap nonInclHT;
+	NonInclusionCache nonIncl;
 
-	InclFctor downFctor(smaller, bigger, workset, nonIncl, nonInclHT);
+	InclFctor downFctor(smaller, bigger, workset, nonIncl);
 
 	StateSet finalStatesBigger(bigger.GetFinalStates().begin(),
 		bigger.GetFinalStates().end());
