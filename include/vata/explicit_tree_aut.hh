@@ -62,6 +62,10 @@ GCC_DIAG_ON(effc++)
 		AutBase::ProductTranslMap*);
 
 	template <class SymbolType>
+	friend ExplicitTreeAut<SymbolType> RemoveUselessStates(
+		const ExplicitTreeAut<SymbolType>&, AutBase::StateToStateMap*);
+
+	template <class SymbolType>
 	friend ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
 		const ExplicitTreeAut<SymbolType>&, AutBase::StateToStateMap*);
 
@@ -174,18 +178,8 @@ protected:
 		if (!p.second)
 			return TuplePtr(p.first->second);
 
-		struct EraseTupleF {
-
-			TupleCache& cache_;
-
-			EraseTupleF(TupleCache& cache) : cache_(cache) {}
-
-			void operator()(StateTuple* tuple) { this->cache_.erase(*tuple); }
-
-		};
-
 		TuplePtr ptr = TuplePtr(const_cast<StateTuple*>(&p.first->first),
-			EraseTupleF(this->cache_));
+			[this](StateTuple* tuple) { this->cache_.erase(*tuple); });
 
 		p.first->second = std::weak_ptr<StateTuple>(ptr);
 
@@ -206,6 +200,12 @@ protected:
 		}
 
 		return this->transitions_;
+
+	}
+
+	void internalAddTransition(const TuplePtr& children, const SymbolType& symbol, const StateType& state) {
+
+		this->uniqueClusterMap()->uniqueCluster(state)->uniqueTuplePtrSet(symbol)->insert(children);
 
 	}
 
@@ -521,24 +521,24 @@ public:   // public methods
 
 		AutDescription desc;
 
-		for (auto s : this->finalStates_)
+		for (auto& s : this->finalStates_)
 			desc.finalStates.insert(statePrinter(s));
 
-		for (auto stateClusterPair : *this->transitions_) {
+		for (auto& stateClusterPair : *this->transitions_) {
 
 			assert(stateClusterPair.second);
 
-			for (auto symbolTupleSetPair : *stateClusterPair.second) {
+			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
 
 				assert(symbolTupleSetPair.second);
 
-				for (auto tuple : *symbolTupleSetPair.second) {
+				for (auto& tuple : *symbolTupleSetPair.second) {
 
 					std::vector<std::string> tupleStr;
 
 					assert(tuple);
 
-					for (auto s : *tuple)
+					for (auto& s : *tuple)
 						tupleStr.push_back(statePrinter(s));
 
 					desc.transitions.insert(
@@ -570,10 +570,7 @@ public:   // public methods
 	void AddTransition(const StateTuple& children, const SymbolType& symbol,
 		const StateType& state) {
 
-		this->uniqueClusterMap()
-			->uniqueCluster(state)
-			->uniqueTuplePtrSet(symbol)
-			->insert(this->tupleLookup(children));
+		this->internalAddTransition(this->tupleLookup(children), symbol, state);
 
 	}
 
@@ -609,27 +606,31 @@ public:   // public methods
 
 		Translator translator(*pTranslMap, base);
 
+		for (auto& state : this->finalStates_)
+
+			dst.SetStateFinal(translator(state));
+
 		auto clusterMap = dst.uniqueClusterMap();
 
-		for (auto stateClusterPair : *this->transitions_) {
+		for (auto& stateClusterPair : *this->transitions_) {
 
 			assert(stateClusterPair.second);
 
 			auto cluster = clusterMap->uniqueCluster(translator(stateClusterPair.first));
 
-			for (auto symbolTupleSetPair : *stateClusterPair.second) {
+			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
 
 				assert(symbolTupleSetPair.second);
 
 				auto tuplePtrSet = cluster->uniqueTuplePtrSet(symbolTupleSetPair.first);
 
-				for (auto tuple : *symbolTupleSetPair.second) {
+				for (auto& tuple : *symbolTupleSetPair.second) {
 
 					assert(tuple);
 
 					StateTuple newTuple;
 
-					for (auto s : *tuple)
+					for (auto& s : *tuple)
 						newTuple.push_back(translator(s));
 
 					tuplePtrSet->insert(dst.tupleLookup(newTuple));
@@ -653,33 +654,42 @@ public:   // public methods
 		if (!leftCluster)
 			return;
 
-		for (auto rhsState : rhsSet) {
+		std::vector<const TransitionCluster*> rightClusters;
 
+		for (auto& rhsState : rhsSet) {
+	
 			auto rightCluster = ExplicitTreeAut::genericLookup(*rhs.transitions_, rhsState);
 
-			if (!rightCluster)
-				continue;
+			if (rightCluster)
+				rightClusters.push_back(rightCluster);
 
-			for (auto leftSymbolTupleSetPair : *leftCluster) {
+		}
 
+		for (auto& leftSymbolTupleSetPair : *leftCluster) {
+
+			TuplePtrSet rightTuples;
+
+			for (auto& rightCluster : rightClusters) {
+	
 				auto rightTupleSet = ExplicitTreeAut::genericLookup(
 					*rightCluster, leftSymbolTupleSetPair.first
 				);
-
+	
 				if (!rightTupleSet)
 					continue;
-
-				assert(leftSymbolTupleSetPair.second);
-
-				auto AccessElementF = [](const TuplePtr& tuplePtr){return *tuplePtr;};
-
-				opFunc(
-					*leftSymbolTupleSetPair.second,
-					AccessElementF,
-					*rightTupleSet, AccessElementF
-				);
-
+	
+				rightTuples.insert(rightTupleSet->begin(), rightTupleSet->end());
+	
 			}
+			
+			auto AccessElementF = [](const TuplePtr& tuplePtr){return *tuplePtr;};
+	
+			assert(leftSymbolTupleSetPair.second);
+
+			opFunc(
+				*leftSymbolTupleSetPair.second, AccessElementF,
+				rightTuples, AccessElementF
+			);
 
 		}
 

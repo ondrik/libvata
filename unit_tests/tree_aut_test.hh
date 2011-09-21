@@ -490,6 +490,9 @@ BOOST_AUTO_TEST_CASE(aut_remove_useless)
 
 		StateToStateMap translMap;
 		AutType autNoUseless = VATA::RemoveUselessStates(aut, &translMap);
+		stateDict = VATA::Util::RebindMap(stateDict, translMap);
+		translMap.clear();
+		autNoUseless = VATA::RemoveUnreachableStates(autNoUseless, &translMap);
 
 		stateDict = VATA::Util::RebindMap(stateDict, translMap);
 		std::string autNoUselessStr = dumpAut(autNoUseless, stateDict);
