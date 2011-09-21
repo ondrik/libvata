@@ -96,7 +96,7 @@ public:
 
 		for (auto item : i->second) {
 
-			auto j =  this->storeMap_.find(
+			auto j = this->storeMap_.find(
 				(x == item->first.first)?(item->first.second):(item->first.first)
 			);
 
@@ -117,23 +117,23 @@ public:
 
 		assert(x != y);
 
-		auto i = this->store.insert(std::make_pair(std::make_pair(x, y), V()));
+		auto p = this->store.insert(std::make_pair(std::make_pair(x, y), V()));
 
-		if (i.second) {
+		if (p.second) {
 
-			f(x, y, &*i.first);
+			p.first->second = f(x, y);
 
 			this->storeMap_.insert(
 				std::make_pair(x, value_type_list())
-			).first->second.insert(&*i.first);
+			).first->second.insert(&*p.first);
 			
 			this->storeMap_.insert(
 				std::make_pair(y, value_type_list())
-			).first->second.insert(&*i.first);
+			).first->second.insert(&*p.first);
 
 		}
 
-		return i.first->second;
+		return p.first->second;
 
 	}
 
