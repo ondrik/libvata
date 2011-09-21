@@ -132,11 +132,11 @@ public:
 			p.first->second = f(x, y);
 
 			this->storeMap_.insert(
-				std::make_pair(x, value_type_list())
+				std::make_pair(x, value_type_set())
 			).first->second.insert(&*p.first);
 			
 			this->storeMap_.insert(
-				std::make_pair(y, value_type_list())
+				std::make_pair(y, value_type_set())
 			).first->second.insert(&*p.first);
 
 		}
