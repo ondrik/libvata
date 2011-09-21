@@ -176,25 +176,6 @@ private:  // methods
 		processingStopped_ = true;
 	}
 
-#if 0
-	// no antichain
-	inline bool isInWorkset(const WorkSetElement& key) const
-	{
-		for (auto keyRange = workset_.equal_range(elem.first);
-			keyRange.first != keyRange.second; ++(keyRange.first))
-		{	// for all items with proper key
-			const StateSet& wsBigger = (keyRange.first)->second;
-
-			if (elem.second == wsBigger)
-			{
-				return true;
-			}
-		}
-
-		return false;
-	}
-#endif
-
 	// workset antichain
 	inline bool isInWorkset(const WorkSetElement& elem) const
 	{
