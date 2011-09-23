@@ -544,6 +544,3 @@ BOOST_AUTO_TEST_CASE(aut_down_inclusion)
 			", got " + Convert::ToString(doesInclusionHold));
 	}
 }
-
-BOOST_AUTO_TEST_SUITE_END()
-

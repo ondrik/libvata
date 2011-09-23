@@ -37,3 +37,6 @@ protected:// methods
 };
 
 #include "tree_aut_test.hh"
+
+BOOST_AUTO_TEST_SUITE_END()
+
