@@ -111,11 +111,12 @@ protected:// methods
 		aut.LoadFromString(parser_, str, stateDict);
 	}
 
-	std::string dumpAut(const AutType& aut, const StringToStateDict& stateDict)
+	template <class Automaton>
+	std::string dumpAut(const Automaton& aut, const StringToStateDict& stateDict)
 	{
 		return aut.DumpToString(serializer_,
 			StateBackTranslatorStrict(stateDict.GetReverseMap()),
-			SymbolBackTranslatorStrict(aut.GetSymbolDict().GetReverseMap()));
+			SymbolBackTranslatorStrict(Automaton::GetSymbolDict().GetReverseMap()));
 	}
 };
 

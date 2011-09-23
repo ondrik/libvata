@@ -588,15 +588,7 @@ public:   // public methods
 		return (*pNextBaseSymbol_)++;
 	}
 
-	inline StringToSymbolDict& GetSymbolDict()
-	{
-		// Assertions
-		assert(pSymbolDict_ != nullptr);
-
-		return *pSymbolDict_;
-	}
-
-	inline const StringToSymbolDict& GetSymbolDict() const
+	static inline StringToSymbolDict& GetSymbolDict()
 	{
 		// Assertions
 		assert(pSymbolDict_ != nullptr);
