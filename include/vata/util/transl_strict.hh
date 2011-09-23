@@ -56,7 +56,6 @@ public:   // methods
 
 	inline ResultType operator()(const InputType& value) const
 	{
-		ResultType result;
 		typename Container::const_iterator itCont;
 		if ((itCont = container_.find(value)) != container_.end())
 		{	// in case the value is known
