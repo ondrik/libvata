@@ -14,6 +14,7 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/aut_base.hh>
+#include <vata/bdd_td_tree_aut.hh>
 #include <vata/mtbdd/apply2func.hh>
 #include <vata/mtbdd/ondriks_mtbdd.hh>
 #include <vata/mtbdd/void_apply2func.hh>
@@ -635,6 +636,10 @@ public:   // methods
 
 		pNextSymbol_ = pNextSymbol;
 	}
+
+
+	BDDTopDownTreeAut GetTopDownAut(StateToStateMap* pTranslMap = nullptr) const;
+
 
 	template <class OperationFunc>
 	static void ForeachUpSymbolFromTupleAndTupleSetDo(

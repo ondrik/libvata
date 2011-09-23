@@ -57,6 +57,8 @@ GCC_DIAG_ON(effc++)
 	friend bool CheckInclusionNoUseless(const BDDTopDownTreeAut&,
 		const BDDTopDownTreeAut&);
 
+	friend class BDDBottomUpTreeAut;
+
 public:   // data types
 
 	typedef VATA::MTBDDPkg::VarAsgn SymbolType;
