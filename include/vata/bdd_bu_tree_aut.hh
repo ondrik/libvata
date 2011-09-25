@@ -15,20 +15,20 @@
 #include <vata/vata.hh>
 #include <vata/aut_base.hh>
 #include <vata/bdd_td_tree_aut.hh>
+#include <vata/mtbdd/apply1func.hh>
 #include <vata/mtbdd/apply2func.hh>
 #include <vata/mtbdd/ondriks_mtbdd.hh>
 #include <vata/mtbdd/void_apply2func.hh>
-#include <vata/util/bdd_trans_table.hh>
+#include <vata/util/bdd_bu_trans_table.hh>
 #include <vata/util/ord_vector.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
-#include <vata/util/vector_map.hh>
 
 namespace VATA { class BDDBottomUpTreeAut; }
 
 GCC_DIAG_OFF(effc++)
 class VATA::BDDBottomUpTreeAut
-	: public AutBase
+	: public SymbolicAutBase
 {
 GCC_DIAG_ON(effc++)
 
@@ -53,14 +53,11 @@ GCC_DIAG_ON(effc++)
 
 public:   // data types
 
-	typedef VATA::MTBDDPkg::VarAsgn SymbolType;
-
 	typedef std::unordered_set<StateType> StateHT;
 	typedef VATA::Util::OrdVector<StateType> StateSet;
 	typedef std::vector<StateType> StateTuple;
 	typedef VATA::Util::OrdVector<StateTuple> StateTupleSet;
-
-	typedef VATA::Util::TwoWayDict<std::string, SymbolType> StringToSymbolDict;
+	typedef VATA::MTBDDPkg::OndriksMTBDD<StateSet> TransMTBDD;
 
 	typedef VATA::Util::TranslatorStrict<StringToSymbolDict> SymbolTranslatorStrict;
 	typedef VATA::Util::TranslatorStrict<typename StringToSymbolDict::MapBwdType>
@@ -69,16 +66,15 @@ public:   // data types
 private:  // data types
 
 	typedef size_t MTBDDHandle;
-	typedef VATA::MTBDDPkg::OndriksMTBDD<StateSet> TransMTBDD;
 	typedef VATA::MTBDDPkg::OndriksMTBDD<bool> BDD;
 
-	typedef VATA::Util::BDDTransTable<MTBDDHandle, StateSet> TransTable;
+	typedef VATA::Util::BDDBottomUpTransTable<MTBDDHandle, StateSet> TransTable;
+	typedef std::shared_ptr<TransTable> TransTablePtr;
+
+	typedef typename TransTable::TupleMap TupleMap;
 
 	typedef VATA::Util::AutDescription AutDescription;
 
-	typedef std::shared_ptr<TransTable> TransTablePtr;
-
-	typedef VATA::Util::VectorMap<StateType, MTBDDHandle> TupleToMTBDDMap;
 
 	typedef VATA::Util::Convert Convert;
 
@@ -96,152 +92,32 @@ private:  // data types
 		}
 	};
 
-public:   // data types
-
-	typedef typename TupleToMTBDDMap::IndexValueArray IndexValueArray;
-
 private:  // constants
 
-	static const size_t SYMBOL_SIZE = 16;
+	static const MTBDDHandle DEFAULT_HANDLE = 0;
 
 private:  // data members
 
-	StateHT states_;
 	StateHT finalStates_;
 	TransTablePtr transTable_;
-	TupleToMTBDDMap mtbddMap_;
-	MTBDDHandle defaultTrFuncHandle_;
-
-	static StringToSymbolDict* pSymbolDict_;
-	static SymbolType* pNextSymbol_;
+	TransMTBDD nullaryMtbdd_;
 
 private:  // methods
 
-	bool isValid() const;
-
-	bool isStandAlone() const;
-
-	inline bool hasEmptyStateSet() const
+	bool isValid() const
 	{
-		// Assertions
-		assert(isValid());
-
-		return mtbddMap_.empty() && finalStates_.empty();
-	}
-
-	void copyStates(const BDDBottomUpTreeAut& src);
-
-	inline const MTBDDHandle& getMtbddHandle(const StateTuple& children) const
-	{
-		// Assertions
-		assert(isValid());
-
-		typename TupleToMTBDDMap::const_iterator it;
-		if ((it = mtbddMap_.find(children)) == mtbddMap_.end())
-		{
-			return defaultTrFuncHandle_;
-		}
-		else
-		{
-			return (*it).second;
-		}
-	}
-
-	inline const TransMTBDD& getMtbdd(const MTBDDHandle& handle) const
-	{
-		// Assertions
-		assert(isValid());
-
-		return transTable_->GetMtbdd(handle);
-	}
-
-	inline const TransMTBDD& getMtbdd(const StateTuple& children) const
-	{
-		// Assertions
-		assert(isValid());
-
-		return getMtbdd(getMtbddHandle(children));
-	}
-
-	inline void decrementHandleRefCnt(const StateTuple& children)
-	{
-		// Assertions
-		assert(isValid());
-
-		typename TupleToMTBDDMap::iterator it;
-		if ((it = mtbddMap_.find(children)) != mtbddMap_.end())
-		{	// in case there is something
-			transTable_->DecrementHandleRefCnt((*it).second);
-		}
-	}
-
-	inline void setMtbdd(const MTBDDHandle& handle, const TransMTBDD& mtbdd)
-	{
-		// Assertions
-		assert(isValid());
-		assert(transTable_->GetHandleRefCnt(handle) == 1);
-
-		transTable_->SetMtbdd(handle, mtbdd);
-	}
-
-	inline void setMtbdd(const StateTuple& children, const TransMTBDD& mtbdd)
-	{
-		// Assertions
-		assert(isValid());
-
-		typename TupleToMTBDDMap::iterator it;
-		if ((it = mtbddMap_.find(children)) == mtbddMap_.end())
-		{	// in case the value is unknown
-			MTBDDHandle handle = transTable_->AddHandle();
-			setMtbdd(handle, mtbdd);
-			mtbddMap_.insert(std::make_pair(children, handle));
-		}
-		else
-		{
-			MTBDDHandle& handle = (*it).second;
-
-			if (transTable_->GetHandleRefCnt(handle) == 1)
-			{	// in case there is only one reference to the MTBDD
-				setMtbdd(handle, mtbdd);
-			}
-			else
-			{
-				transTable_->DecrementHandleRefCnt(handle);
-				handle = transTable_->AddHandle();
-				setMtbdd(handle, mtbdd);
-			}
-		}
-	}
-
-	template <typename T, class Container>
-	inline StateType safelyTranslateToState(const T& value, Container& dict)
-	{
-		// Assertions
-		assert(isValid());
-
-		StateType state;
-		typename Container::const_iterator itHt;
-		if ((itHt = dict.find(value)) != dict.end())
-		{	// in case the state is known
-			state = itHt->second;
-		}
-		else
-		{	// in case there is no translation for the state
-			state = AddState();
-			dict.insert(std::make_pair(value, state));
+		if (transTable_.get() == nullptr)
+		{	// in case the transition table pointer is bad
+			return false;
 		}
 
-		return state;
+		return true;
 	}
 
 	template <class StateTransFunc, class SymbolTransFunc>
 	void loadFromAutDescExplicit(const AutDescription& desc,
 		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator)
 	{
-		// Assertions
-		assert(hasEmptyStateSet());
-		assert(pSymbolDict_ != nullptr);
-
 		for (auto fst : desc.finalStates)
 		{	// traverse final states
 			finalStates_.insert(stateTranslator(fst));
@@ -268,7 +144,7 @@ private:  // methods
 			// translate the symbol
 			SymbolType symbol = symbolTranslator(symbolStr);
 
-			AddSimplyTransition(children, symbol, parent);
+			AddTransition(children, symbol, parent);
 			assert(isValid());
 		}
 
@@ -280,9 +156,6 @@ private:  // methods
 	void loadFromAutDescSymbolic(const AutDescription&/* desc */,
 		StateTransFunc /* stateTranslator */, SymbolTransFunc /* symbolTranslator */)
 	{
-		// Assertions
-		assert(hasEmptyStateSet());
-
 		assert(false);
 
 		assert(isValid());
@@ -345,7 +218,7 @@ private:  // methods
 		CondColApplyFunctor collector;
 
 		// copy states, transitions and symbols
-		for (auto tupleHandlePair : mtbddMap_)
+		for (auto tupleHandlePair : transTable_->GetTupleMap())
 		{	// for all states
 			const StateTuple& children = tupleHandlePair.first;
 
@@ -359,9 +232,9 @@ private:  // methods
 				desc.states.insert(stateStr);
 			}
 
-			const TransMTBDD& transMtbdd = getMtbdd(tupleHandlePair.second);
+			const TransMTBDD& transMtbdd = tupleHandlePair.second;
 
-			for (auto sym : *pSymbolDict_)
+			for (auto sym : GetSymbolDict())
 			{	// iterate over all known symbols
 				const std::string& symbol = sym.first;
 				BDD symbolBdd(sym.second, true, false);
@@ -390,83 +263,66 @@ private:  // methods
 		throw std::runtime_error("Unimplemented");
 	}
 
-	inline void deallocateTuples()
-	{
-		// Assertions
-		assert(isValid());
-
-		for (auto tupleHandlePair : mtbddMap_)
-		{	// release all states
-			transTable_->DecrementHandleRefCnt(tupleHandlePair.second);
-		}
-
-		transTable_->DecrementHandleRefCnt(defaultTrFuncHandle_);
-
-		mtbddMap_.clear();
-	}
-
 public:   // methods
 
 	BDDBottomUpTreeAut() :
-		states_(),
 		finalStates_(),
 		transTable_(new TransTable),
-		mtbddMap_(),
-		defaultTrFuncHandle_(transTable_->AddHandle())
+		nullaryMtbdd_(StateSet())
 	{
 		// Assertions
 		assert(isValid());
 	}
 
 	BDDBottomUpTreeAut(TransTablePtr transTable) :
-		states_(),
 		finalStates_(),
 		transTable_(transTable),
-		mtbddMap_(),
-		defaultTrFuncHandle_(transTable_->AddHandle())
+		nullaryMtbdd_(StateSet())
 	{
 		// Assertions
 		assert(isValid());
 	}
 
 	BDDBottomUpTreeAut(const BDDBottomUpTreeAut& aut) :
-		states_(),
-		finalStates_(),
+		finalStates_(aut.finalStates_),
 		transTable_(aut.transTable_),
-		mtbddMap_(),
-		defaultTrFuncHandle_(aut.defaultTrFuncHandle_)
+		nullaryMtbdd_(aut.nullaryMtbdd_)
 	{
-		copyStates(aut);
-		transTable_->IncrementHandleRefCnt(defaultTrFuncHandle_);
-
 		// Assertions
 		assert(isValid());
 	}
 
 	BDDBottomUpTreeAut(BDDBottomUpTreeAut&& aut) :
-		states_(std::move(aut.states_)),
 		finalStates_(std::move(aut.finalStates_)),
 		transTable_(std::move(aut.transTable_)),
-		mtbddMap_(std::move(aut.mtbddMap_)),
-		defaultTrFuncHandle_(std::move(aut.defaultTrFuncHandle_))
+		nullaryMtbdd_(std::move(aut.nullaryMtbdd_))
 	{
 		// Assertions
 		assert(isValid());
 	}
 
-	BDDBottomUpTreeAut& operator=(const BDDBottomUpTreeAut& rhs);
+	BDDBottomUpTreeAut& operator=(const BDDBottomUpTreeAut& rhs)
+	{
+		if (this != &rhs)
+		{
+			finalStates_ = rhs.finalStates_;
+			transTable_ = rhs.transTable_;
+			nullaryMtbdd_ = rhs.nullaryMtbdd_;
+
+			// Assertions
+			assert(isValid());
+		}
+
+		return *this;
+	}
 
 	BDDBottomUpTreeAut& operator=(BDDBottomUpTreeAut&& rhs)
 	{
 		if (this != &rhs)
 		{
-			deallocateTuples();
-
-			states_ = std::move(rhs.states_);
 			finalStates_ = std::move(rhs.finalStates_);
 			transTable_ = std::move(rhs.transTable_);
-			mtbddMap_ = std::move(rhs.mtbddMap_);
-			defaultTrFuncHandle_ = std::move(rhs.defaultTrFuncHandle_);
+			nullaryMtbdd_ = std::move(rhs.nullaryMtbdd_);
 		}
 
 		return *this;
@@ -477,25 +333,35 @@ public:   // methods
 		return const_cast<TransTablePtr&>(transTable_);
 	}
 
-	inline StateType AddState()
+
+	void AddTransition(const StateTuple& children,
+		SymbolType symbol, const StateType& parent)
 	{
 		// Assertions
 		assert(isValid());
+		assert(symbol.length() == SYMBOL_SIZE);
 
-		StateType newState = transTable_->AddState();
+		assert(false);
+		if (transTable_.unique())
+		{
 
-		if (!states_.insert(newState).second)
-		{	// in case the state is already there
-			assert(false);
+		}
+		else
+		{
+
 		}
 
-		assert(isValid());
+		UnionApplyFunctor unioner;
 
-		return newState;
+		const TransMTBDD& oldMtbdd = GetMtbdd(children);
+		TransMTBDD addedMtbdd(symbol, StateSet(parent), StateSet());
+
+		// TODO: this could be done better
+		SetMtbdd(children, unioner(oldMtbdd, addedMtbdd));
+
+		assert(isValid());
 	}
 
-	void AddSimplyTransition(const StateTuple& children, SymbolType symbol,
-		const StateType& parent);
 
 	inline void SetStateFinal(const StateType& state)
 	{
@@ -513,22 +379,17 @@ public:   // methods
 		return finalStates_.find(state) != finalStates_.end();
 	}
 
-	inline const TupleToMTBDDMap& GetTuples() const
-	{
-		return mtbddMap_;
-	}
-
-	inline const StateHT& GetStates() const
-	{
-		return states_;
-	}
-
 	inline const StateHT& GetFinalStates() const
 	{
 		// Assertions
 		assert(isValid());
 
 		return finalStates_;
+	}
+
+	inline const TupleMap& GetTuples() const
+	{
+		return transTable_->GetTupleMap();
 	}
 
 	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
@@ -539,9 +400,13 @@ public:   // methods
 		typedef VATA::Util::TranslatorWeak<StringToSymbolDict>
 			SymbolTranslator;
 
+		StateType stateCnt = 0;
+
 		LoadFromString(parser, str,
-			StateTranslator(stateDict, [this]{return this->AddState();}),
-			SymbolTranslator(GetSymbolDict(), [this]{return this->AddSymbol();}));
+			StateTranslator(stateDict,
+				[&stateCnt](const std::string&){return stateCnt++;}),
+			SymbolTranslator(GetSymbolDict(),
+				[this](const std::string&){return AddSymbol();}));
 	}
 
 	template <class StateTransFunc, class SymbolTransFunc>
@@ -549,9 +414,6 @@ public:   // methods
 		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator,
 		const std::string& params = "")
 	{
-		// Assertions
-		assert(hasEmptyStateSet());
-
 		if (params == "symbolic")
 		{
 			loadFromAutDescSymbolic(parser.ParseString(str), stateTranslator,
@@ -597,46 +459,13 @@ public:   // methods
 	std::string DumpToDot() const
 	{
 		std::vector<const TransMTBDD*> tupleVec;
-		for (auto tupleHandlePair : mtbddMap_)
+		for (auto tupleHandlePair : transTable_->GetTupleMap())
 		{
-			tupleVec.push_back(&getMtbdd(tupleHandlePair.second));
+			tupleVec.push_back(&tupleHandlePair.second);
 		}
 
 		return TransMTBDD::DumpToDot(tupleVec);
 	}
-
-	inline SymbolType AddSymbol()
-	{
-		// Assertions
-		assert(pNextSymbol_ != nullptr);
-
-		return (*pNextSymbol_)++;
-	}
-
-	static inline StringToSymbolDict& GetSymbolDict()
-	{
-		// Assertions
-		assert(pSymbolDict_ != nullptr);
-
-		return *pSymbolDict_;
-	}
-
-	inline static void SetSymbolDictPtr(StringToSymbolDict* pSymbolDict)
-	{
-		// Assertions
-		assert(pSymbolDict != nullptr);
-
-		pSymbolDict_ = pSymbolDict;
-	}
-
-	inline static void SetNextSymbolPtr(SymbolType* pNextSymbol)
-	{
-		// Assertions
-		assert(pNextSymbol != nullptr);
-
-		pNextSymbol_ = pNextSymbol;
-	}
-
 
 	BDDTopDownTreeAut GetTopDownAut(StateToStateMap* pTranslMap = nullptr) const;
 
@@ -686,17 +515,95 @@ public:   // methods
 		// collect the RHS's MTBDDs leaves
 		for (auto tuple : rhsTupleSet)
 		{
-			rhsUnionMtbdd = unioner(rhsUnionMtbdd, rhs.getMtbdd(tuple));
+			rhsUnionMtbdd = unioner(rhsUnionMtbdd, rhs.GetMtbdd(tuple));
 		}
 
 		// create apply functor
 		OperationApplyFunctor opApplyFunc(opFunc);
 
 		// perform the apply operation
-		opApplyFunc(lhs.getMtbdd(lhsTuple), rhsUnionMtbdd);
+		opApplyFunc(lhs.GetMtbdd(lhsTuple), rhsUnionMtbdd);
 	}
 
-	~BDDBottomUpTreeAut();
+	inline const TransMTBDD& GetMtbdd(const StateTuple& children) const
+	{
+		// Assertions
+		assert(isValid());
+
+		if (children.empty())
+		{
+			return nullaryMtbdd_;
+		}
+		else
+		{
+			return transTable_->GetMtbdd(children);
+		}
+	}
+
+	inline void SetMtbdd(const StateTuple& children, const TransMTBDD& mtbdd)
+	{
+		// Assertions
+		assert(isValid());
+
+		if (children.empty())
+		{
+			nullaryMtbdd_ = mtbdd;;
+		}
+		else
+		{
+			transTable_->SetMtbdd(children, mtbdd);
+		}
+	}
+
+	inline TransMTBDD ReindexStates(BDDBottomUpTreeAut& dstAut,
+		StateToStateTranslator& stateTrans) const
+	{
+		GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
+		class RewriteApplyFunctor :
+			public VATA::MTBDDPkg::Apply1Functor<RewriteApplyFunctor,
+			StateSet, StateSet>
+		{
+		GCC_DIAG_ON(effc++)
+		private:  // data members
+
+			StateToStateTranslator trans_;
+
+		public:   // methods
+
+			RewriteApplyFunctor(StateToStateTranslator& trans) :
+				trans_(trans)
+			{ }
+
+			inline StateSet ApplyOperation(const StateSet& value)
+			{
+				StateSet result;
+
+				for (const StateType& state : value)
+				{ // for every state
+					result.insert(trans_(state));
+				}
+
+				return result;
+			}
+		};
+
+		RewriteApplyFunctor rewriter(stateTrans);
+		for (auto tupleBddPair : GetTuples())
+		{
+			const StateTuple& oldTuple = tupleBddPair.first;
+			StateTuple newTuple;
+			for (StateTuple::const_iterator itTup = oldTuple.begin();
+				itTup != oldTuple.end(); ++itTup)
+			{
+				newTuple.push_back(stateTrans(*itTup));
+			}
+			assert(newTuple.size() == oldTuple.size());
+
+			dstAut.SetMtbdd(newTuple, rewriter(tupleBddPair.second));
+		}
+
+		return rewriter(GetMtbdd(StateTuple()));
+	}
 };
 
 #endif

@@ -33,6 +33,7 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut,
 	typedef BDDTopDownTreeAut::StateTuple StateTuple;
 	typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
 	typedef AutBase::StateToStateMap StateToStateMap;
+	typedef AutBase::StateToStateTranslator StateTranslator;
 
 	typedef Graph::NodeType NodeType;
 
@@ -160,7 +161,7 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut,
 		procPair = workset.top();
 		workset.pop();
 
-		func(aut.getMtbdd(procPair.second));
+		func(aut.GetMtbdd(procPair.second));
 	}
 
 	// now perform the analysis of useful states
@@ -229,18 +230,13 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut,
 	{
 	private:  // data members
 
-		BDDTopDownTreeAut& resultAut_;
-		StateToStateMap& translMap_;
-		StatePairStack& workStack_;
+		StateTranslator& trans_;
 		StateHT& usefulStates_;
 
 	public:   // methods
 
-		RestrictApplyFunctor(BDDTopDownTreeAut& resultAut, StateToStateMap& translMap,
-			StatePairStack& workStack, StateHT& usefulStates) :
-			resultAut_(resultAut),
-			translMap_(translMap),
-			workStack_(workStack),
+		RestrictApplyFunctor(StateTranslator& trans, StateHT& usefulStates) :
+			trans_(trans),
 			usefulStates_(usefulStates)
 		{ }
 
@@ -251,29 +247,15 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut,
 			for (const StateTuple& tuple : value)
 			{	// for each tuple from the leaf
 				StateTuple resultTuple;
-				for (size_t i = 0; i < tuple.size(); ++i)
+				for (StateTuple::const_iterator itTup = tuple.begin();
+					itTup != tuple.end(); ++itTup)
 				{	// for each position in the tuple
-					const StateType& state = tuple[i];
-
-					if (usefulStates_.find(state) == usefulStates_.end())
+					if (usefulStates_.find(*itTup) == usefulStates_.end())
 					{	// in case the state is not useful
 						break;
 					}
 
-					StateType newState;
-					StateToStateMap::const_iterator itTransl;
-					if ((itTransl = translMap_.find(state)) != translMap_.end())
-					{	// if the pair is already known
-						newState = itTransl->second;
-					}
-					else
-					{	// if the pair is new
-						newState = resultAut_.AddState();
-						translMap_.insert(std::make_pair(state, newState));
-						workStack_.push(std::make_pair(newState, state));
-					}
-
-					resultTuple.push_back(newState);
+					resultTuple.push_back(trans_(*itTup));
 				}
 
 				if (resultTuple.size() == tuple.size())
@@ -286,27 +268,32 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut,
 		}
 	};
 
-	BDDTopDownTreeAut result(aut.GetTransTable());
-	StatePairStack workStack;
-
 	StateToStateMap translMap;
 	if (pTranslMap == nullptr)
 	{	// in case the state translation map was not provided
 		pTranslMap = &translMap;
 	}
 
+	BDDTopDownTreeAut result(aut.GetTransTable());
+	StatePairStack workStack;
+	StateType stateCnt;
+
+	StateTranslator stateTransl(*pTranslMap,
+		[&workStack,&stateCnt](const StateType& newState) -> StateType
+		{
+			workStack.push(std::make_pair(newState, stateCnt));
+			return stateCnt++;
+		});
+
 	assert(pTranslMap->empty());
 
-	RestrictApplyFunctor restrFunc(result, *pTranslMap, workStack, usefulStates);
+	RestrictApplyFunctor restrFunc(stateTransl, usefulStates);
 
 	for (auto fst : aut.GetFinalStates())
 	{	// start from all final states of the original automaton
 		if (usefulStates.find(fst) != usefulStates.end())
 		{	// in case the state is useful
-			StateType newState = result.AddState();
-			result.SetStateFinal(newState);
-			workStack.push(std::make_pair(newState, fst));
-			pTranslMap->insert(std::make_pair(fst, newState));
+			result.SetStateFinal(stateTransl(fst));
 		}
 	}
 
@@ -315,9 +302,9 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut,
 		StatePair stPr = workStack.top();
 		workStack.pop();
 
-		BDDTopDownTreeAut::TransMTBDD mtbdd = restrFunc(aut.getMtbdd(stPr.second));
+		BDDTopDownTreeAut::TransMTBDD mtbdd = restrFunc(aut.GetMtbdd(stPr.second));
 
-		result.setMtbdd(stPr.first, mtbdd);
+		result.SetMtbdd(stPr.first, mtbdd);
 	}
 
 	assert(result.isValid());

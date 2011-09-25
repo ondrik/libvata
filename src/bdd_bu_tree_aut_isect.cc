@@ -30,7 +30,7 @@ BDDBottomUpTreeAut VATA::Intersection(const BDDBottomUpTreeAut& lhs,
 	typedef AutBase::ProductTranslMap IntersectionTranslMap;
 	typedef BDDBottomUpTreeAut::TransMTBDD MTBDD;
 	typedef BDDBottomUpTreeAut::MTBDDHandle MTBDDHandle;
-	typedef BDDBottomUpTreeAut::IndexValueArray IndexValueArray;
+	typedef VATA::Util::TranslatorWeak<IntersectionTranslMap> StateTranslator;
 
 	GCC_DIAG_OFF(effc++)
 	class IntersectionApplyFunctor :
@@ -40,28 +40,12 @@ BDDBottomUpTreeAut VATA::Intersection(const BDDBottomUpTreeAut& lhs,
 	GCC_DIAG_ON(effc++)
 	private:  // Private data members
 
-		const BDDBottomUpTreeAut& lhsAut_;
-		const BDDBottomUpTreeAut& rhsAut_;
-		BDDBottomUpTreeAut& resultAut_;
-
-		IntersectionTranslMap& translMap_;
-		WorkSetType& workset_;
-
-	private:  // Private methods
-
-		IntersectionApplyFunctor(const IntersectionApplyFunctor&);
-		IntersectionApplyFunctor& operator=(const IntersectionApplyFunctor&);
+		StateTranslator& transl_;
 
 	public:   // Public methods
 
-		IntersectionApplyFunctor(const BDDBottomUpTreeAut& lhsAut,
-			const BDDBottomUpTreeAut& rhsAut, BDDBottomUpTreeAut& resultAut,
-			IntersectionTranslMap& translMap, WorkSetType& workset) :
-			lhsAut_(lhsAut),
-			rhsAut_(rhsAut),
-			resultAut_(resultAut),
-			translMap_(translMap),
-			workset_(workset)
+		IntersectionApplyFunctor(StateTranslator& transl) :
+			transl_(transl)
 		{ }
 
 		StateSet ApplyOperation(const StateSet& lhs, const StateSet& rhs)
@@ -72,27 +56,7 @@ BDDBottomUpTreeAut VATA::Intersection(const BDDBottomUpTreeAut& lhs,
 			{
 				for (auto rhsState : rhs)
 				{
-					StatePair newPair = std::make_pair(lhsState, rhsState);
-
-					StateType resultState;
-					IntersectionTranslMap::const_iterator itTransl;
-					if ((itTransl = translMap_.find(newPair)) != translMap_.end())
-					{	// if the pair is already known
-						resultState = itTransl->second;
-					}
-					else
-					{	// if the pair is new
-						resultState = resultAut_.AddState();
-						translMap_.insert(std::make_pair(newPair, resultState));
-						workset_.insert(std::make_pair(resultState, newPair));
-
-						if (lhsAut_.IsStateFinal(lhsState) && rhsAut_.IsStateFinal(rhsState))
-						{	// set the state final if desirable
-							resultAut_.SetStateFinal(resultState);
-						}
-					}
-
-					result.insert(resultState);
+					result.insert(transl_(std::make_pair(lhsState, rhsState)));
 				}
 			}
 
@@ -106,66 +70,103 @@ BDDBottomUpTreeAut VATA::Intersection(const BDDBottomUpTreeAut& lhs,
 		pTranslMap = &translMap;
 	}
 
-
 	BDDBottomUpTreeAut result;
 	WorkSetType workset;
+	StateType stateCnt;
 
-	IntersectionApplyFunctor isect(lhs, rhs, result, *pTranslMap, workset);
+	StateTranslator stateTransl(*pTranslMap,
+		[&workset,&stateCnt](const StatePair& newPair) -> StateType
+		{
+			workset.insert(std::make_pair(stateCnt, newPair));
+			return stateCnt++;
+		});
+
+	IntersectionApplyFunctor isect(stateTransl);
 
 	// start with leaves
 	StateTuple tuple;
-	MTBDD mtbdd = isect(lhs.getMtbdd(tuple), rhs.getMtbdd(tuple));
-	result.setMtbdd(tuple, mtbdd);
+	MTBDD mtbdd = isect(lhs.GetMtbdd(tuple), rhs.GetMtbdd(tuple));
+	result.SetMtbdd(tuple, mtbdd);
 
 	while (!workset.empty())
 	{	// while there is something in the workset
 		WorkSetType::iterator itWs = workset.begin();
+		const StateType& newState  = itWs->first;
 		const StatePair& procPair  = itWs->second;
+		const StateType& lhsState  = procPair.first;
+		const StateType& rhsState  = procPair.second;
 
-		IndexValueArray lhsTuples =
-			lhs.GetTuples().GetItemsWith(procPair.first, lhs.GetStates());
+		if (lhs.IsStateFinal(lhsState) && rhs.IsStateFinal(rhsState))
+		{	// set the state final if desirable
+			result.SetStateFinal(newState);
+		}
 
-		IndexValueArray rhsTuples =
-			rhs.GetTuples().GetItemsWith(procPair.second, rhs.GetStates());
+		for (auto lhsTupleBddPair : lhs.GetTuples())
+		{
+			const StateTuple& lhsTuple = lhsTupleBddPair.first;
+			const size_t& arity = lhsTuple.size();
 
-		for (size_t arity = 0;
-			(arity < lhsTuples.size()) && (arity < rhsTuples.size()); ++arity)
-		{	// for each arity of left-hand side in LHS and RHS
-			for (size_t lhsIndex = 0; lhsIndex < lhsTuples[arity].size(); ++lhsIndex)
-			{	// for each left-hand side of given arity in LHS
-				for (size_t rhsIndex = 0; rhsIndex < rhsTuples[arity].size(); ++rhsIndex)
-				{	// for each left-hand side of given arity in RHS
-					const StateTuple& lhsCandidate = lhsTuples[arity][lhsIndex].first;
-					const StateTuple& rhsCandidate = rhsTuples[arity][rhsIndex].first;
+			size_t firstMatch;
+			for (firstMatch = 0; firstMatch < arity; ++firstMatch)
+			{
+				if (lhsTuple[firstMatch] == procPair.first)
+				{
+					break;
+				}
+			}
 
-					// Assertions
-					assert(lhsCandidate.size() == arity);
-					assert(rhsCandidate.size() == arity);
+			if (firstMatch == arity)
+			{	// if the first processed state is not present
+				continue;
+			}
 
-					StateTuple tuple;
-					for (size_t arityIndex = 0; arityIndex < arity; ++arityIndex)
-					{	// check if respective states have product state
-						IntersectionTranslMap::const_iterator itTable;
-						if ((itTable = pTranslMap->find(std::make_pair(
-							lhsCandidate[arityIndex], rhsCandidate[arityIndex]))) !=
-							pTranslMap->end())
-						{
-							tuple.push_back(itTable->second);
-						}
-						else
-						{
-							break;
-						}
+			for (auto rhsTupleBddPair : rhs.GetTuples())
+			{
+				const StateTuple& rhsTuple = rhsTupleBddPair.first;
+				if (rhsTuple.size() != arity)
+				{	// skip tuples of different size
+					continue;
+				}
+
+				size_t i;
+				for (i = firstMatch; i < arity; ++i)
+				{
+					if ((lhsTuple[i] == procPair.first) && (rhsTuple[i] == procPair.second))
+					{
+						break;
+					}
+				}
+
+				if (i == arity)
+				{	// if there was no match for the pair
+					continue;
+				}
+
+				StateTuple tuple;
+				for (size_t arityIndex = 0; arityIndex < arity; ++arityIndex)
+				{	// check if respective states have product state
+					if (arityIndex == i)
+					{
+						tuple.push_back(newState);
 					}
 
-					if (tuple.size() == arity)
-					{	// in case all positions match
-						const MTBDDHandle& lhsMtbdd = lhsTuples[arity][lhsIndex].second;
-						const MTBDDHandle& rhsMtbdd = rhsTuples[arity][rhsIndex].second;
-
-						result.setMtbdd(tuple,
-							isect(lhs.getMtbdd(lhsMtbdd), rhs.getMtbdd(rhsMtbdd)));
+					IntersectionTranslMap::const_iterator itTable;
+					if ((itTable = pTranslMap->find(std::make_pair(
+						lhsTuple[arityIndex], rhsTuple[arityIndex]))) !=
+						pTranslMap->end())
+					{
+						tuple.push_back(itTable->second);
 					}
+					else
+					{
+						break;
+					}
+				}
+
+				if (tuple.size() == arity)
+				{	// in case all positions match
+					result.SetMtbdd(tuple,
+						isect(lhsTupleBddPair.second, rhsTupleBddPair.second));
 				}
 			}
 		}

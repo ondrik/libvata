@@ -11,7 +11,6 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_bu_tree_aut_op.hh>
-#include <vata/mtbdd/apply1func.hh>
 
 using VATA::BDDBottomUpTreeAut;
 using VATA::Util::Convert;
@@ -29,41 +28,12 @@ BDDBottomUpTreeAut VATA::Union(const BDDBottomUpTreeAut& lhs,
 	assert(rhs.isValid());
 
 	typedef BDDBottomUpTreeAut::StateType StateType;
-	typedef BDDBottomUpTreeAut::StateSet StateSet;
 	typedef BDDBottomUpTreeAut::StateTuple StateTuple;
+	typedef BDDBottomUpTreeAut::StateSet StateSet;
 	typedef BDDBottomUpTreeAut::TransMTBDD TransMTBDD;
-	typedef AutBase::StateToStateMap StateToStateMap;
+	typedef VATA::AutBase::StateToStateMap StateToStateMap;
+	typedef BDDBottomUpTreeAut::StateToStateTranslator StateToStateTranslator;
 
-	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
-	class RewriterApplyFunctor :
-		public VATA::MTBDDPkg::Apply1Functor<RewriterApplyFunctor,
-		StateSet, StateSet>
-	{
-	GCC_DIAG_ON(effc++)
-	private:  // data members
-
-		BDDBottomUpTreeAut& aut_;
-		StateToStateMap& dict_;
-
-	public:   // methods
-
-		RewriterApplyFunctor(BDDBottomUpTreeAut& aut, StateToStateMap& dict) :
-			aut_(aut),
-			dict_(dict)
-		{ }
-
-		inline StateSet ApplyOperation(const StateSet& value)
-		{
-			StateSet result;
-
-			for (const StateType& state : value)
-			{ // for every state
-				result.insert(aut_.safelyTranslateToState(state, dict_));
-			}
-
-			return result;
-		}
-	};
 
 	BDDBottomUpTreeAut::UnionApplyFunctor unionFunc;
 
@@ -72,29 +42,20 @@ BDDBottomUpTreeAut VATA::Union(const BDDBottomUpTreeAut& lhs,
 		BDDBottomUpTreeAut result = lhs;
 
 		StateTuple tuple;
-		const TransMTBDD& lhsMTBDD = lhs.getMtbdd(tuple);
-		const TransMTBDD& rhsMTBDD = rhs.getMtbdd(tuple);
+		const TransMTBDD& lhsMTBDD = lhs.GetMtbdd(tuple);
+		const TransMTBDD& rhsMTBDD = rhs.GetMtbdd(tuple);
 
-		result.copyStates(rhs);
-
-		result.setMtbdd(tuple, unionFunc(lhsMTBDD, rhsMTBDD));
+		result.SetMtbdd(tuple, unionFunc(lhsMTBDD, rhsMTBDD));
 
 		assert(result.isValid());
 		return result;
 	}
 	else
 	{	// in case the automata have distinct transition tables
-
-		// start by copying the LHS automaton
-		BDDBottomUpTreeAut result = lhs;
-
 		StateToStateMap translMapLhs;
-		if (pTranslMapLhs != nullptr)
+		if (pTranslMapLhs == nullptr)
 		{	// copy states
-			for (const StateType& state : lhs.GetStates())
-			{
-				pTranslMapLhs->insert(std::make_pair(state, state));
-			}
+			pTranslMapLhs = &translMapLhs;
 		}
 
 		StateToStateMap translMapRhs;
@@ -103,39 +64,28 @@ BDDBottomUpTreeAut VATA::Union(const BDDBottomUpTreeAut& lhs,
 			pTranslMapRhs = &translMapRhs;
 		}
 
+		BDDBottomUpTreeAut result;
 
+		StateType stateCnt = 0;
+		auto translFunc = [&stateCnt](const StateType&){return stateCnt++;};
 
-		StateTuple tuple;
-		const TransMTBDD& lhsMTBDD = result.getMtbdd(tuple);
-
-		RewriterApplyFunctor rewriter(result, *pTranslMapRhs);
-
-		for (auto tupleHandlePair : rhs.GetTuples())
-		{	// for all states in the RHS automaton
-			StateTuple translTuple;
-			for (const StateType& state : tupleHandlePair.first)
-			{
-				translTuple.push_back(result.safelyTranslateToState(state,
-					*pTranslMapRhs));
-			}
-
-			BDDBottomUpTreeAut::TransMTBDD newMtbdd =
-				rewriter(rhs.getMtbdd(tupleHandlePair.second));
-
-			result.setMtbdd(translTuple, newMtbdd);
+		StateToStateTranslator stateTransLhs(*pTranslMapLhs, translFunc);
+		TransMTBDD lhsMtbdd = lhs.ReindexStates(result, stateTransLhs);
+		for (const StateType& lhsFst : lhs.GetFinalStates())
+		{
+			result.SetStateFinal(stateTransLhs(lhsFst));
 		}
 
-		for (auto finalState : rhs.GetFinalStates())
-		{	// for all final states in the RHS automaton
-			result.SetStateFinal(result.safelyTranslateToState(finalState,
-				*pTranslMapRhs));
+		StateToStateTranslator stateTransRhs(*pTranslMapRhs, translFunc);
+		TransMTBDD rhsMtbdd = rhs.ReindexStates(result, stateTransRhs);
+		for (const StateType& rhsFst : rhs.GetFinalStates())
+		{
+			result.SetStateFinal(stateTransRhs(rhsFst));
 		}
 
-		const TransMTBDD& rhsMTBDD = result.getMtbdd(tuple);
-		result.setMtbdd(tuple, unionFunc(lhsMTBDD, rhsMTBDD));
+		result.SetMtbdd(StateTuple(), unionFunc(lhsMtbdd, rhsMtbdd));
 
 		assert(result.isValid());
-
 		return result;
 	}
 }

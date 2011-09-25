@@ -427,7 +427,6 @@ private:  // data members
 
 	static StringToSymbolDict* pSymbolDict_;
 	static SymbolType* pNextSymbol_;
-	static StateType* pNextState_;
 
 public:   // public methods
 
@@ -469,9 +468,13 @@ public:   // public methods
 		typedef VATA::Util::TranslatorWeak<StringToSymbolDict>
 			SymbolTranslator;
 
+		StateType stateCnt = 0;
+
 		LoadFromString(parser, str,
-			StateTranslator(stateDict, [this]{return this->AddState();}),
-			SymbolTranslator(GetSymbolDict(), [this]{return this->AddSymbol();}));
+			StateTranslator(stateDict,
+				[&stateCnt](const std::string&){return stateCnt++;}),
+			SymbolTranslator(GetSymbolDict(),
+				[this](const std::string&){return this->AddSymbol();}));
 	}
 
 	template <class StateTransFunc, class SymbolTransFunc>
@@ -697,15 +700,7 @@ public:   // public methods
 
 public:
 
-	inline StateType AddState()
-	{
-		// Assertions
-		assert(pNextState_ != nullptr);
-
-		return (*pNextState_)++;
-	}
-
-	inline SymbolType AddSymbol()
+	static inline SymbolType AddSymbol()
 	{
 		// Assertions
 		assert(pNextSymbol_ != nullptr);
@@ -737,14 +732,6 @@ public:
 		pNextSymbol_ = pNextSymbol;
 	}
 
-	inline static void SetNextStatePtr(StateType* pNextState)
-	{
-		// Assertions
-		assert(pNextState != nullptr);
-
-		pNextState_ = pNextState;
-	}
-
 	inline static DownInclStateTupleVector StateTupleSetToVector(
 		const DownInclStateTupleSet& tupleSet)
 	{
@@ -755,10 +742,6 @@ public:
 template <class Symbol>
 typename VATA::ExplicitTreeAut<Symbol>::StringToSymbolDict*
 	VATA::ExplicitTreeAut<Symbol>::pSymbolDict_ = nullptr;
-
-template <class Symbol>
-typename VATA::ExplicitTreeAut<Symbol>::StateType*
-	VATA::ExplicitTreeAut<Symbol>::pNextState_ = nullptr;
 
 template <class Symbol>
 typename VATA::ExplicitTreeAut<Symbol>::SymbolType*

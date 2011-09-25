@@ -40,6 +40,9 @@ namespace VATA
 
 	bool CheckInclusionNoUseless(const BDDTopDownTreeAut& smaller,
 		const BDDTopDownTreeAut& bigger);
+
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		const BDDTopDownTreeAut& aut);
 }
 
 #endif

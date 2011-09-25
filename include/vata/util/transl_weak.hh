@@ -44,7 +44,7 @@ private:  // data types
 	typedef typename Container::key_type InputType;
 	typedef typename Container::mapped_type ResultType;
 
-	typedef std::function<ResultType()> ResultAllocFuncType;
+	typedef std::function<ResultType(InputType)> ResultAllocFuncType;
 
 private:  // data members
 
@@ -67,7 +67,7 @@ public:   // methods
 		}
 		else
 		{	// in case there is no translation for the value
-			ResultType result = resultAllocFunc_();
+			ResultType result = resultAllocFunc_(value);
 			container_.insert(std::make_pair(value, result));
 
 			return result;

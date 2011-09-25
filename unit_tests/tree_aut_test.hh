@@ -93,6 +93,8 @@ protected:// data members
 	TimbukParser parser_;
 	TimbukSerializer serializer_;
 
+	AutType::StateType nextState_;
+
 	AutType::StringToSymbolDict symbolDict_;
 
 protected:// methods
@@ -100,8 +102,10 @@ protected:// methods
 	TreeAutFixture() :
 		parser_(),
 		serializer_(),
+		nextState_(0),
 		symbolDict_()
 	{
+		AutType::SetNextStatePtr(&nextState_);
 		AutType::SetSymbolDictPtr(&symbolDict_);
 		AutType::SetNextSymbolPtr(&nextSymbol_);
 	}

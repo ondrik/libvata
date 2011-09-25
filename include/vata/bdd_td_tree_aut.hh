@@ -13,7 +13,8 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/aut_base.hh>
+#include <vata/symbolic_aut_base.hh>
+#include <vata/mtbdd/apply1func.hh>
 #include <vata/mtbdd/apply2func.hh>
 #include <vata/mtbdd/ondriks_mtbdd.hh>
 #include <vata/mtbdd/void_apply1func.hh>
@@ -21,7 +22,7 @@
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
 #include <vata/util/ord_vector.hh>
-#include <vata/util/td_bdd_trans_table.hh>
+#include <vata/util/bdd_td_trans_table.hh>
 #include <vata/util/vector_map.hh>
 #include <vata/util/util.hh>
 #include <vata/util/transl_strict.hh>
@@ -35,7 +36,7 @@ namespace VATA { class BDDTopDownTreeAut; }
 
 GCC_DIAG_OFF(effc++)
 class VATA::BDDTopDownTreeAut
-	: public AutBase
+	: public SymbolicAutBase
 {
 GCC_DIAG_ON(effc++)
 
@@ -61,7 +62,7 @@ GCC_DIAG_ON(effc++)
 
 public:   // data types
 
-	typedef VATA::MTBDDPkg::VarAsgn SymbolType;
+	typedef typename SymbolicAutBase::SymbolType SymbolType;
 	typedef std::vector<StateType> StateTuple;
 	typedef VATA::Util::OrdVector<StateTuple> StateTupleSet;
 	typedef StateTupleSet DownInclStateTupleSet;
@@ -81,10 +82,11 @@ private:  // data types
 	typedef VATA::MTBDDPkg::OndriksMTBDD<StateTupleSet> TransMTBDD;
 	typedef VATA::MTBDDPkg::OndriksMTBDD<bool> BDD;
 
-	typedef VATA::Util::TDBDDTransTable<StateType, VATA::Util::OrdVector>
+	typedef VATA::Util::BDDTopDownTransTable<StateType, StateTupleSet>
 		TransTable;
 
 	typedef std::shared_ptr<TransTable> TransTablePtr;
+	typedef typename TransTable::StateMap StateMap;
 
 	typedef VATA::Util::AutDescription AutDescription;
 
@@ -108,44 +110,31 @@ private:  // data types
 
 private:  // constants
 
-	static const size_t SYMBOL_VALUE_LENGTH = 16;
-
 	static const size_t SYMBOL_ARITY_LENGTH = 6;
 	static const size_t MAX_SYMBOL_ARITY =
 		VATA::Util::IntExp2(SYMBOL_ARITY_LENGTH) - 1;
 
-	static const size_t SYMBOL_SIZE = SYMBOL_VALUE_LENGTH + SYMBOL_ARITY_LENGTH;
+	static const size_t SYMBOL_TOTAL_SIZE = SYMBOL_SIZE + SYMBOL_ARITY_LENGTH;
 
 
 private:  // data members
 
-
-	StateSet states_;
 	StateSet finalStates_;
 	TransTablePtr transTable_;
 
-	static StringToSymbolDict* pSymbolDict_;
-	static SymbolType* pNextBaseSymbol_;
-
 private:  // methods
 
-	bool isValid() const;
-
-	void copyStates(const BDDTopDownTreeAut& src);
-
-	inline void deallocateStates()
+	bool isValid() const
 	{
-		// Assertions
-		assert(isValid());
-
-		for (StateSet::iterator itSt = states_.begin();
-			itSt != states_.end(); ++itSt)
-		{	// release all states
-			transTable_->DecrementStateRefCnt(*itSt);
+		if (transTable_.get() == nullptr)
+		{	// in case the transition table pointer is bad
+			return false;
 		}
+
+		return true;
 	}
 
-	inline const TransMTBDD& getMtbdd(const StateType& state) const
+	inline const TransMTBDD& GetMtbdd(const StateType& state) const
 	{
 		// Assertions
 		assert(isValid());
@@ -153,7 +142,7 @@ private:  // methods
 		return transTable_->GetMtbdd(state);
 	}
 
-	inline void setMtbdd(const StateType& state, const TransMTBDD& mtbdd)
+	inline void SetMtbdd(const StateType& state, const TransMTBDD& mtbdd)
 	{
 		// Assertions
 		assert(isValid());
@@ -161,21 +150,10 @@ private:  // methods
 		transTable_->SetMtbdd(state, mtbdd);
 	}
 
-	inline bool hasEmptyStateSet() const
-	{
-		// Assertions
-		assert(isValid());
-
-		return states_.empty() && finalStates_.empty();
-	}
-
 	template <class StateTransFunc, class SymbolTransFunc>
 	void loadFromAutDescExplicit(const AutDescription& desc,
 		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator)
 	{
-		// Assertions
-		assert(hasEmptyStateSet());
-
 		for (auto fst : desc.finalStates)
 		{	// traverse final states
 			finalStates_.insert(stateTranslator(fst));
@@ -202,7 +180,7 @@ private:  // methods
 			// translate the symbol
 			SymbolType symbol = symbolTranslator(symbolStr);
 
-			AddSimplyTransition(children, symbol, parent);
+			AddTransition(children, symbol, parent);
 			assert(isValid());
 		}
 
@@ -213,9 +191,6 @@ private:  // methods
 	void loadFromAutDescSymbolic(const AutDescription&/* desc */,
 		StateTransFunc /* stateTranslator */, SymbolTransFunc /* symbolTranslator */)
 	{
-		// Assertions
-		assert(hasEmptyStateSet());
-
 		assert(false);
 
 		assert(isValid());
@@ -225,9 +200,6 @@ private:  // methods
 	AutDescription dumpToAutDescExplicit(StateBackTransFunc stateBackTranslator,
 		SymbolBackTransFunc /* symbolTranslator */) const
 	{
-		// Assertions
-		assert(pSymbolDict_ != nullptr);
-
 		GCC_DIAG_OFF(effc++)
 		class CondColApplyFunctor :
 			public VATA::MTBDDPkg::VoidApply2Functor<CondColApplyFunctor,
@@ -279,8 +251,9 @@ private:  // methods
 		CondColApplyFunctor collector;
 
 		// copy states, transitions and symbols
-		for (auto state : states_)
+		for (auto stateBddPair : GetStates())
 		{	// for all states
+			const StateType& state = stateBddPair.first;
 			std::string stateStr;
 
 			// copy the state
@@ -288,9 +261,9 @@ private:  // methods
 
 			desc.states.insert(stateStr);
 
-			const TransMTBDD& transMtbdd = getMtbdd(state);
+			const TransMTBDD& transMtbdd = GetMtbdd(state);
 
-			for (auto sym : *pSymbolDict_)
+			for (auto sym : GetSymbolDict())
 			{	// iterate over all known symbols
 				const std::string& symbol = sym.first;
 				BDD symbolBdd(sym.second, true, false);
@@ -323,37 +296,6 @@ private:  // methods
 		throw std::runtime_error("Unimplemented");
 	}
 
-	bool isStandAlone() const;
-
-	inline bool isStateLocal(const StateType& state) const
-	{
-		// Assertions
-		assert(isValid());
-
-		return (states_.find(state) != states_.end());
-	}
-
-	template <typename T, class Container>
-	inline StateType safelyTranslateToState(const T& value, Container& dict)
-	{
-		// Assertions
-		assert(isValid());
-
-		StateType state;
-		typename Container::const_iterator itHt;
-		if ((itHt = dict.find(value)) != dict.end())
-		{	// in case the state is known
-			state = itHt->second;
-		}
-		else
-		{	// in case there is no translation for the state
-			state = AddState();
-			dict.insert(std::make_pair(value, state));
-		}
-
-		return state;
-	}
-
 	inline void addArityToSymbol(SymbolType& symbol, size_t arity) const
 	{
 		// Assertions
@@ -368,7 +310,6 @@ private:  // methods
 public:   // public methods
 
 	BDDTopDownTreeAut() :
-		states_(),
 		finalStates_(),
 		transTable_(new TransTable)
 	{
@@ -377,7 +318,6 @@ public:   // public methods
 	}
 
 	BDDTopDownTreeAut(TransTablePtr transTable) :
-		states_(),
 		finalStates_(),
 		transTable_(transTable)
 	{
@@ -385,12 +325,29 @@ public:   // public methods
 		assert(isValid());
 	}
 
-	BDDTopDownTreeAut(const BDDTopDownTreeAut& aut);
-	BDDTopDownTreeAut& operator=(const BDDTopDownTreeAut& rhs);
-
-	inline const StateSet& GetStates() const
+	BDDTopDownTreeAut(const BDDTopDownTreeAut& aut) :
+		finalStates_(),
+		transTable_(aut.transTable_)
 	{
-		return states_;
+		// Assertions
+		assert(isValid());
+	}
+
+	BDDTopDownTreeAut& operator=(const BDDTopDownTreeAut& rhs)
+	{
+		if (this != &rhs)
+		{
+			transTable_ = rhs.transTable_;
+			finalStates_ = rhs.finalStates_;
+		}
+
+		assert(isValid());
+		return *this;
+	}
+
+	inline const StateMap& GetStates() const
+	{
+		return transTable_->GetStateMap();
 	}
 
 	inline const StateSet& GetFinalStates() const
@@ -411,9 +368,13 @@ public:   // public methods
 		typedef VATA::Util::TranslatorWeak<StringToSymbolDict>
 			SymbolTranslator;
 
+		StateType stateCnt = 0;
+
 		LoadFromString(parser, str,
-			StateTranslator(stateDict, [this]{return this->AddState();}),
-			SymbolTranslator(GetSymbolDict(), [this]{return this->AddSymbol();}));
+			StateTranslator(stateDict,
+				[&stateCnt](const std::string&){return stateCnt++;}),
+			SymbolTranslator(GetSymbolDict(),
+				[this](const std::string&){return AddSymbol();}));
 	}
 
 	template <class SymbolTransFunc>
@@ -433,9 +394,6 @@ public:   // public methods
 		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator,
 		const std::string& params = "")
 	{
-		// Assertions
-		assert(hasEmptyStateSet());
-
 		if (params == "symbolic")
 		{
 			loadFromAutDescSymbolic(parser.ParseString(str), stateTranslator,
@@ -478,25 +436,10 @@ public:   // public methods
 			symbolTranslator, params);
 	}
 
-
-	inline StateType AddState()
-	{
-		// Assertions
-		assert(isValid());
-
-		StateType newState = transTable_->AddState();
-		states_.insert(newState);
-
-		assert(isValid());
-
-		return newState;
-	}
-
 	inline void SetStateFinal(const StateType& state)
 	{
 		// Assertions
 		assert(isValid());
-		assert(isStateLocal(state));
 
 		finalStates_.insert(state);
 	}
@@ -509,8 +452,28 @@ public:   // public methods
 		return finalStates_.find(state) != finalStates_.end();
 	}
 
-	void AddTransition(const StateTuple& children, const SymbolType& symbol,
-		const StateType& state);
+	void AddTransition(const StateTuple& children, SymbolType symbol,
+		const StateType& parent)
+	{
+		// Assertions
+		assert(symbol.length() == SYMBOL_SIZE);
+
+		addArityToSymbol(symbol, children.size());
+		assert(symbol.length() == SYMBOL_TOTAL_SIZE);
+
+		if (transTable_.unique())
+		{
+			UnionApplyFunctor unioner;
+
+			const TransMTBDD& oldMtbdd = GetMtbdd(parent);
+			TransMTBDD addedMtbdd(symbol, StateTupleSet(children), StateTupleSet());
+			SetMtbdd(parent, unioner(oldMtbdd, addedMtbdd));
+		}
+		else
+		{	// copy on write
+			assert(false);
+		}
+	}
 
 	void AddSimplyTransition(const StateTuple& children, SymbolType symbol,
 		const StateType& parent);
@@ -561,57 +524,25 @@ public:   // public methods
 		// collect the RHS's MTBDDs leaves
 		for (const StateType& rhsState : rhsSet)
 		{
-			rhsUnionMtbdd = unioner(rhsUnionMtbdd, rhs.getMtbdd(rhsState));
+			rhsUnionMtbdd = unioner(rhsUnionMtbdd, rhs.GetMtbdd(rhsState));
 		}
 
 		// create apply functor
 		OperationApplyFunctor opApplyFunc(opFunc);
 
 		// perform the apply operation
-		opApplyFunc(lhs.getMtbdd(lhsState), rhsUnionMtbdd);
+		opApplyFunc(lhs.GetMtbdd(lhsState), rhsUnionMtbdd);
 	}
 
 	std::string DumpToDot() const
 	{
 		std::vector<const TransMTBDD*> stateVec;
-		for (const StateType& state : states_)
+		for (auto stateBddPair : GetStates())
 		{
-			stateVec.push_back(&getMtbdd(state));
+			stateVec.push_back(&GetMtbdd(stateBddPair.first));
 		}
 
 		return TransMTBDD::DumpToDot(stateVec);
-	}
-
-	inline SymbolType AddSymbol()
-	{
-		// Assertions
-		assert(pNextBaseSymbol_ != nullptr);
-
-		return (*pNextBaseSymbol_)++;
-	}
-
-	static inline StringToSymbolDict& GetSymbolDict()
-	{
-		// Assertions
-		assert(pSymbolDict_ != nullptr);
-
-		return *pSymbolDict_;
-	}
-
-	inline static void SetSymbolDictPtr(StringToSymbolDict* pSymbolDict)
-	{
-		// Assertions
-		assert(pSymbolDict != nullptr);
-
-		pSymbolDict_ = pSymbolDict;
-	}
-
-	inline static void SetNextSymbolPtr(SymbolType* pNextBaseSymbol)
-	{
-		// Assertions
-		assert(pNextBaseSymbol != nullptr);
-
-		pNextBaseSymbol_ = pNextBaseSymbol;
 	}
 
 	inline static DownInclStateTupleVector StateTupleSetToVector(
@@ -620,7 +551,52 @@ public:   // public methods
 		return tupleSet.ToVector();
 	}
 
-	~BDDTopDownTreeAut();
+	inline void ReindexStates(BDDTopDownTreeAut& dstAut,
+		StateToStateTranslator& stateTrans) const
+	{
+		GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
+		class RewriteApplyFunctor :
+			public VATA::MTBDDPkg::Apply1Functor<RewriteApplyFunctor,
+			StateTupleSet, StateTupleSet>
+		{
+		GCC_DIAG_ON(effc++)
+		private:  // data members
+
+			StateToStateTranslator trans_;
+
+		public:   // methods
+
+			RewriteApplyFunctor(StateToStateTranslator& trans) :
+				trans_(trans)
+			{ }
+
+			inline StateTupleSet ApplyOperation(const StateTupleSet& value)
+			{
+				StateTupleSet result;
+
+				for (const StateTuple& tuple : value)
+				{ // for every tuple
+					StateTuple resTuple;
+					for (StateTuple::const_iterator itTup = tuple.begin();
+						itTup != tuple.end(); ++itTup)
+					{
+						resTuple.push_back(trans_(*itTup));
+					}
+
+					result.insert(resTuple);
+				}
+
+				return result;
+			}
+		};
+
+		RewriteApplyFunctor rewriter(stateTrans);
+		for (auto stateBddPair : GetStates())
+		{
+			StateType newState = stateTrans(stateBddPair.first);
+			dstAut.SetMtbdd(newState, rewriter(stateBddPair.second));
+		}
+	}
 };
 
 #endif

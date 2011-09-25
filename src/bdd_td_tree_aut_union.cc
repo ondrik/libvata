@@ -32,6 +32,8 @@ BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
 	typedef BDDTopDownTreeAut::StateTuple StateTuple;
 	typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
 	typedef AutBase::StateToStateMap StateToStateMap;
+	typedef VATA::Util::TranslatorWeak<typename AutBase::StateToStateMap>
+		StateToStateTranslator;
 
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class RewriterApplyFunctor :
@@ -42,13 +44,13 @@ BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
 	private:  // data members
 
 		BDDTopDownTreeAut& aut_;
-		StateToStateMap& dict_;
+		StateToStateTranslator& trans_;
 
 	public:   // methods
 
-		RewriterApplyFunctor(BDDTopDownTreeAut& aut, StateToStateMap& dict) :
+		RewriterApplyFunctor(BDDTopDownTreeAut& aut, StateToStateTranslator& trans) :
 			aut_(aut),
-			dict_(dict)
+			trans_(trans)
 		{ }
 
 		inline StateTupleSet ApplyOperation(const StateTupleSet& value)
@@ -64,7 +66,7 @@ BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
 				for (StateTuple::const_iterator itTup = tup.begin();
 					itTup != tup.end(); ++itTup)
 				{	// for every element in the tuple
-					resTuple.push_back(aut_.safelyTranslateToState(*itTup, dict_));
+					resTuple.push_back(trans_(*itTup));
 				}
 
 				result.insert(resTuple);
@@ -78,24 +80,17 @@ BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
 	if (lhs.GetTransTable() == rhs.GetTransTable())
 	{	// in case the automata share their transition table
 		BDDTopDownTreeAut result = lhs;
-		result.copyStates(rhs);
+		result.finalStates_.insert(rhs.finalStates_.begin(), rhs.finalStates_.end());
 
 		assert(result.isValid());
 		return result;
 	}
 	else
 	{	// in case the automata have distinct transition tables
-
-		// start by copying the LHS automaton
-		BDDTopDownTreeAut result = lhs;
-
 		StateToStateMap translMapLhs;
-		if (pTranslMapLhs != nullptr)
+		if (pTranslMapLhs == nullptr)
 		{	// copy states
-			for (const StateType& state : lhs.GetStates())
-			{
-				pTranslMapLhs->insert(std::make_pair(state, state));
-			}
+			pTranslMapLhs = &translMapLhs;
 		}
 
 		StateToStateMap translMapRhs;
@@ -104,26 +99,26 @@ BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
 			pTranslMapRhs = &translMapRhs;
 		}
 
-		RewriterApplyFunctor rewriter(result, *pTranslMapRhs);
+		BDDTopDownTreeAut result;
 
-		for (StateSet::const_iterator itSt = rhs.GetStates().begin();
-			itSt != rhs.GetStates().end(); ++itSt)
-		{	// for all states in the RHS automaton
-			StateType translState = result.safelyTranslateToState(*itSt, *pTranslMapRhs);
+		StateType stateCnt = 0;
+		auto translFunc = [&stateCnt](const StateType&){return stateCnt++;};
 
-			BDDTopDownTreeAut::TransMTBDD newMtbdd = rewriter(rhs.getMtbdd(*itSt));
-
-			result.setMtbdd(translState, newMtbdd);
+		StateToStateTranslator stateTransLhs(*pTranslMapLhs, translFunc);
+		lhs.ReindexStates(result, stateTransLhs);
+		for (const StateType& lhsFst : lhs.GetFinalStates())
+		{
+			result.SetStateFinal(stateTransLhs(lhsFst));
 		}
 
-		for (StateSet::const_iterator itFst = rhs.GetFinalStates().begin();
-			itFst != rhs.GetFinalStates().end(); ++itFst)
-		{	// for all final states in the RHS automaton
-			result.SetStateFinal(result.safelyTranslateToState(*itFst, *pTranslMapRhs));
+		StateToStateTranslator stateTransRhs(*pTranslMapRhs, translFunc);
+		rhs.ReindexStates(result, stateTransRhs);
+		for (const StateType& rhsFst : rhs.GetFinalStates())
+		{
+			result.SetStateFinal(stateTransRhs(rhsFst));
 		}
 
 		assert(result.isValid());
-
 		return result;
 	}
 }

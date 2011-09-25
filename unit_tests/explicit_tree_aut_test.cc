@@ -22,16 +22,12 @@ protected:// data types
 protected:// data members
 
 	AutType::SymbolType nextSymbol_;
-	AutType::StateType nextState_;
 
 protected:// methods
 
 	AutTypeFixture() :
-		nextSymbol_(0),
-		nextState_(0)
-	{
-		AutType::SetNextStatePtr(&nextState_);
-	}
+		nextSymbol_(0)
+	{ }
 
 	virtual ~AutTypeFixture() { }
 };

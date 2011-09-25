@@ -42,8 +42,6 @@ bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 
 	typedef typename InclFctor::AntichainType AntichainType;
 
-	typedef typename Aut::IndexValueArray IndexValueArray;
-
 	typedef VATA::Util::Convert Convert;
 
 	class ChoiceFunctionGenerator
@@ -141,84 +139,78 @@ bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 		const StateSet& procSet = procPair.second;
 		workset.erase(workset.begin());
 
-		// get all tuples with the smaller state from the smaller automaton
-		IndexValueArray smallerTuples = smaller.GetTuples().GetItemsWith(
-			procState, smaller.GetStates());
+		for (auto tupleBddPair : smaller.GetTuples())
+		{	// for each tuple in the smaller aut
+			const StateTuple& tuple = tupleBddPair.first;
+			if (std::find(tuple.begin(), tuple.end(), procState) == tuple.end())
+			{	// if the tuple does not contain the processed state
+				continue;
+			}
 
-		for (size_t arity = 0; arity < smallerTuples.size(); ++arity)
-		{	// for each arity of left-hand side in the smaller aut
-			for (auto tupleIndexPair : smallerTuples[arity])
+			bool allElementsInAntichain = true;
+			for (size_t index = 0; index < tuple.size(); ++index)
 			{
-				// Assertions
-				assert(tupleIndexPair.first.size() == arity);
-
-				const StateTuple& tuple = tupleIndexPair.first;
-
-				bool allElementsInAntichain = true;
-				for (size_t index = 0; index < arity; ++index)
-				{
-					if (tuple[index] == procState)
-					{	// skip when it is the processed state
-						continue;
-					}
-
-					if (antichain.find(tuple[index]) == antichain.end())
-					{
-						allElementsInAntichain = false;
-						break;
-					}
-				}
-
-				if (!allElementsInAntichain)
-				{	// if the tuple is not reachable yet
+				if (tuple[index] == procState)
+				{	// skip when it is the processed state
 					continue;
 				}
 
-				// create a tuple of sets of states
-				StateSetTuple stateSetTuple(arity);
-				bool isEmpty = false;
-
-				for (size_t index = 0; index < arity; ++index)
+				if (antichain.find(tuple[index]) == antichain.end())
 				{
-					if (tuple[index] == procState)
-					{	// special processing for the processed state
-						stateSetTuple[index].insert(procSet.begin(), procSet.end());
-					}
-					else
-					{
-						auto keyRange = antichain.equal_range(tuple[index]);
-						assert(keyRange.first != antichain.end());
-
-						for (; keyRange.first != keyRange.second; ++(keyRange.first))
-						{
-							stateSetTuple[index].insert((keyRange.first)->second.begin(),
-								(keyRange.first)->second.end());
-						}
-					}
-
-					if (stateSetTuple[index].empty())
-					{
-						isEmpty = true;
-						break;
-					}
+					allElementsInAntichain = false;
+					break;
 				}
-
-				StateTupleSet tupleSet;
-
-				if (!isEmpty)
-				{	// if there are some tuples
-
-					// generate all tuples
-					ChoiceFunctionGenerator cfGen(stateSetTuple);
-					while (!cfGen.IsLast())
-					{	// for each choice function
-						tupleSet.insert(cfGen.GetNext());
-					}
-				}
-
-				Aut::ForeachUpSymbolFromTupleAndTupleSetDo(smaller, bigger, tuple,
-					tupleSet, upFctor);
 			}
+
+			if (!allElementsInAntichain)
+			{	// if the tuple is not reachable yet
+				continue;
+			}
+
+			// create a tuple of sets of states
+			StateSetTuple stateSetTuple(tuple.size());
+			bool isEmpty = false;
+
+			for (size_t index = 0; index < tuple.size(); ++index)
+			{
+				if (tuple[index] == procState)
+				{	// special processing for the processed state
+					stateSetTuple[index].insert(procSet.begin(), procSet.end());
+				}
+				else
+				{
+					auto keyRange = antichain.equal_range(tuple[index]);
+					assert(keyRange.first != antichain.end());
+
+					for (; keyRange.first != keyRange.second; ++(keyRange.first))
+					{
+						stateSetTuple[index].insert((keyRange.first)->second.begin(),
+							(keyRange.first)->second.end());
+					}
+				}
+
+				if (stateSetTuple[index].empty())
+				{
+					isEmpty = true;
+					break;
+				}
+			}
+
+			StateTupleSet tupleSet;
+
+			if (!isEmpty)
+			{	// if there are some tuples
+
+				// generate all tuples
+				ChoiceFunctionGenerator cfGen(stateSetTuple);
+				while (!cfGen.IsLast())
+				{	// for each choice function
+					tupleSet.insert(cfGen.GetNext());
+				}
+			}
+
+			Aut::ForeachUpSymbolFromTupleAndTupleSetDo(smaller, bigger, tuple,
+				tupleSet, upFctor);
 		}
 
 		if (!upFctor.InclusionHolds())

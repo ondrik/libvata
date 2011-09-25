@@ -32,7 +32,7 @@ BDDTopDownTreeAut VATA::Intersection(
 	typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
 	typedef std::pair<StateType, StateType> StatePair;
 	typedef std::map<StateType, StatePair> WorkSetType;
-	typedef AutBase::ProductTranslMap IntersectionTranslMap;
+	typedef VATA::Util::TranslatorWeak<AutBase::ProductTranslMap> StateTranslator;
 
 	GCC_DIAG_OFF(effc++)  // suppress non-virtual destructor warning
 	class IntersectionApplyFunctor :
@@ -42,17 +42,12 @@ BDDTopDownTreeAut VATA::Intersection(
 	GCC_DIAG_ON(effc++)
 	private:  // data members
 
-		BDDTopDownTreeAut& resultAut_;
-		IntersectionTranslMap& translMap_;
-		WorkSetType& workset_;
+		StateTranslator& transl_;
 
 	public:   // methods
 
-		IntersectionApplyFunctor(BDDTopDownTreeAut& resultAut,
-			IntersectionTranslMap& translMap, WorkSetType& workset) :
-			resultAut_(resultAut),
-			translMap_(translMap),
-			workset_(workset)
+		IntersectionApplyFunctor(StateTranslator& transl) :
+			transl_(transl)
 		{ }
 
 		StateTupleSet ApplyOperation(const StateTupleSet& lhs,
@@ -61,30 +56,16 @@ BDDTopDownTreeAut VATA::Intersection(
 			StateTupleSet result;
 
 			for (auto lhsTuple : lhs)
-			{	// for each tuple from LHS
+			{
 				for (auto rhsTuple : rhs)
-				{	// for each tuple from RHS
+				{
 					assert(lhsTuple.size() == rhsTuple.size());
 
 					StateTuple resultTuple;
 					for (size_t i = 0; i < lhsTuple.size(); ++i)
-					{	// for each position in the tuples
-						StatePair newPair = std::make_pair(lhsTuple[i], rhsTuple[i]);
-
-						StateType state;
-						IntersectionTranslMap::const_iterator itTransl;
-						if ((itTransl = translMap_.find(newPair)) != translMap_.end())
-						{	// if the pair is already known
-							state = itTransl->second;
-						}
-						else
-						{	// if the pair is new
-							state = resultAut_.AddState();
-							translMap_.insert(std::make_pair(newPair, state));
-							workset_.insert(std::make_pair(state, newPair));
-						}
-
-						resultTuple.push_back(state);
+					{
+						resultTuple.push_back(transl_(
+							std::make_pair(lhsTuple[i], rhsTuple[i])));
 					}
 
 					result.insert(resultTuple);
@@ -95,7 +76,7 @@ BDDTopDownTreeAut VATA::Intersection(
 		}
 	};
 
-	IntersectionTranslMap translMap;
+	AutBase::ProductTranslMap translMap;
 	if (pTranslMap == nullptr)
 	{	// if no translation map was given
 		pTranslMap = &translMap;
@@ -103,7 +84,14 @@ BDDTopDownTreeAut VATA::Intersection(
 
 	BDDTopDownTreeAut result;
 	WorkSetType workset;
+	StateType stateCnt;
 
+	StateTranslator stateTransl(*pTranslMap,
+		[&workset,&stateCnt](const StatePair& newPair) -> StateType
+		{
+			workset.insert(std::make_pair(stateCnt, newPair));
+			return stateCnt++;
+		});
 
 	for (auto lhsFst : lhs.GetFinalStates())
 	{	// iterate over LHS's final states
@@ -111,15 +99,12 @@ BDDTopDownTreeAut VATA::Intersection(
 		{	// iterate over RHS's final states
 			StatePair origStates = std::make_pair(lhsFst, rhsFst);
 
-			StateType newState = result.AddState();
+			StateType newState = stateTransl(origStates);
 			result.SetStateFinal(newState);
-
-			workset.insert(std::make_pair(newState, origStates));
-			pTranslMap->insert(std::make_pair(origStates, newState));
 		}
 	}
 
-	IntersectionApplyFunctor isect(result, *pTranslMap, workset);
+	IntersectionApplyFunctor isect(stateTransl);
 
 	while (!workset.empty())
 	{	// while there is something in the workset
@@ -127,16 +112,15 @@ BDDTopDownTreeAut VATA::Intersection(
 		const StatePair& procPair  = itWs->second;
 		const StateType& procState = itWs->first;
 
-		BDDTopDownTreeAut::TransMTBDD mtbdd = isect(lhs.getMtbdd(procPair.first),
-			rhs.getMtbdd(procPair.second));
+		BDDTopDownTreeAut::TransMTBDD mtbdd = isect(lhs.GetMtbdd(procPair.first),
+			rhs.GetMtbdd(procPair.second));
 
-		result.setMtbdd(procState, mtbdd);
+		result.SetMtbdd(procState, mtbdd);
 
 		// remove the processed state from the workset
 		workset.erase(itWs);
 	}
 
 	assert(result.isValid());
-
 	return result;
 }

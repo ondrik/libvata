@@ -33,6 +33,7 @@ BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut,
 	typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
 	typedef AutBase::StateToStateMap StateToStateMap;
 	typedef std::map<StateType, StateType> WorkSetType;
+	typedef AutBase::StateToStateTranslator StateTranslator;
 
 
 	GCC_DIAG_OFF(effc++)   // suppress missing virtual destructor warning
@@ -43,45 +44,25 @@ BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut,
 	GCC_DIAG_OFF(effc++)
 	private:  // data members
 
-		BDDTopDownTreeAut& resultAut_;
-		StateToStateMap& translMap_;
-		WorkSetType& workset_;
+		StateTranslator& trans_;
 
 	public:   // methods
 
-		UnreachableApplyFunctor(BDDTopDownTreeAut& resultAut, StateToStateMap& translMap,
-			WorkSetType& workset) :
-			resultAut_(resultAut),
-			translMap_(translMap),
-			workset_(workset)
+		UnreachableApplyFunctor(StateTranslator& trans) :
+			trans_(trans)
 		{ }
 
 		StateTupleSet ApplyOperation(const StateTupleSet& value)
 		{
 			StateTupleSet result;
 
-			for (StateTupleSet::const_iterator itVal = value.begin();
-				itVal != value.end(); ++itVal)
+			for (const StateTuple& tuple : value)
 			{	// for each tuple from the leaf
 				StateTuple resultTuple;
-				for (size_t i = 0; i < itVal->size(); ++i)
+				for (StateTuple::const_iterator itTup = tuple.begin();
+					itTup != tuple.end(); ++itTup)
 				{	// for each position in the tuple
-					const StateType& state = (*itVal)[i];
-
-					StateType newState;
-					StateToStateMap::const_iterator itTransl;
-					if ((itTransl = translMap_.find(state)) != translMap_.end())
-					{	// if the pair is already known
-						newState = itTransl->second;
-					}
-					else
-					{	// if the pair is new
-						newState = resultAut_.AddState();
-						translMap_.insert(std::make_pair(state, newState));
-						workset_.insert(std::make_pair(newState, state));
-					}
-
-					resultTuple.push_back(newState);
+					resultTuple.push_back(trans_(*itTup));
 				}
 
 				result.insert(resultTuple);
@@ -91,9 +72,6 @@ BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut,
 		}
 	};
 
-	BDDTopDownTreeAut result(aut.GetTransTable());
-	WorkSetType workset;
-
 	StateToStateMap translMap;
 	if (pTranslMap == nullptr)
 	{	// in case the state translation map was not provided
@@ -102,14 +80,23 @@ BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut,
 
 	assert(pTranslMap->empty());
 
-	UnreachableApplyFunctor unreach(result, *pTranslMap, workset);
+
+	BDDTopDownTreeAut result(aut.GetTransTable());
+	WorkSetType workset;
+	StateType stateCnt;
+
+	StateTranslator stateTransl(*pTranslMap,
+		[&workset,&stateCnt](const StateType& newState) -> StateType
+		{
+			workset.insert(std::make_pair(newState, stateCnt));
+			return stateCnt++;
+		});
+
+	UnreachableApplyFunctor unreach(stateTransl);
 
 	for (auto fst : aut.GetFinalStates())
 	{	// start from all final states of the original automaton
-		StateType newState = result.AddState();
-		result.SetStateFinal(newState);
-		workset.insert(std::make_pair(newState, fst));
-		pTranslMap->insert(std::make_pair(fst, newState));
+		result.SetStateFinal(stateTransl(fst));
 	}
 
 	while (!workset.empty())
@@ -118,14 +105,13 @@ BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut,
 		const StateType& newState = itWs->first;
 		const StateType& oldState = itWs->second;
 
-		BDDTopDownTreeAut::TransMTBDD mtbdd = unreach(aut.getMtbdd(oldState));
+		BDDTopDownTreeAut::TransMTBDD mtbdd = unreach(aut.GetMtbdd(oldState));
 
-		result.setMtbdd(newState, mtbdd);
+		result.SetMtbdd(newState, mtbdd);
 
 		workset.erase(itWs);
 	}
 
 	assert(result.isValid());
-
 	return result;
 }
