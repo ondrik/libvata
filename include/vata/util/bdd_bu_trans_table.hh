@@ -76,7 +76,11 @@ public:   // methods
 
 	inline void SetMtbdd(const StateTuple& tuple, const MTBDD& bdd)
 	{
-		mtbddMap_.insert(std::make_pair(tuple, bdd));
+		auto itBoolPair = mtbddMap_.insert(std::make_pair(tuple, bdd));
+		if (!itBoolPair.second)
+		{	// in case there already is something
+			(itBoolPair.first)->second = bdd;
+		}
 	}
 
 	inline void RemoveMtbdd(const StateTuple& tuple)
@@ -90,11 +94,6 @@ public:   // methods
 	inline const TupleMap& GetTupleMap() const
 	{
 		return mtbddMap_;
-	}
-
-	inline ~BDDBottomUpTransTable()
-	{
-		assert(mtbddMap_.empty());
 	}
 };
 
