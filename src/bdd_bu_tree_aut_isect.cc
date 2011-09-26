@@ -14,6 +14,7 @@
 
 using VATA::AutBase;
 using VATA::BDDBottomUpTreeAut;
+using VATA::Util::Convert;
 
 BDDBottomUpTreeAut VATA::Intersection(const BDDBottomUpTreeAut& lhs,
 	const BDDBottomUpTreeAut& rhs, AutBase::ProductTranslMap* pTranslMap)
@@ -148,6 +149,7 @@ BDDBottomUpTreeAut VATA::Intersection(const BDDBottomUpTreeAut& lhs,
 					if (arityIndex == i)
 					{
 						tuple.push_back(newState);
+						continue;
 					}
 
 					IntersectionTranslMap::const_iterator itTable;
