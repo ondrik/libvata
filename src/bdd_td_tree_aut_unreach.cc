@@ -16,6 +16,7 @@
 
 using VATA::AutBase;
 using VATA::BDDTopDownTreeAut;
+using VATA::Util::Convert;
 
 // Standard library headers
 #include <unordered_map>
@@ -81,7 +82,7 @@ BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut,
 	assert(pTranslMap->empty());
 
 
-	BDDTopDownTreeAut result(aut.GetTransTable());
+	BDDTopDownTreeAut result;
 	WorkSetType workset;
 	StateType stateCnt = 0;
 
@@ -102,8 +103,8 @@ BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut,
 	while (!workset.empty())
 	{	// while there is something in the workset
 		WorkSetType::iterator itWs = workset.begin();
-		const StateType& newState = itWs->first;
-		const StateType& oldState = itWs->second;
+		const StateType& oldState = itWs->first;
+		const StateType& newState = itWs->second;
 
 		result.SetMtbdd(newState, unreach(aut.GetMtbdd(oldState)));
 
