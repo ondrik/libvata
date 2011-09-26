@@ -1,5 +1,5 @@
 BUILD_DIR=build
-#MAKE_FLAGS=-j
+MAKE_FLAGS=-j
 
 .PHONY: all debug release doc clean
 
