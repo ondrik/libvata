@@ -83,7 +83,7 @@ BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut,
 
 	BDDTopDownTreeAut result(aut.GetTransTable());
 	WorkSetType workset;
-	StateType stateCnt;
+	StateType stateCnt = 0;
 
 	StateTranslator stateTransl(*pTranslMap,
 		[&workset,&stateCnt](const StateType& newState) -> StateType
@@ -105,9 +105,7 @@ BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut,
 		const StateType& newState = itWs->first;
 		const StateType& oldState = itWs->second;
 
-		BDDTopDownTreeAut::TransMTBDD mtbdd = unreach(aut.GetMtbdd(oldState));
-
-		result.SetMtbdd(newState, mtbdd);
+		result.SetMtbdd(newState, unreach(aut.GetMtbdd(oldState)));
 
 		workset.erase(itWs);
 	}

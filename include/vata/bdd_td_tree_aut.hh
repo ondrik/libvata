@@ -254,10 +254,8 @@ private:  // methods
 		for (auto stateBddPair : GetStates())
 		{	// for all states
 			const StateType& state = stateBddPair.first;
-			std::string stateStr;
 
-			// copy the state
-			stateStr = stateBackTranslator(state);
+			std::string stateStr = stateBackTranslator(state);
 
 			desc.states.insert(stateStr);
 

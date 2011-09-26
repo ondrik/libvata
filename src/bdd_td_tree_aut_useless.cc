@@ -276,7 +276,7 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut,
 
 	BDDTopDownTreeAut result(aut.GetTransTable());
 	StatePairStack workStack;
-	StateType stateCnt;
+	StateType stateCnt = 0;
 
 	StateTranslator stateTransl(*pTranslMap,
 		[&workStack,&stateCnt](const StateType& newState) -> StateType
