@@ -14,6 +14,7 @@
 #include <vata/mtbdd/apply1func.hh>
 
 using VATA::BDDTopDownTreeAut;
+using VATA::Util::Convert;
 
 // Standard library headers
 #include <unordered_map>

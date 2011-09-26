@@ -326,7 +326,7 @@ public:   // public methods
 	}
 
 	BDDTopDownTreeAut(const BDDTopDownTreeAut& aut) :
-		finalStates_(),
+		finalStates_(aut.finalStates_),
 		transTable_(aut.transTable_)
 	{
 		// Assertions
