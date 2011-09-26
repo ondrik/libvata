@@ -161,11 +161,10 @@ private:  // methods
 		assert(isValid());
 	}
 
-
-	template <class StateBackTransFunc, class SymbolBackTransFunc>
-	AutDescription dumpToAutDescExplicit(
-		StateBackTransFunc stateBackTranslator,
-		SymbolBackTransFunc /* symbolBackTranslator */) const
+	template <class StateBackTransFunc>
+	inline void dumpBddToAutDescExplicit(AutDescription& desc,
+		const StateTuple& tuple, const TransMTBDD& bdd,
+		StateBackTransFunc stateBackTranslator) const
 	{
 		GCC_DIAG_OFF(effc++)
 		class CondColApplyFunctor :
@@ -207,6 +206,40 @@ private:  // methods
 			}
 		};
 
+		std::vector<std::string> tupleStr;
+		CondColApplyFunctor collector;
+
+		for (auto state : tuple)
+		{
+			std::string stateStr = stateBackTranslator(state);
+
+			tupleStr.push_back(stateStr);
+			desc.states.insert(stateStr);
+		}
+
+		for (auto sym : GetSymbolDict())
+		{	// iterate over all known symbols
+			const std::string& symbol = sym.first;
+			BDD symbolBdd(sym.second, true, false);
+
+			collector.Clear();
+			collector(bdd, symbolBdd);
+
+			for (auto state : collector.GetAccumulator())
+			{	// for each state tuple for which there is a transition
+				std::string stateStr = stateBackTranslator(state);
+
+				desc.transitions.insert(AutDescription::Transition(tupleStr, symbol,
+					stateStr));
+			}
+		}
+	}
+
+	template <class StateBackTransFunc, class SymbolBackTransFunc>
+	AutDescription dumpToAutDescExplicit(
+		StateBackTransFunc stateBackTranslator,
+		SymbolBackTransFunc /* symbolBackTranslator */) const
+	{
 		AutDescription desc;
 
 		// copy final states
@@ -215,41 +248,14 @@ private:  // methods
 			desc.finalStates.insert(stateBackTranslator(fst));
 		}
 
-		CondColApplyFunctor collector;
+		// for the nullary transition
+		dumpBddToAutDescExplicit(desc, StateTuple(),
+			nullaryMtbdd_, stateBackTranslator);
 
-		// copy states, transitions and symbols
 		for (auto tupleHandlePair : transTable_->GetTupleMap())
-		{	// for all states
-			const StateTuple& children = tupleHandlePair.first;
-
-			std::vector<std::string> tupleStr;
-
-			for (auto state : children)
-			{
-				std::string stateStr = stateBackTranslator(state);
-
-				tupleStr.push_back(stateStr);
-				desc.states.insert(stateStr);
-			}
-
-			const TransMTBDD& transMtbdd = tupleHandlePair.second;
-
-			for (auto sym : GetSymbolDict())
-			{	// iterate over all known symbols
-				const std::string& symbol = sym.first;
-				BDD symbolBdd(sym.second, true, false);
-
-				collector.Clear();
-				collector(transMtbdd, symbolBdd);
-
-				for (auto state : collector.GetAccumulator())
-				{	// for each state tuple for which there is a transition
-					std::string stateStr = stateBackTranslator(state);
-
-					desc.transitions.insert(AutDescription::Transition(tupleStr, symbol,
-						stateStr));
-				}
-			}
+		{	// for regular transitions
+			dumpBddToAutDescExplicit(desc, tupleHandlePair.first,
+				tupleHandlePair.second, stateBackTranslator);
 		}
 
 		return desc;
@@ -341,14 +347,17 @@ public:   // methods
 		assert(isValid());
 		assert(symbol.length() == SYMBOL_SIZE);
 
-		assert(false);
 		if (transTable_.unique())
 		{
+			UnionApplyFunctor unioner;
 
+			const TransMTBDD& oldMtbdd = GetMtbdd(children);
+			TransMTBDD addedMtbdd(symbol, StateSet(parent), StateSet());
+			SetMtbdd(children, unioner(oldMtbdd, addedMtbdd));
 		}
 		else
-		{
-
+		{	// copy on write
+			assert(false);
 		}
 
 		UnionApplyFunctor unioner;
