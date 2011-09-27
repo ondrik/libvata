@@ -20,9 +20,8 @@ using VATA::BDDBottomUpTreeAut;
 bool VATA::CheckInclusionNoUseless(const BDDBottomUpTreeAut& smaller,
 	const BDDBottomUpTreeAut& bigger)
 {
-	// Assertions
-	assert(smaller.isValid());
-	assert(bigger.isValid());
+	assert(&smaller != nullptr);
+	assert(&bigger != nullptr);
 
 	throw std::runtime_error("Unimplemented");
 }
@@ -30,10 +29,6 @@ bool VATA::CheckInclusionNoUseless(const BDDBottomUpTreeAut& smaller,
 bool VATA::CheckInclusion(const BDDBottomUpTreeAut& smaller,
 	const BDDBottomUpTreeAut& bigger)
 {
-	// Assertions
-	assert(smaller.isValid());
-	assert(bigger.isValid());
-
 	return CheckUpwardTreeInclusion<BDDBottomUpTreeAut,
 		VATA::UpwardInclusionFunctor>(smaller, bigger);
 }

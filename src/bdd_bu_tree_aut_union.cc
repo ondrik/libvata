@@ -23,10 +23,6 @@ BDDBottomUpTreeAut VATA::Union(const BDDBottomUpTreeAut& lhs,
 	const BDDBottomUpTreeAut& rhs, AutBase::StateToStateMap* pTranslMapLhs,
 	AutBase::StateToStateMap* pTranslMapRhs)
 {
-	// Assertions
-	assert(lhs.isValid());
-	assert(rhs.isValid());
-
 	typedef BDDBottomUpTreeAut::StateType StateType;
 	typedef BDDBottomUpTreeAut::StateTuple StateTuple;
 	typedef BDDBottomUpTreeAut::StateSet StateSet;
@@ -47,7 +43,6 @@ BDDBottomUpTreeAut VATA::Union(const BDDBottomUpTreeAut& lhs,
 
 		result.SetMtbdd(tuple, unionFunc(lhsMTBDD, rhsMTBDD));
 
-		assert(result.isValid());
 		return result;
 	}
 	else
@@ -85,7 +80,6 @@ BDDBottomUpTreeAut VATA::Union(const BDDBottomUpTreeAut& lhs,
 
 		result.SetMtbdd(StateTuple(), unionFunc(lhsMtbdd, rhsMtbdd));
 
-		assert(result.isValid());
 		return result;
 	}
 }

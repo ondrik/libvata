@@ -23,9 +23,7 @@ using VATA::Util::Convert;
 BDDBottomUpTreeAut VATA::RemoveUselessStates(const BDDBottomUpTreeAut& aut,
 	AutBase::StateToStateMap* pTranslMap)
 {
-	// Assertions
-	assert(aut.isValid());
-
+	assert(&aut != nullptr);
 	assert(pTranslMap != nullptr);
 	throw std::runtime_error("Unimplemented");
 }

@@ -19,9 +19,7 @@ using VATA::BDDBottomUpTreeAut;
 BDDBottomUpTreeAut VATA::RemoveUnreachableStates(const BDDBottomUpTreeAut& aut,
 	AutBase::StateToStateMap* pTranslMap)
 {
-	// Assertions
-	assert(aut.isValid());
-
+	assert(&aut != nullptr);
 	assert(pTranslMap != nullptr);
 	throw std::runtime_error("Unimplemented");
 }

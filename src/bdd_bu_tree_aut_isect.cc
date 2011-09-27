@@ -19,10 +19,6 @@ using VATA::Util::Convert;
 BDDBottomUpTreeAut VATA::Intersection(const BDDBottomUpTreeAut& lhs,
 	const BDDBottomUpTreeAut& rhs, AutBase::ProductTranslMap* pTranslMap)
 {
-	// Assertions
-	assert(lhs.isValid());
-	assert(rhs.isValid());
-
 	typedef BDDBottomUpTreeAut::StateType StateType;
 	typedef BDDBottomUpTreeAut::StateTuple StateTuple;
 	typedef BDDBottomUpTreeAut::StateSet StateSet;
