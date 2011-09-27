@@ -38,6 +38,12 @@ namespace VATA
 
 	bool CheckInclusionNoUseless(const BDDBottomUpTreeAut& smaller,
 		const BDDBottomUpTreeAut& bigger);
+
+	inline bool CheckEquivalence(const BDDBottomUpTreeAut& lhs,
+		const BDDBottomUpTreeAut& rhs)
+	{
+		return CheckInclusion(lhs, rhs) && CheckInclusion(rhs, lhs);
+	}
 }
 
 #endif

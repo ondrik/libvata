@@ -158,16 +158,16 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	{
 		if (args.operands >= 1)
 		{
-			autInput1 = RemoveUnreachableStates(autInput1, &translMap1);
+			autInput1 = RemoveUnreachableStates(autInput1);
 		}
 
 		if (args.operands >= 2)
 		{
-			autInput2 = RemoveUnreachableStates(autInput2, &translMap2);
+			autInput2 = RemoveUnreachableStates(autInput2);
 		}
 	}
 
-	if (args.pruneUseless || args.pruneUnreachable)
+	if (args.pruneUseless)
 	{
 		if (args.operands >= 1)
 		{

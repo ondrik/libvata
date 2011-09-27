@@ -60,6 +60,8 @@ const fs::path INTERSECTION_TIMBUK_FILE =
 const fs::path ADD_TRANS_TIMBUK_FILE =
 	AUT_DIR / "add_trans_timbuk.txt";
 
+const fs::path INVERT_TIMBUK_FILE =
+	AUT_DIR / "invert_timbuk.txt";
 
 /******************************************************************************
  *                                  Fixtures                                  *
@@ -110,9 +112,17 @@ protected:// methods
 		AutType::SetNextSymbolPtr(&nextSymbol_);
 	}
 
-	void readAut(AutType& aut, StringToStateDict& stateDict, const std::string& str)
+	template <class Automaton>
+	void readAut(Automaton& aut, StringToStateDict& stateDict, const std::string& str)
 	{
 		aut.LoadFromString(parser_, str, stateDict);
+	}
+
+	template <class Automaton>
+	void readAut(Automaton& aut, const std::string& str)
+	{
+		StringToStateDict dict;
+		readAut(aut, dict, str);
 	}
 
 	template <class Automaton>
@@ -456,9 +466,7 @@ BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
 		AutDescription autDesc = parser_.ParseString(autStr);
 
 		StateToStateMap translMap;
-		AutType autNoUnreach = VATA::RemoveUnreachableStates(aut, &translMap);
-
-		stateDict = VATA::Util::RebindMap(stateDict, translMap);
+		AutType autNoUnreach = VATA::RemoveUnreachableStates(aut);
 		std::string autNoUnreachStr = dumpAut(autNoUnreach, stateDict);
 
 		AutDescription descOutNoUnreach = parser_.ParseString(autNoUnreachStr);
@@ -497,9 +505,7 @@ BOOST_AUTO_TEST_CASE(aut_remove_useless)
 		AutType autNoUseless = VATA::RemoveUselessStates(aut, &translMap);
 		stateDict = VATA::Util::RebindMap(stateDict, translMap);
 		translMap.clear();
-		autNoUseless = VATA::RemoveUnreachableStates(autNoUseless, &translMap);
-
-		stateDict = VATA::Util::RebindMap(stateDict, translMap);
+		autNoUseless = VATA::RemoveUnreachableStates(autNoUseless);
 		std::string autNoUselessStr = dumpAut(autNoUseless, stateDict);
 
 		AutDescription descOutNoUseless = parser_.ParseString(autNoUselessStr);

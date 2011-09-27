@@ -47,8 +47,7 @@ GCC_DIAG_ON(effc++)
 	friend BDDTopDownTreeAut Intersection(const BDDTopDownTreeAut&,
 		const BDDTopDownTreeAut&, AutBase::ProductTranslMap*);
 
-	friend BDDTopDownTreeAut RemoveUnreachableStates(const BDDTopDownTreeAut&,
-		AutBase::StateToStateMap*);
+	friend BDDTopDownTreeAut RemoveUnreachableStates(const BDDTopDownTreeAut&);
 
 	friend BDDTopDownTreeAut RemoveUselessStates(const BDDTopDownTreeAut&,
 		AutBase::StateToStateMap*);

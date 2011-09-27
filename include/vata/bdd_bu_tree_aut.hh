@@ -68,15 +68,215 @@ private:  // data types
 	typedef size_t MTBDDHandle;
 	typedef VATA::MTBDDPkg::OndriksMTBDD<bool> BDD;
 
-	typedef VATA::Util::BDDBottomUpTransTable<MTBDDHandle, StateSet> TransTable;
-	typedef std::shared_ptr<TransTable> TransTablePtr;
-
-	typedef typename TransTable::TupleMap TupleMap;
-
 	typedef VATA::Util::AutDescription AutDescription;
 
 
 	typedef VATA::Util::Convert Convert;
+
+	class TransTableWrapper
+	{
+	private:  // data types
+
+		typedef VATA::Util::BDDBottomUpTransTable<MTBDDHandle, StateSet> Table;
+
+		typedef typename Table::TupleMap::key_type key_type;
+		typedef typename Table::TupleMap::mapped_type mapped_type;
+		typedef typename Table::TupleMap::value_type value_type;
+
+		typedef std::shared_ptr<Table> TablePtr;
+
+		template <class TupleMapIterator>
+		class generic_iterator
+		{
+		private:  // data members
+
+			bool isNullary_;
+			const TransTableWrapper& tableWrap_;
+			TupleMapIterator itTupleMap_;
+
+		public:   // methods
+
+			inline bool operator==(const generic_iterator& rhs) const
+			{
+				bool match = isNullary_ == rhs.isNullary_;
+				return match && (isNullary_ || (itTupleMap_ == rhs.itTupleMap_));
+			}
+
+			inline bool operator!=(const generic_iterator& rhs) const
+			{
+				return !operator==(rhs);
+			}
+
+			inline generic_iterator& operator++()
+			{
+				if (isNullary_)
+				{
+					isNullary_ = false;
+				}
+				else
+				{
+					++itTupleMap_;
+				}
+
+				return *this;
+			}
+
+		protected:// methods
+
+			explicit generic_iterator(const TransTableWrapper& tableWrap, bool isBegin) :
+				isNullary_(isBegin),
+				tableWrap_(tableWrap),
+				itTupleMap_(isBegin? tableWrap.table_->GetTupleMap().begin() :
+					tableWrap.table_->GetTupleMap().end())
+			{ }
+
+#if 0
+			inline value_type refOp()
+			{
+				if (isNullary_)
+				{
+					assert(false);
+				}
+				else
+				{
+					return *itTupleMap_;
+				}
+			}
+#endif
+
+			inline value_type constRefOp() const
+			{
+				if (isNullary_)
+				{
+					return std::make_pair(StateTuple(), tableWrap_.nullaryMtbdd_);
+				}
+				else
+				{
+					return *itTupleMap_;
+				}
+			}
+
+		};
+
+	public:   // data types
+
+#if 0
+		GCC_DIAG_OFF(effc++)
+		class iterator :
+			public generic_iterator<typename Table::TupleMap::iterator>
+		{
+		GCC_DIAG_ON(effc++)
+
+		public:   // methods
+
+			iterator(const typename Table::TupleMap::iterator& iter, bool isNullary) :
+				generic_iterator(iter, isNullary)
+			{ }
+
+			inline value_type& operator*()
+			{
+				return refOp();
+			}
+		};
+#endif
+
+		GCC_DIAG_OFF(effc++)
+		class const_iterator :
+			public generic_iterator<typename Table::TupleMap::const_iterator>
+		{
+		GCC_DIAG_ON(effc++)
+
+		public:   // methods
+
+			const_iterator(const TransTableWrapper& tableWrap, bool isBegin) :
+				generic_iterator(tableWrap, isBegin)
+			{ }
+
+			inline value_type operator*() const
+			{
+				return constRefOp();
+			}
+		};
+
+	private:  // data members
+
+		TablePtr table_;
+		TransMTBDD nullaryMtbdd_;
+
+	public:   // methods
+
+		inline TransTableWrapper() :
+			table_(new Table),
+			nullaryMtbdd_(StateSet())
+		{ }
+
+		inline explicit TransTableWrapper(TablePtr& table) :
+			table_(table),
+			nullaryMtbdd_(StateSet())
+		{ }
+
+		inline TransTableWrapper(TablePtr& table, const TransMTBDD& nullaryMtbdd) :
+			table_(table),
+			nullaryMtbdd_(nullaryMtbdd)
+		{ }
+
+		inline const TransMTBDD& GetMtbdd(const StateTuple& children) const
+		{
+			if (children.empty())
+			{
+				return nullaryMtbdd_;
+			}
+			else
+			{
+				return table_->GetMtbdd(children);
+			}
+		}
+
+		inline void SetMtbdd(const StateTuple& children, const TransMTBDD& mtbdd)
+		{
+			if (children.empty())
+			{
+				nullaryMtbdd_ = mtbdd;;
+			}
+			else
+			{
+				table_->SetMtbdd(children, mtbdd);
+			}
+		}
+
+		inline TablePtr GetTable() const
+		{
+			return table_;
+		}
+
+		inline bool unique() const
+		{
+			return table_.unique();
+		}
+
+		inline const_iterator begin() const
+		{
+			return const_iterator(*this, true);
+		}
+
+		inline const_iterator cbegin() const
+		{
+			return begin();
+		}
+
+		inline const_iterator end() const
+		{
+			return const_iterator(*this, false);
+		}
+
+		inline const_iterator cend() const
+		{
+			return end();
+		}
+	};
+
+	typedef TransTableWrapper TransTable;
+
 
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class UnionApplyFunctor :
@@ -99,8 +299,7 @@ private:  // constants
 private:  // data members
 
 	StateHT finalStates_;
-	TransTablePtr transTable_;
-	TransMTBDD nullaryMtbdd_;
+	TransTable transTable_;
 
 private:  // methods
 
@@ -144,10 +343,10 @@ private:  // methods
 		assert(false);
 	}
 
-	template <class StateBackTransFunc>
-	inline void dumpBddToAutDescExplicit(AutDescription& desc,
-		const StateTuple& tuple, const TransMTBDD& bdd,
-		StateBackTransFunc stateBackTranslator) const
+	template <class StateBackTransFunc, class SymbolBackTransFunc>
+	AutDescription dumpToAutDescExplicit(
+		StateBackTransFunc stateBackTranslator,
+		SymbolBackTransFunc /* symbolBackTranslator */) const
 	{
 		GCC_DIAG_OFF(effc++)
 		class CondColApplyFunctor :
@@ -189,40 +388,6 @@ private:  // methods
 			}
 		};
 
-		std::vector<std::string> tupleStr;
-		CondColApplyFunctor collector;
-
-		for (auto state : tuple)
-		{
-			std::string stateStr = stateBackTranslator(state);
-
-			tupleStr.push_back(stateStr);
-			desc.states.insert(stateStr);
-		}
-
-		for (auto sym : GetSymbolDict())
-		{	// iterate over all known symbols
-			const std::string& symbol = sym.first;
-			BDD symbolBdd(sym.second, true, false);
-
-			collector.Clear();
-			collector(bdd, symbolBdd);
-
-			for (auto state : collector.GetAccumulator())
-			{	// for each state tuple for which there is a transition
-				std::string stateStr = stateBackTranslator(state);
-
-				desc.transitions.insert(AutDescription::Transition(tupleStr, symbol,
-					stateStr));
-			}
-		}
-	}
-
-	template <class StateBackTransFunc, class SymbolBackTransFunc>
-	AutDescription dumpToAutDescExplicit(
-		StateBackTransFunc stateBackTranslator,
-		SymbolBackTransFunc /* symbolBackTranslator */) const
-	{
 		AutDescription desc;
 
 		// copy final states
@@ -231,14 +396,41 @@ private:  // methods
 			desc.finalStates.insert(stateBackTranslator(fst));
 		}
 
-		// for the nullary transition
-		dumpBddToAutDescExplicit(desc, StateTuple(),
-			nullaryMtbdd_, stateBackTranslator);
+		CondColApplyFunctor collector;
 
-		for (auto tupleHandlePair : transTable_->GetTupleMap())
-		{	// for regular transitions
-			dumpBddToAutDescExplicit(desc, tupleHandlePair.first,
-				tupleHandlePair.second, stateBackTranslator);
+		// copy states, transitions and symbols
+		for (auto tupleBddPair : GetTransTable())
+		{	// for all states
+			const StateTuple& children = tupleBddPair.first;
+
+			std::vector<std::string> tupleStr;
+
+			for (auto state : children)
+			{
+				std::string stateStr = stateBackTranslator(state);
+
+				tupleStr.push_back(stateStr);
+				desc.states.insert(stateStr);
+			}
+
+			const TransMTBDD& transMtbdd = tupleBddPair.second;
+
+			for (auto sym : GetSymbolDict())
+			{	// iterate over all known symbols
+				const std::string& symbol = sym.first;
+				BDD symbolBdd(sym.second, true, false);
+
+				collector.Clear();
+				collector(transMtbdd, symbolBdd);
+
+				for (auto state : collector.GetAccumulator())
+				{	// for each state tuple for which there is a transition
+					std::string stateStr = stateBackTranslator(state);
+
+					desc.transitions.insert(AutDescription::Transition(tupleStr, symbol,
+						stateStr));
+				}
+			}
 		}
 
 		return desc;
@@ -256,26 +448,22 @@ public:   // methods
 
 	BDDBottomUpTreeAut() :
 		finalStates_(),
-		transTable_(new TransTable),
-		nullaryMtbdd_(StateSet())
+		transTable_()
 	{ }
 
-	BDDBottomUpTreeAut(TransTablePtr transTable) :
+	BDDBottomUpTreeAut(const TransTable& transTable) :
 		finalStates_(),
-		transTable_(transTable),
-		nullaryMtbdd_(StateSet())
+		transTable_(transTable)
 	{ }
 
 	BDDBottomUpTreeAut(const BDDBottomUpTreeAut& aut) :
 		finalStates_(aut.finalStates_),
-		transTable_(aut.transTable_),
-		nullaryMtbdd_(aut.nullaryMtbdd_)
+		transTable_(aut.transTable_)
 	{ }
 
 	BDDBottomUpTreeAut(BDDBottomUpTreeAut&& aut) :
 		finalStates_(std::move(aut.finalStates_)),
-		transTable_(std::move(aut.transTable_)),
-		nullaryMtbdd_(std::move(aut.nullaryMtbdd_))
+		transTable_(std::move(aut.transTable_))
 	{ }
 
 	BDDBottomUpTreeAut& operator=(const BDDBottomUpTreeAut& rhs)
@@ -284,7 +472,6 @@ public:   // methods
 		{
 			finalStates_ = rhs.finalStates_;
 			transTable_ = rhs.transTable_;
-			nullaryMtbdd_ = rhs.nullaryMtbdd_;
 		}
 
 		return *this;
@@ -296,15 +483,14 @@ public:   // methods
 		{
 			finalStates_ = std::move(rhs.finalStates_);
 			transTable_ = std::move(rhs.transTable_);
-			nullaryMtbdd_ = std::move(rhs.nullaryMtbdd_);
 		}
 
 		return *this;
 	}
 
-	inline TransTablePtr& GetTransTable() const
+	inline const TransTable& GetTransTable() const
 	{
-		return const_cast<TransTablePtr&>(transTable_);
+		return transTable_;
 	}
 
 
@@ -350,11 +536,6 @@ public:   // methods
 	inline const StateHT& GetFinalStates() const
 	{
 		return finalStates_;
-	}
-
-	inline const TupleMap& GetTuples() const
-	{
-		return transTable_->GetTupleMap();
 	}
 
 	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
@@ -422,7 +603,7 @@ public:   // methods
 	std::string DumpToDot() const
 	{
 		std::vector<const TransMTBDD*> tupleVec;
-		for (auto tupleHandlePair : transTable_->GetTupleMap())
+		for (auto tupleHandlePair : transTable_)
 		{
 			tupleVec.push_back(&tupleHandlePair.second);
 		}
@@ -430,8 +611,7 @@ public:   // methods
 		return TransMTBDD::DumpToDot(tupleVec);
 	}
 
-	BDDTopDownTreeAut GetTopDownAut(StateToStateMap* pTranslMap = nullptr) const;
-
+	BDDTopDownTreeAut GetTopDownAut() const;
 
 	template <class OperationFunc>
 	static void ForeachUpSymbolFromTupleAndTupleSetDo(
@@ -486,26 +666,12 @@ public:   // methods
 
 	inline const TransMTBDD& GetMtbdd(const StateTuple& children) const
 	{
-		if (children.empty())
-		{
-			return nullaryMtbdd_;
-		}
-		else
-		{
-			return transTable_->GetMtbdd(children);
-		}
+		return transTable_.GetMtbdd(children);
 	}
 
 	inline void SetMtbdd(const StateTuple& children, const TransMTBDD& mtbdd)
 	{
-		if (children.empty())
-		{
-			nullaryMtbdd_ = mtbdd;;
-		}
-		else
-		{
-			transTable_->SetMtbdd(children, mtbdd);
-		}
+		transTable_.SetMtbdd(children, mtbdd);
 	}
 
 	inline TransMTBDD ReindexStates(BDDBottomUpTreeAut& dstAut,
@@ -541,7 +707,7 @@ public:   // methods
 		};
 
 		RewriteApplyFunctor rewriter(stateTrans);
-		for (auto tupleBddPair : GetTuples())
+		for (auto tupleBddPair : transTable_)
 		{
 			const StateTuple& oldTuple = tupleBddPair.first;
 			StateTuple newTuple;
@@ -556,6 +722,12 @@ public:   // methods
 		}
 
 		return rewriter(GetMtbdd(StateTuple()));
+	}
+
+	static inline bool ShareTransTable(const BDDBottomUpTreeAut& lhs,
+		const BDDBottomUpTreeAut& rhs)
+	{
+		return lhs.transTable_.GetTable() == rhs.transTable_.GetTable();
 	}
 };
 

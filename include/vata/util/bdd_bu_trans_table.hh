@@ -41,12 +41,8 @@ public:   // data types
 
 	typedef State StateType;
 	typedef std::vector<StateType> StateTuple;
-
-private:  // data types
-
 	typedef Leaf LeafType;
 	typedef VATA::MTBDDPkg::OndriksMTBDD<LeafType> MTBDD;
-
 	typedef std::unordered_map<StateTuple, MTBDD, boost::hash<StateTuple>>
 		TupleMap;
 

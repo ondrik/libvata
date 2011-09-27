@@ -13,6 +13,7 @@
 #include <vata/bdd_bu_tree_aut.hh>
 #include <vata/bdd_bu_tree_aut_op.hh>
 #include <vata/bdd_td_tree_aut.hh>
+#include <vata/bdd_td_tree_aut_op.hh>
 
 class AutTypeFixture
 {
@@ -44,7 +45,7 @@ protected:// methods
 BOOST_AUTO_TEST_CASE(aut_inversion)
 {
 	AutTypeInverted::SetSymbolDictPtr(&AutType::GetSymbolDict());
-	auto testfileContent = ParseTestFile(LOAD_TIMBUK_FILE.string());
+	auto testfileContent = ParseTestFile(INVERT_TIMBUK_FILE.string());
 
 	for (auto testcase : testfileContent)
 	{
@@ -58,16 +59,17 @@ BOOST_AUTO_TEST_CASE(aut_inversion)
 		StringToStateDict stateDict;
 		AutType aut;
 		readAut(aut, stateDict, autStr);
-		StateToStateMap translMap;
-		AutTypeInverted invertAut = aut.GetTopDownAut(&translMap);
+		AutTypeInverted invertAut = aut.GetTopDownAut();
 
-		stateDict = VATA::Util::RebindMap(stateDict, translMap);
+		AutTypeInverted refAut;
+		readAut(refAut, stateDict, autStr);
+		refAut = RemoveUnreachableStates(refAut);
+
 		std::string autOut = dumpAut(invertAut, stateDict);
 
-		AutDescription descOrig = parser_.ParseString(autStr);
-		AutDescription descOut = parser_.ParseString(autOut);
-
-		BOOST_CHECK_MESSAGE(descOrig == descOut,
+//		AutDescription descOrig = parser_.ParseString(autStr);
+//		AutDescription descOut = parser_.ParseString(autOut);
+		BOOST_CHECK_MESSAGE(CheckEquivalence(invertAut, refAut),
 			"\n\nExpecting:\n===========\n" +
 			std::string(autStr) +
 			"===========\n\nGot:\n===========\n" + autOut + "\n===========");
@@ -75,4 +77,3 @@ BOOST_AUTO_TEST_CASE(aut_inversion)
 }
 
 BOOST_AUTO_TEST_SUITE_END()
-

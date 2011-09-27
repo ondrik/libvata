@@ -21,12 +21,8 @@ using VATA::Util::AutDescription;
 using VATA::Util::Convert;
 
 
-BDDTopDownTreeAut BDDBottomUpTreeAut::GetTopDownAut(
-	StateToStateMap* pTranslMap) const
+BDDTopDownTreeAut BDDBottomUpTreeAut::GetTopDownAut() const
 {
-	typedef VATA::Util::TranslatorStrict<AutBase::StateToStateMap>
-		StateTranslator;
-
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class InverterApplyFunctor :
 		public VATA::MTBDDPkg::Apply2Functor<InverterApplyFunctor, StateSet,
@@ -59,28 +55,22 @@ BDDTopDownTreeAut BDDBottomUpTreeAut::GetTopDownAut(
 		}
 	};
 
-	StateToStateMap translMap;
-	if (pTranslMap == nullptr)
-	{
-		pTranslMap = &translMap;
-	}
-
 	BDDTopDownTreeAut result;
-
-	StateTranslator transl(*pTranslMap);
-	for (const StateType& fst : GetFinalStates())
-	{
-		result.finalStates_.insert(transl(fst));
-	}
 
 	StateType soughtState;
 	StateTuple checkedTuple;
 	InverterApplyFunctor invertFunc(soughtState, checkedTuple);
 
 	StateHT states;
-	for (auto tupleHandlePair : transTable_->GetTupleMap())
+	for (const StateType& fst : GetFinalStates())
+	{
+		result.finalStates_.insert(fst);
+		states.insert(fst);
+	}
+
+	for (auto tupleBddPair : transTable_)
 	{	// collect states
-		for (const StateType& state : tupleHandlePair.first)
+		for (const StateType& state : tupleBddPair.first)
 		{
 			states.insert(state);
 		}
@@ -89,19 +79,19 @@ BDDTopDownTreeAut BDDBottomUpTreeAut::GetTopDownAut(
 	for (const StateType& state : states)
 	{
 		soughtState = state;
-		StateType translState = transl(state);
 
-		for (auto tupleHandlePair : transTable_->GetTupleMap())
+		for (auto tupleBddPair : transTable_)
 		{
-			checkedTuple.clear();
-			for (const StateType& tupleState : tupleHandlePair.first)
-			{
-				checkedTuple.push_back(transl(tupleState));
-			}
-			assert(checkedTuple.size() == tupleHandlePair.first.size());
+			checkedTuple = tupleBddPair.first;
 
-			result.SetMtbdd(translState, invertFunc(
-				tupleHandlePair.second, result.GetMtbdd(translState)));
+			// TODO: it is necessary to somehow process arity
+			SymbolType prefix(BDDTopDownTreeAut::SYMBOL_ARITY_LENGTH,
+				checkedTuple.size());
+			TransMTBDD extendedBdd = tupleBddPair.second.ExtendWith(prefix,
+				VATA::SymbolicAutBase::SYMBOL_SIZE);
+
+			result.SetMtbdd(state, invertFunc(
+				extendedBdd, result.GetMtbdd(state)));
 		}
 	}
 

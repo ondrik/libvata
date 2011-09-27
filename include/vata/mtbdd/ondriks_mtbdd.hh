@@ -145,50 +145,54 @@ private:  // private methods
 	 *
 	 * @return  The constructed MTBDD
 	 */
-	static NodePtrType constructMTBDD(const VarAsgn& asgn,
+	static inline NodePtrType constructMTBDD(const VarAsgn& asgn,
 		const DataType& value, const DataType& defaultValue)
 	{
-		// the leaf with the desired value
-		NodePtrType leaf = spawnLeaf(value);
+		return constructMTBDD(asgn, spawnLeaf(value), defaultValue,
+			[](const VarType& var){return var;});
+	}
 
-		if (value == defaultValue)
-		{	// in case an MTBDD with a single leaf is desired
-			IncrementRefCnt(leaf);
-			return leaf;
+	template <class VariableTranslation>
+	static NodePtrType constructMTBDD(const VarAsgn& asgn,
+		NodePtrType node, const DataType& defaultValue,
+		VariableTranslation varTrans)
+	{
+		if (IsLeaf(node) && (GetDataFromLeaf(node) == defaultValue))
+		{	// in case an MTBDD with a single leaf is processed
+			IncrementRefCnt(node);
+			return node;
 		}
 
 		// the sink leaf
 		NodePtrType sink = spawnLeaf(defaultValue);
 
 		// working node
-		NodePtrType node = leaf;
+		NodePtrType procNode = node;
 
 		for (size_t i = 0; i < asgn.length(); ++i)
 		{	// construct the MTBDD according to the variable ordering
 			VarType var =	i;
 			if (asgn.GetIthVariableValue(var) == VarAsgn::ONE)
 			{	// in case the variable is 1
-				node = spawnInternal(sink, node, var);
+				procNode = spawnInternal(sink, procNode, varTrans(var));
 			}
 			else if (asgn.GetIthVariableValue(var) == VarAsgn::ZERO)
 			{	// in case the variable is 0
-				node = spawnInternal(node, sink, var);
+				procNode = spawnInternal(procNode, sink, varTrans(var));
 			}
 			// otherwise don't care about the variable
 		}
 
-		if (node == leaf)
-		{	// in case the MTBDD is with a single leaf
-			assert(IsLeaf(leaf));
-
+		if (procNode == node)
+		{	// in case there is nothing above the original node
 			if (GetLeafRefCnt(sink) == 0)
 			{	// in case there is no one pointing to the sink
 				disposeOfLeafNode(sink);
 			}
 		}
 
-		IncrementRefCnt(node);
-		return node;
+		IncrementRefCnt(procNode);
+		return procNode;
 	}
 
 	OndriksMTBDD(NodePtrType root, const DataType& defaultValue) :
@@ -411,6 +415,12 @@ public:   // public methods
 		return defaultValue_;
 	}
 
+	inline OndriksMTBDD ExtendWith(const VarAsgn& asgn, const size_t& offset) const
+	{
+		return OndriksMTBDD(constructMTBDD(asgn, root_, GetDefaultValue(),
+			[&offset](const VarType& var){return var + offset;}), GetDefaultValue());
+	}
+
 	/**
 	 * @brief  Returns value for assignment
 	 *
@@ -462,7 +472,7 @@ public:   // public methods
 		return result + "}";
 	}
 
-	~OndriksMTBDD()
+	inline ~OndriksMTBDD()
 	{
 		deleteMTBDD();
 	}

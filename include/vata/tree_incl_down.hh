@@ -40,6 +40,8 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 	typedef typename InclFctor::WorkSetType WorkSetType;
 	typedef typename InclFctor::NonInclAntichainType NonInclusionCache;
 
+	typedef VATA::Util::Convert Convert;
+
 	WorkSetType workset;
 	NonInclusionCache nonIncl;
 

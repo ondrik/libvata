@@ -29,8 +29,7 @@ namespace VATA
 		const BDDTopDownTreeAut& rhs,
 		AutBase::ProductTranslMap* pTranslMap = nullptr);
 
-	BDDTopDownTreeAut RemoveUnreachableStates(const BDDTopDownTreeAut& aut,
-		AutBase::StateToStateMap* pTranslMap = nullptr);
+	BDDTopDownTreeAut RemoveUnreachableStates(const BDDTopDownTreeAut& aut);
 
 	BDDTopDownTreeAut RemoveUselessStates(const BDDTopDownTreeAut& aut,
 		AutBase::StateToStateMap* pTranslMap = nullptr);
@@ -40,6 +39,12 @@ namespace VATA
 
 	bool CheckInclusionNoUseless(const BDDTopDownTreeAut& smaller,
 		const BDDTopDownTreeAut& bigger);
+
+	inline bool CheckEquivalence(const BDDTopDownTreeAut& lhs,
+		const BDDTopDownTreeAut& rhs)
+	{
+		return CheckInclusion(lhs, rhs) && CheckInclusion(rhs, lhs);
+	}
 
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		const BDDTopDownTreeAut& aut);

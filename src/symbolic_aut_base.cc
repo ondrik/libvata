@@ -18,3 +18,4 @@ SymbolicAutBase::StringToSymbolDict* SymbolicAutBase::pSymbolDict_ = nullptr;
 
 SymbolicAutBase::SymbolType* SymbolicAutBase::pNextSymbol_ = nullptr;
 
+const size_t SymbolicAutBase::SYMBOL_SIZE;

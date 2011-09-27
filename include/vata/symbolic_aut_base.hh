@@ -37,7 +37,7 @@ public:   // data types
 
 protected:// constants
 
-	static const size_t SYMBOL_SIZE = 16;
+	const static size_t SYMBOL_SIZE = 16;
 
 private:  // data members
 

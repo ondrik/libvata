@@ -98,7 +98,7 @@ BDDBottomUpTreeAut VATA::Intersection(const BDDBottomUpTreeAut& lhs,
 			result.SetStateFinal(newState);
 		}
 
-		for (auto lhsTupleBddPair : lhs.GetTuples())
+		for (auto lhsTupleBddPair : lhs.GetTransTable())
 		{
 			const StateTuple& lhsTuple = lhsTupleBddPair.first;
 			const size_t& arity = lhsTuple.size();
@@ -117,7 +117,7 @@ BDDBottomUpTreeAut VATA::Intersection(const BDDBottomUpTreeAut& lhs,
 				continue;
 			}
 
-			for (auto rhsTupleBddPair : rhs.GetTuples())
+			for (auto rhsTupleBddPair : rhs.GetTransTable())
 			{
 				const StateTuple& rhsTuple = rhsTupleBddPair.first;
 				if (rhsTuple.size() != arity)

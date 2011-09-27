@@ -33,7 +33,7 @@ BDDBottomUpTreeAut VATA::Union(const BDDBottomUpTreeAut& lhs,
 
 	BDDBottomUpTreeAut::UnionApplyFunctor unionFunc;
 
-	if (lhs.GetTransTable() == rhs.GetTransTable())
+	if (BDDBottomUpTreeAut::ShareTransTable(lhs, rhs))
 	{	// in case the automata share their transition table
 		BDDBottomUpTreeAut result = lhs;
 
