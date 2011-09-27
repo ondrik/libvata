@@ -70,6 +70,8 @@ const char VATA_USAGE_COMMANDS[] =
 	"    incl <file1> <file2>    Checks language inclusion of automata from <file1>\n"
 	"                            and <file2>, i.e., whether L(<file1>) is a subset\n"
 	"                            of L(<file2>)\n"
+	"    simdown <file>          Computes the downward simulation relation for the\n"
+	"                            tree automaton in <file>\n"
 	;
 
 const char VATA_USAGE_FLAGS[] =
@@ -122,6 +124,7 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	Aut autInput2;
 	Aut autResult;
 	bool boolResult = false;
+	VATA::AutBase::StateBinaryRelation relResult;
 
 	VATA::AutBase::StringToStateDict stateDict1;
 	VATA::AutBase::StringToStateDict stateDict2;
@@ -216,6 +219,10 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 			boolResult = CheckInclusion(autInput1, autInput2);
 		}
 	}
+	else if (args.command == COMMAND_SIM)
+	{
+		relResult = ComputeSimulation(autInput1);
+	}
 	else
 	{
 		throw std::runtime_error("Internal error: invalid command");
@@ -266,6 +273,11 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 		if (args.command == COMMAND_INCLUSION)
 		{
 			std::cout << boolResult << "\n";
+		}
+
+		if (args.command == COMMAND_SIM)
+		{
+			std::cout << relResult << "\n";
 		}
 	}
 

@@ -250,6 +250,13 @@ Arguments parseArguments(int argc, char* argv[])
 
 					parserState = PARSING_LOAD_2_FILES_1;
 				}
+				else if (currentArg == "sim")
+				{
+					args.command   = COMMAND_SIM;
+					args.operands  = 1;
+
+					parserState = PARSING_LOAD_FILE;
+				}
 				else
 				{
 					throw std::runtime_error("Unknown command: " + currentArg);
