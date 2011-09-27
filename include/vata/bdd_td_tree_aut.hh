@@ -75,10 +75,10 @@ public:   // data types
 	typedef VATA::Util::TranslatorStrict<typename StringToSymbolDict::MapBwdType>
 		SymbolBackTranslatorStrict;
 
+	typedef VATA::MTBDDPkg::OndriksMTBDD<StateTupleSet> TransMTBDD;
+
 private:  // data types
 
-
-	typedef VATA::MTBDDPkg::OndriksMTBDD<StateTupleSet> TransMTBDD;
 	typedef VATA::MTBDDPkg::OndriksMTBDD<bool> BDD;
 
 	typedef VATA::Util::BDDTopDownTransTable<StateType, StateTupleSet>
