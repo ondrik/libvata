@@ -11,10 +11,24 @@
 #ifndef _VATA_BINARY_RELATION_HH_
 #define _VATA_BINARY_RELATION_HH_
 
+// VATA headers
+#include <vata/vata.hh>
+
+// Standard library headers
 #include <vector>
 #include <algorithm>
 
-class BinaryRelation {
+
+namespace VATA
+{
+	namespace Util
+	{
+		class BinaryRelation;
+	}
+}
+
+
+class VATA::Util::BinaryRelation {
 
 	std::vector<bool> _data;
 
@@ -57,7 +71,7 @@ public:
 		return this->_size++;
 	}
 
-	const bool get(size_t r, size_t c) const {
+	bool get(size_t r, size_t c) const {
 		assert(r < this->_size && c < this->_size);
 		return this->_data[r*this->_cap + c];
 	}
@@ -80,7 +94,7 @@ public:
 		_size(size) {}
 
 	BinaryRelation(const std::vector<std::vector<bool> >& rel)
-		: _data(rel.size()*rel.size(), false), _cap(rel.size()),
+		: _data(rel.size()*rel.size(), false), _cap(rel.size()), _size(rel.size()) {
 		for (size_t i = 0; i < rel.size(); ++i) {
 			for (size_t j = 0; j < rel.size(); ++j)
 				this->set(i, j, rel[i][j]);
@@ -134,7 +148,7 @@ public:
 				this->set(i, j, this->get(i, j) & rhs.get(i,j));
 		}
 	}
-	
+
 	// transposition
 	BinaryRelation& transposed(BinaryRelation& dst) const {
 		dst.resize(this->_size);
@@ -151,7 +165,7 @@ public:
 		for (size_t i = 0; i < this->_size; ++i) {
 			for (size_t j = 0; j < this->_size; ++j) {
 				if (this->get(i, j))
-					dst[i].push_back(j);					
+					dst[i].push_back(j);
 			}
 		}
 	}
@@ -162,7 +176,7 @@ public:
 		for (size_t i = 0; i < this->_size; ++i) {
 			for (size_t j = 0; j < this->_size; ++j) {
 				if (this->get(i, j))
-					dst[j].push_back(i);					
+					dst[j].push_back(i);
 			}
 		}
 	}
@@ -174,7 +188,7 @@ public:
 		for (size_t i = 0; i < this->_size; ++i) {
 			for (size_t j = 0; j < this->_size; ++j) {
 				if (this->get(i, j)) {
-					ind[i].push_back(j);					
+					ind[i].push_back(j);
 					inv[j].push_back(i);
 				}
 			}
@@ -187,10 +201,10 @@ public:
 				os << v.get(i, j);
 			os << std::endl;
 		}
+
+		return os;
 	}
 
 };
-
-std::ostream& operator<<(std::ostream& os, const BinaryRelation& v);
 
 #endif
