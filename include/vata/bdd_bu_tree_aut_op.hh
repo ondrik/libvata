@@ -44,6 +44,18 @@ namespace VATA
 	{
 		return CheckInclusion(lhs, rhs) && CheckInclusion(rhs, lhs);
 	}
+
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		const BDDBottomUpTreeAut& aut, const size_t& states);
+
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		const BDDBottomUpTreeAut& aut);
+
+	inline AutBase::StateBinaryRelation ComputeSimulation(
+		const BDDBottomUpTreeAut& aut)
+	{
+		return ComputeDownwardSimulation(aut);
+	}
 }
 
 #endif

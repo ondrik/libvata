@@ -14,13 +14,19 @@
 #include <vata/bdd_td_tree_aut.hh>
 #include <vata/bdd_td_tree_aut_op.hh>
 
+using VATA::BDDTopDownTreeAut;
+using VATA::Util::Convert;
+
 typedef VATA::AutBase::StateBinaryRelation StateBinaryRelation;
 
 
-StateBinaryRelation ComputeDownwardSimulation(
+StateBinaryRelation VATA::ComputeDownwardSimulation(
 	const BDDTopDownTreeAut& aut)
 {
+	assert(&aut != nullptr);
 	StateBinaryRelation result;
+
+	VATA_LOGGER_INFO("Simulation: " + Convert::ToString(result));
 
 	return result;
 }

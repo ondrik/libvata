@@ -48,6 +48,12 @@ namespace VATA
 
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		const BDDTopDownTreeAut& aut);
+
+	inline AutBase::StateBinaryRelation ComputeSimulation(
+		const BDDTopDownTreeAut& aut)
+	{
+		return ComputeDownwardSimulation(aut);
+	}
 }
 
 #endif

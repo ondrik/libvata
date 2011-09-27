@@ -721,7 +721,10 @@ public:   // methods
 			dstAut.SetMtbdd(newTuple, rewriter(tupleBddPair.second));
 		}
 
-		return rewriter(GetMtbdd(StateTuple()));
+		TransMTBDD nullaryBdd = rewriter(GetMtbdd(StateTuple()));
+		dstAut.SetMtbdd(StateTuple(), nullaryBdd);
+
+		return nullaryBdd;
 	}
 
 	static inline bool ShareTransTable(const BDDBottomUpTreeAut& lhs,

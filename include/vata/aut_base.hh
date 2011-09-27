@@ -15,6 +15,7 @@
 #include <vata/vata.hh>
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
+#include <vata/util/binary_relation.hh>
 #include <vata/util/two_way_dict.hh>
 #include <vata/util/transl_weak.hh>
 
@@ -40,7 +41,7 @@ public:   // data types
 	typedef std::unordered_map<StatePair, StateType, boost::hash<StatePair>>
 		ProductTranslMap;
 
-	typedef std::vector<std::vector<bool>> StateBinaryRelation;
+	typedef VATA::Util::BinaryRelation StateBinaryRelation;
 
 private:  // data members
 

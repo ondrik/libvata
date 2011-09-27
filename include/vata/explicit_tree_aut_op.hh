@@ -370,6 +370,14 @@ namespace VATA {
 
 	}
 
+	template <class SymbolType>
+	AutBase::StateBinaryRelation ComputeSimulation(
+		const ExplicitTreeAut<SymbolType>& aut)
+	{
+		assert(&aut != nullptr);
+
+		throw std::runtime_error("Unimplemented");
+	}
 }
 
 #endif
