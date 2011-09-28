@@ -149,12 +149,12 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	{
 		if (args.operands >= 1)
 		{
-			autInput1 = RemoveUselessStates(autInput1, &translMap1);
+			autInput1 = RemoveUselessStates(autInput1);
 		}
 
 		if (args.operands >= 2)
 		{
-			autInput2 = RemoveUselessStates(autInput2, &translMap2);
+			autInput2 = RemoveUselessStates(autInput2);
 		}
 	}
 	else if (args.pruneUnreachable)
@@ -167,19 +167,6 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 		if (args.operands >= 2)
 		{
 			autInput2 = RemoveUnreachableStates(autInput2);
-		}
-	}
-
-	if (args.pruneUseless)
-	{
-		if (args.operands >= 1)
-		{
-			stateDict1 = VATA::Util::RebindMap(stateDict1, translMap1);
-		}
-
-		if (args.operands >= 2)
-		{
-			stateDict2 = VATA::Util::RebindMap(stateDict2, translMap2);
 		}
 	}
 

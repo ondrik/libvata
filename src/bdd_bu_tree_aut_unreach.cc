@@ -66,7 +66,6 @@ BDDBottomUpTreeAut VATA::RemoveUnreachableStates(const BDDBottomUpTreeAut& aut)
 {
 	BDDBottomUpTreeAut result;
 
-
 	StateHT reachable;
 	StateHT workset;
 

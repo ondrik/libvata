@@ -29,8 +29,7 @@ namespace VATA
 
 	BDDBottomUpTreeAut RemoveUnreachableStates(const BDDBottomUpTreeAut& aut);
 
-	BDDBottomUpTreeAut RemoveUselessStates(const BDDBottomUpTreeAut& aut,
-		AutBase::StateToStateMap* pTranslMap = nullptr);
+	BDDBottomUpTreeAut RemoveUselessStates(const BDDBottomUpTreeAut& aut);
 
 	bool CheckInclusion(const BDDBottomUpTreeAut& smaller,
 		const BDDBottomUpTreeAut& bigger);
