@@ -3,9 +3,9 @@ Automaton aut
 States
 Final States
 Transitions
-a(p,s,h) -> q
+a3(p,s,h) -> q
 b(p) -> p
 a -> p
 c -> s
-d(h, h) -> h
+d2(h, h) -> h
 d -> h
