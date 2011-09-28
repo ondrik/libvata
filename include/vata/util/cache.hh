@@ -62,7 +62,7 @@ public:
 			[this, f](const T* tuple) { f(tuple); this->store_.erase(*tuple); }
 		);
 
-		p.first->second = std::weak_ptr<StateTuple>(ptr);
+		p.first->second = std::weak_ptr<T>(ptr);
 
 		return ptr;
 
@@ -79,7 +79,7 @@ public:
 
 	typedef std::unordered_map<std::pair<T, T>, V> store_type;
 	typedef std::set<typename store_type::value_type*> value_type_set;
-	typedef std::unordered_map<T, value_type_list> store_map_type;
+	typedef std::unordered_map<T, value_type_set> store_map_type;
 
 protected:
 
