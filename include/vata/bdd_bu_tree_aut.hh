@@ -275,8 +275,11 @@ private:  // data types
 		}
 	};
 
+public:   // data types
+
 	typedef TransTableWrapper TransTable;
 
+private:  // data types
 
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class UnionApplyFunctor :
