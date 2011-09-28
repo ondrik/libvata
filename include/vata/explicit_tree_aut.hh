@@ -33,7 +33,9 @@ namespace VATA {
 	struct Explicit {
 
 		typedef AutBase::StateType StateType;
-		typedef std::vector<StateType> StateTuple;
+
+		typedef std::vector<StateType> StateTuple;		
+		typedef std::shared_ptr<StateTuple> TuplePtr;
 		typedef std::set<StateTuple> TupleSet;
 		typedef std::unordered_set<StateType> StateSet;
 
@@ -41,6 +43,27 @@ namespace VATA {
 			boost::hash<StateTuple>> TupleCache;
 
 		static TupleCache tupleCache;
+
+		struct TuplePtrHash {
+	
+			size_t operator()(const VATA::Explicit::TuplePtr& ptr) const {
+	
+				return reinterpret_cast<size_t>(ptr.get());
+	
+			}
+	
+		};
+	
+		struct TuplePtrLess {
+	
+			bool operator()(const VATA::Explicit::TuplePtr& ptr1,
+				const VATA::Explicit::TuplePtr& ptr2) const {
+	
+				return ptr1.get() < ptr2.get();
+	
+			}
+	
+		};
 
 	};
 
@@ -52,9 +75,9 @@ class VATA::ExplicitTreeAut : public AutBase {
 GCC_DIAG_ON(effc++)
 
 	template <class SymbolType>
-	friend ExplicitTreeAut<SymbolType> Union(const ExplicitTreeAut<SymbolType>&,
-		const ExplicitTreeAut<SymbolType>&, AutBase::StateToStateMap*,
-		AutBase::StateToStateMap*);
+	friend ExplicitTreeAut<SymbolType> Union(
+		const ExplicitTreeAut<SymbolType>&, const ExplicitTreeAut<SymbolType>&,
+		AutBase::StateToStateMap*, AutBase::StateToStateMap*);
 
 	template <class SymbolType>
 	friend ExplicitTreeAut<SymbolType> Intersection(
@@ -69,16 +92,12 @@ GCC_DIAG_ON(effc++)
 	friend ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
 		const ExplicitTreeAut<SymbolType>&, AutBase::StateToStateMap*);
 
-	template <class SymbolType>
-	friend bool CheckInclusion(const ExplicitTreeAut<SymbolType>&,
-		const ExplicitTreeAut<SymbolType>&);
-
 public:   // public data types
 
 	typedef VATA::Util::OrdVector<StateType> StateSetLight;
 	typedef Explicit::StateType StateType;
 	typedef Explicit::StateTuple StateTuple;
-	typedef std::shared_ptr<StateTuple> TuplePtr;
+	typedef Explicit::TuplePtr TuplePtr;
 	typedef std::vector<TuplePtr> StateTupleSet;
 	typedef std::set<TuplePtr> DownInclStateTupleSet;
 	typedef std::vector<TuplePtr> DownInclStateTupleVector;
@@ -430,6 +449,51 @@ private:  // data members
 
 public:   // public methods
 
+	class Transition {
+
+		TuplePtr children_;
+		SymbolType symbol_;
+		StateType state_;
+
+	public:
+	
+		Transition(TuplePtr children, SymbolType symbol, StateType state)
+			 : children_(children), symbol_(symbol), state_(state) {}
+
+		const StateTuple& children() const { return *this->children_; }
+		const SymbolType& symbol() const { return this->symbol_; }
+		const StateType& state() const { return this->state_; }
+
+		friend std::ostream& operator<<(std::ostream& os, const Transition& t) {
+			return os << t.symbol_ << Util::Convert::ToString(*t.children_) << "->" << t.state_;
+		}
+
+	};
+
+	typedef std::shared_ptr<Transition> TransitionPtr;
+
+	struct TransitionPtrHash {
+
+		size_t operator()(const TransitionPtr& ptr) const {
+
+			return reinterpret_cast<size_t>(ptr.get());
+
+		}
+
+	};
+
+	struct TransitionPtrLess {
+
+		bool operator()(const TransitionPtr& ptr1, const TransitionPtr& ptr2) const {
+
+			return ptr1.get() < ptr2.get();
+
+		}
+
+	};
+
+public:
+
 	ExplicitTreeAut(Explicit::TupleCache& tupleCache = Explicit::tupleCache) :
 		accepting(*this),
 		cache_(tupleCache),
@@ -449,13 +513,16 @@ public:   // public methods
 		accepting(*this) {}
 
 	ExplicitTreeAut& operator=(const ExplicitTreeAut& rhs) {
-		if (this != &rhs)
-		{
+
+		if (this != &rhs) {
+			
 			this->finalStates_ = rhs.finalStates_;
 			this->transitions_ = rhs.transitions_;
+
 		}
 
 		return *this;
+
 	}
 
 	~ExplicitTreeAut() {}
@@ -570,7 +637,11 @@ public:   // public methods
 		this->finalStates_.insert(state);
 	}
 
-	void AddTransition(const StateTuple& children, const SymbolType& symbol,
+	inline bool IsFinalState(const StateType& state) const {
+		return this->finalStates_.count(state) > 0;
+	}
+
+	inline void AddTransition(const StateTuple& children, const SymbolType& symbol,
 		const StateType& state) {
 
 		this->internalAddTransition(this->tupleLookup(children), symbol, state);
@@ -585,29 +656,18 @@ public:   // public methods
 		if (!pTranslMap)
 			pTranslMap = &translMap;
 
-		struct Translator {
+		StateType index = base;
 
-			StateType index_;
+		auto translator = [pTranslMap, &index](const StateType& state) -> const StateType& {
 
-			AutBase::StateToStateMap& map_;
+			auto p = pTranslMap->insert(std::make_pair(state, index));
 
-			Translator(AutBase::StateToStateMap& map, const StateType& base)
-				: index_(base), map_(map) {}
+			if (p.second)
+				++index;
 
-			const StateType& operator()(const StateType& state) {
-
-				auto p = this->map_.insert(std::make_pair(state, this->index_));
-
-				if (p.second)
-					++this->index_;
-
-				return p.first->second;
-
-			}
+			return p.first->second;
 
 		};
-
-		Translator translator(*pTranslMap, base);
 
 		for (auto& state : this->finalStates_)
 
@@ -699,6 +759,113 @@ public:   // public methods
 	}
 
 public:
+
+	typedef std::vector<TransitionPtr> TransitionList;
+	typedef std::vector<TransitionList> IndexedTransitionList;
+	typedef std::unordered_map<Symbol, TransitionList> SymbolToTransitionListMap;
+	typedef std::unordered_map<Symbol, IndexedTransitionList> SymbolToIndexedTransitionListMap;
+	typedef std::vector<SymbolToIndexedTransitionListMap> BottomUpIndex;
+	typedef std::unordered_map<Symbol, TransitionList> SimpleBottomUpIndex;
+
+public:
+
+	void bottomUpIndex(BottomUpIndex& bottomUpIndex, SymbolToTransitionListMap& leaves) const {
+
+		for (auto& stateClusterPair : *this->transitions_) {
+
+			assert(stateClusterPair.second);
+
+			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
+
+				assert(symbolTupleSetPair.second);
+
+				for (auto& tuple : *symbolTupleSetPair.second) {
+
+					assert(tuple);
+
+					TransitionPtr transition(
+						new Transition(tuple, symbolTupleSetPair.first, stateClusterPair.first)
+					);
+
+					if (tuple->empty()) {
+
+						leaves.insert(
+							std::make_pair(symbolTupleSetPair.first, TransitionList())
+						).first->second.push_back(transition);
+
+						continue;
+						
+					}
+
+					size_t i = 0;
+
+					for (auto& state : *tuple) {
+
+						if (bottomUpIndex.size() <= state)
+							bottomUpIndex.resize(state + 1);
+
+						auto& indexedTransitionList = bottomUpIndex[state].insert(
+							std::make_pair(symbolTupleSetPair.first, IndexedTransitionList())
+						).first->second;
+
+						if (indexedTransitionList.size() <= i)
+							indexedTransitionList.resize(i + 1);
+
+						indexedTransitionList[i].push_back(transition);
+
+						++i;
+
+					}
+
+				}
+
+			}
+
+		}
+
+	}
+
+	void bottomUpIndex(SimpleBottomUpIndex& bottomUpIndex) const {
+
+		for (auto& stateClusterPair : *this->transitions_) {
+
+			assert(stateClusterPair.second);
+
+			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
+
+				assert(symbolTupleSetPair.second);
+
+				auto& transitionList = bottomUpIndex.insert(
+					std::make_pair(symbolTupleSetPair.first, TransitionList())
+				).first->second;
+
+				for (auto& tuple : *symbolTupleSetPair.second) {
+
+					assert(tuple);
+
+					TransitionPtr transition(
+						new Transition(tuple, symbolTupleSetPair.first, stateClusterPair.first)
+					);
+
+					transitionList.push_back(transition);
+
+				}
+
+			}
+
+		}
+
+	}
+
+public:
+
+	inline StateType AddState()
+	{
+		// Assertions
+		assert(pNextState_ != nullptr);
+
+		return (*pNextState_)++;
+	}
 
 	static inline SymbolType AddSymbol()
 	{
