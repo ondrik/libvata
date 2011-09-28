@@ -1,0 +1,9 @@
+Ops
+Automaton anonymous
+States
+Final States q
+Transitions
+a -> p
+b(p) -> r
+c(p, p) -> q
+c(p, r) -> q
