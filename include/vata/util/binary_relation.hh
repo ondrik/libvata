@@ -148,6 +148,7 @@ public:
 			for (size_t j = 0; j < this->size_; ++j)
 				this->set(i, j, this->get(i, j) & rhs.get(i,j));
 		}
+		return *this;
 	}
 
 	// transposition

@@ -44,6 +44,10 @@ class VATA::ExplicitUpwardInclusion {
 
 	}
 
+	template <class T>
+	struct Hash {
+		size_t operator()(const T& v) const { return boost::hash_value(v); }
+	};
 
 public:
 
@@ -51,17 +55,29 @@ public:
 	static bool Check(const Aut& smaller, const Aut& bigger, const Rel& preorder) {
 
 		typedef Explicit::StateType SmallerType;
-		typedef std::vector<Explicit::StateType> BiggerType;
+		typedef std::vector<Explicit::StateType> StateVector;
 		typedef typename Aut::TransitionPtr TransitionPtr;
+
+		typedef typename Util::Cache<
+			StateVector, std::function<void(const StateVector*)>, Hash<StateVector>
+		> BiggerTypeCache;
+
+		typedef typename BiggerTypeCache::TPtr BiggerType;
+
+		typedef Util::CachedBinaryOp<
+			const StateVector*, bool, Hash<std::pair<const StateVector*, const StateVector*>>
+		> LTECache;
+
+		typedef typename Util::Antichain2Cv2<SmallerType, BiggerType> Antichain2C;
 
 		GCC_DIAG_OFF(effc++)
 		struct Choice {
 		GCC_DIAG_ON(effc++)
 
-			const Util::Antichain2Cv2<SmallerType, BiggerType>::TList* biggerList_;
-			Util::Antichain2Cv2<SmallerType, BiggerType>::TList::const_iterator current_;
+			const Antichain2C::TList* biggerList_;
+			Antichain2C::TList::const_iterator current_;
 
-			bool init(const Util::Antichain2Cv2<SmallerType, BiggerType>::TList* biggerList) {
+			bool init(const Antichain2C::TList* biggerList) {
 
 				if (!biggerList)
 					return false;
@@ -87,14 +103,14 @@ public:
 
 		struct ChoiceVector {
 
-			const Util::Antichain2Cv2<SmallerType, BiggerType>& processed_;
-			const Util::Antichain2Cv2<SmallerType, BiggerType>::TList& fixed_;
+			const Antichain2C& processed_;
+			const Antichain2C::TList& fixed_;
 			std::vector<Choice> state_;
 			
 		public:
 
-			ChoiceVector(const Util::Antichain2Cv2<SmallerType, BiggerType>& processed,
-				const Util::Antichain2Cv2<SmallerType, BiggerType>::TList& fixed)
+			ChoiceVector(const Antichain2C& processed,
+				const Antichain2C::TList& fixed)
 				: processed_(processed), fixed_(fixed), state_() {}
 		
 			bool get(const Explicit::StateTuple& children, size_t index) {
@@ -145,7 +161,7 @@ public:
 
 					auto& s = *this->state_[i].current_;
 
-					if (!std::binary_search(s.begin(), s.end(), children[i]))
+					if (!std::binary_search(s->begin(), s->end(), children[i]))
 						return false;
 
 				}
@@ -200,22 +216,29 @@ public:
 
 		preorder.buildIndex(ind, inv);
 
-		auto LTE = [&ind](const BiggerType& x, const BiggerType& y) -> bool {
+		auto coreLTE = [&ind](const StateVector* x, const StateVector* y) -> bool {
 
-			for (auto& s1 : x) {
+			for (auto& s1 : *x) {
 
 				assert(s1 < ind.size());
 
-				if (!checkIntersection(ind[s1], y)) {
-//					VATA_LOGGER_INFO(Util::Convert::ToString(x) + " > " + Util::Convert::ToString(y));
+				if (!checkIntersection(ind[s1], *y))
 					return false;
-				}
 
 			}
 
-//			VATA_LOGGER_INFO(Util::Convert::ToString(x) + " <= " + Util::Convert::ToString(y));
-
 			return true;
+
+		};
+
+		LTECache lteCache;
+
+		auto LTE = [&coreLTE, &lteCache](const BiggerType& x, const BiggerType& y) -> bool {
+
+			assert(x);
+			assert(y);
+
+			return (x.get() == y.get())?(true):(lteCache.lookup(x.get(), y.get(), coreLTE));
 
 		};
 		
@@ -228,7 +251,11 @@ public:
 		smaller.bottomUpIndex(smallerIndex, smallerLeaves);
 		bigger.bottomUpIndex(biggerIndex);
 
-		Util::Antichain2Cv2<SmallerType, BiggerType> next, processed;
+		BiggerTypeCache biggerTypeCache(
+			[&lteCache](const StateVector* v) { lteCache.invalidateKey(v); }
+		);
+
+		Antichain2C next, processed;
 
 		// Post(\emptyset)
 
@@ -239,7 +266,7 @@ public:
 			if (biggerClusterIter == biggerIndex.end())
 				return false;
 
-			std::vector<Explicit::StateType> tmp;
+			StateVector tmp;
 
 			for (auto& transition : biggerClusterIter->second) {
 
@@ -258,6 +285,8 @@ public:
 
 			bool isAccepting = checkIntersection(tmp, bigger.GetFinalStates());
 
+			auto ptr = biggerTypeCache.lookup(tmp);
+
 			for (auto& transition : smallerCluster.second) {
 
 				assert(transition);
@@ -272,12 +301,12 @@ public:
 				if (checkIntersection(ind[transition->state()], tmp))
 					continue;
 
-				if (!next.contains(ind[transition->state()], tmp, LTE)) {
+				if (!next.contains(ind[transition->state()], ptr, LTE)) {
 
 					assert(transition->state() < inv.size());
 					
-					next.refine(inv[transition->state()], tmp, GTE);
-					next.insert(transition->state(), tmp);
+					next.refine(inv[transition->state()], ptr, GTE);
+					next.insert(transition->state(), ptr);
 
 				}
 
@@ -287,7 +316,7 @@ public:
 
 		SmallerType q;
 
-		Util::Antichain2Cv2<SmallerType, BiggerType>::TList fixedList(1);
+		Antichain2C::TList fixedList(1);
 
 		BiggerType& Q = fixedList.front();
 
@@ -360,22 +389,24 @@ public:
 						if (!antichainSet.isAccepting() && smaller.IsFinalState(smallerTransition->state()))
 							return false;
 
-						BiggerType tmp(antichainSet.begin(), antichainSet.end());
+						StateVector tmp(antichainSet.begin(), antichainSet.end());
 
 						assert(smallerTransition->state() < ind.size());
 
 						if (checkIntersection(ind[smallerTransition->state()], tmp))
 							continue;
 
-						if (!processed.contains(ind[smallerTransition->state()], tmp, LTE) &&
-							!next.contains(ind[smallerTransition->state()], tmp, LTE)) {
+						auto ptr = biggerTypeCache.lookup(tmp);
+
+						if (!processed.contains(ind[smallerTransition->state()], ptr, LTE) &&
+							!next.contains(ind[smallerTransition->state()], ptr, LTE)) {
 		
 							assert(smallerTransition->state() < inv.size());
 
-							processed.refine(inv[smallerTransition->state()], tmp, GTE);
-							next.refine(inv[smallerTransition->state()], tmp, GTE);
+							processed.refine(inv[smallerTransition->state()], ptr, GTE);
+							next.refine(inv[smallerTransition->state()], ptr, GTE);
 
-							next.insert(smallerTransition->state(), tmp);
+							next.insert(smallerTransition->state(), ptr);
 
 						}
 
