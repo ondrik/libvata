@@ -51,6 +51,16 @@ small_timbuk/bu_unreachable_4
 small_timbuk/bu_unreachable_4_result
 small_timbuk/bu_unreachable_5
 small_timbuk/bu_unreachable_5_result
+small_timbuk/td_unreachable_1
+small_timbuk/td_unreachable_1_result
+small_timbuk/td_unreachable_2
+small_timbuk/td_unreachable_2_result
+small_timbuk/td_unreachable_3
+small_timbuk/td_unreachable_3_result
+small_timbuk/td_unreachable_4
+small_timbuk/td_unreachable_4_result
+small_timbuk/td_unreachable_5
+small_timbuk/td_unreachable_5_result
 small_timbuk/useless_1
 small_timbuk/useless_1_result
 small_timbuk/useless_2

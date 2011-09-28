@@ -42,9 +42,6 @@ const fs::path INTERSECTION_TIMBUK_FILE =
 const fs::path ADD_TRANS_TIMBUK_FILE =
 	AUT_DIR / "add_trans_timbuk.txt";
 
-const fs::path INVERT_TIMBUK_FILE =
-	AUT_DIR / "invert_timbuk.txt";
-
 
 /******************************************************************************
  *                                  Fixtures                                  *

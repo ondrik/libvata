@@ -45,7 +45,7 @@ const fs::path ADD_TRANS_TIMBUK_FILE =
 	AUT_DIR / "add_trans_timbuk.txt";
 
 const fs::path INVERT_TIMBUK_FILE =
-	AUT_DIR / "invert_timbuk.txt";
+	AUT_DIR / "load_timbuk.txt";
 
 
 /******************************************************************************
@@ -96,17 +96,18 @@ BOOST_AUTO_TEST_CASE(aut_inversion)
 		StringToStateDict stateDict;
 		AutType aut;
 		readAut(aut, stateDict, autStr);
+		aut = RemoveUselessStates(aut);
 		AutTypeInverted invertAut = aut.GetTopDownAut();
+		std::string autOut = dumpAut(invertAut, stateDict);
 
 		AutTypeInverted refAut;
 		readAut(refAut, stateDict, autStr);
-		refAut = RemoveUnreachableStates(refAut);
+		refAut = RemoveUselessStates(refAut);
+		std::string refOut = dumpAut(refAut, stateDict);
 
-		std::string autOut = dumpAut(invertAut, stateDict);
-
-//		AutDescription descOrig = parser_.ParseString(autStr);
-//		AutDescription descOut = parser_.ParseString(autOut);
-		BOOST_CHECK_MESSAGE(CheckEquivalence(invertAut, refAut),
+		AutDescription descOrig = parser_.ParseString(refOut);
+		AutDescription descOut = parser_.ParseString(autOut);
+		BOOST_CHECK_MESSAGE(descOrig == descOut,
 			"\n\nExpecting:\n===========\n" +
 			std::string(autStr) +
 			"===========\n\nGot:\n===========\n" + autOut + "\n===========");
