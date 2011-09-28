@@ -27,8 +27,7 @@ namespace VATA
 		const BDDBottomUpTreeAut& rhs,
 		AutBase::ProductTranslMap* pTranslMap = nullptr);
 
-	BDDBottomUpTreeAut RemoveUnreachableStates(const BDDBottomUpTreeAut& aut,
-		AutBase::StateToStateMap* pTranslMap = nullptr);
+	BDDBottomUpTreeAut RemoveUnreachableStates(const BDDBottomUpTreeAut& aut);
 
 	BDDBottomUpTreeAut RemoveUselessStates(const BDDBottomUpTreeAut& aut,
 		AutBase::StateToStateMap* pTranslMap = nullptr);
