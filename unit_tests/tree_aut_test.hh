@@ -28,40 +28,6 @@ using VATA::Util::Convert;
 #define BOOST_TEST_MODULE AutType
 #include <boost/test/unit_test.hpp>
 
-// testing headers
-#include "log_fixture.hh"
-
-
-
-
-
-/******************************************************************************
- *                                  Constants                                 *
- ******************************************************************************/
-
-const fs::path LOAD_TIMBUK_FILE =
-	AUT_DIR / "load_timbuk.txt";
-
-const fs::path UNREACHABLE_TIMBUK_FILE =
-	AUT_DIR / "unreachable_removal_timbuk.txt";
-
-const fs::path USELESS_TIMBUK_FILE =
-	AUT_DIR / "useless_removal_timbuk.txt";
-
-const fs::path INCLUSION_TIMBUK_FILE =
-	AUT_DIR / "inclusion_timbuk.txt";
-
-const fs::path UNION_TIMBUK_FILE =
-	AUT_DIR / "union_timbuk.txt";
-
-const fs::path INTERSECTION_TIMBUK_FILE =
-	AUT_DIR / "intersection_timbuk.txt";
-
-const fs::path ADD_TRANS_TIMBUK_FILE =
-	AUT_DIR / "add_trans_timbuk.txt";
-
-const fs::path INVERT_TIMBUK_FILE =
-	AUT_DIR / "invert_timbuk.txt";
 
 /******************************************************************************
  *                                  Fixtures                                  *
