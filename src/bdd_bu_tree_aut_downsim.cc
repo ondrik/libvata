@@ -14,6 +14,9 @@
 #include <vata/bdd_bu_tree_aut.hh>
 #include <vata/bdd_bu_tree_aut_op.hh>
 
+// Standard library headers
+#include <stack>
+
 using VATA::BDDBottomUpTreeAut;
 using VATA::BDDTopDownTreeAut;
 using VATA::Util::Convert;
@@ -28,7 +31,14 @@ typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
 
 typedef std::map<StateType, size_t> CounterElementMap;
 typedef VATA::MTBDDPkg::OndriksMTBDD<CounterElementMap> CounterMTBDD;
+typedef std::unordered_map<StateTuple, CounterMTBDD, boost::hash<StateTuple>>
+	CounterHT;
+
 typedef BDDTopDownTreeAut::TransMTBDD TopDownMTBDD;
+
+typedef std::pair<StateTuple, StateTuple> RemoveElement;
+typedef std::stack<RemoveElement, std::list<RemoveElement>> RemoveList;
+
 
 
 StateBinaryRelation VATA::ComputeDownwardSimulation(
@@ -79,10 +89,12 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 		}
 	};
 
+	GCC_DIAG_OFF(effc++)
 	class InitRefineApplyFctor :
 		public VATA::MTBDDPkg::VoidApply2Functor<InitRefineApplyFctor, StateTupleSet,
 		StateTupleSet>
 	{
+	GCC_DIAG_ON(effc++)
 
 	private:  // data members
 
@@ -116,6 +128,8 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 	bool isSim;
 	InitRefineApplyFctor initRefFctor(isSim);
 
+	RemoveList remove;
+
 	for (auto firstStateBddPair : topDownAut.GetStates())
 	{
 		firstState = firstStateBddPair.first;
@@ -131,14 +145,70 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 			initRefFctor(firstBdd, secondBdd);
 			if (isSim)
 			{
-				assert(false);
+				result.set(firstState, secondState, true);
 			}
 			else
-			{
-				assert(false);
+			{	// prune
+				for (auto firstTupleBddPair : aut.GetTransTable())
+				{
+					const StateTuple& firstTuple = firstTupleBddPair.first;
+
+					std::vector<size_t> matchedPositions;
+					for (size_t i = 0; i < firstTuple.size(); ++i)
+					{
+						if (firstTuple[i] == firstState)
+						{
+							matchedPositions.push_back(i);
+						}
+					}
+
+					if (matchedPositions.empty())
+					{
+						continue;
+					}
+
+					for (auto secondTupleBddPair : aut.GetTransTable())
+					{
+						const StateTuple& secondTuple = secondTupleBddPair.first;
+
+						if (secondTuple.size() != firstTuple.size())
+						{
+							continue;
+						}
+
+						size_t i;
+						for (i = 0; i < matchedPositions.size(); ++i)
+						{
+							if ((firstTuple[matchedPositions[i]] == firstState) &&
+								(secondTuple[matchedPositions[i]] == secondState))
+							{
+								break;
+							}
+						}
+
+						if (i == matchedPositions.size())
+						{
+							continue;
+						}
+
+						remove.push(std::make_pair(firstTuple, secondTuple));
+					}
+				}
 			}
 		}
 	}
+
+	CounterHT cnt;
+	for (auto tupleBddPair : aut.GetTransTable())
+	{
+		cnt.insert(std::make_pair(tupleBddPair.first, initCnt));
+	}
+
+
+
+	// TODO: finally some fun
+
+
 
 	return result;
 }
