@@ -88,7 +88,7 @@ const char VATA_USAGE_FLAGS[] =
 	"\n"
 	"    (-I|-O|-F) <format>     Specify format for input (-I), output (-O), or\n"
 	"                            both (-F). The following formats are supported:\n"
-	"                               'timbuk'  : binary decision diagrams\n"
+	"                               'timbuk'  : Timbuk format\n"
 	"\n"
 	"    -t                      Print the time the operation took to error output\n"
 	"                            stream\n"
