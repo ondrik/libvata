@@ -45,10 +45,18 @@ public:   // methods
 		workset_(workset)
 	{ }
 
-	void ApplyOperation(const StateSet& value)
+	inline void ApplyOperation(const StateSet& value)
 	{
-		assert(&value != nullptr);
-
+		for (const StateType& state : value)
+		{
+			if (reachable_.insert(state).second)
+			{	// if the value was inserted
+				if (!workset_.insert(state).second)
+				{	// if it is already in the workset
+					assert(false);     // fail gracefully
+				}
+			}
+		}
 	}
 };
 
@@ -72,18 +80,58 @@ BDDBottomUpTreeAut VATA::RemoveUnreachableStates(const BDDBottomUpTreeAut& aut)
 
 	ReachableCollectorFctor reachFunc(reachable, workset);
 
-	reachFunc(aut.GetMtbdd(StateTuple()));
+	const TransMTBDD& nullaryBdd = aut.GetMtbdd(StateTuple());
+	reachFunc(nullaryBdd);
+	result.SetMtbdd(StateTuple(), nullaryBdd);
 
 	while (!workset.empty())
 	{
 		StateType state = *(workset.begin());
 		workset.erase(workset.begin());
 
+		TupleHT::const_iterator itTup = tuples.begin();
+		while (itTup != tuples.end())
+		{
+			const StateTuple& tuple = itTup->first;
 
+			if (std::find(tuple.begin(), tuple.end(), state) != tuple.end())
+			{	// if the state is there
+				size_t i;
+				for (i = 0; i < tuple.size(); ++i)
+				{
+					if (reachable.find(tuple[i]) == reachable.end())
+					{
+						break;
+					}
+				}
+
+				if (i == tuple.size())
+				{	// in case all states are reachable
+
+					// collect reachable states
+					reachFunc(itTup->second);
+
+					result.SetMtbdd(tuple, itTup->second);
+
+					// remove the tuple from the set of tuples
+					decltype(itTup) tmpIt = itTup;
+					++itTup;
+					tuples.erase(tmpIt);
+					continue;
+				}
+			}
+
+			++itTup;
+		}
 	}
 
-
-
+	for (const StateType& fst : aut.GetFinalStates())
+	{
+		if (reachable.find(fst) != reachable.end())
+		{
+			result.SetStateFinal(fst);
+		}
+	}
 
 	return result;
 }
