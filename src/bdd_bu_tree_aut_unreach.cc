@@ -15,6 +15,7 @@
 
 using VATA::AutBase;
 using VATA::BDDBottomUpTreeAut;
+using VATA::Util::Convert;
 
 typedef VATA::AutBase::StateType StateType;
 typedef VATA::BDDBottomUpTreeAut::StateSet StateSet;
@@ -35,8 +36,8 @@ GCC_DIAG_ON(effc++)
 
 private:  // data members
 
-	StateHT reachable_;
-	StateHT workset_;
+	StateHT& reachable_;
+	StateHT& workset_;
 
 public:   // methods
 
