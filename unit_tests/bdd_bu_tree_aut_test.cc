@@ -100,16 +100,17 @@ BOOST_AUTO_TEST_CASE(aut_inversion)
 		AutTypeInverted invertAut = aut.GetTopDownAut();
 		std::string autOut = dumpAut(invertAut, stateDict);
 
+		StringToStateDict stateDictRef;
 		AutTypeInverted refAut;
-		readAut(refAut, stateDict, autStr);
+		readAut(refAut, stateDictRef, autStr);
 		refAut = RemoveUselessStates(refAut);
-		std::string refOut = dumpAut(refAut, stateDict);
+		std::string refOut = dumpAut(refAut, stateDictRef);
 
 		AutDescription descOrig = parser_.ParseString(refOut);
 		AutDescription descOut = parser_.ParseString(autOut);
 		BOOST_CHECK_MESSAGE(descOrig == descOut,
 			"\n\nExpecting:\n===========\n" +
-			std::string(autStr) +
+			std::string(refOut) +
 			"===========\n\nGot:\n===========\n" + autOut + "\n===========");
 	}
 }
