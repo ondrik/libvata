@@ -293,5 +293,5 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut)
 
 	assert(result.isValid());
 
-	return result;
+	return RemoveUnreachableStates(result);
 }
