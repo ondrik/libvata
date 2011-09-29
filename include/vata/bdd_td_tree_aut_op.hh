@@ -31,8 +31,7 @@ namespace VATA
 
 	BDDTopDownTreeAut RemoveUnreachableStates(const BDDTopDownTreeAut& aut);
 
-	BDDTopDownTreeAut RemoveUselessStates(const BDDTopDownTreeAut& aut,
-		AutBase::StateToStateMap* pTranslMap = nullptr);
+	BDDTopDownTreeAut RemoveUselessStates(const BDDTopDownTreeAut& aut);
 
 	bool CheckInclusion(const BDDTopDownTreeAut& smaller,
 		const BDDTopDownTreeAut& bigger);

@@ -49,8 +49,7 @@ GCC_DIAG_ON(effc++)
 
 	friend BDDTopDownTreeAut RemoveUnreachableStates(const BDDTopDownTreeAut&);
 
-	friend BDDTopDownTreeAut RemoveUselessStates(const BDDTopDownTreeAut&,
-		AutBase::StateToStateMap*);
+	friend BDDTopDownTreeAut RemoveUselessStates(const BDDTopDownTreeAut&);
 
 	friend bool CheckInclusion(const BDDTopDownTreeAut&, const BDDTopDownTreeAut&);
 
