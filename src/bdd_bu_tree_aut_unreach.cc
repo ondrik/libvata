@@ -27,39 +27,42 @@ typedef std::unordered_map<StateTuple, TransMTBDD, boost::hash<StateTuple>>
 	TupleHT;
 
 
-GCC_DIAG_OFF(effc++)
-class ReachableCollectorFctor :
-	public VATA::MTBDDPkg::VoidApply1Functor<ReachableCollectorFctor,
-	StateSet>
+namespace
 {
-GCC_DIAG_ON(effc++)
-
-private:  // data members
-
-	StateHT& reachable_;
-	StateHT& workset_;
-
-public:   // methods
-
-	ReachableCollectorFctor(StateHT& reachable, StateHT& workset) :
-		reachable_(reachable),
-		workset_(workset)
-	{ }
-
-	inline void ApplyOperation(const StateSet& value)
+	GCC_DIAG_OFF(effc++)
+	class ReachableCollectorFctor :
+		public VATA::MTBDDPkg::VoidApply1Functor<ReachableCollectorFctor,
+		StateSet>
 	{
-		for (const StateType& state : value)
+	GCC_DIAG_ON(effc++)
+
+	private:  // data members
+
+		StateHT& reachable_;
+		StateHT& workset_;
+
+	public:   // methods
+
+		ReachableCollectorFctor(StateHT& reachable, StateHT& workset) :
+			reachable_(reachable),
+			workset_(workset)
+		{ }
+
+		inline void ApplyOperation(const StateSet& value)
 		{
-			if (reachable_.insert(state).second)
-			{	// if the value was inserted
-				if (!workset_.insert(state).second)
-				{	// if it is already in the workset
-					assert(false);     // fail gracefully
+			for (const StateType& state : value)
+			{
+				if (reachable_.insert(state).second)
+				{	// if the value was inserted
+					if (!workset_.insert(state).second)
+					{	// if it is already in the workset
+						assert(false);     // fail gracefully
+					}
 				}
 			}
 		}
-	}
-};
+	};
+}
 
 
 BDDBottomUpTreeAut VATA::RemoveUnreachableStates(const BDDBottomUpTreeAut& aut)
