@@ -123,7 +123,7 @@ private:  // data types
 
 		protected:// methods
 
-			explicit generic_iterator(const TransTableWrapper& tableWrap, bool isBegin) :
+			generic_iterator(const TransTableWrapper& tableWrap, bool isBegin) :
 				isNullary_(isBegin),
 				tableWrap_(tableWrap),
 				itTupleMap_(isBegin? tableWrap.table_->GetTupleMap().begin() :
@@ -252,6 +252,11 @@ private:  // data types
 		inline bool unique() const
 		{
 			return table_.unique();
+		}
+
+		inline size_t size() const
+		{
+			return table_->size();
 		}
 
 		inline const_iterator begin() const
@@ -688,7 +693,7 @@ public:   // methods
 		GCC_DIAG_ON(effc++)
 		private:  // data members
 
-			StateToStateTranslator trans_;
+			StateToStateTranslator& trans_;
 
 		public:   // methods
 
