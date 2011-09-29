@@ -32,7 +32,7 @@ typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
 
 typedef BDDBottomUpTreeAut::StateSet StateSet;
 
-typedef std::map<StateType, size_t> CounterElementMap;
+typedef std::vector<size_t> CounterElementMap;
 typedef VATA::MTBDDPkg::OndriksMTBDD<CounterElementMap> CounterMTBDD;
 typedef std::unordered_map<StateTuple, CounterMTBDD, boost::hash<StateTuple>>
 	CounterHT;
@@ -132,11 +132,11 @@ namespace
 		CounterElementMap ApplyOperation(const StateTupleSet& lhs,
 			const CounterElementMap& rhs)
 		{
+			// Assertions
+			assert(state_ < rhs.size());
+
 			CounterElementMap result = rhs;
-			if (!result.insert(std::make_pair(state_, lhs.size())).second)
-			{
-				assert(false);
-			}
+			result[state_] = lhs.size();
 
 			return result;
 		}
@@ -204,13 +204,10 @@ namespace
 
 			for (const StateType& s : upR)
 			{
-				CounterElementMap::iterator itCnt;
-				if ((itCnt = result.find(s)) == result.end())
-				{
-					assert(false);    // fail gracefully
-				}
+				// Assertions
+				assert(s < cntQ.size());
 
-				if (--(itCnt->second) == 0)
+				if (--(result[s]) == 0)
 				{
 					for (const StateType& p : upQ)
 					{
@@ -263,7 +260,7 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 
 	BDDTopDownTreeAut topDownAut = aut.GetTopDownAut();
 
-	CounterMTBDD initCnt((CounterElementMap()));
+	CounterMTBDD initCnt((CounterElementMap(states)));
 
 	StateType firstState;
 	InitCntApplyFctor initCntFctor(firstState);
