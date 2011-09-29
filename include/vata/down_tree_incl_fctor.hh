@@ -197,7 +197,10 @@ private:  // methods
 		}
 
 		// make sure the element was removed
-		assert(erased);
+		if (!erased)
+		{
+			assert(false);
+		}
 
 		// cache the result
 		if (innerFctor.InclusionHolds())
