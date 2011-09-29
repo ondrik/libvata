@@ -1,3 +1,4 @@
 small_timbuk/useless_1      small_timbuk/useless_1_result
 small_timbuk/useless_2      small_timbuk/useless_2_result
 small_timbuk/useless_3      small_timbuk/useless_3_result
+small_timbuk/useless_4      small_timbuk/useless_4_result
