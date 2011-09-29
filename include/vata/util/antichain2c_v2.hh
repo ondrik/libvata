@@ -131,6 +131,8 @@ public:
 	}
 
 	bool empty() const { return this->data_.empty(); }
+
+	size_t size() const { return this->data_.size(); }
 	
 	void clear() { this->data_.clear(); }
 

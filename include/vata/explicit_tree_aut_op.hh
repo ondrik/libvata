@@ -379,8 +379,7 @@ namespace VATA {
 	bool CheckInclusionNoUseless(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger) {
 
-		return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
-			VATA::DownwardInclusionNoUselessFunctor>(smaller, bigger);
+		return CheckInclusionUpwardNoGarbage(smaller, bigger);
 
 	}
 

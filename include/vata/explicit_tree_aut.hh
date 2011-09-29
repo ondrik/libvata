@@ -464,8 +464,28 @@ public:   // public methods
 		const SymbolType& symbol() const { return this->symbol_; }
 		const StateType& state() const { return this->state_; }
 
+		bool operator==(const Transition& rhs) const {
+
+			return this->children_.get() == rhs.children_.get() &&
+				this->symbol_ == rhs.symbol_ &&
+				this->state_ == rhs.state_;
+
+		}
+
 		friend std::ostream& operator<<(std::ostream& os, const Transition& t) {
 			return os << t.symbol_ << Util::Convert::ToString(*t.children_) << "->" << t.state_;
+		}
+
+		friend size_t hash_value(const Transition& t) {
+
+			size_t seed = 0;
+
+			boost::hash_combine(seed, t.children_.get());
+			boost::hash_combine(seed, t.symbol_);
+			boost::hash_combine(seed, t.state_);
+
+			return seed;
+
 		}
 
 	};
