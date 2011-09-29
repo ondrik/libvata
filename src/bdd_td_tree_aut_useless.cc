@@ -269,7 +269,6 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut)
 	};
 
 	BDDTopDownTreeAut result;
-	StatePairStack workStack;
 
 	RestrictApplyFunctor restrFunc(usefulStates);
 
