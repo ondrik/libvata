@@ -136,8 +136,8 @@ namespace VATA {
 
 						res.AddTransition(children, leftSymbolStateTupleSetPtr.first, p->second);
 
-					}					
-					
+					}
+
 				}
 
 			}
@@ -346,7 +346,7 @@ namespace VATA {
 
 			if (iter == aut.transitions_->end())
 				continue;
-			
+
 			result.transitions_->insert(std::make_pair(state, iter->second));
 
 		}
@@ -393,7 +393,7 @@ namespace VATA {
 		Explicit::TupleCache tupleCache;
 
 		ExplicitTreeAut<SymbolType> a(tupleCache), b(tupleCache);
-		
+
 		smaller.ReindexStates(a, &stateMap);
 
 		size_t size = stateMap.size();
