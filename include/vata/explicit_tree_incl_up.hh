@@ -357,11 +357,11 @@ public:
 
 //		VATA_LOGGER_INFO("next: " + Util::Convert::ToString(next));
 
-//		size_t c = 0;
+		size_t c = 0;
 
 		while (next.next(q, Q)) {
 
-//			++c;
+			++c;
 
 			assert(q < inv.size());
 
@@ -399,9 +399,9 @@ public:
 
 //						VATA_LOGGER_INFO("smaller: " + Util::Convert::ToString(*smallerTransition));
 
-						antichainSet.clear();
-
 						do {
+
+							antichainSet.clear();
 
 							for (auto& biggerTransition : biggerClusterIter->second) {
 
@@ -419,39 +419,37 @@ public:
 
 							}
 							
+							if (antichainSet.empty())
+								return false;
+	
+							if (!antichainSet.isAccepting() && smaller.IsFinalState(smallerTransition->state()))
+								return false;
+	
+							assert(smallerTransition->state() < ind.size());
+	
+							StateSet tmp(antichainSet.begin(), antichainSet.end());
+	
+							if (checkIntersection(ind[smallerTransition->state()], tmp))
+								continue;
+	
+//							if (checkIntersection(ind[smallerTransition->state()], antichainSet))
+//								continue;
+	
+							auto ptr = biggerTypeCache.lookup(tmp);
+	
+//							auto ptr = biggerTypeCache.lookup(antichainSet);
+	
+							if (!processed.contains(ind[smallerTransition->state()], ptr, LTE) &&
+								!next.contains(ind[smallerTransition->state()], ptr, LTE)) {
+			
+								assert(smallerTransition->state() < inv.size());
+	
+								next.refine(inv[smallerTransition->state()], ptr, GTE);
+								next.insert(smallerTransition->state(), ptr);
+	
+							}
+
 						} while (choiceVector.next());
-
-						if (antichainSet.empty())
-							return false;
-
-						if (!antichainSet.isAccepting() && smaller.IsFinalState(smallerTransition->state()))
-							return false;
-
-						assert(smallerTransition->state() < ind.size());
-
-						StateSet tmp(antichainSet.begin(), antichainSet.end());
-
-						if (checkIntersection(ind[smallerTransition->state()], tmp))
-							continue;
-
-//						if (checkIntersection(ind[smallerTransition->state()], antichainSet))
-//							continue;
-
-						auto ptr = biggerTypeCache.lookup(tmp);
-
-//						auto ptr = biggerTypeCache.lookup(antichainSet);
-
-						if (!processed.contains(ind[smallerTransition->state()], ptr, LTE) &&
-							!next.contains(ind[smallerTransition->state()], ptr, LTE)) {
-		
-							assert(smallerTransition->state() < inv.size());
-
-							processed.refine(inv[smallerTransition->state()], ptr, GTE);
-							next.refine(inv[smallerTransition->state()], ptr, GTE);
-
-							next.insert(smallerTransition->state(), ptr);
-
-						}
 
 					}
 
@@ -463,7 +461,7 @@ public:
 
 		}
 
-//		VATA_LOGGER_INFO("elements processed: " + Util::Convert::ToString(c));
+		VATA_LOGGER_INFO("elements processed: " + Util::Convert::ToString(c));
 
 		return true;
 
