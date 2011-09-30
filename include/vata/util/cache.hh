@@ -60,7 +60,7 @@ public:
 
 		auto ptr = TPtr(
 			const_cast<T*>(&p.first->first),
-			[this](const T* tuple) { this->f_(tuple); this->store_.erase(*tuple); }
+			[this](const T* v) { this->f_(v); this->store_.erase(*v); }
 		);
 
 		p.first->second = WeakTPtr(ptr);
