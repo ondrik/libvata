@@ -88,7 +88,10 @@ public:
 		typedef typename BiggerTypeCache::TPtr BiggerType;
 
 		typedef Util::CachedBinaryOp<
-			const StateSet*, bool, Hash<std::pair<const StateSet*, const StateSet*>>
+			const StateSet*,
+			const StateSet*,
+			bool,
+			Hash<std::pair<const StateSet*, const StateSet*>>
 		> LTECache;
 
 		typedef typename Util::Antichain2Cv2<SmallerType, BiggerType> Antichain2C;
@@ -316,7 +319,10 @@ public:
 		bigger.bottomUpIndex(biggerIndex, biggerLeaves);
 
 		BiggerTypeCache biggerTypeCache(
-			[&lteCache](const StateSet* v) { lteCache.invalidateKey(v); }
+			[&lteCache](const StateSet* v) {
+				lteCache.invalidateFirst(v);
+				lteCache.invalidateSecond(v);
+			}
 		);
 
 		Antichain2C processed, next;
