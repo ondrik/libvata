@@ -16,6 +16,7 @@
 #include <boost/functional/hash.hpp>
 
 #include <vata/util/cache.hh>
+#include <vata/util/antichain1c.hh>
 #include <vata/util/antichain2c_v2.hh>
 
 //#include <vata/vata.hh>
