@@ -45,10 +45,10 @@ GCC_DIAG_ON(effc++)
 	friend BDDBottomUpTreeAut RemoveUselessStates(const BDDBottomUpTreeAut&,
 		AutBase::StateToStateMap* pTranslMap);
 
-	friend bool CheckInclusion(const BDDBottomUpTreeAut&,
+	friend bool CheckUpwardInclusion(const BDDBottomUpTreeAut&,
 		const BDDBottomUpTreeAut&);
 
-	friend bool CheckInclusionNoUseless(const BDDBottomUpTreeAut&,
+	friend bool CheckUpwardInclusionNoUseless(const BDDBottomUpTreeAut&,
 		const BDDBottomUpTreeAut&);
 
 public:   // data types
@@ -283,8 +283,6 @@ private:  // data types
 public:   // data types
 
 	typedef TransTableWrapper TransTable;
-
-private:  // data types
 
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class UnionApplyFunctor :

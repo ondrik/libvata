@@ -44,74 +44,73 @@ typedef std::stack<RemoveElement, std::list<RemoveElement>> RemoveList;
 
 typedef BDDBottomUpTreeAut::TransTable BUTransTable;
 
-template <class ArbitraryFunction>
-static void forAllTuplesWithMatchingStatesDo(
-	const BUTransTable& tuples, const StateType& lhsState,
-	const StateType& rhsState, ArbitraryFunction func)
+namespace
 {
-	for (auto lhsTupleBddPair : tuples)
+	template <class ArbitraryFunction>
+	void forAllTuplesWithMatchingStatesDo(
+		const BUTransTable& tuples, const StateType& lhsState,
+		const StateType& rhsState, ArbitraryFunction func)
 	{
-		const StateTuple& lhsTuple = lhsTupleBddPair.first;
-
-		std::vector<size_t> matchedPositions;
-		for (size_t i = 0; i < lhsTuple.size(); ++i)
+		for (auto lhsTupleBddPair : tuples)
 		{
-			if (lhsTuple[i] == lhsState)
+			const StateTuple& lhsTuple = lhsTupleBddPair.first;
+
+			std::vector<size_t> matchedPositions;
+			for (size_t i = 0; i < lhsTuple.size(); ++i)
 			{
-				matchedPositions.push_back(i);
-			}
-		}
-
-		if (matchedPositions.empty())
-		{
-			continue;
-		}
-
-		for (auto rhsTupleBddPair : tuples)
-		{
-			const StateTuple& rhsTuple = rhsTupleBddPair.first;
-
-			if (rhsTuple.size() != lhsTuple.size())
-			{
-				continue;
-			}
-
-			size_t i;
-			for (i = 0; i < matchedPositions.size(); ++i)
-			{
-				if (rhsTuple[matchedPositions[i]] == rhsState)
+				if (lhsTuple[i] == lhsState)
 				{
-					break;
+					matchedPositions.push_back(i);
 				}
 			}
 
-			if (i == matchedPositions.size())
+			if (matchedPositions.empty())
 			{
 				continue;
 			}
 
-			func(lhsTuple, rhsTuple);
+			for (auto rhsTupleBddPair : tuples)
+			{
+				const StateTuple& rhsTuple = rhsTupleBddPair.first;
+
+				if (rhsTuple.size() != lhsTuple.size())
+				{
+					continue;
+				}
+
+				size_t i;
+				for (i = 0; i < matchedPositions.size(); ++i)
+				{
+					if (rhsTuple[matchedPositions[i]] == rhsState)
+					{
+						break;
+					}
+				}
+
+				if (i == matchedPositions.size())
+				{
+					continue;
+				}
+
+				func(lhsTuple, rhsTuple);
+			}
 		}
 	}
-}
 
-static inline bool componentWiseSim(const StateBinaryRelation& sim,
-	const StateTuple& lhsTuple, const StateTuple& rhsTuple)
-{
-	for (size_t i = 0; i < lhsTuple.size(); ++i)
+	inline bool componentWiseSim(const StateBinaryRelation& sim,
+		const StateTuple& lhsTuple, const StateTuple& rhsTuple)
 	{
-		if (!sim.get(lhsTuple[i], rhsTuple[i]))
+		for (size_t i = 0; i < lhsTuple.size(); ++i)
 		{
-			return false;
+			if (!sim.get(lhsTuple[i], rhsTuple[i]))
+			{
+				return false;
+			}
 		}
+
+		return true;
 	}
 
-	return true;
-}
-
-
-namespace
-{
 	GCC_DIAG_OFF(effc++)
 	class InitCntApplyFctor :
 		public VATA::MTBDDPkg::Apply2Functor<InitCntApplyFctor, StateTupleSet,
@@ -324,3 +323,9 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 	return sim;
 }
 
+StateBinaryRelation VATA::ComputeUpwardSimulation(const BDDBottomUpTreeAut& aut)
+{
+	assert(&aut != nullptr);
+
+	throw std::runtime_error("Unimplemented");
+}

@@ -24,9 +24,14 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 	const BDDTopDownTreeAut& aut)
 {
 	assert(&aut != nullptr);
-	StateBinaryRelation result;
 
-	VATA_LOGGER_INFO("Simulation: " + Convert::ToString(result));
+	throw std::runtime_error("Unimplemented");
+}
 
-	return result;
+StateBinaryRelation VATA::ComputeUpwardSimulation(
+	const BDDTopDownTreeAut& aut)
+{
+	assert(&aut != nullptr);
+
+	throw std::runtime_error("Unimplemented");
 }
