@@ -13,6 +13,8 @@
 
 #include <algorithm>
 
+#include <boost/functional/hash.hpp>
+
 #include <vata/util/cache.hh>
 #include <vata/util/antichain2c_v2.hh>
 
@@ -22,6 +24,28 @@
 namespace VATA {
 
 	class ExplicitUpwardInclusion;
+
+}
+
+namespace std {
+
+	template<class T1, class T2>
+	struct hash<std::pair<T1, T2>> {
+
+		size_t operator()(const std::pair<T1, T2>& v) const {
+			return boost::hash_value(v);
+		}
+
+	};
+
+	template<class T>
+	struct hash<std::vector<T>> {
+
+		size_t operator()(const std::vector<T>& v) const {
+			return boost::hash_value(v);
+		}
+
+	};
 
 }
 
@@ -61,15 +85,6 @@ class VATA::ExplicitUpwardInclusion {
 
 	}
 
-	template <class T>
-	struct Hash {
-		size_t operator()(const T& v) const { return boost::hash_value(v); }
-	};
-/*
-	friend std::ostream& operator<<(std::ostream& os, const std::shared_ptr<std::vector<Explicit::StateType>>& s) {
-		return os << Util::Convert::ToString(*s);
-	}
-*/
 public:
 
 	template <class Aut, class Rel>
@@ -77,23 +92,27 @@ public:
 
 		typedef Explicit::StateType SmallerType;
 		typedef std::vector<Explicit::StateType> StateSet;
+
+		typedef typename Aut::SymbolType SymbolType;
 		typedef typename Aut::Transition Transition;
 		typedef typename Aut::TransitionPtr TransitionPtr;
+
 		typedef std::unordered_set<const Transition*> TransitionSet;
+		typedef typename std::shared_ptr<TransitionSet> TransitionSetPtr;
 
 		typedef typename Util::Cache<
-			StateSet, std::function<void(const StateSet*)>, Hash<StateSet>
+			StateSet, std::function<void(const StateSet*)>
 		> BiggerTypeCache;
 
 		typedef typename BiggerTypeCache::TPtr BiggerType;
 
-		typedef Util::CachedBinaryOp<
-			const StateSet*,
-			const StateSet*,
-			bool,
-			Hash<std::pair<const StateSet*, const StateSet*>>
-		> LTECache;
+		typedef Util::CachedBinaryOp<const StateSet*, const StateSet*, bool> LteCache;
 
+		typedef Util::CachedBinaryOp<
+			std::pair<SymbolType, size_t>, const StateSet*, TransitionSetPtr
+		> EvalTransitionsCache;
+
+		typedef typename Util::Antichain1C<SmallerType> Antichain1C;
 		typedef typename Util::Antichain2Cv2<SmallerType, BiggerType> Antichain2C;
 
 		GCC_DIAG_OFF(effc++)
@@ -174,90 +193,6 @@ public:
 
 		};
 
-		GCC_DIAG_OFF(effc++)
-		struct AntichainSet : public std::set<Explicit::StateType> {
-		GCC_DIAG_ON(effc++)
-
-			const typename Rel::IndexType& ind_;
-			const typename Rel::IndexType& inv_;
-
-		public:
-
-			AntichainSet(const typename Rel::IndexType& ind, const typename Rel::IndexType& inv)
-				: ind_(ind), inv_(inv) {}
-
-			bool testAndRefine(const Explicit::StateType& state) {
-
-				assert(state < this->ind_.size());
-
-				for (auto& biggerState : this->ind_[state]) {
-					
-					if (this->find(biggerState) != this->end())
-						return false;
-
-				}
-
-				assert(state < this->inv_.size());
-
-				for (auto& smallerState : this->inv_[state])
-					this->erase(smallerState);
-
-				this->insert(state);
-
-				return true;
-
-			}
-
-			bool next(Explicit::StateType& s) {
-
-				if (this->empty())
-					return false;
-
-				s = *this->begin();
-
-				this->erase(this->begin());
-
-				return true;
-				
-			}
-		
-		};
-
-		GCC_DIAG_OFF(effc++)
-		struct AcceptingAntichainSet : public AntichainSet {
-		GCC_DIAG_ON(effc++)
-
-			const Aut& aut_;
-			bool isAccepting_;
-
-		public:
-
-			AcceptingAntichainSet(const Aut& aut, const typename Rel::IndexType& ind,
-				const typename Rel::IndexType& inv) : AntichainSet(ind, inv), aut_(aut),
-				isAccepting_(false) {}
-
-			bool isAccepting() const { return this->isAccepting_; }
-
-			bool testAndRefine(const Explicit::StateType& state) {
-
-				if (!static_cast<AntichainSet*>(this)->testAndRefine(state))
-					return false;
-
-				this->isAccepting_ = this->isAccepting_ || this->aut_.IsFinalState(state);
-				return true;
-
-			}
-
-			void clear() {
-
-				static_cast<AntichainSet*>(this)->clear();
-
-				this->isAccepting_ = false;
-
-			}
-		
-		};
-
 		typename Rel::IndexType ind, inv;
 
 		preorder.buildIndex(ind, inv);
@@ -279,7 +214,7 @@ public:
 
 		};
 
-		LTECache lteCache;
+		LteCache lteCache;
 
 		auto lte = [&noncachedLte, &lteCache](const BiggerType& x, const BiggerType& y) -> bool {
 
@@ -295,19 +230,32 @@ public:
 		typename Aut::IndexedSymbolToTransitionListMap smallerIndex;
 		typename Aut::SymbolToDoubleIndexedTransitionListMap biggerIndex;
 
-		auto noncachedEvalTransitions = [](
-			const typename Aut::IndexedTransitionList& indexedTransitionList, const StateSet& states
-			) -> TransitionSet {
+		smaller.bottomUpIndex(smallerIndex, smallerLeaves);
+		bigger.bottomUpIndex(biggerIndex, biggerLeaves);
 
-			TransitionSet result;
+		auto noncachedEvalTransitions = [&biggerIndex](const std::pair<SymbolType, size_t>& key,
+			const StateSet* states) -> TransitionSetPtr {
 
-			for (auto& state: states) {
+			assert(states);
+
+			TransitionSetPtr result = TransitionSetPtr(new TransitionSet());
+
+			auto iter = biggerIndex.find(key.first);
+
+			if (iter == biggerIndex.end())
+				return result;
+
+			assert(key.second < iter->second.size());
+
+			auto& indexedTransitionList = iter->second[key.second];
+
+			for (auto& state: *states) {
 
 				if (state >= indexedTransitionList.size())
 					continue;
 
 				for (auto& transition : indexedTransitionList[state])		
-					result.insert(transition.get());
+					result->insert(transition.get());
 
 			}
 
@@ -315,21 +263,32 @@ public:
 
 		};
 
-		smaller.bottomUpIndex(smallerIndex, smallerLeaves);
-		bigger.bottomUpIndex(biggerIndex, biggerLeaves);
+		EvalTransitionsCache evalTransitionsCache;
+
+		auto evalTransitions = [&noncachedEvalTransitions, &evalTransitionsCache](
+			const SymbolType& symbol, size_t i, const StateSet* states)
+			-> TransitionSetPtr {
+
+			assert(states);
+
+			return evalTransitionsCache.lookup(
+				std::make_pair(symbol, i), states, noncachedEvalTransitions
+			);
+
+		};
 
 		BiggerTypeCache biggerTypeCache(
-			[&lteCache](const StateSet* v) {
+			[&lteCache, &evalTransitionsCache](const StateSet* v) {
 				lteCache.invalidateFirst(v);
 				lteCache.invalidateSecond(v);
+				evalTransitionsCache.invalidateSecond(v);
 			}
 		);
 
-		Antichain2C processed, next;
+		Antichain1C active, post;
+		Antichain2C next, processed;
 
-		AntichainSet active(ind, inv);
-
-		AcceptingAntichainSet post(bigger, ind, inv);
+		bool isAccepting;
 
 		// Post(\emptyset)
 
@@ -341,19 +300,31 @@ public:
 				return false;
 
 			post.clear();
+			isAccepting = false;
 
 			for (auto& transition : biggerClusterIter->second) {
 
 				assert(transition);
 				assert(transition->children().empty());
+				assert(transition->state() < ind.size());
 
 //				VATA_LOGGER_INFO("bigger: " + Util::Convert::ToString(*transition));
 
-				post.testAndRefine(transition->state());
+				if (post.contains(ind[transition->state()]))
+					continue;
+
+				assert(transition->state() < inv.size());
+
+				post.refine(inv[transition->state()]);
+				post.insert(transition->state());
+
+				isAccepting = isAccepting || bigger.IsFinalState(transition->state());
 
 			}
 
-			StateSet tmp(post.begin(), post.end());
+			StateSet tmp(post.data().begin(), post.data().end());
+
+			std::sort(tmp.begin(), tmp.end());
 
 			auto ptr = biggerTypeCache.lookup(tmp);
 
@@ -363,7 +334,7 @@ public:
 
 //				VATA_LOGGER_INFO("smaller: " + Util::Convert::ToString(*transition));
 
-				if (!post.isAccepting() && smaller.IsFinalState(transition->state()))
+				if (!isAccepting && smaller.IsFinalState(transition->state()))
 					return false;
 
 				assert(transition->state() < ind.size());
@@ -371,18 +342,21 @@ public:
 				if (checkIntersection(ind[transition->state()], tmp))
 					continue;
 
-				if (!processed.contains(ind[transition->state()], ptr, lte)) {
+				if (processed.contains(ind[transition->state()], ptr, lte))
+					continue;
 
-//					VATA_LOGGER_INFO(Util::Convert::ToString(transition->state()) + ", " + Util::Convert::ToString(tmp));
+//				VATA_LOGGER_INFO(Util::Convert::ToString(transition->state()) + ", " + Util::Convert::ToString(tmp));
 
-					assert(transition->state() < inv.size());
+				assert(transition->state() < inv.size());
 					
-					processed.refine(inv[transition->state()], ptr, gte);
-					processed.insert(transition->state(), ptr);
+				processed.refine(inv[transition->state()], ptr, gte);
+				processed.insert(transition->state(), ptr);
 
-					active.testAndRefine(transition->state());
+				if (active.contains(ind[transition->state()]))
+					continue;
 
-				}
+				active.refine(inv[transition->state()]);
+				active.insert(transition->state());
 
 			}
 
@@ -390,13 +364,13 @@ public:
 
 		ChoiceVector choiceVector(processed);
 
-		size_t c = 0;
+//		size_t c = 0;
 
 		SmallerType q; BiggerType Q;
 
 		while (active.next(q)) {
 
-			++c;
+//			++c;
 
 //			VATA_LOGGER_INFO("processed: " + Util::Convert::ToString(processed));
 
@@ -423,16 +397,19 @@ public:
 					do {
 
 						post.clear();
+						isAccepting = false;
 
 						assert(biggerClusterIter->second.size() > 0);
 						assert(choiceVector[0].get());
 
-						auto firstSet = noncachedEvalTransitions(
-							biggerClusterIter->second[0], *choiceVector[0].get()
+						auto firstSet = evalTransitions(
+							symbolClusterPair.first, 0, choiceVector[0].get().get()
 						);
 
+						assert(firstSet);
+
 						std::list<const Transition*> biggerTransitions(
-							firstSet.begin(), firstSet.end()
+							firstSet->begin(), firstSet->end()
 						);
 
 						for (size_t i = 1; i < choiceVector.size(); ++i) {
@@ -440,34 +417,48 @@ public:
 							assert(i < biggerClusterIter->second.size());
 							assert(choiceVector[i].get());
 			
-							intersectionByLookup(
-								biggerTransitions,
-								noncachedEvalTransitions(
-									biggerClusterIter->second[i], *choiceVector[i].get()
-								)
+							auto transitions = evalTransitions(
+								symbolClusterPair.first, i, choiceVector[i].get().get()
 							);
+
+							assert(transitions);
+							
+							intersectionByLookup(biggerTransitions, *transitions);
 
 						}
 
 						for (auto& biggerTransition : biggerTransitions) {
 
 							assert(biggerTransition);
+							assert(biggerTransition->state() < ind.size());
 
-							post.testAndRefine(biggerTransition->state());
+							if (post.contains(ind[biggerTransition->state()]))
+								continue;
+
+							assert(biggerTransition->state() < inv.size());
+
+							post.refine(inv[biggerTransition->state()]);
+							post.insert(biggerTransition->state());
+							
+							isAccepting = isAccepting ||
+								bigger.IsFinalState(biggerTransition->state());
+
 //							if (post.testAndRefine(biggerTransition->state()))
 //								VATA_LOGGER_INFO("bigger: " + Util::Convert::ToString(*biggerTransition));
 
 						}
 						
-						if (post.empty())
+						if (post.data().empty())
+							return false;
+
+						if (!isAccepting && smaller.IsFinalState(smallerTransition->state()))
 							return false;
 	
-						if (!post.isAccepting() && smaller.IsFinalState(smallerTransition->state()))
-							return false;
-	
+						StateSet tmp(post.data().begin(), post.data().end());
+
+						std::sort(tmp.begin(), tmp.end());
+						
 						assert(smallerTransition->state() < ind.size());
-	
-						StateSet tmp(post.begin(), post.end());
 	
 						if (checkIntersection(ind[smallerTransition->state()], tmp))
 							continue;
@@ -486,15 +477,21 @@ public:
 
 					while (next.next(q, Q)) {
 
+						assert(q < ind.size());
+
 						if (processed.contains(ind[q], Q, lte))
 							continue;
 		
-						assert(smallerTransition->state() < inv.size());
-	
+						assert(q < inv.size());
+
 						processed.refine(inv[q], Q, gte);
 						processed.insert(q, Q);
 
-						active.testAndRefine(q);
+						if (active.contains(ind[q]))
+							continue;
+	
+						active.refine(inv[q]);
+						active.insert(q);
 
 					}
 

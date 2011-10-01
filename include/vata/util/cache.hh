@@ -18,19 +18,19 @@
 // insert class to proper namespace
 namespace VATA {
 	namespace Util {
-		template <class T, class F, class H> class Cache;
-		template <class T1, class T2, class V, class H> class CachedBinaryOp;
+		template <class T, class F> class Cache;
+		template <class T1, class T2, class V> class CachedBinaryOp;
 	}
 }
 
-template <class T, class F = std::function<void(const T*)>, class H = std::hash<T>>
+template <class T, class F = std::function<void(const T*)>>
 class VATA::Util::Cache {
 
 public:
 
 	typedef typename std::shared_ptr<T> TPtr;
 	typedef typename std::weak_ptr<T> WeakTPtr;
-	typedef typename std::unordered_map<T, WeakTPtr, H> TToWeakTPtrMap;
+	typedef typename std::unordered_map<T, WeakTPtr> TToWeakTPtrMap;
 
 protected:
 
@@ -73,13 +73,13 @@ public:
 
 };
 
-template <class T1, class T2, class V, class H>
+template <class T1, class T2, class V>
 class VATA::Util::CachedBinaryOp {
 
 public:
 
 	typedef std::pair<T1, T2> Key;
-	typedef std::unordered_map<Key, V, H> KeyToVMap;
+	typedef std::unordered_map<Key, V> KeyToVMap;
 	typedef std::set<typename KeyToVMap::value_type*> KeyToVMapValueTypeSet;
 	typedef std::unordered_map<T1, KeyToVMapValueTypeSet> T1ToKeyToVMapValueTypeSetMap;
 	typedef std::unordered_map<T2, KeyToVMapValueTypeSet> T2ToKeyToVMapValueTypeSetMap;
