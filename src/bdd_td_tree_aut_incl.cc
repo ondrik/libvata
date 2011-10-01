@@ -29,12 +29,7 @@ bool VATA::CheckDownwardInclusion(const BDDTopDownTreeAut& smaller,
 bool VATA::CheckDownwardInclusionWithoutUseless(
 	const BDDTopDownTreeAut& smaller, const BDDTopDownTreeAut& bigger)
 {
-	class IdentityRelation
-	{
-
-	};
-
-	IdentityRelation ident;
+	VATA::Util::Identity ident;
 
 	return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
 		VATA::DownwardInclusionFunctor>(smaller, bigger, ident);

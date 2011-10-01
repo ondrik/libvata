@@ -19,7 +19,6 @@
 #include <vata/tree_incl_down.hh>
 #include <vata/util/binary_relation.hh>
 #include <vata/util/convert.hh>
-#include <vata/util/ident_bin_relation.hh>
 
 // Standard library headers
 #include <list>
@@ -400,7 +399,7 @@ namespace VATA {
 	bool CheckDownwardInclusionWithoutUseless(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger) {
 
-		VATA::Util::IdentityBinaryRelation ident;
+		VATA::Util::Identity ident;
 		return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
 			VATA::DownwardInclusionFunctor>(smaller, bigger, ident);
 
