@@ -8,16 +8,14 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_ANTICHAIN_V2_HH_
-#define _VATA_ANTICHAIN_V2_HH_
+#ifndef _VATA_ANTICHAIN_2C_V2_HH_
+#define _VATA_ANTICHAIN_2C_V2_HH_
 
-//#include <ostream>
+#include <ostream>
 #include <list>
 #include <unordered_map>
 
-#include <vata/util/cache.hh>
-#include <vata/util/binary_relation.hh>
-//#include <vata/util/convert.hh>
+#include <vata/util/convert.hh>
 
 namespace VATA
 {
@@ -33,11 +31,11 @@ class VATA::Util::Antichain2Cv2 {
 public:
 
 	typedef std::list<T> TList;
-	typedef std::unordered_map<Key, TList> KeyToTSetHashTable;
+	typedef std::unordered_map<Key, TList> KeyToTListMap;
 
 private:
 
-	KeyToTSetHashTable data_;
+	KeyToTListMap data_;
 
 public:
 
@@ -53,8 +51,7 @@ public:
 
 	// return TRUE if there exists (p, P) in ac such that q <= p and P <= Q
 	template <class Cont, class Cmp>
-	bool contains(const Cont& candidates /* candidates for p */, const T& Q,
-		const Cmp& cmp) const {
+	bool contains(const Cont& candidates /* candidates for p */, const T& Q, const Cmp& cmp) const {
 
 		for (auto& p : candidates) {
 
@@ -78,8 +75,7 @@ public:
 
 	// remove all (p, P) from ac such that q <= p and P <= Q
 	template <class Cont, class Cmp>
-	void refine(const Cont& candidates /* candidates for p */, const T& Q,
-		const Cmp& cmp) {
+	void refine(const Cont& candidates /* candidates for p */, const T& Q, const Cmp& cmp) {
 
 		for (auto& p : candidates) {
 
