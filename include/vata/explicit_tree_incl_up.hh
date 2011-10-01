@@ -99,7 +99,7 @@ public:
 				return false;
 
 			}
-			
+
 		};
 
 		struct ChoiceVector {
@@ -107,13 +107,13 @@ public:
 			const Antichain2C& processed_;
 			const Antichain2C::TList& fixed_;
 			std::vector<Choice> state_;
-			
+
 		public:
 
 			ChoiceVector(const Antichain2C& processed,
 				const Antichain2C::TList& fixed)
 				: processed_(processed), fixed_(fixed), state_() {}
-		
+
 			bool get(const Explicit::StateTuple& children, size_t index) {
 
 				assert(index < children.size());
@@ -140,7 +140,7 @@ public:
 				return true;
 
 			}
-		
+
 			bool next() {
 
 				for (auto& choice : this->state_) {
@@ -153,7 +153,7 @@ public:
 				return false;
 
 			}
-			
+
 			bool match(const Explicit::StateTuple& children) const {
 
 				for (size_t i = 0; i < children.size(); ++i) {
@@ -210,7 +210,7 @@ public:
 				assert(state < this->ind_.size());
 
 				for (auto& biggerState : this->ind_[state]) {
-					
+
 					if (this->find(biggerState) != this->end())
 						return;
 
@@ -234,7 +234,7 @@ public:
 //				this->cache_.clear();
 
 			}
-		
+
 		};
 
 		typename Rel::IndexType ind, inv;
@@ -267,7 +267,7 @@ public:
 			return (x.get() == y.get())?(true):(lteCache.lookup(x.get(), y.get(), coreLTE));
 
 		};
-		
+
 		auto GTE = [&LTE](const BiggerType& x, const BiggerType& y) { return LTE(y, x); };
 
 		typename Aut::SymbolToTransitionListMap smallerLeaves;
@@ -337,7 +337,7 @@ public:
 //					VATA_LOGGER_INFO(Util::Convert::ToString(transition->state()) + ", " + Util::Convert::ToString(tmp));
 
 					assert(transition->state() < inv.size());
-					
+
 					next.refine(inv[transition->state()], ptr, GTE);
 					next.insert(transition->state(), ptr);
 
@@ -418,35 +418,35 @@ public:
 								antichainSet.testAndRefine(biggerTransition->state());
 
 							}
-							
+
 							if (antichainSet.empty())
 								return false;
-	
+
 							if (!antichainSet.isAccepting() && smaller.IsFinalState(smallerTransition->state()))
 								return false;
-	
+
 							assert(smallerTransition->state() < ind.size());
-	
+
 							StateSet tmp(antichainSet.begin(), antichainSet.end());
-	
+
 							if (checkIntersection(ind[smallerTransition->state()], tmp))
 								continue;
-	
+
 //							if (checkIntersection(ind[smallerTransition->state()], antichainSet))
 //								continue;
-	
+
 							auto ptr = biggerTypeCache.lookup(tmp);
-	
+
 //							auto ptr = biggerTypeCache.lookup(antichainSet);
-	
+
 							if (!processed.contains(ind[smallerTransition->state()], ptr, LTE) &&
 								!next.contains(ind[smallerTransition->state()], ptr, LTE)) {
-			
+
 								assert(smallerTransition->state() < inv.size());
-	
+
 								next.refine(inv[smallerTransition->state()], ptr, GTE);
 								next.insert(smallerTransition->state(), ptr);
-	
+
 							}
 
 						} while (choiceVector.next());
