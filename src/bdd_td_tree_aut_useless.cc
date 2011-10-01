@@ -25,9 +25,6 @@ using VATA::Util::Graph;
 
 BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut)
 {
-	// Assertions
-	assert(aut.isValid());
-
 	typedef AutBase::StateType StateType;
 	typedef BDDTopDownTreeAut::StateTuple StateTuple;
 	typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
@@ -290,8 +287,6 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut)
 			result.SetMtbdd(state, restrFunc(bdd));
 		}
 	}
-
-	assert(result.isValid());
 
 	return RemoveUnreachableStates(result);
 }

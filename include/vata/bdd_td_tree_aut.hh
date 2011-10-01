@@ -122,29 +122,13 @@ private:  // data members
 
 private:  // methods
 
-	bool isValid() const
-	{
-		if (transTable_.get() == nullptr)
-		{	// in case the transition table pointer is bad
-			return false;
-		}
-
-		return true;
-	}
-
 	inline const TransMTBDD& GetMtbdd(const StateType& state) const
 	{
-		// Assertions
-		assert(isValid());
-
 		return transTable_->GetMtbdd(state);
 	}
 
 	inline void SetMtbdd(const StateType& state, const TransMTBDD& mtbdd)
 	{
-		// Assertions
-		assert(isValid());
-
 		transTable_->SetMtbdd(state, mtbdd);
 	}
 
@@ -156,8 +140,6 @@ private:  // methods
 		{	// traverse final states
 			finalStates_.insert(stateTranslator(fst));
 		}
-
-		assert(isValid());
 
 		for (auto tr : desc.transitions)
 		{	// traverse the transitions
@@ -179,10 +161,7 @@ private:  // methods
 			SymbolType symbol = symbolTranslator(symbolStr);
 
 			AddTransition(children, symbol, parent);
-			assert(isValid());
 		}
-
-		assert(isValid());
 	}
 
 	template <class StateTransFunc, class SymbolTransFunc>
@@ -190,8 +169,6 @@ private:  // methods
 		StateTransFunc /* stateTranslator */, SymbolTransFunc /* symbolTranslator */)
 	{
 		assert(false);
-
-		assert(isValid());
 	}
 
 	template <class StateBackTransFunc, class SymbolBackTransFunc>
@@ -308,26 +285,17 @@ public:   // public methods
 	BDDTopDownTreeAut() :
 		finalStates_(),
 		transTable_(new TransTable)
-	{
-		// Assertions
-		assert(isValid());
-	}
+	{ }
 
 	BDDTopDownTreeAut(TransTablePtr transTable) :
 		finalStates_(),
 		transTable_(transTable)
-	{
-		// Assertions
-		assert(isValid());
-	}
+	{ }
 
 	BDDTopDownTreeAut(const BDDTopDownTreeAut& aut) :
 		finalStates_(aut.finalStates_),
 		transTable_(aut.transTable_)
-	{
-		// Assertions
-		assert(isValid());
-	}
+	{ }
 
 	BDDTopDownTreeAut& operator=(const BDDTopDownTreeAut& rhs)
 	{
@@ -337,7 +305,6 @@ public:   // public methods
 			finalStates_ = rhs.finalStates_;
 		}
 
-		assert(isValid());
 		return *this;
 	}
 
@@ -400,8 +367,6 @@ public:   // public methods
 			loadFromAutDescExplicit(parser.ParseString(str), stateTranslator,
 				symbolTranslator);
 		}
-
-		assert(isValid());
 	}
 
 	template <class StateBackTransFunc, class SymbolTransFunc>
@@ -434,17 +399,11 @@ public:   // public methods
 
 	inline void SetStateFinal(const StateType& state)
 	{
-		// Assertions
-		assert(isValid());
-
 		finalStates_.insert(state);
 	}
 
 	inline bool IsStateFinal(const StateType& state) const
 	{
-		// Assertions
-		assert(isValid());
-
 		return finalStates_.find(state) != finalStates_.end();
 	}
 
@@ -480,10 +439,6 @@ public:   // public methods
 		const StateType& lhsState, const StateSetLight& rhsSet,
 		OperationFunc& opFunc)
 	{
-		// Assertions
-		assert(lhs.isValid());
-		assert(rhs.isValid());
-
 		GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 		class OperationApplyFunctor :
 			public VATA::MTBDDPkg::VoidApply2Functor<OperationApplyFunctor,
