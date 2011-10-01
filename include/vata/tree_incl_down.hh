@@ -17,9 +17,14 @@
 
 namespace VATA
 {
-	template <class Aut, template <class> class DownwardInclFctor, class Rel>
+	template
+	<
+		class Aut,
+		template <class, class> class DownwardInclFctor,
+		class Rel
+	>
 	bool CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger,
-	const Rel& preorder);
+		const Rel& preorder);
 }
 
 /**
@@ -30,13 +35,16 @@ namespace VATA
  *
  * @todo  Write this documentation
  */
-template <class Aut, template <class> class DownwardInclFctor, class Rel>
+template
+<
+	class Aut,
+	template <class, class> class DownwardInclFctor,
+	class Rel
+>
 bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger,
 	const Rel& preorder)
 {
-	assert(&preorder != nullptr);
-
-	typedef DownwardInclFctor<Aut> InclFctor;
+	typedef DownwardInclFctor<Aut, Rel> InclFctor;
 
 	typedef typename Aut::StateType StateType;
 	typedef typename InclFctor::StateSet StateSet;
@@ -49,7 +57,13 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger,
 	WorkSetType workset;
 	NonInclusionCache nonIncl;
 
-	InclFctor downFctor(smaller, bigger, workset, nonIncl);
+
+	typename Rel::IndexType preorderSmaller;
+	typename Rel::IndexType preorderBigger;
+	preorder.buildIndex(preorderBigger, preorderSmaller);
+
+	InclFctor downFctor(smaller, bigger, workset, nonIncl, preorder,
+		preorderSmaller, preorderBigger);
 
 	StateSet finalStatesBigger(bigger.GetFinalStates().begin(),
 		bigger.GetFinalStates().end());

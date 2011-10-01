@@ -19,12 +19,12 @@
 
 namespace VATA
 {
-	template <class Aut>
+	template <class Aut, class Rel>
 	class DownwardInclusionFunctor;
 }
 
 // NOTE: the automata cannot have useless states
-template <class Aut>
+template <class Aut, class Rel>
 class VATA::DownwardInclusionFunctor
 {
 public:   // data types
@@ -40,33 +40,52 @@ public:   // data types
 	typedef std::unordered_multimap<typename WorkSetElement::first_type,
 		typename WorkSetElement::second_type> WorkSetType;
 
+	typedef Rel Relation;
+	typedef typename Relation::IndexType IndexType;
+
 private:  // data types
 
 	typedef std::pair<StateType, StateSet> ACPair;
 
-	struct InclACComparer{bool operator()(const ACPair& lhs, const ACPair& rhs)
+	class InclACComparer
 	{
-		return lhs.second.IsSubsetOf(rhs.second);
-	}};
+	private:  // data members
 
-	struct InclACComparerStrict{
+	public:   // methods
 		bool operator()(const ACPair& lhs, const ACPair& rhs)
-	{
-		return lhs.second.IsSubsetOf(rhs.second) &&
-			lhs.second.size() < rhs.second.size();
-	}};
+		{
+			return lhs.second.IsSubsetOf(rhs.second);
+		}
+	};
 
-	struct NonInclACComparer{bool operator()(const ACPair& lhs, const ACPair& rhs)
+	class InclACComparerStrict
 	{
-		return rhs.second.IsSubsetOf(lhs.second);
-	}};
-
-	struct NonInclACComparerStrict{
+	public:   // methods
 		bool operator()(const ACPair& lhs, const ACPair& rhs)
+		{
+			return lhs.second.IsSubsetOf(rhs.second) &&
+				lhs.second.size() < rhs.second.size();
+		}
+	};
+
+	class NonInclACComparer
 	{
-		return rhs.second.IsSubsetOf(lhs.second) &&
-			rhs.second.size() < lhs.second.size();
-	}};
+	public:   // methods
+		bool operator()(const ACPair& lhs, const ACPair& rhs)
+		{
+			return rhs.second.IsSubsetOf(lhs.second);
+		}
+	};
+
+	class NonInclACComparerStrict
+	{
+	public:
+		bool operator()(const ACPair& lhs, const ACPair& rhs)
+		{
+			return rhs.second.IsSubsetOf(lhs.second) &&
+				rhs.second.size() < lhs.second.size();
+		}
+	};
 
 	typedef VATA::Util::Convert Convert;
 
@@ -158,6 +177,11 @@ private:  // data members
 	NonInclAntichainType& nonIncl_;
 
 	InclAntichainType childrenCache_;
+
+	const Relation& preorder_;
+
+	const IndexType& preorderSmaller_;
+	const IndexType& preorderBigger_;
 
 private:  // methods
 
@@ -264,14 +288,19 @@ private:  // methods
 public:   // methods
 
 	DownwardInclusionFunctor(const Aut& smaller, const Aut& bigger,
-		WorkSetType& workset, NonInclAntichainType& nonIncl) :
+		WorkSetType& workset, NonInclAntichainType& nonIncl,
+		const Relation& preorder, const IndexType& preorderSmaller,
+		const IndexType& preorderBigger) :
 		smaller_(smaller),
 		bigger_(bigger),
 		processingStopped_(false),
 		inclusionHolds_(true),
 		workset_(workset),
 		nonIncl_(nonIncl),
-		childrenCache_()
+		childrenCache_(),
+		preorder_(preorder),
+		preorderSmaller_(preorderSmaller),
+		preorderBigger_(preorderBigger)
 	{ }
 
 	DownwardInclusionFunctor(
@@ -282,7 +311,10 @@ public:   // methods
 		inclusionHolds_(true),
 		workset_(downFctor.workset_),
 		nonIncl_(downFctor.nonIncl_),
-		childrenCache_()
+		childrenCache_(),
+		preorder_(downFctor.preorder_),
+		preorderSmaller_(downFctor.preorderSmaller_),
+		preorderBigger_(downFctor.preorderBigger_)
 	{ }
 
 	template <class ElementAccessorLHS, class ElementAccessorRHS>
