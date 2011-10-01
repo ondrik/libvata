@@ -33,6 +33,7 @@
 
 // local headers
 #include "parse_args.hh"
+#include "operations.hh"
 
 
 using VATA::AutBase;
@@ -57,7 +58,7 @@ typedef VATA::Util::TranslatorWeak<BDDTopDownTreeAut::StringToSymbolDict>
 const char VATA_USAGE_STRING[] =
 	"VATA: Vojnar's Army Tree Automata library interface\n"
 	"usage: vata [-r <representation>] [(-I|-O|-F) <format>] [-h|--help] [-t] [-n]\n"
-	"            [-p] [-s] <command> [<args>]\n"
+	"            [(-p|-s)] [-o <options>] <command> [<args>]\n"
 	;
 
 const char VATA_USAGE_COMMANDS[] =
@@ -67,11 +68,18 @@ const char VATA_USAGE_COMMANDS[] =
 	"    union <file1> <file2>   Compute union of automata from <file1> and <file2>\n"
 	"    isect <file1> <file2>   Compute intersection of automata from <file1> and\n"
 	"                            <file2>\n"
+	"    sim <file>              Computes a simulation relation for the automaton in\n"
+	"                            <file>. Options:\n"
+	"                               'dir=down' : downward simulation (default)\n"
+	"                               'dir=up'   : upward simulation\n"
+	"\n"
 	"    incl <file1> <file2>    Checks language inclusion of automata from <file1>\n"
 	"                            and <file2>, i.e., whether L(<file1>) is a subset\n"
-	"                            of L(<file2>)\n"
-	"    simdown <file>          Computes the downward simulation relation for the\n"
-	"                            tree automaton in <file>\n"
+	"                            of L(<file2>). Options:\n"
+	"                               'dir=down' : downward inclusion checking\n"
+	"                               'dir=up'   : upward inclusion checking (default)\n"
+	"                               'sim=yes'  : use corresponding simulation\n"
+	"                               'sim=no'   : do not use simulation (default)\n"
 	;
 
 const char VATA_USAGE_FLAGS[] =
@@ -81,21 +89,24 @@ const char VATA_USAGE_FLAGS[] =
 	"                            automata. The following representations are\n"
 	"                            supported:\n"
 	"                               'bdd-td'   : binary decision diagrams,\n"
-	"                                            top-down\n"
+	"                                            top-down (default)\n"
 	"                               'bdd-bu'   : binary decision diagrams,\n"
 	"                                            bottom-up\n"
 	"                               'expl'     : explicit\n"
 	"\n"
 	"    (-I|-O|-F) <format>     Specify format for input (-I), output (-O), or\n"
 	"                            both (-F). The following formats are supported:\n"
-	"                               'timbuk'  : Timbuk format\n"
+	"                               'timbuk'  : Timbuk format (default)\n"
 	"\n"
 	"    -t                      Print the time the operation took to error output\n"
 	"                            stream\n"
+	"    -v                      Be verbose\n"
 	"    -n                      Do not output the result automaton\n"
 	"    -p                      Prune unreachable states first\n"
 	"    -s                      Prune useless states first (note that this is\n"
 	"                            stronger than -p)\n"
+	"    -o <opt>=<v>,<opt>=<v>  Options in the form of a comma-separated\n"
+	"                            <option>=<value> list\n"
 	;
 
 const size_t BDD_SIZE = 16;
@@ -145,28 +156,33 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 			stateDict2);
 	}
 
-	if (args.pruneUseless)
+	if ((args.command == COMMAND_LOAD) ||
+		(args.command == COMMAND_UNION) ||
+		(args.command == COMMAND_INTERSECTION))
 	{
-		if (args.operands >= 1)
+		if (args.pruneUseless)
 		{
-			autInput1 = RemoveUselessStates(autInput1);
-		}
+			if (args.operands >= 1)
+			{
+				autInput1 = RemoveUselessStates(autInput1);
+			}
 
-		if (args.operands >= 2)
-		{
-			autInput2 = RemoveUselessStates(autInput2);
+			if (args.operands >= 2)
+			{
+				autInput2 = RemoveUselessStates(autInput2);
+			}
 		}
-	}
-	else if (args.pruneUnreachable)
-	{
-		if (args.operands >= 1)
+		else if (args.pruneUnreachable)
 		{
-			autInput1 = RemoveUnreachableStates(autInput1);
-		}
+			if (args.operands >= 1)
+			{
+				autInput1 = RemoveUnreachableStates(autInput1);
+			}
 
-		if (args.operands >= 2)
-		{
-			autInput2 = RemoveUnreachableStates(autInput2);
+			if (args.operands >= 2)
+			{
+				autInput2 = RemoveUnreachableStates(autInput2);
+			}
 		}
 	}
 
@@ -197,18 +213,11 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	}
 	else if (args.command == COMMAND_INCLUSION)
 	{
-		if (args.pruneUseless)
-		{
-			boolResult = CheckInclusionNoUseless(autInput1, autInput2);
-		}
-		else
-		{
-			boolResult = CheckInclusion(autInput1, autInput2);
-		}
+		boolResult = CheckInclusion(autInput1, autInput2, args);
 	}
 	else if (args.command == COMMAND_SIM)
 	{
-		relResult = ComputeSimulation(autInput1);
+		relResult = ComputeSimulation(autInput1, args);
 	}
 	else
 	{
@@ -257,7 +266,7 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
 		}
 
-		if (args.command == COMMAND_INCLUSION)
+		if ((args.command == COMMAND_INCLUSION))
 		{
 			std::cout << boolResult << "\n";
 		}
