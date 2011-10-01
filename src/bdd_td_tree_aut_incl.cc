@@ -23,7 +23,7 @@ bool VATA::CheckDownwardInclusion(const BDDTopDownTreeAut& smaller,
 	BDDTopDownTreeAut newSmaller = RemoveUselessStates(smaller);
 	BDDTopDownTreeAut newBigger = RemoveUselessStates(bigger);
 
-	return CheckDownwardInclusionWithoutUseless(smaller, bigger);
+	return CheckDownwardInclusionWithoutUseless(newSmaller, newBigger);
 }
 
 bool VATA::CheckDownwardInclusionWithoutUseless(
