@@ -25,6 +25,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <memory>
 
 
 // insert class to proper namespace
@@ -129,6 +130,29 @@ public:
 		return oss.str();
 	}
 
+
+	/**
+	 * @brief  Converts an object to string (shared_ptr specialization)
+	 *
+	 * Static method for conversion of a shared pointer of an object of any class with
+	 * the << output operator into a string
+	 *
+	 * @param[in]  ptr  Shared pointer for the conversion
+	 *
+	 * @returns  The string representation of the shared pointer
+	 */
+	template <typename T>
+	static std::string ToString(const std::shared_ptr<T>& ptr)
+	{
+		assert(ptr != nullptr);
+
+		// the output stream for the string
+		std::ostringstream oss;
+		// insert the string of the underlying class into the stream
+		oss << ToString(*ptr);
+		// return the string
+		return oss.str();
+	}
 
 	/**
 	 * @brief  Converts an object to string (std::vector specialization)
