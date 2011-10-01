@@ -18,51 +18,52 @@
 // insert class to proper namespace
 namespace VATA {
 	namespace Util {
-		template <class T> class Cache;
-		template <class T, class V> class CachedBinaryOp;
+		template <class T, class F, class H> class Cache;
+		template <class T, class V, class H> class CachedBinaryOp;
 	}
 }
 
-template <class T>
+template <class T, class F = std::function<void(const T*)>, class H = std::hash<T>>
 class VATA::Util::Cache {
 
 public:
 
-	typedef typename std::unordered_map<T, std::weak_ptr<T>> store_type;
-	typedef typename store_type::value_type value_type;
+	typedef typename std::shared_ptr<T> TPtr;
+	typedef typename std::weak_ptr<T> WeakTPtr;
+	typedef typename std::unordered_map<T, WeakTPtr, H> TToWeakTPtrMap;
 
 protected:
 
-	store_type store_;
+	TToWeakTPtrMap store_;
+	F f_;
 
 public:
 
-	Cache() {}
+	Cache() : store_(), f_([](const T*) {}) {}
+
+	Cache(const F& f) : store_(), f_(f) {}
 	
-	std::shared_ptr<T> find(const T& x) {
+	TPtr find(const T& x) {
 
 		auto i = this->store_.find(x);
 
-		return (i == this->store_.end())
-			?(std::shared_ptr<T>(nullptr))
-			:(std::shared_ptr<T>(i->second));
+		return (i == this->store_.end())?(TPtr(nullptr)):(TPtr(i->second));
 
 	}
 
-	template <class F>
-	std::shared_ptr<T> lookup(const T& x, F f = [](const T*) {}) {
+	TPtr lookup(const T& x) {
 
-		auto p = this->store_.insert(std::make_pair(x, std::weak_ptr<T>()));
+		auto p = this->store_.insert(std::make_pair(x, WeakTPtr()));
 
 		if (!p.second)
-			return std::shared_ptr<T>(p.first->second);
+			return TPtr(p.first->second);
 
-		auto ptr = std::shared_ptr<T>(
+		auto ptr = TPtr(
 			const_cast<T*>(&p.first->first),
-			[this, f](const T* tuple) { f(tuple); this->store_.erase(*tuple); }
+			[this](const T* tuple) { this->f_(tuple); this->store_.erase(*tuple); }
 		);
 
-		p.first->second = std::weak_ptr<T>(ptr);
+		p.first->second = WeakTPtr(ptr);
 
 		return ptr;
 
@@ -72,21 +73,24 @@ public:
 
 };
 
-template <class T, class V>
+template <class T, class V, class H>
 class VATA::Util::CachedBinaryOp {
 
 public:
 
-	typedef std::unordered_map<std::pair<T, T>, V> store_type;
-	typedef std::set<typename store_type::value_type*> value_type_set;
-	typedef std::unordered_map<T, value_type_set> store_map_type;
+	typedef std::pair<T, T> PairOfT;
+	typedef std::unordered_map<PairOfT, V, H> PairOfTToVMap;
+	typedef std::set<typename PairOfTToVMap::value_type*> PairOfTToVMapValueTypeSet;
+	typedef std::unordered_map<T, PairOfTToVMapValueTypeSet> TToPairOfTToVMapValueTypeSetMap;
 
 protected:
 
-	store_type store_;
-	store_map_type storeMap_;
+	PairOfTToVMap store_;
+	TToPairOfTToVMapValueTypeSetMap storeMap_;
 
 public:
+
+	CachedBinaryOp() : store_(), storeMap_() {}
 
 	void clear() {
 
@@ -125,18 +129,18 @@ public:
 
 		assert(x != y);
 
-		auto p = this->store.insert(std::make_pair(std::make_pair(x, y), V()));
+		auto p = this->store_.insert(std::make_pair(std::make_pair(x, y), V()));
 
 		if (p.second) {
 
 			p.first->second = f(x, y);
 
 			this->storeMap_.insert(
-				std::make_pair(x, value_type_set())
+				std::make_pair(x, PairOfTToVMapValueTypeSet())
 			).first->second.insert(&*p.first);
 			
 			this->storeMap_.insert(
-				std::make_pair(y, value_type_set())
+				std::make_pair(y, PairOfTToVMapValueTypeSet())
 			).first->second.insert(&*p.first);
 
 		}

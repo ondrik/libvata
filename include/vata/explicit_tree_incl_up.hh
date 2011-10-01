@@ -44,6 +44,10 @@ class VATA::ExplicitUpwardInclusion {
 
 	}
 
+	template <class T>
+	struct Hash {
+		size_t operator()(const T& v) const { return boost::hash_value(v); }
+	};
 
 public:
 
@@ -51,17 +55,30 @@ public:
 	static bool Check(const Aut& smaller, const Aut& bigger, const Rel& preorder) {
 
 		typedef Explicit::StateType SmallerType;
-		typedef std::vector<Explicit::StateType> BiggerType;
+		typedef std::vector<Explicit::StateType> StateSet;
+//		typedef std::set<Explicit::StateType> StateSet;
 		typedef typename Aut::TransitionPtr TransitionPtr;
+
+		typedef typename Util::Cache<
+			StateSet, std::function<void(const StateSet*)>, Hash<StateSet>
+		> BiggerTypeCache;
+
+		typedef typename BiggerTypeCache::TPtr BiggerType;
+
+		typedef Util::CachedBinaryOp<
+			const StateSet*, bool, Hash<std::pair<const StateSet*, const StateSet*>>
+		> LTECache;
+
+		typedef typename Util::Antichain2Cv2<SmallerType, BiggerType> Antichain2C;
 
 		GCC_DIAG_OFF(effc++)
 		struct Choice {
 		GCC_DIAG_ON(effc++)
 
-			const Util::Antichain2Cv2<SmallerType, BiggerType>::TList* biggerList_;
-			Util::Antichain2Cv2<SmallerType, BiggerType>::TList::const_iterator current_;
+			const Antichain2C::TList* biggerList_;
+			Antichain2C::TList::const_iterator current_;
 
-			bool init(const Util::Antichain2Cv2<SmallerType, BiggerType>::TList* biggerList) {
+			bool init(const Antichain2C::TList* biggerList) {
 
 				if (!biggerList)
 					return false;
@@ -87,14 +104,14 @@ public:
 
 		struct ChoiceVector {
 
-			const Util::Antichain2Cv2<SmallerType, BiggerType>& processed_;
-			const Util::Antichain2Cv2<SmallerType, BiggerType>::TList& fixed_;
+			const Antichain2C& processed_;
+			const Antichain2C::TList& fixed_;
 			std::vector<Choice> state_;
 			
 		public:
 
-			ChoiceVector(const Util::Antichain2Cv2<SmallerType, BiggerType>& processed,
-				const Util::Antichain2Cv2<SmallerType, BiggerType>::TList& fixed)
+			ChoiceVector(const Antichain2C& processed,
+				const Antichain2C::TList& fixed)
 				: processed_(processed), fixed_(fixed), state_() {}
 		
 			bool get(const Explicit::StateTuple& children, size_t index) {
@@ -137,7 +154,7 @@ public:
 
 			}
 			
-			bool match(const Explicit::StateTuple& children) {
+			bool match(const Explicit::StateTuple& children) const {
 
 				for (size_t i = 0; i < children.size(); ++i) {
 
@@ -145,7 +162,8 @@ public:
 
 					auto& s = *this->state_[i].current_;
 
-					if (!std::binary_search(s.begin(), s.end(), children[i]))
+					if (!std::binary_search(s->begin(), s->end(), children[i]))
+//					if (s->count(children[i]) == 0)
 						return false;
 
 				}
@@ -165,6 +183,8 @@ public:
 			const typename Rel::IndexType& inv_;
 			bool isAccepting_;
 
+//			std::unordered_set<Explicit::StateType> cache_;
+
 		public:
 
 			AntichainSet(const Aut& aut, const typename Rel::IndexType& ind,
@@ -173,7 +193,19 @@ public:
 
 			bool isAccepting() const { return this->isAccepting_; }
 
+			bool cached(const Explicit::StateType& state) const {
+
+				return false;
+
+//				return this->cache_.count(state);
+
+			}
+
 			void testAndRefine(const Explicit::StateType& state) {
+
+//				assert(!this->cached(state));
+
+//				this->cache_.insert(state);
 
 				assert(state < this->ind_.size());
 
@@ -193,6 +225,15 @@ public:
 				this->isAccepting_ = this->isAccepting_ || this->aut_.IsFinalState(state);
 
 			}
+
+			void clear() {
+
+				static_cast<std::set<Explicit::StateType>*>(this)->clear();
+
+				this->isAccepting_ = false;
+//				this->cache_.clear();
+
+			}
 		
 		};
 
@@ -200,22 +241,30 @@ public:
 
 		preorder.buildIndex(ind, inv);
 
-		auto LTE = [&ind](const BiggerType& x, const BiggerType& y) -> bool {
+		auto coreLTE = [&ind](const StateSet* x, const StateSet* y) -> bool {
 
-			for (auto& s1 : x) {
+			assert(x); assert(y);
+
+			for (auto& s1 : *x) {
 
 				assert(s1 < ind.size());
 
-				if (!checkIntersection(ind[s1], y)) {
-//					VATA_LOGGER_INFO(Util::Convert::ToString(x) + " > " + Util::Convert::ToString(y));
+				if (!checkIntersection(ind[s1], *y))
 					return false;
-				}
 
 			}
 
-//			VATA_LOGGER_INFO(Util::Convert::ToString(x) + " <= " + Util::Convert::ToString(y));
-
 			return true;
+
+		};
+
+		LTECache lteCache;
+
+		auto LTE = [&coreLTE, &lteCache](const BiggerType& x, const BiggerType& y) -> bool {
+
+			assert(x); assert(y);
+
+			return (x.get() == y.get())?(true):(lteCache.lookup(x.get(), y.get(), coreLTE));
 
 		};
 		
@@ -228,7 +277,13 @@ public:
 		smaller.bottomUpIndex(smallerIndex, smallerLeaves);
 		bigger.bottomUpIndex(biggerIndex);
 
-		Util::Antichain2Cv2<SmallerType, BiggerType> next, processed;
+		BiggerTypeCache biggerTypeCache(
+			[&lteCache](const StateSet* v) { lteCache.invalidateKey(v); }
+		);
+
+		Antichain2C next, processed;
+
+		AntichainSet antichainSet(bigger, ind, inv);
 
 		// Post(\emptyset)
 
@@ -239,7 +294,7 @@ public:
 			if (biggerClusterIter == biggerIndex.end())
 				return false;
 
-			std::vector<Explicit::StateType> tmp;
+			antichainSet.clear();
 
 			for (auto& transition : biggerClusterIter->second) {
 
@@ -248,15 +303,17 @@ public:
 
 //				VATA_LOGGER_INFO("bigger: " + Util::Convert::ToString(*transition));
 
-				tmp.push_back(transition->state());
+				if (antichainSet.cached(transition->state()))
+					continue;
+
+				antichainSet.testAndRefine(transition->state());
 
 			}
 
-			std::sort(tmp.begin(), tmp.end());
+			StateSet tmp(antichainSet.begin(), antichainSet.end());
 
-			tmp.resize(std::unique(tmp.begin(), tmp.end()) - tmp.begin());
-
-			bool isAccepting = checkIntersection(tmp, bigger.GetFinalStates());
+			auto ptr = biggerTypeCache.lookup(tmp);
+//			auto ptr = biggerTypeCache.lookup(antichainSet);
 
 			for (auto& transition : smallerCluster.second) {
 
@@ -264,7 +321,7 @@ public:
 
 //				VATA_LOGGER_INFO("smaller: " + Util::Convert::ToString(*transition));
 
-				if (!isAccepting && smaller.IsFinalState(transition->state()))
+				if (!antichainSet.isAccepting() && smaller.IsFinalState(transition->state()))
 					return false;
 
 				assert(transition->state() < ind.size());
@@ -272,12 +329,17 @@ public:
 				if (checkIntersection(ind[transition->state()], tmp))
 					continue;
 
-				if (!next.contains(ind[transition->state()], tmp, LTE)) {
+//				if (checkIntersection(ind[transition->state()], antichainSet))
+//					continue;
+
+				if (!next.contains(ind[transition->state()], ptr, LTE)) {
+
+//					VATA_LOGGER_INFO(Util::Convert::ToString(transition->state()) + ", " + Util::Convert::ToString(tmp));
 
 					assert(transition->state() < inv.size());
 					
-					next.refine(inv[transition->state()], tmp, GTE);
-					next.insert(transition->state(), tmp);
+					next.refine(inv[transition->state()], ptr, GTE);
+					next.insert(transition->state(), ptr);
 
 				}
 
@@ -287,7 +349,7 @@ public:
 
 		SmallerType q;
 
-		Util::Antichain2Cv2<SmallerType, BiggerType>::TList fixedList(1);
+		Antichain2C::TList fixedList(1);
 
 		BiggerType& Q = fixedList.front();
 
@@ -295,17 +357,19 @@ public:
 
 //		VATA_LOGGER_INFO("next: " + Util::Convert::ToString(next));
 
+		size_t c = 0;
+
 		while (next.next(q, Q)) {
 
-			assert(q < ind.size());
-
-			if (processed.contains(ind[q], Q, LTE))
-				continue;
+			++c;
 
 			assert(q < inv.size());
 
 			processed.refine(inv[q], Q, GTE);
 			processed.insert(q, Q);
+
+//			VATA_LOGGER_INFO(Util::Convert::ToString(q) + ", " + Util::Convert::ToString(*Q));
+//			VATA_LOGGER_INFO("processed: " + Util::Convert::ToString(processed.size()) + ", " + "next: " + Util::Convert::ToString(next.size()));
 
 //			VATA_LOGGER_INFO("processed: " + Util::Convert::ToString(processed));
 
@@ -335,13 +399,16 @@ public:
 
 //						VATA_LOGGER_INFO("smaller: " + Util::Convert::ToString(*smallerTransition));
 
-						AntichainSet antichainSet(bigger, ind, inv);
-
 						do {
+
+							antichainSet.clear();
 
 							for (auto& biggerTransition : biggerClusterIter->second) {
 
 								assert(biggerTransition);
+
+								if (antichainSet.cached(biggerTransition->state()))
+									continue;
 
 								if (!choiceVector.match(biggerTransition->children()))
 									continue;
@@ -352,32 +419,37 @@ public:
 
 							}
 							
+							if (antichainSet.empty())
+								return false;
+	
+							if (!antichainSet.isAccepting() && smaller.IsFinalState(smallerTransition->state()))
+								return false;
+	
+							assert(smallerTransition->state() < ind.size());
+	
+							StateSet tmp(antichainSet.begin(), antichainSet.end());
+	
+							if (checkIntersection(ind[smallerTransition->state()], tmp))
+								continue;
+	
+//							if (checkIntersection(ind[smallerTransition->state()], antichainSet))
+//								continue;
+	
+							auto ptr = biggerTypeCache.lookup(tmp);
+	
+//							auto ptr = biggerTypeCache.lookup(antichainSet);
+	
+							if (!processed.contains(ind[smallerTransition->state()], ptr, LTE) &&
+								!next.contains(ind[smallerTransition->state()], ptr, LTE)) {
+			
+								assert(smallerTransition->state() < inv.size());
+	
+								next.refine(inv[smallerTransition->state()], ptr, GTE);
+								next.insert(smallerTransition->state(), ptr);
+	
+							}
+
 						} while (choiceVector.next());
-
-						if (antichainSet.empty())
-							return false;
-
-						if (!antichainSet.isAccepting() && smaller.IsFinalState(smallerTransition->state()))
-							return false;
-
-						BiggerType tmp(antichainSet.begin(), antichainSet.end());
-
-						assert(smallerTransition->state() < ind.size());
-
-						if (checkIntersection(ind[smallerTransition->state()], tmp))
-							continue;
-
-						if (!processed.contains(ind[smallerTransition->state()], tmp, LTE) &&
-							!next.contains(ind[smallerTransition->state()], tmp, LTE)) {
-		
-							assert(smallerTransition->state() < inv.size());
-
-							processed.refine(inv[smallerTransition->state()], tmp, GTE);
-							next.refine(inv[smallerTransition->state()], tmp, GTE);
-
-							next.insert(smallerTransition->state(), tmp);
-
-						}
 
 					}
 
@@ -388,6 +460,8 @@ public:
 			}
 
 		}
+
+		VATA_LOGGER_INFO("elements processed: " + Util::Convert::ToString(c));
 
 		return true;
 
