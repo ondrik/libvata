@@ -223,9 +223,8 @@ public:
 		
 		auto gte = [&lte](const BiggerType& x, const BiggerType& y) { return lte(y, x); };
 
-		typename Aut::SymbolToTransitionListMap smallerLeaves;
-		typename Aut::BottomUpIndex smallerIndex;
-		typename Aut::SimpleBottomUpIndex biggerIndex;
+		typename Aut::IndexedSymbolToIndexedTransitionListMap smallerIndex;
+		typename Aut::SymbolToTransitionListMap smallerLeaves, biggerIndex;
 
 		smaller.bottomUpIndex(smallerIndex, smallerLeaves);
 		bigger.bottomUpIndex(biggerIndex);
