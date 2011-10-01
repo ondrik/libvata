@@ -508,7 +508,7 @@ BOOST_AUTO_TEST_CASE(aut_down_inclusion)
 		AutType autBigger;
 		readAut(autBigger, stateDictBigger, autBiggerStr);
 
-		bool doesInclusionHold = VATA::CheckInclusion(autSmaller, autBigger);
+		bool doesInclusionHold = VATA::CheckDownwardInclusion(autSmaller, autBigger);
 
 		BOOST_CHECK_MESSAGE(expectedResult == doesInclusionHold,
 			"\n\nError checking inclusion " + inputSmallerFile + " <= " +
