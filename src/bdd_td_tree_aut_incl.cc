@@ -13,29 +13,57 @@
 #include <vata/bdd_td_tree_aut.hh>
 #include <vata/bdd_td_tree_aut_op.hh>
 #include <vata/down_tree_incl_fctor.hh>
-#include <vata/down_tree_incl_nouseless_fctor.hh>
 #include <vata/tree_incl_down.hh>
 
 using VATA::BDDTopDownTreeAut;
 
-bool VATA::CheckInclusion(const BDDTopDownTreeAut& smaller,
+bool VATA::CheckDownwardInclusion(const BDDTopDownTreeAut& smaller,
 	const BDDTopDownTreeAut& bigger)
 {
-	// Assertions
-	assert(smaller.isValid());
-	assert(bigger.isValid());
+	BDDTopDownTreeAut newSmaller = RemoveUselessStates(smaller);
+	BDDTopDownTreeAut newBigger = RemoveUselessStates(bigger);
 
-	return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
-		VATA::DownwardInclusionFunctor>(smaller, bigger);
+	return CheckDownwardInclusionWithoutUseless(newSmaller, newBigger);
 }
 
-bool VATA::CheckInclusionNoUseless(const BDDTopDownTreeAut& smaller,
+bool VATA::CheckDownwardInclusionWithoutUseless(
+	const BDDTopDownTreeAut& smaller, const BDDTopDownTreeAut& bigger)
+{
+	class IdentityRelation
+	{
+
+	};
+
+	IdentityRelation ident;
+
+	return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
+		VATA::DownwardInclusionFunctor>(smaller, bigger, ident);
+}
+
+bool VATA::CheckUpwardInclusion(const BDDTopDownTreeAut& smaller,
 	const BDDTopDownTreeAut& bigger)
 {
-	// Assertions
-	assert(smaller.isValid());
-	assert(bigger.isValid());
+	assert(&smaller != nullptr);
+	assert(&bigger != nullptr);
 
-	return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
-		VATA::DownwardInclusionNoUselessFunctor>(smaller, bigger);
+	throw std::runtime_error("Unimplemented");
 }
+
+bool VATA::CheckUpwardInclusionWithSimulation(const BDDTopDownTreeAut& smaller,
+	const BDDTopDownTreeAut& bigger)
+{
+	assert(&smaller != nullptr);
+	assert(&bigger != nullptr);
+
+	throw std::runtime_error("Unimplemented");
+}
+
+bool VATA::CheckDownwardInclusionWithSimulation(const BDDTopDownTreeAut& smaller,
+	const BDDTopDownTreeAut& bigger)
+{
+	assert(&smaller != nullptr);
+	assert(&bigger != nullptr);
+
+	throw std::runtime_error("Unimplemented");
+}
+

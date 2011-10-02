@@ -10,6 +10,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/util/convert.hh>
 
 // local headers
 #include "parse_args.hh"
@@ -24,15 +25,44 @@ enum ParsingEnum
 };
 
 
-inline FormatEnum translateFormat(const std::string& str)
+namespace
 {
-	if (str == "timbuk")
+	inline FormatEnum translateFormat(const std::string& str)
 	{
-		return FORMAT_TIMBUK;
+		if (str == "timbuk")
+		{
+			return FORMAT_TIMBUK;
+		}
+		else
+		{
+			throw std::runtime_error("Unsupported format: " + str);
+		}
 	}
-	else
+
+	OptionElement processOption(const std::string& strOption)
 	{
-		throw std::runtime_error("Unsupported format: " + str);
+		if (strOption.empty())
+		{
+			throw std::runtime_error("Malformed options: \'" + strOption + "\'");
+		}
+
+		size_t equalPos;
+		if ((equalPos = strOption.find('=')) != std::string::npos)
+		{	// if there is a '='
+			if ((equalPos == 0) || (equalPos == strOption.length() - 1))
+			{
+				throw std::runtime_error("Malformed option: \'" + strOption + "\'");
+			}
+
+			std::string option = strOption.substr(0, equalPos);
+			std::string value  = strOption.substr(equalPos + 1);
+
+			return std::make_pair(option, value);
+		}
+		else
+		{	// if there is not a '='
+			return std::make_pair(strOption, "");
+		}
 	}
 }
 
@@ -51,6 +81,8 @@ Arguments parseArguments(int argc, char* argv[])
 	bool parsedDontOutputRes  = false;
 	bool parsedPruneUnreach   = false;
 	bool parsedPruneUseless   = false;
+	bool parsedOptions        = false;
+	bool parsedVerbose        = false;
 
 	// initialize the structure
 	Arguments args;
@@ -59,10 +91,14 @@ Arguments parseArguments(int argc, char* argv[])
 	args.inputFormat          = FORMAT_TIMBUK;
 	args.outputFormat         = FORMAT_TIMBUK;
 	args.operands             = 0;
+	args.fileName1            = "";
+	args.fileName2            = "";
 	args.showTime             = false;
 	args.dontOutputResult     = false;
 	args.pruneUnreachable     = false;
 	args.pruneUseless         = false;
+	args.options              = { };
+	args.verbose              = false;
 
 	while (argc > 0)
 	{	// until we parse all arguments
@@ -83,6 +119,16 @@ Arguments parseArguments(int argc, char* argv[])
 
 				parsedShowTime = true;
 				args.showTime = true;
+			}
+			else	if (currentArg == "-v")
+			{
+				if (parsedVerbose)
+				{
+					throw std::runtime_error("The \'-v\' flag specified more times.");
+				}
+
+				parsedVerbose = true;
+				args.verbose = true;
 			}
 			else	if (currentArg == "-p")
 			{
@@ -208,6 +254,49 @@ Arguments parseArguments(int argc, char* argv[])
 				args.inputFormat = translateFormat(argv[0]);
 				args.outputFormat = args.inputFormat;
 			}
+			else	if (currentArg == "-o")
+			{
+				if (parsedOptions)
+				{
+					throw std::runtime_error("The \'-o\' flag specified more times.");
+				}
+
+				parsedOptions = true;
+
+				--argc;
+				++argv;
+
+				if (argc == 0)
+				{
+					throw std::runtime_error("The \'-o\' flag needs an argument.");
+				}
+
+				currentArg = argv[0];
+				size_t lastPos = 0;
+				size_t newPos;
+				while ((newPos = currentArg.find(',', lastPos)) != std::string::npos)
+				{
+					OptionElement option = processOption(
+						currentArg.substr(lastPos, newPos - lastPos));
+
+					if (!args.options.insert(option).second)
+					{
+						throw std::runtime_error("Option for \'" + option.first +
+							"\' specified more than once");
+					}
+
+					lastPos = newPos + 1;
+				}
+
+				OptionElement option = processOption(
+					currentArg.substr(lastPos, newPos - lastPos));
+
+				if (!args.options.insert(option).second)
+				{
+					throw std::runtime_error("Option for \'" + option.first +
+						"\' specified more than once");
+				}
+			}
 			else
 			{
 				throw std::runtime_error("Invalid flag: " + currentArg);
@@ -243,19 +332,19 @@ Arguments parseArguments(int argc, char* argv[])
 
 					parserState = PARSING_LOAD_2_FILES_1;
 				}
-				else if (currentArg == "incl")
-				{
-					args.command   = COMMAND_INCLUSION;
-					args.operands  = 2;
-
-					parserState = PARSING_LOAD_2_FILES_1;
-				}
 				else if (currentArg == "sim")
 				{
 					args.command   = COMMAND_SIM;
 					args.operands  = 1;
 
 					parserState = PARSING_LOAD_FILE;
+				}
+				else if (currentArg == "incl")
+				{
+					args.command   = COMMAND_INCLUSION;
+					args.operands  = 2;
+
+					parserState = PARSING_LOAD_2_FILES_1;
 				}
 				else
 				{

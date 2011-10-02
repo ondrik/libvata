@@ -23,12 +23,8 @@ using VATA::BDDTopDownTreeAut;
 using VATA::Util::Convert;
 using VATA::Util::Graph;
 
-BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut,
-	AutBase::StateToStateMap* pTranslMap)
+BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut)
 {
-	// Assertions
-	assert(aut.isValid());
-
 	typedef AutBase::StateType StateType;
 	typedef BDDTopDownTreeAut::StateTuple StateTuple;
 	typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
@@ -56,6 +52,7 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut,
 	typedef std::pair<StateType, StateType> StatePair;
 	typedef std::stack<StatePair, std::list<StatePair>> StatePairStack;
 
+	typedef BDDTopDownTreeAut::TransMTBDD TransMTBDD;
 
 
 	GCC_DIAG_OFF(effc++)   // suppress missing virtual destructor warning
@@ -196,8 +193,10 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut,
 
 		for (const NodeType& andNode : Graph::GetEgress(node))
 		{	// for each output edge of the node, satisfy edges
-			size_t cnt = Graph::GetIngress(andNode).erase(node);
-			assert(cnt == 1);
+			if (Graph::GetIngress(andNode).erase(node) != 1)
+			{
+				assert(false);     // fail gracefully
+			}
 
 			if (Graph::GetIngress(andNode).empty())
 			{	// in case all input edges of the AND node are satisfied
@@ -230,13 +229,11 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut,
 	{
 	private:  // data members
 
-		StateTranslator& trans_;
 		StateHT& usefulStates_;
 
 	public:   // methods
 
-		RestrictApplyFunctor(StateTranslator& trans, StateHT& usefulStates) :
-			trans_(trans),
+		RestrictApplyFunctor(StateHT& usefulStates) :
 			usefulStates_(usefulStates)
 		{ }
 
@@ -255,7 +252,7 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut,
 						break;
 					}
 
-					resultTuple.push_back(trans_(*itTup));
+					resultTuple.push_back(*itTup);
 				}
 
 				if (resultTuple.size() == tuple.size())
@@ -268,46 +265,28 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut,
 		}
 	};
 
-	StateToStateMap translMap;
-	if (pTranslMap == nullptr)
-	{	// in case the state translation map was not provided
-		pTranslMap = &translMap;
-	}
+	BDDTopDownTreeAut result;
 
-	BDDTopDownTreeAut result(aut.GetTransTable());
-	StatePairStack workStack;
-	StateType stateCnt = 0;
-
-	StateTranslator stateTransl(*pTranslMap,
-		[&workStack,&stateCnt](const StateType& newState) -> StateType
-		{
-			workStack.push(std::make_pair(newState, stateCnt));
-			return stateCnt++;
-		});
-
-	assert(pTranslMap->empty());
-
-	RestrictApplyFunctor restrFunc(stateTransl, usefulStates);
+	RestrictApplyFunctor restrFunc(usefulStates);
 
 	for (auto fst : aut.GetFinalStates())
 	{	// start from all final states of the original automaton
 		if (usefulStates.find(fst) != usefulStates.end())
 		{	// in case the state is useful
-			result.SetStateFinal(stateTransl(fst));
+			result.SetStateFinal(fst);
 		}
 	}
 
-	while (!workStack.empty())
-	{	// while there is something in the workset
-		StatePair stPr = workStack.top();
-		workStack.pop();
+	for (auto stateBddPair : aut.GetStates())
+	{	// for all states
+		const StateType& state = stateBddPair.first;
+		const TransMTBDD& bdd = stateBddPair.second;
 
-		BDDTopDownTreeAut::TransMTBDD mtbdd = restrFunc(aut.GetMtbdd(stPr.second));
-
-		result.SetMtbdd(stPr.first, mtbdd);
+		if (usefulStates.find(state) != usefulStates.end())
+		{
+			result.SetMtbdd(state, restrFunc(bdd));
+		}
 	}
 
-	assert(result.isValid());
-
-	return result;
+	return RemoveUnreachableStates(result);
 }

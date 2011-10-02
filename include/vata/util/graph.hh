@@ -8,8 +8,8 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_GRAPH_H_
-#define _VATA_GRAPH_H_
+#ifndef _VATA_GRAPH_HH_
+#define _VATA_GRAPH_HH_
 
 namespace VATA
 {

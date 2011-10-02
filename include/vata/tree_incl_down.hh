@@ -17,8 +17,9 @@
 
 namespace VATA
 {
-	template <class Aut, template <class> class DownwardInclFctor>
-	bool CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger);
+	template <class Aut, template <class> class DownwardInclFctor, class Rel>
+	bool CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger,
+	const Rel& preorder);
 }
 
 /**
@@ -29,9 +30,12 @@ namespace VATA
  *
  * @todo  Write this documentation
  */
-template <class Aut, template <class> class DownwardInclFctor>
-bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger)
+template <class Aut, template <class> class DownwardInclFctor, class Rel>
+bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger,
+	const Rel& preorder)
 {
+	assert(&preorder != nullptr);
+
 	typedef DownwardInclFctor<Aut> InclFctor;
 
 	typedef typename Aut::StateType StateType;

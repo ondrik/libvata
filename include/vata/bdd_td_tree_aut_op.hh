@@ -14,6 +14,8 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_td_tree_aut.hh>
+#include <vata/tree_incl_down.hh>
+#include <vata/down_tree_incl_fctor.hh>
 
 
 namespace VATA
@@ -31,28 +33,36 @@ namespace VATA
 
 	BDDTopDownTreeAut RemoveUnreachableStates(const BDDTopDownTreeAut& aut);
 
-	BDDTopDownTreeAut RemoveUselessStates(const BDDTopDownTreeAut& aut,
-		AutBase::StateToStateMap* pTranslMap = nullptr);
+	BDDTopDownTreeAut RemoveUselessStates(const BDDTopDownTreeAut& aut);
 
-	bool CheckInclusion(const BDDTopDownTreeAut& smaller,
+	bool CheckDownwardInclusion(const BDDTopDownTreeAut& smaller,
 		const BDDTopDownTreeAut& bigger);
 
-	bool CheckInclusionNoUseless(const BDDTopDownTreeAut& smaller,
+	bool CheckDownwardInclusionWithoutUseless(const BDDTopDownTreeAut& smaller,
 		const BDDTopDownTreeAut& bigger);
 
-	inline bool CheckEquivalence(const BDDTopDownTreeAut& lhs,
-		const BDDTopDownTreeAut& rhs)
-	{
-		return CheckInclusion(lhs, rhs) && CheckInclusion(rhs, lhs);
-	}
+	bool CheckUpwardInclusion(const BDDTopDownTreeAut& smaller,
+		const BDDTopDownTreeAut& bigger);
 
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		const BDDTopDownTreeAut& aut);
 
-	inline AutBase::StateBinaryRelation ComputeSimulation(
-		const BDDTopDownTreeAut& aut)
+	AutBase::StateBinaryRelation ComputeUpwardSimulation(
+		const BDDTopDownTreeAut& aut);
+
+	bool CheckDownwardInclusionWithSimulation(const BDDTopDownTreeAut& smaller,
+		const BDDTopDownTreeAut& bigger);
+
+	bool CheckUpwardInclusionWithSimulation(const BDDTopDownTreeAut& smaller,
+		const BDDTopDownTreeAut& bigger);
+
+	template <class Rel>
+	bool CheckDownwardInclusionWithPreorder(
+		const BDDTopDownTreeAut& smaller, const BDDTopDownTreeAut& bigger,
+		const Rel& preorder)
 	{
-		return ComputeDownwardSimulation(aut);
+		return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
+			DownwardInclusionFunctor>(smaller, bigger, preorder);
 	}
 }
 

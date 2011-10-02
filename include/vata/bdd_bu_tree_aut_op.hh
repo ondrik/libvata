@@ -23,27 +23,28 @@ namespace VATA
 		AutBase::StateToStateMap* pTranslMapLhs = nullptr,
 		AutBase::StateToStateMap* pTranslMapRhs = nullptr);
 
+	BDDBottomUpTreeAut UnionDisjunctStates(const BDDBottomUpTreeAut& lhs,
+		const BDDBottomUpTreeAut& rhs);
+
 	BDDBottomUpTreeAut Intersection(const BDDBottomUpTreeAut& lhs,
 		const BDDBottomUpTreeAut& rhs,
 		AutBase::ProductTranslMap* pTranslMap = nullptr);
 
-	BDDBottomUpTreeAut RemoveUnreachableStates(const BDDBottomUpTreeAut& aut,
-		AutBase::StateToStateMap* pTranslMap = nullptr);
+	BDDBottomUpTreeAut RemoveUnreachableStates(const BDDBottomUpTreeAut& aut);
 
-	BDDBottomUpTreeAut RemoveUselessStates(const BDDBottomUpTreeAut& aut,
-		AutBase::StateToStateMap* pTranslMap = nullptr);
+	BDDBottomUpTreeAut RemoveUselessStates(const BDDBottomUpTreeAut& aut);
 
-	bool CheckInclusion(const BDDBottomUpTreeAut& smaller,
+	bool CheckUpwardInclusion(const BDDBottomUpTreeAut& smaller,
 		const BDDBottomUpTreeAut& bigger);
 
-	bool CheckInclusionNoUseless(const BDDBottomUpTreeAut& smaller,
+	bool CheckUpwardInclusionWithoutUseless(const BDDBottomUpTreeAut& smaller,
 		const BDDBottomUpTreeAut& bigger);
 
-	inline bool CheckEquivalence(const BDDBottomUpTreeAut& lhs,
-		const BDDBottomUpTreeAut& rhs)
-	{
-		return CheckInclusion(lhs, rhs) && CheckInclusion(rhs, lhs);
-	}
+	bool CheckUpwardInclusionWithSimulation(const BDDBottomUpTreeAut& smaller,
+		const BDDBottomUpTreeAut& bigger);
+
+	bool CheckDownwardInclusion(const BDDBottomUpTreeAut& smaller,
+		const BDDBottomUpTreeAut& bigger);
 
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		const BDDBottomUpTreeAut& aut, const size_t& states);
@@ -51,11 +52,16 @@ namespace VATA
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		const BDDBottomUpTreeAut& aut);
 
-	inline AutBase::StateBinaryRelation ComputeSimulation(
-		const BDDBottomUpTreeAut& aut)
-	{
-		return ComputeDownwardSimulation(aut);
-	}
+	AutBase::StateBinaryRelation ComputeUpwardSimulation(
+		const BDDBottomUpTreeAut& aut);
+
+	bool CheckDownwardInclusionWithSimulation(
+		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger);
+
+	template <class Rel>
+	bool CheckDownwardInclusionWithPreorder(
+		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
+		const Rel& preorder);
 }
 
 #endif

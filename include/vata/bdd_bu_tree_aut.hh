@@ -45,10 +45,10 @@ GCC_DIAG_ON(effc++)
 	friend BDDBottomUpTreeAut RemoveUselessStates(const BDDBottomUpTreeAut&,
 		AutBase::StateToStateMap* pTranslMap);
 
-	friend bool CheckInclusion(const BDDBottomUpTreeAut&,
+	friend bool CheckUpwardInclusion(const BDDBottomUpTreeAut&,
 		const BDDBottomUpTreeAut&);
 
-	friend bool CheckInclusionNoUseless(const BDDBottomUpTreeAut&,
+	friend bool CheckUpwardInclusionNoUseless(const BDDBottomUpTreeAut&,
 		const BDDBottomUpTreeAut&);
 
 public:   // data types
@@ -123,7 +123,7 @@ private:  // data types
 
 		protected:// methods
 
-			explicit generic_iterator(const TransTableWrapper& tableWrap, bool isBegin) :
+			generic_iterator(const TransTableWrapper& tableWrap, bool isBegin) :
 				isNullary_(isBegin),
 				tableWrap_(tableWrap),
 				itTupleMap_(isBegin? tableWrap.table_->GetTupleMap().begin() :
@@ -254,6 +254,11 @@ private:  // data types
 			return table_.unique();
 		}
 
+		inline size_t size() const
+		{
+			return table_->size();
+		}
+
 		inline const_iterator begin() const
 		{
 			return const_iterator(*this, true);
@@ -278,8 +283,6 @@ private:  // data types
 public:   // data types
 
 	typedef TransTableWrapper TransTable;
-
-private:  // data types
 
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class UnionApplyFunctor :
@@ -688,7 +691,7 @@ public:   // methods
 		GCC_DIAG_ON(effc++)
 		private:  // data members
 
-			StateToStateTranslator trans_;
+			StateToStateTranslator& trans_;
 
 		public:   // methods
 

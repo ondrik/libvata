@@ -178,7 +178,7 @@ public:
 				return true;
 
 			}
-		
+
 			bool next() {
 
 				for (auto& choice : *this) {
@@ -659,7 +659,7 @@ public:
 			return (x.get() == y.get())?(true):(lteCache.lookup(x.get(), y.get(), noncachedLte));
 
 		};
-		
+
 		auto gte = [&lte](const BiggerType& x, const BiggerType& y) { return lte(y, x); };
 
 		typename Aut::IndexedSymbolToIndexedTransitionListMap smallerIndex;
@@ -831,7 +831,7 @@ public:
 	
 							if (!isAccepting && smaller.IsFinalState(smallerTransition->state()))
 								return false;
-	
+
 							assert(smallerTransition->state() < ind.size());
 	
 							StateSet tmp(post.data().begin(), post.data().end());

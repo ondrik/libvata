@@ -28,40 +28,6 @@ using VATA::Util::Convert;
 #define BOOST_TEST_MODULE AutType
 #include <boost/test/unit_test.hpp>
 
-// testing headers
-#include "log_fixture.hh"
-
-
-
-
-
-/******************************************************************************
- *                                  Constants                                 *
- ******************************************************************************/
-
-const fs::path LOAD_TIMBUK_FILE =
-	AUT_DIR / "load_timbuk.txt";
-
-const fs::path UNREACHABLE_TIMBUK_FILE =
-	AUT_DIR / "unreachable_removal_timbuk.txt";
-
-const fs::path USELESS_TIMBUK_FILE =
-	AUT_DIR / "useless_removal_timbuk.txt";
-
-const fs::path INCLUSION_TIMBUK_FILE =
-	AUT_DIR / "inclusion_timbuk.txt";
-
-const fs::path UNION_TIMBUK_FILE =
-	AUT_DIR / "union_timbuk.txt";
-
-const fs::path INTERSECTION_TIMBUK_FILE =
-	AUT_DIR / "intersection_timbuk.txt";
-
-const fs::path ADD_TRANS_TIMBUK_FILE =
-	AUT_DIR / "add_trans_timbuk.txt";
-
-const fs::path INVERT_TIMBUK_FILE =
-	AUT_DIR / "invert_timbuk.txt";
 
 /******************************************************************************
  *                                  Fixtures                                  *
@@ -501,11 +467,7 @@ BOOST_AUTO_TEST_CASE(aut_remove_useless)
 		readAut(aut, stateDict, autStr);
 		AutDescription autDesc = parser_.ParseString(autStr);
 
-		StateToStateMap translMap;
-		AutType autNoUseless = VATA::RemoveUselessStates(aut, &translMap);
-		stateDict = VATA::Util::RebindMap(stateDict, translMap);
-		translMap.clear();
-		autNoUseless = VATA::RemoveUnreachableStates(autNoUseless);
+		AutType autNoUseless = VATA::RemoveUselessStates(aut);
 		std::string autNoUselessStr = dumpAut(autNoUseless, stateDict);
 
 		AutDescription descOutNoUseless = parser_.ParseString(autNoUselessStr);
@@ -546,7 +508,7 @@ BOOST_AUTO_TEST_CASE(aut_down_inclusion)
 		AutType autBigger;
 		readAut(autBigger, stateDictBigger, autBiggerStr);
 
-		bool doesInclusionHold = VATA::CheckInclusion(autSmaller, autBigger);
+		bool doesInclusionHold = VATA::CheckDownwardInclusion(autSmaller, autBigger);
 
 		BOOST_CHECK_MESSAGE(expectedResult == doesInclusionHold,
 			"\n\nError checking inclusion " + inputSmallerFile + " <= " +

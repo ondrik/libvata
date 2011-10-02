@@ -15,6 +15,43 @@
 #include <vata/bdd_td_tree_aut.hh>
 #include <vata/bdd_td_tree_aut_op.hh>
 
+// testing headers
+#include "log_fixture.hh"
+
+
+/******************************************************************************
+ *                                  Constants                                 *
+ ******************************************************************************/
+
+const fs::path LOAD_TIMBUK_FILE =
+	AUT_DIR / "load_timbuk.txt";
+
+const fs::path UNREACHABLE_TIMBUK_FILE =
+	AUT_DIR / "bu_unreachable_removal_timbuk.txt";
+
+const fs::path USELESS_TIMBUK_FILE =
+	AUT_DIR / "useless_removal_timbuk.txt";
+
+const fs::path INCLUSION_TIMBUK_FILE =
+	AUT_DIR / "inclusion_timbuk.txt";
+
+const fs::path UNION_TIMBUK_FILE =
+	AUT_DIR / "union_timbuk.txt";
+
+const fs::path INTERSECTION_TIMBUK_FILE =
+	AUT_DIR / "intersection_timbuk.txt";
+
+const fs::path ADD_TRANS_TIMBUK_FILE =
+	AUT_DIR / "add_trans_timbuk.txt";
+
+const fs::path INVERT_TIMBUK_FILE =
+	AUT_DIR / "load_timbuk.txt";
+
+
+/******************************************************************************
+ *                                  Fixtures                                  *
+ ******************************************************************************/
+
 class AutTypeFixture
 {
 protected:// data types
@@ -59,19 +96,21 @@ BOOST_AUTO_TEST_CASE(aut_inversion)
 		StringToStateDict stateDict;
 		AutType aut;
 		readAut(aut, stateDict, autStr);
+		aut = RemoveUselessStates(aut);
 		AutTypeInverted invertAut = aut.GetTopDownAut();
-
-		AutTypeInverted refAut;
-		readAut(refAut, stateDict, autStr);
-		refAut = RemoveUnreachableStates(refAut);
-
 		std::string autOut = dumpAut(invertAut, stateDict);
 
-//		AutDescription descOrig = parser_.ParseString(autStr);
-//		AutDescription descOut = parser_.ParseString(autOut);
-		BOOST_CHECK_MESSAGE(CheckEquivalence(invertAut, refAut),
+		StringToStateDict stateDictRef;
+		AutTypeInverted refAut;
+		readAut(refAut, stateDictRef, autStr);
+		refAut = RemoveUselessStates(refAut);
+		std::string refOut = dumpAut(refAut, stateDictRef);
+
+		AutDescription descOrig = parser_.ParseString(refOut);
+		AutDescription descOut = parser_.ParseString(autOut);
+		BOOST_CHECK_MESSAGE(descOrig == descOut,
 			"\n\nExpecting:\n===========\n" +
-			std::string(autStr) +
+			std::string(refOut) +
 			"===========\n\nGot:\n===========\n" + autOut + "\n===========");
 	}
 }

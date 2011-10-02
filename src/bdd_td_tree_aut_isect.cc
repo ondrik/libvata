@@ -22,10 +22,6 @@ BDDTopDownTreeAut VATA::Intersection(
 	const BDDTopDownTreeAut& lhs, const BDDTopDownTreeAut& rhs,
 	AutBase::ProductTranslMap* pTranslMap)
 {
-	// Assertions
-	assert(lhs.isValid());
-	assert(rhs.isValid());
-
 	typedef BDDTopDownTreeAut::StateType StateType;
 	typedef BDDTopDownTreeAut::StateSet StateSet;
 	typedef BDDTopDownTreeAut::StateTuple StateTuple;
@@ -121,6 +117,5 @@ BDDTopDownTreeAut VATA::Intersection(
 		workset.erase(itWs);
 	}
 
-	assert(result.isValid());
 	return result;
 }

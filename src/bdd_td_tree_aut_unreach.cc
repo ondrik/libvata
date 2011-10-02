@@ -25,9 +25,6 @@ using VATA::Util::Convert;
 
 BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut)
 {
-	// Assertions
-	assert(aut.isValid());
-
 	typedef BDDTopDownTreeAut::StateType StateType;
 	typedef BDDTopDownTreeAut::StateSet StateSet;
 	typedef BDDTopDownTreeAut::StateTuple StateTuple;
@@ -92,6 +89,5 @@ BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut)
 		result.SetMtbdd(state, unreach(aut.GetMtbdd(state)));
 	}
 
-	assert(result.isValid());
 	return result;
 }

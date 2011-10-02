@@ -36,6 +36,10 @@ enum FormatEnum
 	FORMAT_TIMBUK
 };
 
+
+typedef std::pair<std::string, std::string> OptionElement;
+typedef std::map<OptionElement::first_type, OptionElement::second_type> Options;
+
 struct Arguments
 {
 	CommandEnum command;
@@ -49,6 +53,8 @@ struct Arguments
 	bool dontOutputResult;
 	bool pruneUnreachable;
 	bool pruneUseless;
+	Options options;
+	bool verbose;
 
 	Arguments() :
 		command(),
@@ -61,10 +67,12 @@ struct Arguments
 		showTime(false),
 		dontOutputResult(false),
 		pruneUnreachable(false),
-		pruneUseless(false)
+		pruneUseless(false),
+		options(),
+		verbose(false)
 	{ }
-
 };
+
 
 Arguments parseArguments(int argc, char* argv[]);
 

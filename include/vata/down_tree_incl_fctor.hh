@@ -5,7 +5,7 @@
  *
  *  Description:
  *    Header file with the downward tree automata language inclusion
- *    checking functor.
+ *    checking functor (assuming that the automata do not have useless states).
  *
  *****************************************************************************/
 
@@ -23,6 +23,7 @@ namespace VATA
 	class DownwardInclusionFunctor;
 }
 
+// NOTE: the automata cannot have useless states
 template <class Aut>
 class VATA::DownwardInclusionFunctor
 {
@@ -197,7 +198,10 @@ private:  // methods
 		}
 
 		// make sure the element was removed
-		assert(erased);
+		if (!erased)
+		{
+			assert(false);       // fail gracefully
+		}
 
 		// cache the result
 		if (innerFctor.InclusionHolds())
@@ -219,7 +223,6 @@ private:  // methods
 	}
 
 	// workset antichain
-	// TODO: the subsets should be cached worldwide
 	inline bool isInWorkset(const WorkSetElement& elem) const
 	{
 		for (auto keyRange = workset_.equal_range(elem.first);
@@ -271,7 +274,8 @@ public:   // methods
 		childrenCache_()
 	{ }
 
-	DownwardInclusionFunctor(DownwardInclusionFunctor& downFctor) :
+	DownwardInclusionFunctor(
+		DownwardInclusionFunctor& downFctor) :
 		smaller_(downFctor.smaller_),
 		bigger_(downFctor.bigger_),
 		processingStopped_(false),
@@ -301,6 +305,7 @@ public:   // methods
 			{	// in case there also a nullary transition in the RHS
 				assert(rhs.size() == 1);
 				assert(rhsElemAccess(*rhs.begin()).size() == 0);
+				return;
 			}
 			else
 			{	// in case RHS cannot make this transition
@@ -310,6 +315,12 @@ public:   // methods
 		}
 		else
 		{	// in case the transition si not nullary
+			if (rhs.empty())
+			{	// in case RHS is empty
+				failProcessing();
+				return;
+			}
+
 			for (auto lhsTupleCont : lhs)
 			{
 				const StateTuple& lhsTuple = lhsElemAccess(lhsTupleCont);
@@ -317,96 +328,80 @@ public:   // methods
 				// Assertions
 				assert(lhsTuple.size() == arity);
 
-				if (rhs.empty())
-				{	// in case RHS is empty
-					bool found = false;
-
-					for (const StateType& lhsTupleState : lhsTuple)
-					{
-						if (expand(lhsTupleState, StateSet()))
-						{	// if there a state from LHS cannot generate a tree (note that
-							// this means that the whole tuple is ``blind'')
-							found = true;
-						}
-					}
-
-					if (!found)
-					{
-						failProcessing();
-						return;
-					}
-				}
-				else
+				// first check whether there is a bigger tuple
+				bool valid = false;
+				for (auto rhsTupleCont : rhs)
 				{
-					// first check whether there is a bigger tuple
-					bool valid = false;
-					for (auto rhsTupleCont : rhs)
+					const StateTuple& rhsTuple = rhsElemAccess(rhsTupleCont);
+
+					valid = true;
+					for (size_t i = 0; i < arity; ++i)
 					{
-						const StateTuple& rhsTuple = rhsElemAccess(rhsTupleCont);
-
-						valid = true;
-						for (size_t i = 0; i < arity; ++i)
+						if (!expand(lhsTuple[i], StateSet(rhsTuple[i])))
 						{
-							if (!expand(lhsTuple[i], StateSet(rhsTuple[i])))
-							{
-								valid = false;
-								break;
-							}
-						}
-
-						if (valid)
-						{
+							valid = false;
 							break;
 						}
 					}
 
 					if (valid)
-					{	// in case there was a bigger tuple
-						continue;
+					{
+						break;
+					}
+				}
+
+				if (valid)
+				{	// in case there was a bigger tuple
+					continue;
+				}
+
+				// in case there is not a bigger tuple
+
+				// TODO: could be done more smartly (without conversion to vector)
+				StateTupleVector rhsVector = Aut::StateTupleSetToVector(rhs);
+
+				ChoiceFunctionGenerator cfGen(rhsVector.size(), lhsTuple.size());
+				while (!cfGen.IsLast())
+				{	// for each choice function
+					const ChoiceFunctionType& cf = cfGen.GetNext();
+					bool found = false;
+
+					for (size_t tuplePos = 0; tuplePos < arity; ++tuplePos)
+					{ // for each position of the n-tuple
+						StateSet rhsSetForTuplePos;
+
+						for (size_t cfIndex = 0; cfIndex < cf.size(); ++cfIndex)
+						{	// for each element in the choice function
+							if (cf[cfIndex] == tuplePos)
+							{ // in case the choice function for given vector is at
+								// current position in the tuple
+								assert(cfIndex < rhsVector.size());
+								const StateTuple& rhsTuple = rhsElemAccess(rhsVector[cfIndex]);
+								assert(rhsTuple.size() == arity);
+
+								// insert tuplePos-th state of the cfIndex-th tuple in the
+								// RHS into the set
+								rhsSetForTuplePos.insert(rhsTuple[tuplePos]);
+							}
+						}
+
+						if (rhsSetForTuplePos.empty())
+						{	// in case the right-hand side set is empty, we exploit the
+							// fact that there are no useless states in any of the automata
+							continue;
+						}
+
+						if (expand(lhsTuple[tuplePos], rhsSetForTuplePos))
+						{	// in case inclusion holds for this case
+							found = true;
+							break;
+						}
 					}
 
-					// in case there is not a bigger tuple
-
-					// TODO: could be done more smartly (without conversion to vector)
-					StateTupleVector rhsVector = Aut::StateTupleSetToVector(rhs);
-
-					ChoiceFunctionGenerator cfGen(rhsVector.size(), lhsTuple.size());
-					while (!cfGen.IsLast())
-					{	// for each choice function
-						const ChoiceFunctionType& cf = cfGen.GetNext();
-						bool found = false;
-
-						for (size_t tuplePos = 0; tuplePos < arity; ++tuplePos)
-						{ // for each position of the n-tuple
-							StateSet rhsSetForTuplePos;
-
-							for (size_t cfIndex = 0; cfIndex < cf.size(); ++cfIndex)
-							{	// for each element in the choice function
-								if (cf[cfIndex] == tuplePos)
-								{ // in case the choice function for given vector is at
-									// current position in the tuple
-									assert(cfIndex < rhsVector.size());
-									const StateTuple& rhsTuple = rhsElemAccess(rhsVector[cfIndex]);
-									assert(rhsTuple.size() == arity);
-
-									// insert tuplePos-th state of the cfIndex-th tuple in the
-									// RHS into the set
-									rhsSetForTuplePos.insert(rhsTuple[tuplePos]);
-								}
-							}
-
-							if (expand(lhsTuple[tuplePos], rhsSetForTuplePos))
-							{	// in case inclusion holds for this case
-								found = true;
-								break;
-							}
-						}
-
-						if (!found)
-						{	// in case the inclusion does not hold
-							failProcessing();
-							return;
-						}
+					if (!found)
+					{	// in case the inclusion does not hold
+						failProcessing();
+						return;
 					}
 				}
 			}

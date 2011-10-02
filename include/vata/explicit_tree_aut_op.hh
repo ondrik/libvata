@@ -12,17 +12,18 @@
 #define _VATA_BDD_TREE_AUT_OP_HH_
 
 // VATA headers
-#include <list>
-#include <unordered_set>
-
 #include <vata/vata.hh>
 #include <vata/down_tree_incl_fctor.hh>
-#include <vata/down_tree_incl_nouseless_fctor.hh>
 #include <vata/explicit_tree_aut.hh>
 #include <vata/explicit_tree_incl_up.hh>
 #include <vata/tree_incl_down.hh>
 #include <vata/util/binary_relation.hh>
 #include <vata/util/convert.hh>
+#include <vata/util/ident_bin_relation.hh>
+
+// Standard library headers
+#include <list>
+#include <unordered_set>
 
 
 namespace VATA {
@@ -136,8 +137,8 @@ namespace VATA {
 
 						res.AddTransition(children, leftSymbolStateTupleSetPtr.first, p->second);
 
-					}					
-					
+					}
+
 				}
 
 			}
@@ -346,7 +347,7 @@ namespace VATA {
 
 			if (iter == aut.transitions_->end())
 				continue;
-			
+
 			result.transitions_->insert(std::make_pair(state, iter->second));
 
 		}
@@ -356,10 +357,10 @@ namespace VATA {
 	}
 
 	template <class SymbolType>
-	bool CheckInclusion(const ExplicitTreeAut<SymbolType>& smaller,
+	bool CheckUpwardInclusion(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger) {
 
-		return CheckInclusionUpwardNoGarbage(
+		return CheckUpwardInclusionNoGarbage(
 			RemoveUnreachableStates(RemoveUselessStates(smaller)),
 			RemoveUnreachableStates(RemoveUselessStates(bigger))
 		);
@@ -367,24 +368,46 @@ namespace VATA {
 	}
 
 	template <class SymbolType>
-	bool CheckInclusionDownward(const ExplicitTreeAut<SymbolType>& smaller,
+	bool CheckUpwardInclusionWithSimulation(
+		const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger) {
+		assert(&smaller != nullptr);
+		assert(&bigger != nullptr);
+		throw std::runtime_error("Unimplemented");
+	}
+
+	template <class SymbolType>
+	bool CheckDownwardInclusion(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger) {
 
+		return CheckDownwardInclusionWithoutUseless(
+			RemoveUnreachableStates(RemoveUselessStates(smaller)),
+			RemoveUnreachableStates(RemoveUselessStates(bigger))
+		);
+
+	}
+
+	template <class SymbolType>
+	bool CheckDownwardInclusionWithSimulation(
+		const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger) {
+		assert(&smaller != nullptr);
+		assert(&bigger != nullptr);
+		throw std::runtime_error("Unimplemented");
+	}
+
+	template <class SymbolType>
+	bool CheckDownwardInclusionWithoutUseless(const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger) {
+
+		VATA::Util::IdentityBinaryRelation ident;
 		return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
-			VATA::DownwardInclusionFunctor>(smaller, bigger);
+			VATA::DownwardInclusionFunctor>(smaller, bigger, ident);
 
 	}
 
 	template <class SymbolType>
-	bool CheckInclusionNoUseless(const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger) {
-
-		return CheckInclusionUpwardNoGarbage(smaller, bigger);
-
-	}
-
-	template <class SymbolType>
-	bool CheckInclusionUpwardNoGarbage(const ExplicitTreeAut<SymbolType>& smaller,
+	bool CheckUpwardInclusionNoGarbage(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger) {
 
 		AutBase::StateToStateMap stateMap;
@@ -392,7 +415,7 @@ namespace VATA {
 		Explicit::TupleCache tupleCache;
 
 		ExplicitTreeAut<SymbolType> a(tupleCache), b(tupleCache);
-		
+
 		smaller.ReindexStates(a, &stateMap);
 
 		size_t size = stateMap.size();
@@ -406,7 +429,16 @@ namespace VATA {
 	}
 
 	template <class SymbolType>
-	AutBase::StateBinaryRelation ComputeSimulation(
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		const ExplicitTreeAut<SymbolType>& aut)
+	{
+		assert(&aut != nullptr);
+
+		throw std::runtime_error("Unimplemented");
+	}
+
+	template <class SymbolType>
+	AutBase::StateBinaryRelation ComputeUpwardSimulation(
 		const ExplicitTreeAut<SymbolType>& aut)
 	{
 		assert(&aut != nullptr);

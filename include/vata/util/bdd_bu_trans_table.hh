@@ -91,6 +91,11 @@ public:   // methods
 	{
 		return mtbddMap_;
 	}
+
+	inline size_t size() const
+	{
+		return mtbddMap_.size();
+	}
 };
 
 #endif

@@ -24,10 +24,6 @@ BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
 	const BDDTopDownTreeAut& rhs, AutBase::StateToStateMap* pTranslMapLhs,
 	AutBase::StateToStateMap* pTranslMapRhs)
 {
-	// Assertions
-	assert(lhs.isValid());
-	assert(rhs.isValid());
-
 	typedef BDDTopDownTreeAut::StateType StateType;
 	typedef BDDTopDownTreeAut::StateSet StateSet;
 	typedef BDDTopDownTreeAut::StateTuple StateTuple;
@@ -83,7 +79,6 @@ BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
 		BDDTopDownTreeAut result = lhs;
 		result.finalStates_.insert(rhs.finalStates_.begin(), rhs.finalStates_.end());
 
-		assert(result.isValid());
 		return result;
 	}
 	else
@@ -119,7 +114,6 @@ BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
 			result.SetStateFinal(stateTransRhs(rhsFst));
 		}
 
-		assert(result.isValid());
 		return result;
 	}
 }
