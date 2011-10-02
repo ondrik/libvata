@@ -787,6 +787,7 @@ public:
 	typedef std::unordered_map<Symbol, IndexedTransitionList> SymbolToIndexedTransitionListMap;
 	typedef std::unordered_map<Symbol, DoubleIndexedTransitionList> SymbolToDoubleIndexedTransitionListMap;
 	typedef std::vector<SymbolToTransitionListMap> IndexedSymbolToTransitionListMap;
+	typedef std::vector<SymbolToIndexedTransitionListMap> IndexedSymbolToIndexedTransitionListMap;
 
 public:
 
@@ -840,8 +841,6 @@ public:
 						new Transition(tuple, symbolTupleSetPair.first, stateClusterPair.first)
 					);
 
-//					size_t i = 0;
-
 					std::unordered_set<StateType> states;
 
 					for (auto& state : *tuple) {
@@ -852,19 +851,87 @@ public:
 						if (bottomUpIndex.size() <= state)
 							bottomUpIndex.resize(state + 1);
 
-//						auto& indexedTransitionList = bottomUpIndex[state].insert(
 						bottomUpIndex[state].insert(
-//							std::make_pair(symbolTupleSetPair.first, IndexedTransitionList())
 							std::make_pair(symbolTupleSetPair.first, TransitionList())
-//						).first->second;
 						).first->second.push_back(transition);
-/*
+
+					}
+
+				}
+
+			}
+
+		}
+
+	}
+
+	void bottomUpIndex(IndexedSymbolToIndexedTransitionListMap& bottomUpIndex,
+		SymbolToTransitionListMap& leaves) const {
+
+		for (auto& stateClusterPair : *this->transitions_) {
+
+			assert(stateClusterPair.second);
+
+			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
+
+				assert(symbolTupleSetPair.second);
+				assert(symbolTupleSetPair.second->size());
+
+				auto& first = *symbolTupleSetPair.second->begin();
+
+				assert(first);
+
+				if (first->empty()) {
+
+					auto& transitionList = leaves.insert(
+						std::make_pair(symbolTupleSetPair.first, TransitionList())
+					).first->second;
+
+					for (auto& tuple : *symbolTupleSetPair.second) {
+	
+						assert(tuple);
+						assert(tuple->empty());
+	
+						transitionList.push_back(
+							TransitionPtr(
+								new Transition(
+									tuple, symbolTupleSetPair.first, stateClusterPair.first
+								)
+							)									
+						);
+	
+					}
+
+					continue;
+
+				}
+
+				for (auto& tuple : *symbolTupleSetPair.second) {
+
+					assert(tuple);
+					assert(tuple->size());
+
+					TransitionPtr transition(
+						new Transition(tuple, symbolTupleSetPair.first, stateClusterPair.first)
+					);
+
+					size_t i = 0;
+
+					for (auto& state : *tuple) {
+
+						if (bottomUpIndex.size() <= state)
+							bottomUpIndex.resize(state + 1);
+
+						auto& indexedTransitionList = bottomUpIndex[state].insert(
+							std::make_pair(symbolTupleSetPair.first, IndexedTransitionList())
+						).first->second;
+
 						if (indexedTransitionList.size() <= i)
 							indexedTransitionList.resize(i + 1);
 
 						indexedTransitionList[i].push_back(transition);
-*/
-//						++i;
+
+						++i;
 
 					}
 
