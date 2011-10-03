@@ -42,7 +42,7 @@ bool VATA::CheckUpwardInclusionWithoutUseless(const BDDBottomUpTreeAut& smaller,
 bool VATA::CheckUpwardInclusion(const BDDBottomUpTreeAut& smaller,
 	const BDDBottomUpTreeAut& bigger)
 {
-	VATA_LOGGER_INFO("This function should be rewritten.");
+	// TODO: This function should be rewritten
 
 	return CheckUpwardTreeInclusion<BDDBottomUpTreeAut,
 		VATA::UpwardInclusionFunctor>(smaller, bigger);
