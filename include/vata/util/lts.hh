@@ -11,6 +11,7 @@
 #ifndef _VATA_LTS_HH_
 #define _VATA_LTS_HH_
 
+#include <vata/util/convert.hh>
 #include <vata/util/smart_set.hh>
 
 namespace VATA { namespace Util { class LTS; } }
@@ -25,7 +26,8 @@ class VATA::Util::LTS {
 
 public:
 
-	LTS() : _labels(0), _states(0), _transitions(0), _dataPre(), _lPre() {}
+	LTS() : _labels(0), _states(0), _transitions(0), _dataPre(), _lPre() {
+	}
 /*
 	LTS(const LTS& lts) :
 		_labels(lts._labels), _states(lts._states), _transitions(lts._transitions),
@@ -33,20 +35,25 @@ public:
 		_lPre(lts._lPre) {}
 */
 	void addTransition(size_t q, size_t a, size_t r) {
+
 		if (a >= this->_dataPre.size()) {
 			this->_labels = a + 1;
 			this->_dataPre.resize(a + 1);
 		}
+		
 		if (r >= this->_dataPre[a].size()) {
-			this->_states = r + 1;
+			if (r >= this->_states)
+				this->_states = r + 1;
 			this->_dataPre[a].resize(r + 1);
 		}
-		if (q >= this->_states) {
+		
+		if (q >= this->_states)
 			this->_states = q + 1;
-			this->_dataPre[a].resize(q + 1);
-		}
+			
 		this->_dataPre[a][r].push_back(q);
+		
 		++this->_transitions;
+
 	}
 
 	void init() {
@@ -54,8 +61,11 @@ public:
 		this->_lPre.resize(this->_states, SmartSet(this->_labels));
 
 		for (size_t a = 0; a < this->_dataPre.size(); ++a) {
-			for (size_t r = 0; r < this->_dataPre[a].size(); ++r)
+			this->_dataPre[a].resize(this->_states);
+			for (size_t r = 0; r < this->_dataPre[a].size(); ++r) {
+				assert(r < this->_lPre.size());
 				this->_lPre[r].init(a, this->_dataPre[a][r].size());
+			}
 		}
 
 	}
@@ -116,8 +126,8 @@ public:
 
 	friend std::ostream& operator<<(std::ostream& os, const LTS& lts) {
 
-		for (size_t i = 0; i < lts._labels; ++i) {
-			for (size_t j = 0; j < lts._states; ++j) {
+		for (size_t i = 0; i < lts._dataPre.size(); ++i) {
+			for (size_t j = 0; j < lts._dataPre[i].size(); ++j) {
 				for (size_t k = 0; k < lts._dataPre[i][j].size(); ++k)
 					os << lts._dataPre[i][j][k] << " --" << i << "--> " << j << std::endl;
 			}

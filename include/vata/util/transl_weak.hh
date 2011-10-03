@@ -11,6 +11,8 @@
 #ifndef _VATA_TRANSL_WEAK_HH_
 #define _VATA_TRANSL_WEAK_HH_
 
+#include <functional>
+
 // VATA headers
 #include <vata/vata.hh>
 
@@ -98,7 +100,7 @@ private:  // data types
 	typedef typename Container::key_type InputType;
 	typedef typename Container::mapped_type ResultType;
 
-	typedef std::function<const ResultType&(InputType)> ResultAllocFuncType;
+	typedef std::function<ResultType(InputType)> ResultAllocFuncType;
 
 private:  // data members
 
@@ -112,7 +114,7 @@ public:   // methods
 		resultAllocFunc_(resultAllocFunc)
 	{ }
 
-	inline const ResultType& operator()(InputType value)
+	inline const ResultType& operator()(const InputType& value)
 	{
 		auto p = container_.insert(std::make_pair(value, ResultType()));
 
@@ -122,7 +124,6 @@ public:   // methods
 		}
 
 		return p.first->second;
-
 	}
 };
 

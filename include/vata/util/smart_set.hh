@@ -77,6 +77,7 @@ public:
 	SmartSet::iterator end() const { return SmartSet::Iterator(this->_elements.end()); }
 	
 	void init(size_t x, size_t count) {
+		assert(x < this->_index.size());
 		std::list<std::pair<size_t, size_t> >::iterator i = this->_index[x];
 		if (i == this->_elements.end())
 			this->_index[x] = this->_elements.insert(this->_elements.begin(), std::pair<size_t, size_t>(x, count));
@@ -85,6 +86,7 @@ public:
 	}
 
 	void add(size_t x) {
+		assert(x < this->_index.size());
 		std::list<std::pair<size_t, size_t> >::iterator i = this->_index[x];
 		if (i == this->_elements.end())
 			this->_index[x] = this->_elements.insert(this->_elements.begin(), std::pair<size_t, size_t>(x, 1));
@@ -93,6 +95,7 @@ public:
 	}
 
 	void remove(size_t x) {
+		assert(x < this->_index.size());
 		std::list<std::pair<size_t, size_t> >::iterator i = this->_index[x];
 		if (i->second == 1) {
 			this->_elements.erase(i);
@@ -102,10 +105,12 @@ public:
 	}
 
 	bool contains(size_t x) const {
+		assert(x < this->_index.size());
 		return (this->_index[x] != this->_elements.end());
 	}
 	
 	size_t count(size_t x) const {
+		assert(x < this->_index.size());
 		std::list<std::pair<size_t, size_t> >::iterator i = this->_index[x];
 		return (i != this->_elements.end())?(0):(i->second);
 	}

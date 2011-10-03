@@ -11,14 +11,15 @@
 #ifndef _VATA_EXPLICIT_TREE_USELESS_HH_
 #define _VATA_EXPLICIT_TREE_USELESS_HH_
 
-// VATA headers
-#include <vata/vata.hh>
-#include <vata/explicit_tree_aut.hh>
-
 // Standard library headers
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
+
+// VATA headers
+#include <vata/vata.hh>
+#include <vata/explicit_tree_aut.hh>
+#include <vata/explicit_tree_unreach.hh>
 
 namespace VATA {
 
@@ -138,14 +139,14 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUselessStates(
 		}
 
 	}
-
+/*
 	if (pTranslMap) {
 
 		for (auto& state : reachableStates)
 			pTranslMap->insert(std::make_pair(state, state));
 
 	}
-
+*/
 	ExplicitTA result(aut.cache_);
 
 	for (auto& state : aut.finalStates_) {
@@ -159,7 +160,7 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUselessStates(
 
 		result.transitions_ = aut.transitions_;
 
-		return result;
+		return RemoveUnreachableStates(result, pTranslMap);
 
 	}
 
@@ -171,7 +172,7 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUselessStates(
 
 	}
 
-	return result;
+	return RemoveUnreachableStates(result, pTranslMap);
 
 }
 

@@ -449,10 +449,10 @@ protected:
 public:
 
 	OLRTAlgorithm(const LTS& lts)
-		: _lts(&lts), _partition(), _relation(), _index(), _queue(), _tmp(lts.states()), _delta(),
+		: _lts(&lts), _partition(), _relation(0, true), _index(), _queue(), _tmp(lts.states()), _delta(),
 		_delta1(), _key(), _range(), _removeCache() {
 		assert(lts.states());
-		OLRTBlock* block = new OLRTBlock(this->_relation.newEntry(), lts, this->_key, this->_range);
+		OLRTBlock* block = new OLRTBlock(this->_relation.newEntry(true), lts, this->_key, this->_range);
 		block->storeStates(this->_index);
 		this->_partition.push_back(block);
 	}
@@ -468,7 +468,7 @@ public:
 		for (std::vector<OLRTBlock*>::iterator i = this->_partition.begin(); i != this->_partition.end(); ++i)
 			delete *i;
 		this->_partition.clear();
-		this->_relation.reset();
+		this->_relation.reset(true);
 		this->_lts = &lts;
 		this->_tmp.resize(lts.states());
 		OLRTBlock* block = new OLRTBlock(this->_relation.newEntry(true), lts, this->_key, this->_range);
@@ -509,8 +509,10 @@ public:
 			for (std::vector<OLRTBlock*>::iterator i = this->_partition.begin(); i != this->_partition.end(); ++i) {
 				if (tmp[0][a][(*i)->index()]) {
 					for (std::vector<OLRTBlock*>::iterator j = this->_partition.begin(); j != this->_partition.end(); ++j) {
-						if (tmp[1][a][(*j)->index()])
+						if (tmp[1][a][(*j)->index()]) {
+							assert((*i)->index() != (*j)->index());
 							this->_relation.set((*i)->index(), (*j)->index(), false);
+						}
 					}
 				}
 			}			
@@ -611,14 +613,14 @@ public:
 		}
 		return blockCount;
 	}
-/*
+
 	void dump() const {
 		for (size_t i = 0; i < this->_partition.size(); ++i)
 	  		this->_partition[i]->dump();
 		std::cout << "relation:" << std::endl;
-		this->_relation.dump();
+		std::cout << this->_relation;
 	}
-*/
+
 };
 
 void VATA::computeSimulation(BinaryRelation& result, const LTS& lts, size_t outputSize) {

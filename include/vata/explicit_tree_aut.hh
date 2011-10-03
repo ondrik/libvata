@@ -766,20 +766,18 @@ public:
 
 	void ToDownwardLTS(VATA::Util::LTS& lts) const {
 
-		size_t symbolCnt = 0, lhsCnt = 0;
 		std::unordered_map<SymbolType, size_t> symbolMap;
 		std::unordered_map<const StateTuple*, size_t> lhsMap;
 
+		size_t symbolCnt = 0;
 		VATA::Util::TranslatorWeak2<std::unordered_map<SymbolType, size_t>>
 			symbolTranslator(symbolMap, [&symbolCnt](const SymbolType&){ return symbolCnt++; });
 
 		assert(this->transitions_);
-	
+
+		size_t lhsCnt = this->transitions_->size();
 		VATA::Util::TranslatorWeak2<std::unordered_map<const StateTuple*, size_t>>
-			lhsTranslator(
-				lhsMap,
-				[this, &lhsCnt](const StateTuple*){ return this->transitions_->size() + lhsCnt++; }
-			);
+			lhsTranslator(lhsMap, [&lhsCnt](const StateTuple*){ return lhsCnt++; });
 
 		for (auto& stateClusterPair : *this->transitions_) {
 	
@@ -790,7 +788,7 @@ public:
 				assert(symbolTupleSetPair.second);
 
 				size_t symbol = symbolTranslator(symbolTupleSetPair.first);
-	
+
 				for (auto& tuple : *symbolTupleSetPair.second) {
 	
 					assert(tuple);
@@ -825,6 +823,8 @@ public:
 			}
 
 		}
+
+		lts.init();
 
 	}
 
