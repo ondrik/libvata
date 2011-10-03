@@ -543,6 +543,17 @@ public:   // public methods
 			dstAut.SetMtbdd(newState, rewriter(stateBddPair.second));
 		}
 	}
+
+	template <class MTBDD>
+	static MTBDD GetMtbddForArity(const MTBDD& mtbdd, const size_t& arity)
+	{
+		// Assertions
+		assert(arity <= MAX_SYMBOL_ARITY);
+
+		SymbolType arityAsgn(SYMBOL_ARITY_LENGTH, arity);
+
+		return mtbdd.GetMtbddForPrefix(arityAsgn, SYMBOL_SIZE);
+	}
 };
 
 #endif

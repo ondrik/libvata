@@ -310,6 +310,8 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 		RemoveElement elem = remove.top();
 		remove.pop();
 
+		// Assertions
+		assert(elem.first.size() == elem.second.size());
 		CounterHT::iterator itCnt;
 		if ((itCnt = cnt.find(elem.first)) == cnt.end())
 		{
@@ -317,7 +319,8 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 		}
 
 		itCnt->second = refineFctor(aut.GetMtbdd(elem.second),
-			aut.GetMtbdd(elem.first), itCnt->second);
+			aut.GetMtbdd(elem.first),
+			BDDTopDownTreeAut::GetMtbddForArity(itCnt->second, elem.first.size()));
 	}
 
 	return sim;

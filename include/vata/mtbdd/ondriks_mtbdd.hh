@@ -472,6 +472,33 @@ public:   // public methods
 		return result + "}";
 	}
 
+	OndriksMTBDD GetMtbddForPrefix(const VarAsgn& asgn, const size_t& offset) const
+	{
+		NodePtrType newRoot = root_;
+
+		while (!IsLeaf(newRoot))
+		{
+			const VarType& var = GetVarFromInternal(newRoot);
+			if (var < offset)
+			{
+				break;
+			}
+
+			if (asgn.GetIthVariableValue(var - offset) == VarAsgn::ONE)
+			{	// if one
+				newRoot = GetHighFromInternal(newRoot);
+			}
+			else
+			{	// if zero or don't care
+				newRoot = GetLowFromInternal(newRoot);
+			}
+		}
+
+		IncrementRefCnt(newRoot);
+		return OndriksMTBDD(newRoot, defaultValue_);
+	}
+
+
 	inline ~OndriksMTBDD()
 	{
 		deleteMTBDD();
