@@ -71,10 +71,18 @@ bool VATA::CheckDownwardInclusionWithSimulation(
 	BDDBottomUpTreeAut tmpAut = RemoveUselessStates(smaller);
 	BDDBottomUpTreeAut newSmaller;
 	tmpAut.ReindexStates(newSmaller, stateTrans);
+	for (const StateType& fst : smaller.GetFinalStates())
+	{
+		newSmaller.SetStateFinal(stateTrans(fst));
+	}
 
 	tmpAut = RemoveUselessStates(bigger);
 	BDDBottomUpTreeAut newBigger;
 	tmpAut.ReindexStates(newBigger, stateTrans);
+	for (const StateType& fst : bigger.GetFinalStates())
+	{
+		newBigger.SetStateFinal(stateTrans(fst));
+	}
 
 	BDDBottomUpTreeAut unionAut = UnionDisjunctStates(newSmaller, newBigger);
 
