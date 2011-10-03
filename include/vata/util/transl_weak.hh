@@ -24,6 +24,12 @@ namespace VATA
 			class Cont
 		>
 		class TranslatorWeak;
+
+		template
+		<
+			class Cont
+		>
+		class TranslatorWeak2;
 	}
 }
 
@@ -72,6 +78,51 @@ public:   // methods
 
 			return result;
 		}
+	}
+};
+
+/**
+ * @brief  Weak translator (ver 2)
+ * 
+ */
+template
+<
+	class Cont
+>
+class VATA::Util::TranslatorWeak2
+{
+
+private:  // data types
+
+	typedef Cont Container;
+	typedef typename Container::key_type InputType;
+	typedef typename Container::mapped_type ResultType;
+
+	typedef std::function<const ResultType&(InputType)> ResultAllocFuncType;
+
+private:  // data members
+
+	Container& container_;
+	ResultAllocFuncType resultAllocFunc_;
+
+public:   // methods
+
+	TranslatorWeak2(Container& container, ResultAllocFuncType resultAllocFunc) :
+		container_(container),
+		resultAllocFunc_(resultAllocFunc)
+	{ }
+
+	inline const ResultType& operator()(InputType value)
+	{
+		auto p = container_.insert(std::make_pair(value, ResultType()));
+
+		if (p.second)
+		{	// in case there is no translation for the value
+			p.first->second = resultAllocFunc_(value);
+		}
+
+		return p.first->second;
+
 	}
 };
 
