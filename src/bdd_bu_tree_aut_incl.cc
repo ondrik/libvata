@@ -19,6 +19,7 @@
 using VATA::AutBase;
 using VATA::BDDBottomUpTreeAut;
 using VATA::BDDTopDownTreeAut;
+using VATA::Util::Convert;
 
 bool VATA::CheckDownwardInclusion(const BDDBottomUpTreeAut& smaller,
 	const BDDBottomUpTreeAut& bigger)
@@ -76,6 +77,7 @@ bool VATA::CheckDownwardInclusionWithSimulation(
 		newSmaller.SetStateFinal(stateTrans(fst));
 	}
 
+	stateMap.clear();
 	tmpAut = RemoveUselessStates(bigger);
 	BDDBottomUpTreeAut newBigger;
 	tmpAut.ReindexStates(newBigger, stateTrans);

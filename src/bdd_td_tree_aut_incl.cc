@@ -47,6 +47,7 @@ bool VATA::CheckDownwardInclusionWithoutUseless(
 		newSmaller.SetStateFinal(stateTrans(fst));
 	}
 
+	stateMap.clear();
 	BDDTopDownTreeAut newBigger;
 	bigger.ReindexStates(newBigger, stateTrans);
 	for (const StateType& fst : bigger.GetFinalStates())
