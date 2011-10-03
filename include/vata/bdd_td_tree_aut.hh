@@ -51,11 +51,6 @@ GCC_DIAG_ON(effc++)
 
 	friend BDDTopDownTreeAut RemoveUselessStates(const BDDTopDownTreeAut&);
 
-	friend bool CheckInclusion(const BDDTopDownTreeAut&, const BDDTopDownTreeAut&);
-
-	friend bool CheckInclusionNoUseless(const BDDTopDownTreeAut&,
-		const BDDTopDownTreeAut&);
-
 	friend class BDDBottomUpTreeAut;
 
 public:   // data types
