@@ -19,6 +19,7 @@
 using VATA::AutBase;
 using VATA::BDDBottomUpTreeAut;
 using VATA::BDDTopDownTreeAut;
+using VATA::Util::Convert;
 
 bool VATA::CheckDownwardInclusion(const BDDBottomUpTreeAut& smaller,
 	const BDDBottomUpTreeAut& bigger)
@@ -41,7 +42,7 @@ bool VATA::CheckUpwardInclusionWithoutUseless(const BDDBottomUpTreeAut& smaller,
 bool VATA::CheckUpwardInclusion(const BDDBottomUpTreeAut& smaller,
 	const BDDBottomUpTreeAut& bigger)
 {
-	VATA_LOGGER_INFO("This function should be rewritten.");
+	// TODO: This function should be rewritten
 
 	return CheckUpwardTreeInclusion<BDDBottomUpTreeAut,
 		VATA::UpwardInclusionFunctor>(smaller, bigger);
@@ -71,10 +72,19 @@ bool VATA::CheckDownwardInclusionWithSimulation(
 	BDDBottomUpTreeAut tmpAut = RemoveUselessStates(smaller);
 	BDDBottomUpTreeAut newSmaller;
 	tmpAut.ReindexStates(newSmaller, stateTrans);
+	for (const StateType& fst : smaller.GetFinalStates())
+	{
+		newSmaller.SetStateFinal(stateTrans(fst));
+	}
 
+	stateMap.clear();
 	tmpAut = RemoveUselessStates(bigger);
 	BDDBottomUpTreeAut newBigger;
 	tmpAut.ReindexStates(newBigger, stateTrans);
+	for (const StateType& fst : bigger.GetFinalStates())
+	{
+		newBigger.SetStateFinal(stateTrans(fst));
+	}
 
 	BDDBottomUpTreeAut unionAut = UnionDisjunctStates(newSmaller, newBigger);
 

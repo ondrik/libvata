@@ -45,12 +45,6 @@ GCC_DIAG_ON(effc++)
 	friend BDDBottomUpTreeAut RemoveUselessStates(const BDDBottomUpTreeAut&,
 		AutBase::StateToStateMap* pTranslMap);
 
-	friend bool CheckUpwardInclusion(const BDDBottomUpTreeAut&,
-		const BDDBottomUpTreeAut&);
-
-	friend bool CheckUpwardInclusionNoUseless(const BDDBottomUpTreeAut&,
-		const BDDBottomUpTreeAut&);
-
 public:   // data types
 
 	typedef std::unordered_set<StateType> StateHT;

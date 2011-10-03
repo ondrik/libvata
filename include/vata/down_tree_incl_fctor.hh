@@ -274,7 +274,7 @@ private:  // methods
 		{
 			return true;
 		}
-		else if (isImpliedByPreorder(key))
+		else if (IsImpliedByPreorder(key))
 		{
 			return true;
 		}
@@ -352,19 +352,6 @@ private:  // methods
 			elem.second, biggerComparer_);
 	}
 
-	inline bool isImpliedByPreorder(const WorkSetElement& elem) const
-	{
-		for (const StateType& biggerState : elem.second)
-		{
-			if (preorder_.get(elem.first, biggerState))
-			{
-				return true;
-			}
-		}
-
-		return false;
-	}
-
 	inline void processFoundInclusion(const StateType& smallerState,
 		const StateSet& biggerStateSet)
 	{
@@ -418,6 +405,19 @@ public:   // methods
 		smallerComparer_(downFctor.smallerComparer_),
 		biggerComparer_(downFctor.biggerComparer_)
 	{ }
+
+	inline bool IsImpliedByPreorder(const WorkSetElement& elem) const
+	{
+		for (const StateType& biggerState : elem.second)
+		{
+			if (preorder_.get(elem.first, biggerState))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
 
 	template <class ElementAccessorLHS, class ElementAccessorRHS>
 	void operator()(const StateTupleSet& lhs, ElementAccessorLHS lhsElemAccess,

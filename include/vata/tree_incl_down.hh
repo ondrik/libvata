@@ -72,6 +72,11 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger,
 
 	for (const StateType& smSt : smaller.GetFinalStates())
 	{	// for each final state of the smaller automaton
+		if (downFctor.IsImpliedByPreorder(std::make_pair(smSt, finalStatesBigger)))
+		{
+			continue;
+		}
+
 		downFctor.Reset();
 		Aut::ForeachDownSymbolFromStateAndStateSetDo(smaller, bigger,
 			smSt, finalStatesBigger, downFctor);
