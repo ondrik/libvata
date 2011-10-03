@@ -167,14 +167,36 @@ namespace VATA {
 		typedef typename ExplicitTA::StateType StateType;
 		typedef typename ExplicitTA::TuplePtr TuplePtr;
 
-		typedef std::tuple<std::set<StateType>, TuplePtr, const SymbolType*, const StateType*> TransitionInfo;
+		struct TransitionInfo {
 
-		std::unordered_map<StateType, std::vector<TransitionInfo*>> stateMap;
+			TuplePtr children_;
+			SymbolType symbol_;
+			StateType state_;
 
-		std::list<TransitionInfo> transitionInfoBuffer;
+			std::set<StateType> childrenSet_;
 
+			TransitionInfo(const TuplePtr& children, const SymbolType& symbol, const StateType& state)
+				: children_(children), symbol_(symbol), state_(state),
+				childrenSet_(children->begin(), children->end()) {
+			}
+
+			bool reachedBy(const StateType& state) {
+
+				assert(this->childrenSet.count(state));
+
+				this->childrenSet_.erase(state);
+
+				return this->childrenSet_.empty();
+
+			}
+
+		};
+
+		typedef std::shared_ptr<TransitionInfo> TransitionInfoPtr;
+
+		std::unordered_map<StateType, std::vector<TransitionInfoPtr>> stateMap;
 		std::unordered_set<StateType> reachableStates;
-
+		std::vector<TransitionInfoPtr> reachableTransitions;
 		std::vector<StateType> newStates;
 
 		for (auto& stateClusterPair : *aut.transitions_) {
@@ -189,13 +211,13 @@ namespace VATA {
 
 					assert(tuple);
 
-					transitionInfoBuffer.push_back(
-						TransitionInfo(
-							std::set<StateType>(), tuple, &symbolTupleSetPair.first, &stateClusterPair.first
-						)
+					auto transitionInfoPtr = TransitionInfoPtr(
+						new TransitionInfo(tuple, symbolTupleSetPair.first, stateClusterPair.first)
 					);
 
 					if (tuple->empty()) {
+
+						reachableTransitions.push_back(transitionInfoPtr);
 
 						if (reachableStates.insert(stateClusterPair.first).second)
 							newStates.push_back(stateClusterPair.first);
@@ -204,16 +226,12 @@ namespace VATA {
 
 					}
 
-					for (auto& s : *tuple) {
+					for (auto& s : transitionInfoPtr->childrenSet_) {
 
-						if (std::get<0>(transitionInfoBuffer.back()).insert(s).second) {
-
-							stateMap.insert(
-								std::make_pair(s, std::vector<TransitionInfo*>())
-							).first->second.push_back(&transitionInfoBuffer.back());
-
-						}
-
+						stateMap.insert(
+							std::make_pair(s, std::vector<TransitionInfoPtr>())
+						).first->second.push_back(transitionInfoPtr);
+					
 					}
 
 				}
@@ -235,15 +253,13 @@ namespace VATA {
 
 				assert(info);
 
-				std::get<0>(*info).erase(i->first);
-
-				if (!std::get<0>(*info).empty())
+				if (!info->reachedBy(i->first))
 					continue;
 
-				assert(std::get<3>(*info));
+				reachableTransitions.push_back(info);
 
-				if (reachableStates.insert(*std::get<3>(*info)).second)
-					newStates.push_back(*std::get<3>(*info));
+				if (reachableStates.insert(info->state_).second)
+					newStates.push_back(info->state_);
 
 			}
 
@@ -273,16 +289,11 @@ namespace VATA {
 
 		}
 
-		for (auto& info : transitionInfoBuffer) {
+		for (auto& info : reachableTransitions) {
 
-			if (std::get<0>(info).empty()) {
+			assert(info);
 
-				assert(std::get<2>(info));
-				assert(std::get<3>(info));
-
-				result.internalAddTransition(std::get<1>(info), *std::get<2>(info), *std::get<3>(info));
-
-			}
+			result.internalAddTransition(info->children_, info->symbol_, info->state_);
 
 		}
 

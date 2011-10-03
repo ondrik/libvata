@@ -457,7 +457,7 @@ public:   // public methods
 
 	public:
 	
-		Transition(TuplePtr children, SymbolType symbol, StateType state)
+		Transition(const TuplePtr& children, const SymbolType& symbol, const StateType& state)
 			 : children_(children), symbol_(symbol), state_(state) {}
 
 		const StateTuple& children() const { return *this->children_; }
