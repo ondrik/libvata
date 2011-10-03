@@ -71,6 +71,8 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUselessStates(
 	std::vector<TransitionInfoPtr> reachableTransitions;
 	std::vector<StateType> newStates;
 
+	assert(aut.transitions_);
+
 	for (auto& stateClusterPair : *aut.transitions_) {
 
 		assert(stateClusterPair.second);

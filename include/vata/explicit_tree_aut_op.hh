@@ -18,6 +18,7 @@
 #include <vata/explicit_tree_useless.hh>
 #include <vata/explicit_tree_unreach.hh>
 #include <vata/explicit_tree_incl_up.hh>
+#include <vata/explicit_lts_sim.hh>
 #include <vata/down_tree_incl_fctor.hh>
 #include <vata/tree_incl_down.hh>
 #include <vata/util/binary_relation.hh>
@@ -53,6 +54,19 @@ namespace VATA {
 
 		lhs.ReindexStates(res, stateTransLhs);
 		rhs.ReindexStates(res, stateTransRhs);
+
+		return res;
+
+	}
+
+	template <class SymbolType>
+	ExplicitTreeAut<SymbolType> UnionDisjunctStates(const ExplicitTreeAut<SymbolType>& lhs,
+		const ExplicitTreeAut<SymbolType>& rhs) {
+
+		ExplicitTreeAut<SymbolType> res(lhs);
+
+		res.uniqueClusterMap()->insert(rhs.transitions_.begin(), rhs.transitions_.end());
+		res.finalStates_.insert(rhs.finalStates_.begin(), rhs.finalStates_.end());
 
 		return res;
 
@@ -177,11 +191,18 @@ namespace VATA {
 
 	template <class SymbolType>
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut)
-	{
-		assert(&aut != nullptr);
+		const ExplicitTreeAut<SymbolType>& aut) {
 
-		throw std::runtime_error("Unimplemented");
+		Util::LTS lts;
+
+		aut.ToDownwardLTS(lts);
+
+		AutBase::StateBinaryRelation res;
+
+		computeSimulation(res, lts, aut.transitions_->size());
+
+		return res;
+
 	}
 
 	template <class SymbolType>
