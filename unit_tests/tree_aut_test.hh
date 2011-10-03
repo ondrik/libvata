@@ -98,6 +98,43 @@ protected:// methods
 			StateBackTranslatorStrict(stateDict.GetReverseMap()),
 			SymbolBackTranslatorStrict(Automaton::GetSymbolDict().GetReverseMap()));
 	}
+
+	void testInclusion(bool (*inclFunc)(const AutType&, const AutType&))
+	{
+		auto testfileContent = ParseTestFile(INCLUSION_TIMBUK_FILE.string());
+
+		for (auto testcase : testfileContent)
+		{
+			BOOST_REQUIRE_MESSAGE(testcase.size() == 3, "Invalid format of a testcase: " +
+				Convert::ToString(testcase));
+
+			std::string inputSmallerFile = (AUT_DIR / testcase[0]).string();
+			std::string inputBiggerFile = (AUT_DIR / testcase[1]).string();
+			unsigned expectedResult = static_cast<bool>(
+				Convert::FromString<unsigned>(testcase[2]));
+
+			BOOST_MESSAGE("Testing inclusion " + inputSmallerFile + " <= " +
+				inputBiggerFile  + "...");
+
+			std::string autSmallerStr = VATA::Util::ReadFile(inputSmallerFile);
+			std::string autBiggerStr = VATA::Util::ReadFile(inputBiggerFile);
+
+			StringToStateDict stateDictSmaller;
+			AutType autSmaller;
+			readAut(autSmaller, stateDictSmaller, autSmallerStr);
+
+			StringToStateDict stateDictBigger;
+			AutType autBigger;
+			readAut(autBigger, stateDictBigger, autBiggerStr);
+
+			bool doesInclusionHold = inclFunc(autSmaller, autBigger);
+
+			BOOST_CHECK_MESSAGE(expectedResult == doesInclusionHold,
+				"\n\nError checking inclusion " + inputSmallerFile + " <= " +
+				inputBiggerFile + ": expected " + Convert::ToString(expectedResult) +
+				", got " + Convert::ToString(doesInclusionHold));
+		}
+	}
 };
 
 /******************************************************************************
@@ -482,37 +519,6 @@ BOOST_AUTO_TEST_CASE(aut_remove_useless)
 
 BOOST_AUTO_TEST_CASE(aut_down_inclusion)
 {
-	auto testfileContent = ParseTestFile(INCLUSION_TIMBUK_FILE.string());
-
-	for (auto testcase : testfileContent)
-	{
-		BOOST_REQUIRE_MESSAGE(testcase.size() == 3, "Invalid format of a testcase: " +
-			Convert::ToString(testcase));
-
-		std::string inputSmallerFile = (AUT_DIR / testcase[0]).string();
-		std::string inputBiggerFile = (AUT_DIR / testcase[1]).string();
-		unsigned expectedResult = static_cast<bool>(
-			Convert::FromString<unsigned>(testcase[2]));
-
-		BOOST_MESSAGE("Testing inclusion " + inputSmallerFile + " <= " +
-			inputBiggerFile  + "...");
-
-		std::string autSmallerStr = VATA::Util::ReadFile(inputSmallerFile);
-		std::string autBiggerStr = VATA::Util::ReadFile(inputBiggerFile);
-
-		StringToStateDict stateDictSmaller;
-		AutType autSmaller;
-		readAut(autSmaller, stateDictSmaller, autSmallerStr);
-
-		StringToStateDict stateDictBigger;
-		AutType autBigger;
-		readAut(autBigger, stateDictBigger, autBiggerStr);
-
-		bool doesInclusionHold = VATA::CheckDownwardInclusion(autSmaller, autBigger);
-
-		BOOST_CHECK_MESSAGE(expectedResult == doesInclusionHold,
-			"\n\nError checking inclusion " + inputSmallerFile + " <= " +
-			inputBiggerFile + ": expected " + Convert::ToString(expectedResult) +
-			", got " + Convert::ToString(doesInclusionHold));
-	}
+	testInclusion(VATA::CheckDownwardInclusion);
 }
+

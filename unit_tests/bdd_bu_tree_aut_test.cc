@@ -115,4 +115,9 @@ BOOST_AUTO_TEST_CASE(aut_inversion)
 	}
 }
 
+BOOST_AUTO_TEST_CASE(aut_down_inclusion_sim)
+{
+	testInclusion(VATA::CheckDownwardInclusionWithSimulation);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
