@@ -668,30 +668,11 @@ public:
 
 	}
 
-	void ReindexStates(ExplicitTreeAut& dst, AutBase::StateToStateMap* pTranslMap,
-		const StateType& base = 0) const {
-
-		AutBase::StateToStateMap translMap;
-
-		if (!pTranslMap)
-			pTranslMap = &translMap;
-
-		StateType index = base;
-
-		auto translator = [pTranslMap, &index](const StateType& state) -> const StateType& {
-
-			auto p = pTranslMap->insert(std::make_pair(state, index));
-
-			if (p.second)
-				++index;
-
-			return p.first->second;
-
-		};
+	void ReindexStates(ExplicitTreeAut& dst, StateToStateTranslator& stateTrans) const {
 
 		for (auto& state : this->finalStates_)
 
-			dst.SetStateFinal(translator(state));
+			dst.SetStateFinal(stateTrans(state));
 
 		auto clusterMap = dst.uniqueClusterMap();
 
@@ -699,7 +680,7 @@ public:
 
 			assert(stateClusterPair.second);
 
-			auto cluster = clusterMap->uniqueCluster(translator(stateClusterPair.first));
+			auto cluster = clusterMap->uniqueCluster(stateTrans(stateClusterPair.first));
 
 			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
 
@@ -714,7 +695,7 @@ public:
 					StateTuple newTuple;
 
 					for (auto& s : *tuple)
-						newTuple.push_back(translator(s));
+						newTuple.push_back(stateTrans(s));
 
 					tuplePtrSet->insert(dst.tupleLookup(newTuple));
 

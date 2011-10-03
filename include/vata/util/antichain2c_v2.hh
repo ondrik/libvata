@@ -123,13 +123,13 @@ public:
 			this->data_.erase(i);
 
 		return true;
-		
+
 	}
 
 	bool empty() const { return this->data_.empty(); }
 
 	size_t size() const { return this->data_.size(); }
-	
+
 	void clear() { this->data_.clear(); }
 
 	friend std::ostream& operator<<(std::ostream& os, const Antichain2Cv2& ac) {
@@ -138,12 +138,12 @@ public:
 
 		for (auto& smallerBiggerListPair : ac.data_) {
 
-			os << " (" << smallerBiggerListPair.first << ", {"; 
+			os << " (" << smallerBiggerListPair.first << ", {";
 
 			for (auto& element : smallerBiggerListPair.second)
 				os << ' ' << Util::Convert::ToString(element);
 
-			os << " })";			
+			os << " })";
 
 		}
 

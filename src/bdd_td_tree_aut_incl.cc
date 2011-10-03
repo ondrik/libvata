@@ -29,15 +29,35 @@ bool VATA::CheckDownwardInclusion(const BDDTopDownTreeAut& smaller,
 bool VATA::CheckDownwardInclusionWithoutUseless(
 	const BDDTopDownTreeAut& smaller, const BDDTopDownTreeAut& bigger)
 {
-	class IdentityRelation
+	typedef AutBase::StateType StateType;
+	typedef AutBase::StateToStateMap StateToStateMap;
+	typedef AutBase::StateToStateTranslator StateToStateTranslator;
+
+	typedef VATA::Util::Convert Convert;
+
+	StateType stateCnt = 0;
+	StateToStateMap stateMap;
+	StateToStateTranslator stateTrans(stateMap,
+		[&stateCnt](const StateType&){return stateCnt++;});
+
+	BDDTopDownTreeAut newSmaller;
+	smaller.ReindexStates(newSmaller, stateTrans);
+	for (const StateType& fst : smaller.GetFinalStates())
 	{
+		newSmaller.SetStateFinal(stateTrans(fst));
+	}
 
-	};
+	BDDTopDownTreeAut newBigger;
+	bigger.ReindexStates(newBigger, stateTrans);
+	for (const StateType& fst : bigger.GetFinalStates())
+	{
+		newBigger.SetStateFinal(stateTrans(fst));
+	}
 
-	IdentityRelation ident;
+	VATA::Util::Identity ident(stateCnt);
 
 	return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
-		VATA::DownwardInclusionFunctor>(smaller, bigger, ident);
+		VATA::DownwardInclusionFunctor>(newSmaller, newBigger, ident);
 }
 
 bool VATA::CheckUpwardInclusion(const BDDTopDownTreeAut& smaller,

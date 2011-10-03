@@ -217,7 +217,13 @@ class VATA::Util::Identity {
 
 public:
 
-	bool get(size_t r, size_t c) const { return r == c; }
+	bool get(size_t r, size_t c) const
+	{
+		assert(r < size_);
+		assert(c < size_);
+
+		return r == c;
+	}
 
 	size_t size() const { return this->size_; }
 
@@ -225,7 +231,7 @@ public:
 
 	typedef std::vector<std::vector<size_t>> IndexType;
 
-	Identity(size_t size = 0) : size_(size) {}
+	explicit Identity(size_t size) : size_(size) {}
 
 	bool sym(size_t r, size_t c) const { return r == c; }
 
