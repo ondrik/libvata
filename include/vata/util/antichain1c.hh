@@ -67,6 +67,7 @@ public:
 	void insert(const Key& q) {
 
 		this->data_.insert(q);
+
 	}
 
 	bool next(Key& s) {

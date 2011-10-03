@@ -54,7 +54,7 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUselessStates(
 
 		bool reachedBy(const StateType& state) {
 
-			assert(this->childrenSet.count(state));
+			assert(this->childrenSet_.count(state));
 
 			this->childrenSet_.erase(state);
 
