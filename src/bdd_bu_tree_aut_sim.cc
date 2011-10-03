@@ -205,6 +205,7 @@ namespace
 			{
 				// Assertions
 				assert(s < cntQ.size());
+				assert(result[s] > 0);
 
 				if (--(result[s]) == 0)
 				{
@@ -230,7 +231,7 @@ namespace
 
 			}
 
-			return cntQ;
+			return result;
 		}
 
 	};
