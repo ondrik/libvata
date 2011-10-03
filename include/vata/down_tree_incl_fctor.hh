@@ -14,7 +14,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/util/antichain2c.hh>
+#include <vata/util/antichain2c_v2.hh>
 
 
 namespace VATA
@@ -91,21 +91,91 @@ private:  // data types
 
 public:   // data types
 
-	typedef VATA::Util::Antichain2C
+	typedef VATA::Util::Antichain2Cv2
 	<
 		StateType,
-		StateSet,
-		InclACComparer,
-		InclACComparerStrict
+		StateSet
 	> InclAntichainType;
 
-	typedef VATA::Util::Antichain2C
+	typedef VATA::Util::Antichain2Cv2
 	<
 		StateType,
-		StateSet,
-		NonInclACComparer,
-		NonInclACComparerStrict
+		StateSet
 	> NonInclAntichainType;
+
+	class SetComparerSmaller
+	{
+	private:  // data members
+
+		const Relation& preorder_;
+
+	public:   // methods
+
+		SetComparerSmaller(const Relation& preorder) :
+			preorder_(preorder)
+		{ }
+
+		// TODO: this could be done better
+		bool operator()(const StateSet& lhs, const StateSet& rhs) const
+		{
+			for (const StateType& rhsState : rhs)
+			{
+				bool found = false;
+				for (const StateType& lhsState : lhs)
+				{
+					if (preorder_.get(rhsState, lhsState))
+					{
+						found = true;
+						break;
+					}
+				}
+
+				if (!found)
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+	};
+
+	class SetComparerBigger
+	{
+	private:  // data members
+
+		const Relation& preorder_;
+
+	public:   // methods
+
+		SetComparerBigger(const Relation& preorder) :
+			preorder_(preorder)
+		{ }
+
+		// TODO: this could be done better
+		bool operator()(const StateSet& lhs, const StateSet& rhs) const
+		{
+			for (const StateType& lhsState : lhs)
+			{
+				bool found = false;
+				for (const StateType& rhsState : rhs)
+				{
+					if (preorder_.get(lhsState, rhsState))
+					{
+						found = true;
+						break;
+					}
+				}
+
+				if (!found)
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+	};
 
 private:  // data types
 
@@ -183,6 +253,9 @@ private:  // data members
 	const IndexType& preorderSmaller_;
 	const IndexType& preorderBigger_;
 
+	const SetComparerSmaller& smallerComparer_;
+	const SetComparerBigger& biggerComparer_;
+
 private:  // methods
 
 	bool expand(const StateType& smallerState, const StateSet& biggerStateSet)
@@ -198,6 +271,10 @@ private:  // methods
 			return false;
 		}
 		else if (isImpliedByChildren(key))
+		{
+			return true;
+		}
+		else if (isImpliedByPreorder(key))
 		{
 			return true;
 		}
@@ -249,14 +326,14 @@ private:  // methods
 	// workset antichain
 	inline bool isInWorkset(const WorkSetElement& elem) const
 	{
-		for (auto keyRange = workset_.equal_range(elem.first);
-			keyRange.first != keyRange.second; ++(keyRange.first))
-		{	// for all items with proper key
-			const StateSet& wsBigger = (keyRange.first)->second;
-
-			if (wsBigger.IsSubsetOf(elem.second))
-			{	// if there is a smaller set in the workset
-				return true;
+		for (auto stateSetPair : workset_)
+		{
+			if (preorder_.get(elem.first, stateSetPair.first))
+			{	// if the pair is worth processing
+				if (smallerComparer_(stateSetPair.second, elem.second))
+				{
+					return true;
+				}
 			}
 		}
 
@@ -265,24 +342,43 @@ private:  // methods
 
 	inline bool isImpliedByChildren(const WorkSetElement& elem) const
 	{
-		return (childrenCache_.find(elem) != childrenCache_.end());
+		return childrenCache_.contains(preorderBigger_[elem.first],
+			elem.second, smallerComparer_);
 	}
 
 	inline bool isNoninclusionImplied(const WorkSetElement& elem) const
 	{
-		return (nonIncl_.find(elem) != nonIncl_.end());
+		return nonIncl_.contains(preorderSmaller_[elem.first],
+			elem.second, biggerComparer_);
+	}
+
+	inline bool isImpliedByPreorder(const WorkSetElement& elem) const
+	{
+		for (const StateType& biggerState : elem.second)
+		{
+			if (preorder_.get(elem.first, biggerState))
+			{
+				return true;
+			}
+		}
+
+		return false;
 	}
 
 	inline void processFoundInclusion(const StateType& smallerState,
 		const StateSet& biggerStateSet)
 	{
-		childrenCache_.insert(std::make_pair(smallerState, biggerStateSet));
+		childrenCache_.refine(preorderSmaller_[smallerState], biggerStateSet,
+			smallerComparer_);
+		childrenCache_.insert(smallerState, biggerStateSet);
 	}
 
 	inline void processFoundNoninclusion(const StateType& smallerState,
 		const StateSet& biggerStateSet)
 	{
-		nonIncl_.insert(std::make_pair(smallerState, biggerStateSet));
+		nonIncl_.refine(preorderBigger_[smallerState], biggerStateSet,
+			biggerComparer_);
+		nonIncl_.insert(smallerState, biggerStateSet);
 	}
 
 public:   // methods
@@ -290,7 +386,9 @@ public:   // methods
 	DownwardInclusionFunctor(const Aut& smaller, const Aut& bigger,
 		WorkSetType& workset, NonInclAntichainType& nonIncl,
 		const Relation& preorder, const IndexType& preorderSmaller,
-		const IndexType& preorderBigger) :
+		const IndexType& preorderBigger,
+		const SetComparerSmaller& smallerComparer,
+		const SetComparerBigger& biggerComparer) :
 		smaller_(smaller),
 		bigger_(bigger),
 		processingStopped_(false),
@@ -300,7 +398,9 @@ public:   // methods
 		childrenCache_(),
 		preorder_(preorder),
 		preorderSmaller_(preorderSmaller),
-		preorderBigger_(preorderBigger)
+		preorderBigger_(preorderBigger),
+		smallerComparer_(smallerComparer),
+		biggerComparer_(biggerComparer)
 	{ }
 
 	DownwardInclusionFunctor(
@@ -314,7 +414,9 @@ public:   // methods
 		childrenCache_(),
 		preorder_(downFctor.preorder_),
 		preorderSmaller_(downFctor.preorderSmaller_),
-		preorderBigger_(downFctor.preorderBigger_)
+		preorderBigger_(downFctor.preorderBigger_),
+		smallerComparer_(downFctor.smallerComparer_),
+		biggerComparer_(downFctor.biggerComparer_)
 	{ }
 
 	template <class ElementAccessorLHS, class ElementAccessorRHS>

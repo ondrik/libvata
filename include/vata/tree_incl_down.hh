@@ -57,13 +57,15 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger,
 	WorkSetType workset;
 	NonInclusionCache nonIncl;
 
-
 	typename Rel::IndexType preorderSmaller;
 	typename Rel::IndexType preorderBigger;
 	preorder.buildIndex(preorderBigger, preorderSmaller);
 
+	typename InclFctor::SetComparerSmaller compSmaller(preorder);
+	typename InclFctor::SetComparerBigger compBigger(preorder);
+
 	InclFctor downFctor(smaller, bigger, workset, nonIncl, preorder,
-		preorderSmaller, preorderBigger);
+		preorderSmaller, preorderBigger, compSmaller, compBigger);
 
 	StateSet finalStatesBigger(bigger.GetFinalStates().begin(),
 		bigger.GetFinalStates().end());
