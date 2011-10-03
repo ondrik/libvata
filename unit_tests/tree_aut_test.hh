@@ -504,7 +504,7 @@ BOOST_AUTO_TEST_CASE(aut_remove_useless)
 		readAut(aut, stateDict, autStr);
 		AutDescription autDesc = parser_.ParseString(autStr);
 
-		AutType autNoUseless = VATA::RemoveUselessStates(aut);
+		AutType autNoUseless = VATA::RemoveUnreachableStates(VATA::RemoveUselessStates(aut));
 		std::string autNoUselessStr = dumpAut(autNoUseless, stateDict);
 
 		AutDescription descOutNoUseless = parser_.ParseString(autNoUselessStr);
