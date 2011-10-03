@@ -120,4 +120,9 @@ BOOST_AUTO_TEST_CASE(aut_down_inclusion_sim)
 	testInclusion(VATA::CheckDownwardInclusionWithSimulation);
 }
 
+BOOST_AUTO_TEST_CASE(aut_up_inclusion)
+{
+	testInclusion(VATA::CheckUpwardInclusion);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
