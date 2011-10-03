@@ -33,6 +33,9 @@ namespace VATA {
 		AutBase::StateToStateMap* pTranslMapLhs = nullptr,
 		AutBase::StateToStateMap* pTranslMapRhs = nullptr) {
 
+		typedef AutBase::StateType StateType;
+		typedef AutBase::StateToStateTranslator StateToStateTranslator;
+
 		AutBase::StateToStateMap translMapLhs;
 		AutBase::StateToStateMap translMapRhs;
 
@@ -42,10 +45,16 @@ namespace VATA {
 		if (!pTranslMapRhs)
 			pTranslMapRhs = &translMapRhs;
 
+		StateType stateCnt = 0;
+		auto translFunc = [&stateCnt](const StateType&){return stateCnt++;};
+
+		StateToStateTranslator stateTransLhs(*pTranslMapLhs, translFunc);
+		StateToStateTranslator stateTransRhs(*pTranslMapRhs, translFunc);
+
 		ExplicitTreeAut<SymbolType> res(lhs.cache_);
 
-		lhs.ReindexStates(res, pTranslMapLhs, 0);
-		rhs.ReindexStates(res, pTranslMapRhs, pTranslMapLhs->size());
+		lhs.ReindexStates(res, stateTransLhs);
+		rhs.ReindexStates(res, stateTransRhs);
 
 		return res;
 
@@ -396,12 +405,29 @@ namespace VATA {
 	}
 
 	template <class SymbolType>
-	bool CheckDownwardInclusionWithoutUseless(const ExplicitTreeAut<SymbolType>& smaller,
+	bool CheckDownwardInclusionWithoutUseless(
+		const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger) {
 
-		VATA::Util::Identity ident;
-		return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
-			VATA::DownwardInclusionFunctor>(smaller, bigger, ident);
+		typedef AutBase::StateType StateType;
+		typedef AutBase::StateToStateMap StateToStateMap;
+		typedef AutBase::StateToStateTranslator StateToStateTranslator;
+		typedef ExplicitTreeAut<SymbolType> ExplAut;
+
+		StateType stateCnt = 0;
+		StateToStateMap stateMap;
+		StateToStateTranslator stateTrans(stateMap,
+			[&stateCnt](const StateType&){return stateCnt++;});
+
+		ExplAut newSmaller;
+		smaller.ReindexStates(newSmaller, stateTrans);
+
+		ExplAut newBigger;
+		bigger.ReindexStates(newBigger, stateTrans);
+
+		VATA::Util::Identity ident(stateCnt);
+		return CheckDownwardTreeInclusion<ExplAut,
+			VATA::DownwardInclusionFunctor>(newSmaller, newBigger, ident);
 
 	}
 
@@ -409,21 +435,27 @@ namespace VATA {
 	bool CheckUpwardInclusionNoGarbage(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger) {
 
-		AutBase::StateToStateMap stateMap;
+		typedef AutBase::StateType StateType;
+		typedef AutBase::StateToStateMap StateToStateMap;
+		typedef AutBase::StateToStateTranslator StateToStateTranslator;
+
+		StateToStateMap stateMap;
+
+		StateType stateCnt = 0;
+		auto translFunc = [&stateCnt](const StateType&){return stateCnt++;};
+
+		StateToStateTranslator stateTrans(stateMap, translFunc);
 
 		Explicit::TupleCache tupleCache;
 
 		ExplicitTreeAut<SymbolType> a(tupleCache), b(tupleCache);
 
-		smaller.ReindexStates(a, &stateMap);
-
-		size_t size = stateMap.size();
-
+		smaller.ReindexStates(a, stateTrans);
 		stateMap.clear();
 
-		bigger.ReindexStates(b, &stateMap, size);
+		bigger.ReindexStates(b, stateTrans);
 
-		return ExplicitUpwardInclusion::Check(a, b, Util::Identity(size + stateMap.size()));
+		return ExplicitUpwardInclusion::Check(a, b, Util::Identity(stateCnt));
 
 	}
 
