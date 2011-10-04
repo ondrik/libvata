@@ -13,11 +13,11 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/util/convert.hh>
 
 // Standard library headers
 #include <vector>
 #include <algorithm>
-
 
 namespace VATA
 {
@@ -28,7 +28,6 @@ namespace VATA
 	}
 }
 
-
 class VATA::Util::BinaryRelation {
 
 	std::vector<bool> data_;
@@ -38,6 +37,7 @@ class VATA::Util::BinaryRelation {
 protected:
 
 	void realloc(size_t newRowSize, bool defVal) {
+
 		assert(newRowSize);
 		std::vector<bool> tmp(newRowSize*newRowSize, defVal);
 		std::vector<bool>::const_iterator src = this->data_.begin();
@@ -52,6 +52,7 @@ protected:
 	}
 
 	void grow(size_t newSize, bool defVal) {
+
 		assert(this->rowSize_ <= newSize);
 		size_t newRowSize = this->rowSize_;
 		while (newRowSize <= newSize)
@@ -61,6 +62,7 @@ protected:
 	}
 
 	void shrinkToFit(bool defVal) {
+
 		assert(this->rowSize_ > this->size_);
 		size_t newRowSize = this->rowSize_;
 		while (this->size_ < (newRowSize >> 1))
@@ -100,12 +102,16 @@ public:
 	}
 
 	bool get(size_t r, size_t c) const {
+
 		assert(r < this->size_ && c < this->size_);
+		assert(r*this->rowSize_ + c < this->data_.size());
 		return this->data_[r*this->rowSize_ + c];
 	}
 
 	void set(size_t r, size_t c, bool v) {
+
 		assert(r < this->size_ && c < this->size_);
+		assert(r*this->rowSize_ + c < this->data_.size());
 		this->data_[r*this->rowSize_ + c] = v;
 	}
 
@@ -118,7 +124,12 @@ public:
 	typedef std::vector<std::vector<size_t>> IndexType;
 
 	BinaryRelation(size_t size = 0, bool defVal = false, size_t rowSize = 16)
-		: data_(rowSize*rowSize, defVal), rowSize_(rowSize), size_(size) {}
+		: data_(rowSize*rowSize, defVal), rowSize_(rowSize), size_(size) {
+		if (size > rowSize) {
+			this->size_ = 0;
+			this->resize(size, defVal);
+		}
+	}
 
 	BinaryRelation(const std::vector<std::vector<bool> >& rel)
 		: data_(16*16, false), rowSize_(16), size_(0) {
@@ -131,7 +142,6 @@ public:
 	}
 
 	bool sym(size_t r, size_t c) const {
-		assert(r < this->size_ && c < this->size_);
 		return this->get(r, c) && this->get(c, r);
 	}
 
@@ -245,11 +255,9 @@ class VATA::Util::Identity {
 
 public:
 
-	bool get(size_t r, size_t c) const
-	{
-		assert(r < size_);
-		assert(c < size_);
-
+	bool get(size_t r, size_t c) const {
+		assert(r < this->size_);
+		assert(c < this->size_);
 		return r == c;
 	}
 
@@ -261,7 +269,11 @@ public:
 
 	explicit Identity(size_t size) : size_(size) {}
 
-	bool sym(size_t r, size_t c) const { return r == c; }
+	bool sym(size_t r, size_t c) const {
+		assert(r < this->size_);
+		assert(c < this->size_);
+		return r == c;
+	}
 
 	// build equivalence classes
 	void buildClasses(std::vector<size_t>& headIndex) const {
