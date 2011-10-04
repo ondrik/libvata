@@ -227,10 +227,6 @@ protected:// methods
 			aut = VATA::RemoveUselessStates(aut);
 			AutType reindexedAut;
 			aut.ReindexStates(reindexedAut, stateTrans);
-			for (const StateType& fst : aut.GetFinalStates())
-			{
-				reindexedAut.SetStateFinal(stateTrans(fst));
-			}
 
 			stateDict = RebindMap(stateDict, stateMap);
 

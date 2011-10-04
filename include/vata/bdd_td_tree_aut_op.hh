@@ -41,9 +41,6 @@ namespace VATA
 	bool CheckDownwardInclusion(const BDDTopDownTreeAut& smaller,
 		const BDDTopDownTreeAut& bigger);
 
-	bool CheckDownwardInclusionWithoutUseless(const BDDTopDownTreeAut& smaller,
-		const BDDTopDownTreeAut& bigger);
-
 	bool CheckUpwardInclusion(const BDDTopDownTreeAut& smaller,
 		const BDDTopDownTreeAut& bigger);
 
