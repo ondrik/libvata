@@ -20,6 +20,7 @@
 #include <vata/explicit_tree_incl_up.hh>
 #include <vata/explicit_lts_sim.hh>
 #include <vata/down_tree_incl_fctor.hh>
+#include <vata/down_tree_opt_incl_fctor.hh>
 #include <vata/tree_incl_down.hh>
 #include <vata/util/binary_relation.hh>
 #include <vata/util/convert.hh>
@@ -95,181 +96,117 @@ namespace VATA {
 		AutBase::StateToStateMap* pTranslMap = nullptr);
 
 	template <class SymbolType>
-	bool CheckUpwardInclusion(const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger) {
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		const ExplicitTreeAut<SymbolType>& aut, const size_t& size) {
 
-		return CheckUpwardInclusionWithoutUseless(
-			RemoveUselessStates(smaller), RemoveUselessStates(bigger)
+		Util::LTS lts;
+
+		aut.TranslateDownward(lts);
+
+		AutBase::StateBinaryRelation result;
+
+		computeSimulation(result, size, lts);
+
+		return result;
+
+	}
+
+	template <class SymbolType>
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		const ExplicitTreeAut<SymbolType>& aut) {
+
+		return ComputeDownwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
+
+	}
+
+	template <class SymbolType>
+	AutBase::StateBinaryRelation ComputeUpwardSimulation(
+		const ExplicitTreeAut<SymbolType>& aut, const size_t& size) {
+
+		Util::LTS lts;
+
+		AutBase::StateBinaryRelation result;
+
+		std::vector<std::vector<size_t>> partition;
+
+		aut.TranslateUpward(lts, partition, result, Util::Identity(size));
+
+		computeSimulation(
+			result,
+			size,
+			lts,
+			partition,
+			std::vector<AutBase::StateType>(
+				aut.GetFinalStates().begin(), aut.GetFinalStates().end()
+			)
 		);
 
-	}
-
-	template <class SymbolType>
-	bool CheckUpwardInclusionWithSimulation(
-		const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger) {
-		assert(&smaller != nullptr);
-		assert(&bigger != nullptr);
-		throw std::runtime_error("Unimplemented");
-	}
-
-	template <class SymbolType>
-	bool CheckDownwardInclusion(const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger) {
-
-		return CheckDownwardInclusionWithoutUseless(
-			RemoveUselessStates(smaller), RemoveUselessStates(bigger)
-		);
+		return result;
 
 	}
 
 	template <class SymbolType>
-	bool CheckDownwardInclusionWithSimulation(
-		const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger) {
+	AutBase::StateBinaryRelation ComputeUpwardSimulation(
+		const ExplicitTreeAut<SymbolType>& aut) {
 
-		typedef AutBase::StateType StateType;
-		typedef AutBase::StateToStateMap StateToStateMap;
-		typedef AutBase::StateToStateTranslator StateToStateTranslator;
-		typedef ExplicitTreeAut<SymbolType> ExplAut;
-
-		StateType stateCnt = 0;
-		StateToStateMap stateMap;
-		StateToStateTranslator stateTrans(stateMap,
-			[&stateCnt](const StateType&){return stateCnt++;});
-
-		Explicit::TupleCache tupleCache;
-
-		ExplAut newSmaller(tupleCache), newBigger(tupleCache);
-
-		smaller.ReindexStates(newSmaller, stateTrans);
-
-		stateMap.clear();
-
-		bigger.ReindexStates(newBigger, stateTrans);
-
-		ExplAut unionAut = UnionDisjunctStates(newSmaller, newBigger);
-
-		return CheckDownwardTreeInclusion<ExplAut, VATA::DownwardInclusionFunctor>(
-			newSmaller, newBigger, ComputeDownwardSimulation(unionAut)
-		);
-
-	}
-
-	template <class SymbolType>
-	bool CheckDownwardInclusionWithoutUseless(
-		const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger) {
-
-		typedef AutBase::StateType StateType;
-		typedef AutBase::StateToStateMap StateToStateMap;
-		typedef AutBase::StateToStateTranslator StateToStateTranslator;
-		typedef ExplicitTreeAut<SymbolType> ExplAut;
-
-		StateType stateCnt = 0;
-		StateToStateMap stateMap;
-		StateToStateTranslator stateTrans(stateMap,
-			[&stateCnt](const StateType&){return stateCnt++;});
-
-		Explicit::TupleCache tupleCache;
-
-		ExplAut newSmaller(tupleCache), newBigger(tupleCache);
-
-		smaller.ReindexStates(newSmaller, stateTrans);
-
-		stateMap.clear();
-
-		bigger.ReindexStates(newBigger, stateTrans);
-
-		VATA::Util::Identity ident(stateCnt);
-		return CheckDownwardTreeInclusion<ExplAut,
-			VATA::DownwardInclusionFunctor>(newSmaller, newBigger, ident);
-
-	}
-
-	template <class SymbolType>
-	bool CheckUpwardInclusionWithoutUseless(const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger) {
-
-		typedef AutBase::StateType StateType;
-		typedef AutBase::StateToStateMap StateToStateMap;
-		typedef AutBase::StateToStateTranslator StateToStateTranslator;
-
-		StateToStateMap stateMap;
-
-		StateType stateCnt = 0;
-		auto translFunc = [&stateCnt](const StateType&){return stateCnt++;};
-
-		StateToStateTranslator stateTrans(stateMap, translFunc);
-
-		Explicit::TupleCache tupleCache;
-
-		ExplicitTreeAut<SymbolType> newSmaller(tupleCache), newBigger(tupleCache);
-
-		smaller.ReindexStates(newSmaller, stateTrans);
-
-		stateMap.clear();
-
-		bigger.ReindexStates(newBigger, stateTrans);
-
-		return ExplicitUpwardInclusion::Check(newSmaller, newBigger, Util::Identity(stateCnt));
+		return ComputeUpwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
 
 	}
 
 	template <class SymbolType, class Rel>
-	bool CheckDownwardInclusionWithPreorder(const ExplicitTreeAut<SymbolType>& smaller,
+	bool CheckUpwardInclusionWithPreorder(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
-		assert(&smaller != nullptr);
-		assert(&bigger != nullptr);
-		assert(&preorder != nullptr);
 
-		throw std::runtime_error("Unimplemented!");
+		return ExplicitUpwardInclusion::Check(smaller, bigger, preorder);
+
 	}
 
 	template <class SymbolType, class Rel>
 	bool CheckOptDownwardInclusionWithPreorder(
 		const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
-		assert(&smaller != nullptr);
-		assert(&bigger != nullptr);
-		assert(&preorder != nullptr);
 
-		throw std::runtime_error("Unimplemented!");
+		return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
+			VATA::OptDownwardInclusionFunctor>(smaller, bigger, preorder);
 	}
 
 	template <class SymbolType, class Rel>
-	bool CheckUpwardInclusionWithPreorder(const ExplicitTreeAut<SymbolType>& smaller,
+	bool CheckDownwardInclusionWithPreorder(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
-		assert(&smaller != nullptr);
-		assert(&bigger != nullptr);
-		assert(&preorder != nullptr);
 
-		throw std::runtime_error("Unimplemented!");
-	}
-
-	template <class SymbolType>
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut, const size_t& /* size */ = 0) {
-
-		Util::LTS lts;
-
-		aut.ToDownwardLTS(lts);
-
-		AutBase::StateBinaryRelation res;
-
-		computeSimulation(res, lts, aut.transitions_->size());
-
-		return res;
+		return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
+			VATA::DownwardInclusionFunctor>(smaller, bigger, preorder);
 
 	}
 
 	template <class SymbolType>
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut, const size_t& /* size */ = 0)
-	{
-		assert(&aut != nullptr);
+	bool CheckUpwardInclusion(const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger) {
 
-		throw std::runtime_error("Unimplemented");
+		return CheckUpwardInclusionWithPreorder(
+			smaller, bigger, Util::Identity(AutBase::SanitizeAutsForInclusion(smaller, bigger))
+		);
+
+	}
+
+	template <class SymbolType>
+	bool CheckDownwardInclusion(const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger) {
+
+		auto size = AutBase::SanitizeAutsForInclusion(smaller, bigger);
+
+		return CheckDownwardInclusionWithPreorder(
+			smaller, bigger, ComputeDownwardSimulation(UnionDisjunctStates(smaller, bigger), size)
+		);
+
+	}
+
+	template <class SymbolType>
+	bool CheckInclusion(const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger) {
+
+		return CheckUpwardInclusion(smaller, bigger);
+
 	}
 
 }

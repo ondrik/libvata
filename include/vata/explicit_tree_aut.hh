@@ -20,6 +20,7 @@
 #include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
 #include <vata/util/lts.hh>
+#include <vata/util/convert.hh>
 
 // Standard library headers
 #include <cstdint>
@@ -44,7 +45,8 @@ namespace VATA {
 			boost::hash<StateTuple>> TupleCache;
 
 		static TupleCache tupleCache;
-
+		
+/*
 		struct TuplePtrHash {
 	
 			size_t operator()(const VATA::Explicit::TuplePtr& ptr) const {
@@ -65,7 +67,7 @@ namespace VATA {
 			}
 	
 		};
-
+*/
 	};
 
 }
@@ -96,10 +98,6 @@ GCC_DIAG_ON(effc++)
 	template <class SymbolType>
 	friend ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
 		const ExplicitTreeAut<SymbolType>&, AutBase::StateToStateMap*);
-
-	template <class SymbolType>
-	friend AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut, const size_t& size = 0);
 
 public:   // public data types
 
@@ -206,8 +204,10 @@ protected:
 		if (!p.second)
 			return TuplePtr(p.first->second);
 
+		TupleCache* cachePtr = &this->cache_;
+
 		TuplePtr ptr = TuplePtr(const_cast<StateTuple*>(&p.first->first),
-			[this](StateTuple* tuple) { this->cache_.erase(*tuple); });
+			[cachePtr](StateTuple* tuple) { cachePtr->erase(*tuple); });
 
 		p.first->second = std::weak_ptr<StateTuple>(ptr);
 
@@ -500,7 +500,7 @@ public:   // public methods
 	};
 
 	typedef std::shared_ptr<Transition> TransitionPtr;
-
+/*
 	struct TransitionPtrHash {
 
 		size_t operator()(const TransitionPtr& ptr) const {
@@ -520,7 +520,7 @@ public:   // public methods
 		}
 
 	};
-
+*/
 public:
 
 	ExplicitTreeAut(Explicit::TupleCache& tupleCache = Explicit::tupleCache) :
@@ -537,9 +537,12 @@ public:
 		transitions_(aut.transitions_)
 	{ }
 
-	ExplicitTreeAut(const ExplicitTreeAut& aut, Explicit::TupleCache& tupleCache)
-		: cache_(tupleCache), finalStates_(aut.finalStates_), transitions_(aut.transitions),
-		accepting(*this) {}
+	ExplicitTreeAut(const ExplicitTreeAut& aut, Explicit::TupleCache& tupleCache) :
+		accepting(*this),
+		cache_(tupleCache),
+		finalStates_(aut.finalStates_),
+		transitions_(aut.transitions)
+	{ }
 
 	ExplicitTreeAut& operator=(const ExplicitTreeAut& rhs) {
 
@@ -722,6 +725,9 @@ public:
 		const StateSetLight& rhsSet, OperationFunc& opFunc)
 	{
 
+		assert(lhs.transitions_);
+		assert(rhs.transitions_);
+
 		auto leftCluster = ExplicitTreeAut::genericLookup(*lhs.transitions_, lhsState);
 
 		if (!leftCluster)
@@ -768,19 +774,19 @@ public:
 
 	}
 
-	void ToDownwardLTS(VATA::Util::LTS& lts) const {
+	void TranslateDownward(Util::LTS& lts) const {
 
 		std::unordered_map<SymbolType, size_t> symbolMap;
 		std::unordered_map<const StateTuple*, size_t> lhsMap;
 
 		size_t symbolCnt = 0;
-		VATA::Util::TranslatorWeak2<std::unordered_map<SymbolType, size_t>>
+		Util::TranslatorWeak2<std::unordered_map<SymbolType, size_t>>
 			symbolTranslator(symbolMap, [&symbolCnt](const SymbolType&){ return symbolCnt++; });
 
 		assert(this->transitions_);
 
 		size_t lhsCnt = this->transitions_->size();
-		VATA::Util::TranslatorWeak2<std::unordered_map<const StateTuple*, size_t>>
+		Util::TranslatorWeak2<std::unordered_map<const StateTuple*, size_t>>
 			lhsTranslator(lhsMap, [&lhsCnt](const StateTuple*){ return lhsCnt++; });
 
 		for (auto& stateClusterPair : *this->transitions_) {
@@ -829,6 +835,170 @@ public:
 		}
 
 		lts.init();
+
+	}
+
+protected:
+
+	struct Env {
+
+		StateTuple children_;
+		size_t index_;
+		size_t symbol_;
+		size_t state_;
+
+		Env(const StateTuple& children, size_t index, size_t symbol, size_t state)
+			: children_(), index_(index), symbol_(symbol), state_(state) {
+
+			this->children_.insert(
+				this->children_.end(), children.begin(), children.begin() + index
+			);
+
+			this->children_.insert(
+				this->children_.end(), children.begin() + index + 1, children.end()
+			);
+
+		}
+
+		template <class Rel>
+		bool lessThan(const Env& env, const Rel& rel) const {
+
+			if (this->children_.size() != env.children_.size()) return false;
+			if (this->index_ != env.index_) return false;
+			if (this->symbol_ != env.symbol_) return false;
+
+			for (size_t i = 0; i < this->children_.size(); ++i) {
+
+				if (!rel.get(this->children_[i], env.children_[i]))
+					return false;
+
+			}
+
+			return true;
+
+		}
+
+		template <class Rel>
+		bool equal(const Env& env, const Rel& rel) const {
+
+			if (this->children_.size() != env.children_.size()) return false;
+			if (this->index_ != env.index_) return false;
+			if (this->symbol_ != env.symbol_) return false;
+
+			for (size_t i = 0; i < this->children_.size(); ++i) {
+
+				if (!rel.sym(this->children_[i], env.children_[i]))
+					return false;
+
+			}
+
+			return true;
+
+		}
+
+		bool operator==(const Env& rhs) const {
+
+			return (this->children_.size() == rhs.children_.size()) &&
+				(this->index_ == rhs.index_) && (this->symbol_ == rhs.symbol_) &&
+				(this->children_ == rhs.children_);
+
+		}
+
+		friend size_t hash_value(const Env& env) {
+
+			size_t seed = 0;
+			boost::hash_combine(seed, env.children_);
+			boost::hash_combine(seed, env.index_);
+			boost::hash_combine(seed, env.symbol_);
+			boost::hash_combine(seed, env.state_);
+			return seed;
+
+		}
+
+	};
+
+public:
+
+	template <class Rel>
+	void TranslateUpward(Util::LTS& lts, std::vector<std::vector<size_t>>& part,
+		Util::BinaryRelation& rel, const Rel& param) const {
+
+		size_t symbolCnt = 0;
+		std::unordered_map<SymbolType, size_t> symbolMap;
+		VATA::Util::TranslatorWeak2<std::unordered_map<SymbolType, size_t>>
+			symbolTranslator(symbolMap, [&symbolCnt](const SymbolType&){ return symbolCnt++; });
+
+		assert(this->transitions_);
+
+		std::vector<const Env*> head;
+
+		size_t envCnt = this->transitions_->size();
+		std::unordered_map<Env, size_t, boost::hash<Env>> envMap;
+		VATA::Util::TranslatorWeak2<std::unordered_map<Env, size_t, boost::hash<Env>>>
+			envTranslator(
+				envMap,
+				[&envCnt, &head, &part, &param](const Env& env) -> size_t {
+					for (size_t i = 0; i < head.size(); ++i) {
+						if (!head[i]->equal(env, param))
+							continue;
+						part[i].push_back(envCnt);
+						return envCnt++;
+					}
+					head.push_back(&env);
+					part.push_back(std::vector<size_t>(1, envCnt));
+					return envCnt++;
+				}
+		);
+
+		part.clear();
+
+		for (auto& stateClusterPair : *this->transitions_) {
+	
+			assert(stateClusterPair.second);
+
+			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
+	
+				assert(symbolTupleSetPair.second);
+
+				size_t symbol = symbolTranslator(symbolTupleSetPair.first);
+
+				for (auto& tuple : *symbolTupleSetPair.second) {
+	
+					assert(tuple);
+
+					for (size_t i = 0; i < tuple->size(); ++i) {
+
+						size_t env = envTranslator(Env(*tuple, i, symbol, stateClusterPair.first));
+
+						lts.addTransition((*tuple)[i], symbolCnt, env);
+						lts.addTransition(env, symbol, stateClusterPair.first);
+
+					}
+
+				}
+					
+			}
+
+		}
+
+		rel.resize(part.size() + 2);
+		rel.reset(false);
+
+		// 0 non-accepting, 1 accepting, 2 .. environments
+		rel.set(0, 0, true);
+		rel.set(0, 1, true);
+		rel.set(1, 1, true);
+
+		for (size_t i = 0; i < head.size(); ++i) {
+
+			for (size_t j = 0; j < head.size(); ++j) {
+
+				if (head[i]->lessThan(*head[j], param))
+					rel.set(i + 2, j + 2, true);
+
+			}
+
+		}
 
 	}
 

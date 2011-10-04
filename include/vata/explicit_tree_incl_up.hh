@@ -74,13 +74,10 @@ class VATA::ExplicitUpwardInclusion {
 
 		for (auto i = d.begin(); i != d.end(); ) {
 
-			if (s.count(*i) == 0) {
-
-				auto j = i++;
-				
-				d.erase(j);
-
-			} else ++i;
+			if (s.count(*i) == 0)
+				i = d.erase(i);
+			else
+				++i;
 
 		}
 

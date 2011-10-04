@@ -35,16 +35,15 @@ class VATA::Util::BinaryRelation {
 	size_t rowSize_;
 	size_t size_;
 
-
 protected:
 
-	void realloc(size_t oldSize, size_t newRowSize, bool defVal) {
+	void realloc(size_t newRowSize, bool defVal) {
 		assert(newRowSize);
 		std::vector<bool> tmp(newRowSize*newRowSize, defVal);
 		std::vector<bool>::const_iterator src = this->data_.begin();
 		std::vector<bool>::iterator dst = tmp.begin();
-		while (src != this->data_.end()) {
-			std::copy(src, src + oldSize, dst);
+		for (size_t i = 0; i < this->size_; ++i) {
+			std::copy(src, src + this->size_, dst);
 			src += this->rowSize_;
 			dst += newRowSize;
 		}
@@ -53,27 +52,45 @@ protected:
 	}
 
 	void grow(size_t newSize, bool defVal) {
-		assert(this->rowSize_ < newSize);
+		assert(this->rowSize_ <= newSize);
 		size_t newRowSize = this->rowSize_;
-		while (newRowSize < newSize)
-			newRowSize *= 2;
-		this->realloc(this->size_, newRowSize, defVal);
+		while (newRowSize <= newSize)
+			newRowSize <<= 1;
+		assert(newSize <= newRowSize);
+		this->realloc(newRowSize, defVal);
+	}
+
+	void shrinkToFit(bool defVal) {
+		assert(this->rowSize_ > this->size_);
+		size_t newRowSize = this->rowSize_;
+		while (this->size_ < (newRowSize >> 1))
+			newRowSize >>= 1;
+		assert(this->size_ <= newRowSize);
+		this->realloc(newRowSize, defVal);
 	}
 
 public:
 
 	void reset(bool defVal = false) {
 		std::fill(this->data_.begin(), this->data_.end(), defVal);
-		this->size_ = 0;
 	}
 
 	void resize(size_t size, bool defVal = false) {
-		if (this->rowSize_ < size) {
-			this->grow(size, defVal);
-		} else {
-			this->realloc(size, this->rowSize_, defVal);
+
+		if (size == 0) {
+			this->size_ = 0;
+			this->reset(defVal);
+			return;
 		}
-		this->size_ = size;
+
+		if (this->rowSize_ <= size) {
+			this->grow(size, defVal);
+			this->size_ = size;
+		} else {
+			this->size_ = size;
+			this->shrinkToFit(defVal);
+		}
+
 	}
 
 	size_t newEntry(bool defVal = false) {
@@ -100,13 +117,11 @@ public:
 
 	typedef std::vector<std::vector<size_t>> IndexType;
 
-	BinaryRelation(size_t size = 0, bool defVal = false, size_t rowSize = 4)
-		: data_(rowSize*rowSize, defVal), rowSize_(rowSize), size_(0) {
-		this->resize(size, defVal);
-	}
+	BinaryRelation(size_t size = 0, bool defVal = false, size_t rowSize = 16)
+		: data_(rowSize*rowSize, defVal), rowSize_(rowSize), size_(size) {}
 
 	BinaryRelation(const std::vector<std::vector<bool> >& rel)
-		: data_(4*4, false), rowSize_(4), size_(0) {
+		: data_(16*16, false), rowSize_(16), size_(0) {
 		this->resize(rel.size(), false);
 		for (size_t i = 0; i < rel.size(); ++i) {
 			assert(rel[i].size() == rel.size());
