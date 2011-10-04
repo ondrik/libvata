@@ -19,6 +19,7 @@
 #include <vata/util/ord_vector.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
+#include <vata/util/lts.hh>
 
 // Standard library headers
 #include <cstdint>
@@ -91,6 +92,10 @@ GCC_DIAG_ON(effc++)
 	template <class SymbolType>
 	friend ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
 		const ExplicitTreeAut<SymbolType>&, AutBase::StateToStateMap*);
+
+	template <class SymbolType>
+	friend AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		const ExplicitTreeAut<SymbolType>& aut);
 
 public:   // public data types
 
@@ -756,6 +761,70 @@ public:
 			);
 
 		}
+
+	}
+
+	void ToDownwardLTS(VATA::Util::LTS& lts) const {
+
+		std::unordered_map<SymbolType, size_t> symbolMap;
+		std::unordered_map<const StateTuple*, size_t> lhsMap;
+
+		size_t symbolCnt = 0;
+		VATA::Util::TranslatorWeak2<std::unordered_map<SymbolType, size_t>>
+			symbolTranslator(symbolMap, [&symbolCnt](const SymbolType&){ return symbolCnt++; });
+
+		assert(this->transitions_);
+
+		size_t lhsCnt = this->transitions_->size();
+		VATA::Util::TranslatorWeak2<std::unordered_map<const StateTuple*, size_t>>
+			lhsTranslator(lhsMap, [&lhsCnt](const StateTuple*){ return lhsCnt++; });
+
+		for (auto& stateClusterPair : *this->transitions_) {
+	
+			assert(stateClusterPair.second);
+
+			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
+	
+				assert(symbolTupleSetPair.second);
+
+				size_t symbol = symbolTranslator(symbolTupleSetPair.first);
+
+				for (auto& tuple : *symbolTupleSetPair.second) {
+	
+					assert(tuple);
+
+					if (tuple->size() == 1) {
+						// skip lhs of size 1 >:-)
+						lts.addTransition(stateClusterPair.first, symbol, tuple->front());
+					} else {
+						lts.addTransition(
+							stateClusterPair.first, symbol, lhsTranslator(tuple.get())
+						);
+					}
+	
+				}
+	
+			}
+	
+		}
+
+		for (auto& tupleIndexPair : lhsMap) {
+
+			assert(tupleIndexPair.first);
+
+			size_t i = 0;
+
+			for (auto& state : *tupleIndexPair.first) {
+
+				lts.addTransition(tupleIndexPair.second, symbolMap.size() + i, state);
+
+				++i;
+
+			}
+
+		}
+
+		lts.init();
 
 	}
 

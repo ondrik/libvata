@@ -61,13 +61,16 @@ public:
 
 	void resize(size_t size, bool defVal = false) {
 		size_t newCap = this->cap_;
-		while (newCap < size)
-			newCap *= 2;
-		this->grow(newCap, defVal);
+		if (newCap < size*size) {
+			while (newCap < size*size)
+				newCap *= 2;
+			this->grow(newCap, defVal);
+		}
+		this->size_ = size;
 	}
 
 	size_t newEntry(bool defVal = false) {
-		if (this->size_ == this->cap_)
+		while (this->size_*this->size_ >= this->cap_)
 			this->grow(2*this->cap_, defVal);
 		return this->size_++;
 	}
@@ -91,11 +94,11 @@ public:
 	typedef std::vector<std::vector<size_t>> IndexType;
 
 	BinaryRelation(size_t size = 0, bool defVal = false, size_t cap = 16)
-		: data_((size < cap)?(cap*cap):(size*size), defVal), cap_((size < cap)?(cap):(size)),
-		size_(size) {}
+		: data_((size < cap)?(cap*cap):(size*size), defVal),
+		cap_((size*size < cap)?(cap):(size*size)), size_(size) {}
 
 	BinaryRelation(const std::vector<std::vector<bool> >& rel)
-		: data_(rel.size()*rel.size(), false), cap_(rel.size()), size_(rel.size()) {
+		: data_(rel.size()*rel.size(), false), cap_(rel.size()*rel.size()), size_(rel.size()) {
 		for (size_t i = 0; i < rel.size(); ++i) {
 			for (size_t j = 0; j < rel.size(); ++j)
 				this->set(i, j, rel[i][j]);

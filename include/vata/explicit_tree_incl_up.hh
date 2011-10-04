@@ -286,7 +286,9 @@ public:
 			}
 		);
 
-		Antichain1C active, post;
+		std::unordered_set<SmallerType> active;
+
+		Antichain1C post;
 		Antichain2C next, processed;
 
 		bool isAccepting;
@@ -308,8 +310,6 @@ public:
 				assert(transition);
 				assert(transition->children().empty());
 				assert(transition->state() < ind.size());
-
-//				VATA_LOGGER_INFO("bigger: " + Util::Convert::ToString(*transition));
 
 				if (post.contains(ind[transition->state()]))
 					continue;
@@ -333,8 +333,6 @@ public:
 
 				assert(transition);
 
-//				VATA_LOGGER_INFO("smaller: " + Util::Convert::ToString(*transition));
-
 				if (!isAccepting && smaller.IsFinalState(transition->state()))
 					return false;
 
@@ -346,17 +344,11 @@ public:
 				if (processed.contains(ind[transition->state()], ptr, lte))
 					continue;
 
-//				VATA_LOGGER_INFO(Util::Convert::ToString(transition->state()) + ", " + Util::Convert::ToString(tmp));
-
 				assert(transition->state() < inv.size());
 					
 				processed.refine(inv[transition->state()], ptr, gte);
 				processed.insert(transition->state(), ptr);
 
-				if (active.contains(ind[transition->state()]))
-					continue;
-
-				active.refine(inv[transition->state()]);
 				active.insert(transition->state());
 
 			}
@@ -365,15 +357,11 @@ public:
 
 		ChoiceVector choiceVector(processed);
 
-//		size_t c = 0;
+		while (!active.empty()) {
 
-		SmallerType q; BiggerType Q;
+			SmallerType q = *active.begin();
 
-		while (active.next(q)) {
-
-//			++c;
-
-//			VATA_LOGGER_INFO("processed: " + Util::Convert::ToString(processed));
+			active.erase(active.begin());
 
 			// Post(processed)
 
@@ -392,8 +380,6 @@ public:
 
 					if (!choiceVector.build(smallerTransition->children()))
 						continue;
-
-//					VATA_LOGGER_INFO("smaller: " + Util::Convert::ToString(*smallerTransition));
 
 					do {
 
@@ -444,9 +430,6 @@ public:
 							isAccepting = isAccepting ||
 								bigger.IsFinalState(biggerTransition->state());
 
-//							if (post.testAndRefine(biggerTransition->state()))
-//								VATA_LOGGER_INFO("bigger: " + Util::Convert::ToString(*biggerTransition));
-
 						}
 						
 						if (post.data().empty())
@@ -476,33 +459,33 @@ public:
 
 					} while (choiceVector.next());
 
-					while (next.next(q, Q)) {
+					for (auto& smallerBiggerListPair : next.data()) {
 
-						assert(q < ind.size());
+						for (auto& bigger : smallerBiggerListPair.second) {
 
-						if (processed.contains(ind[q], Q, lte))
-							continue;
-		
-						assert(q < inv.size());
-
-						processed.refine(inv[q], Q, gte);
-						processed.insert(q, Q);
-
-						if (active.contains(ind[q]))
-							continue;
+							assert(smallerBiggerListPair.first < ind.size());
 	
-						active.refine(inv[q]);
-						active.insert(q);
+							if (processed.contains(ind[smallerBiggerListPair.first], bigger, lte))
+								continue;
+			
+							assert(smallerBiggerListPair.first < inv.size());
+	
+							processed.refine(inv[smallerBiggerListPair.first], bigger, gte);
+							processed.insert(smallerBiggerListPair.first, bigger);
+	
+							active.insert(smallerBiggerListPair.first);
+							
+						}
 
 					}
+
+					next.clear();
 
 				}
 
 			}
 
 		}
-
-//		VATA_LOGGER_INFO("elements processed: " + Util::Convert::ToString(c));
 
 		return true;
 
@@ -618,7 +601,6 @@ public:
 					auto& s = *this->state_[i].current_;
 
 					if (!std::binary_search(s->begin(), s->end(), children[i]))
-//					if (s->count(children[i]) == 0)
 						return false;
 
 				}
@@ -698,8 +680,6 @@ public:
 				assert(transition->children().empty());
 				assert(transition->state() < ind.size());
 
-//				VATA_LOGGER_INFO("bigger: " + Util::Convert::ToString(*transition));
-
 				if (post.contains(ind[transition->state()]))
 					continue;
 				
@@ -722,8 +702,6 @@ public:
 
 				assert(transition);
 
-//				VATA_LOGGER_INFO("smaller: " + Util::Convert::ToString(*transition));
-
 				if (!isAccepting && smaller.IsFinalState(transition->state()))
 					return false;
 
@@ -734,8 +712,6 @@ public:
 
 				if (next.contains(ind[transition->state()], ptr, lte))
 					continue;
-
-//				VATA_LOGGER_INFO(Util::Convert::ToString(transition->state()) + ", " + Util::Convert::ToString(tmp));
 
 				assert(transition->state() < inv.size());
 					
@@ -754,23 +730,12 @@ public:
 
 		ChoiceVector choiceVector(processed, fixedList);
 
-//		VATA_LOGGER_INFO("next: " + Util::Convert::ToString(next));
-
-//		size_t c = 0;
-
 		while (next.next(q, Q)) {
-
-//			++c;
 
 			assert(q < inv.size());
 
 			processed.refine(inv[q], Q, gte);
 			processed.insert(q, Q);
-
-//			VATA_LOGGER_INFO(Util::Convert::ToString(q) + ", " + Util::Convert::ToString(*Q));
-//			VATA_LOGGER_INFO("processed: " + Util::Convert::ToString(processed.size()) + ", " + "next: " + Util::Convert::ToString(next.size()));
-
-//			VATA_LOGGER_INFO("processed: " + Util::Convert::ToString(processed));
 
 			// Post(processed)
 
@@ -796,8 +761,6 @@ public:
 						if (!choiceVector.get(smallerTransition->children(), i))
 							continue;
 
-//						VATA_LOGGER_INFO("smaller: " + Util::Convert::ToString(*smallerTransition));
-
 						do {
 
 							post.clear();
@@ -813,8 +776,6 @@ public:
 
 								if (!choiceVector.match(biggerTransition->children()))
 									continue;
-
-//								VATA_LOGGER_INFO("bigger: " + Util::Convert::ToString(*biggerTransition));
 
 								assert(biggerTransition->state() < inv.size());
 								
@@ -865,8 +826,6 @@ public:
 			}
 
 		}
-
-//		VATA_LOGGER_INFO("elements processed: " + Util::Convert::ToString(c));
 
 		return true;
 
