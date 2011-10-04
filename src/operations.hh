@@ -18,41 +18,65 @@
 #include "parse_args.hh"
 
 using VATA::Util::Convert;
+using VATA::AutBase;
+
 
 template <class Automaton>
-bool CheckInclusion(const Automaton& smaller, const Automaton& bigger,
-	const Arguments& args)
+bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 {
 	// insert default values
 	Options options = args.options;
 	options.insert(std::make_pair("sim", "no"));
 	options.insert(std::make_pair("dir", "up"));
 
-	if ((options["sim"] == "no") && (options["dir"] == "up"))
+	std::runtime_error optErrorEx("Invalid options for inclusion: " +
+			Convert::ToString(options));
+
+	AutBase::StateType states = AutBase::SanitizeAutsForInclusion(smaller, bigger);
+
+	if (options["sim"] == "no")
 	{
-		return VATA::CheckUpwardInclusion(smaller, bigger);
+		VATA::Util::Identity ident(states);
+		if (options["dir"] == "up")
+		{
+			return VATA::CheckUpwardInclusionWithPreorder(smaller, bigger, ident);
+		}
+		else if (options["dir"] == "down")
+		{
+			return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, ident);
+		}
+		else
+		{
+			throw optErrorEx;
+		}
 	}
-	else if ((options["sim"] == "no") && (options["dir"] == "down"))
+	else if (options["sim"] == "yes")
 	{
-		return VATA::CheckDownwardInclusion(smaller, bigger);
-	}
-	else if ((options["sim"] == "yes") && (options["dir"] == "up"))
-	{
-		return VATA::CheckUpwardInclusionWithSimulation(smaller, bigger);
-	}
-	else if ((options["sim"] == "yes") && (options["dir"] == "down"))
-	{
-		return VATA::CheckDownwardInclusionWithSimulation(smaller, bigger);
+		Automaton unionAut = VATA::UnionDisjunctStates(smaller, bigger);
+		AutBase::StateBinaryRelation sim =
+			ComputeDownwardSimulation(unionAut, states);
+
+		if (options["dir"] == "up")
+		{
+			return VATA::CheckUpwardInclusionWithPreorder(smaller, bigger, sim);
+		}
+		else if (options["dir"] == "down")
+		{
+			return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, sim);
+		}
+		else
+		{
+			throw optErrorEx;
+		}
 	}
 	else
 	{
-		throw std::runtime_error("Invalid options for inclusion: " +
-			Convert::ToString(options));
+		throw optErrorEx;
 	}
 }
 
 template <class Automaton>
-VATA::AutBase::StateBinaryRelation ComputeSimulation(const Automaton& aut,
+VATA::AutBase::StateBinaryRelation ComputeSimulation(Automaton aut,
 	const Arguments& args)
 {
 	if (!args.pruneUseless)
@@ -65,13 +89,15 @@ VATA::AutBase::StateBinaryRelation ComputeSimulation(const Automaton& aut,
 	Options options = args.options;
 	options.insert(std::make_pair("dir", "up"));
 
+	AutBase::StateType states = AutBase::SanitizeAutForSimulation(aut);
+
 	if (options["dir"] == "up")
 	{
-		return VATA::ComputeUpwardSimulation(aut);
+		return VATA::ComputeUpwardSimulation(aut, states);
 	}
 	else if (options["dir"] == "down")
 	{
-		return VATA::ComputeDownwardSimulation(aut);
+		return VATA::ComputeDownwardSimulation(aut, states);
 	}
 	else
 	{
