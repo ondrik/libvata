@@ -71,20 +71,6 @@ public:   // data types
 
 	typedef VATA::MTBDDPkg::OndriksMTBDD<StateTupleSet> TransMTBDD;
 
-private:  // data types
-
-	typedef VATA::MTBDDPkg::OndriksMTBDD<bool> BDD;
-
-	typedef VATA::Util::BDDTopDownTransTable<StateType, StateTupleSet>
-		TransTable;
-
-	typedef std::shared_ptr<TransTable> TransTablePtr;
-	typedef typename TransTable::StateMap StateMap;
-
-	typedef VATA::Util::AutDescription AutDescription;
-
-	typedef VATA::Util::Convert Convert;
-
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class UnionApplyFunctor :
 		public VATA::MTBDDPkg::Apply2Functor<UnionApplyFunctor, StateTupleSet,
@@ -99,6 +85,20 @@ private:  // data types
 			return lhs.Union(rhs);
 		}
 	};
+
+private:  // data types
+
+	typedef VATA::MTBDDPkg::OndriksMTBDD<bool> BDD;
+
+	typedef VATA::Util::BDDTopDownTransTable<StateType, StateTupleSet>
+		TransTable;
+
+	typedef std::shared_ptr<TransTable> TransTablePtr;
+	typedef typename TransTable::StateMap StateMap;
+
+	typedef VATA::Util::AutDescription AutDescription;
+
+	typedef VATA::Util::Convert Convert;
 
 
 private:  // constants
@@ -116,16 +116,6 @@ private:  // data members
 	TransTablePtr transTable_;
 
 private:  // methods
-
-	inline const TransMTBDD& GetMtbdd(const StateType& state) const
-	{
-		return transTable_->GetMtbdd(state);
-	}
-
-	inline void SetMtbdd(const StateType& state, const TransMTBDD& mtbdd)
-	{
-		transTable_->SetMtbdd(state, mtbdd);
-	}
 
 	template <class StateTransFunc, class SymbolTransFunc>
 	void loadFromAutDescExplicit(const AutDescription& desc,
@@ -392,6 +382,16 @@ public:   // public methods
 			symbolTranslator, params);
 	}
 
+	inline const TransMTBDD& GetMtbdd(const StateType& state) const
+	{
+		return transTable_->GetMtbdd(state);
+	}
+
+	inline void SetMtbdd(const StateType& state, const TransMTBDD& mtbdd)
+	{
+		transTable_->SetMtbdd(state, mtbdd);
+	}
+
 	inline void SetStateFinal(const StateType& state)
 	{
 		finalStates_.insert(state);
@@ -553,6 +553,12 @@ public:   // public methods
 		SymbolType arityAsgn(SYMBOL_ARITY_LENGTH, arity);
 
 		return mtbdd.GetMtbddForPrefix(arityAsgn, SYMBOL_SIZE);
+	}
+
+	static inline bool ShareTransTable(const BDDTopDownTreeAut& lhs,
+		const BDDTopDownTreeAut& rhs)
+	{
+		return lhs.transTable_ == rhs.transTable_;
 	}
 };
 
