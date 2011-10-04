@@ -40,7 +40,7 @@ typedef std::unordered_map<StateTuple, CounterMTBDD, boost::hash<StateTuple>>
 typedef BDDTopDownTreeAut::TransMTBDD TopDownMTBDD;
 
 typedef std::pair<StateTuple, StateTuple> RemoveElement;
-typedef std::stack<RemoveElement, std::list<RemoveElement>> RemoveList;
+typedef std::unordered_set<RemoveElement, boost::hash<RemoveElement>> RemoveSet;
 
 typedef BDDBottomUpTreeAut::TransTable BUTransTable;
 
@@ -180,12 +180,12 @@ namespace
 
 		const BUTransTable& transTable_;
 		StateBinaryRelation& sim_;
-		RemoveList& remove_;
+		RemoveSet& remove_;
 
 	public:   // methods
 
 		RefineApplyFctor(const BUTransTable& transTable, StateBinaryRelation& sim,
-			RemoveList& remove) :
+			RemoveSet& remove) :
 			transTable_(transTable),
 			sim_(sim),
 			remove_(remove)
@@ -205,6 +205,7 @@ namespace
 			{
 				// Assertions
 				assert(s < cntQ.size());
+				assert(result[s] > 0);
 
 				if (--(result[s]) == 0)
 				{
@@ -217,7 +218,7 @@ namespace
 								[this](const StateTuple& pTuple, const StateTuple& sTuple){
 									if (componentWiseSim(sim_, pTuple, sTuple))
 									{
-										remove_.push(std::make_pair(pTuple, sTuple));
+										remove_.insert(std::make_pair(pTuple, sTuple));
 									}}
 								);
 
@@ -225,12 +226,10 @@ namespace
 							sim_.set(p, s, false);
 						}
 					}
-
 				}
-
 			}
 
-			return cntQ;
+			return result;
 		}
 
 	};
@@ -267,7 +266,7 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 	bool isSim;
 	InitRefineApplyFctor initRefFctor(isSim);
 
-	RemoveList remove;
+	RemoveSet remove;
 
 	for (auto firstStateBddPair : topDownAut.GetStates())
 	{
@@ -291,7 +290,7 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 				forAllTuplesWithMatchingStatesDo(
 					aut.GetTransTable(), firstState, secondState,
 					[&remove](const StateTuple& firstTuple, const StateTuple& secondTuple){
-						remove.push(std::make_pair(firstTuple, secondTuple));}
+						remove.insert(std::make_pair(firstTuple, secondTuple));}
 					);
 			}
 		}
@@ -307,8 +306,13 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 
 	while (!remove.empty())
 	{
-		RemoveElement elem = remove.top();
-		remove.pop();
+		RemoveSet::const_iterator itRem = remove.begin();
+		assert(itRem != remove.end());
+		RemoveElement elem = *itRem;
+		remove.erase(itRem);
+
+		// Assertions
+		assert(elem.first.size() == elem.second.size());
 
 		CounterHT::iterator itCnt;
 		if ((itCnt = cnt.find(elem.first)) == cnt.end())
@@ -317,7 +321,8 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 		}
 
 		itCnt->second = refineFctor(aut.GetMtbdd(elem.second),
-			aut.GetMtbdd(elem.first), itCnt->second);
+			aut.GetMtbdd(elem.first),
+			BDDTopDownTreeAut::GetMtbddForArity(itCnt->second, elem.first.size()));
 	}
 
 	return sim;

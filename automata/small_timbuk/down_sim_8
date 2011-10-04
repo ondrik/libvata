@@ -1,0 +1,18 @@
+Ops a:0 b:0 m:1 n:1
+
+Automaton A120
+States q1 q2 r1 r2 s1 s2
+
+Final States s1 s2
+
+Transitions 
+a -> q1
+a -> q2
+b -> q2
+m(q1) -> r1
+m(q2) -> r2
+m(r1) -> s1
+m(r2) -> s2
+m(s1) -> q1
+m(s2) -> q2
+n(s2) -> q2
