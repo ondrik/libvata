@@ -64,8 +64,13 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger,
 	typename InclFctor::SetComparerSmaller compSmaller(preorder);
 	typename InclFctor::SetComparerBigger compBigger(preorder);
 
-	InclFctor downFctor(smaller, bigger, workset, nonIncl, preorder,
-		preorderSmaller, preorderBigger, compSmaller, compBigger);
+	typename InclFctor::InclAntichainType incl;
+	typename InclFctor::InclAntichainType antecedent;
+	typename InclFctor::ConsequentType consequent;
+
+	InclFctor downFctor(smaller, bigger, workset, incl, nonIncl, preorder,
+		preorderSmaller, preorderBigger, compSmaller, compBigger, antecedent,
+		consequent);
 
 	StateSet finalStatesBigger(bigger.GetFinalStates().begin(),
 		bigger.GetFinalStates().end());

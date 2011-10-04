@@ -45,11 +45,19 @@ RETVAL="?"
 
 case "${OPERATION}" in
   symdown)
-    ${VATA} -r bdd-td -t incl -o dir=down,sim=no "${FILE_LHS}" "${FILE_RHS}"
+    ${VATA} -r bdd-td -t incl -o dir=down,sim=no,optC=no "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   symdown-sim)
-    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes "${FILE_LHS}" "${FILE_RHS}"
+    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes,optC=no "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  symdown-optC)
+    ${VATA} -r bdd-td -t incl -o dir=down,sim=no,optC=yes "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  symdown-sim-optC)
+    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes,optC=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   symup)

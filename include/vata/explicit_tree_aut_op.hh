@@ -20,6 +20,7 @@
 #include <vata/explicit_tree_incl_up.hh>
 #include <vata/explicit_lts_sim.hh>
 #include <vata/down_tree_incl_fctor.hh>
+#include <vata/down_tree_opt_incl_fctor.hh>
 #include <vata/tree_incl_down.hh>
 #include <vata/util/binary_relation.hh>
 #include <vata/util/convert.hh>
@@ -158,6 +159,15 @@ namespace VATA {
 
 		return ExplicitUpwardInclusion::Check(smaller, bigger, preorder);
 
+	}
+
+	template <class SymbolType, class Rel>
+	bool CheckOptDownwardInclusionWithPreorder(
+		const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
+
+		return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
+			VATA::OptDownwardInclusionFunctor>(smaller, bigger, preorder);
 	}
 
 	template <class SymbolType, class Rel>

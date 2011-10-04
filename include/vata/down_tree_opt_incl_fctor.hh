@@ -4,13 +4,13 @@
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
  *  Description:
- *    Header file with the downward tree automata language inclusion
+ *    Header file with the optimised downward tree automata language inclusion
  *    checking functor (assuming that the automata do not have useless states).
  *
  *****************************************************************************/
 
-#ifndef _VATA_DOWN_TREE_INCL_FCTOR_HH_
-#define _VATA_DOWN_TREE_INCL_FCTOR_HH_
+#ifndef _VATA_DOWN_TREE_OPT_INCL_FCTOR_HH_
+#define _VATA_DOWN_TREE_OPT_INCL_FCTOR_HH_
 
 // VATA headers
 #include <vata/vata.hh>
@@ -20,12 +20,12 @@
 namespace VATA
 {
 	template <class Aut, class Rel>
-	class DownwardInclusionFunctor;
+	class OptDownwardInclusionFunctor;
 }
 
 // NOTE: the automata cannot have useless states
 template <class Aut, class Rel>
-class VATA::DownwardInclusionFunctor
+class VATA::OptDownwardInclusionFunctor
 {
 public:   // data types
 
@@ -35,10 +35,8 @@ public:   // data types
 	typedef typename Aut::DownInclStateTupleSet StateTupleSet;
 	typedef typename Aut::DownInclStateTupleVector StateTupleVector;
 
-	// nonsense types
-	typedef char ConsequentType;
-
 	typedef std::pair<StateType, StateSet> WorkSetElement;
+	typedef std::set<WorkSetElement> ConsequentType;
 
 	typedef std::unordered_multimap<typename WorkSetElement::first_type,
 		typename WorkSetElement::second_type> WorkSetType;
@@ -201,6 +199,7 @@ private:  // data members
 
 	WorkSetType& workset_;
 
+	InclAntichainType& incl_;
 	NonInclAntichainType& nonIncl_;
 
 	InclAntichainType childrenCache_;
@@ -213,32 +212,48 @@ private:  // data members
 	const SetComparerSmaller& smallerComparer_;
 	const SetComparerBigger& biggerComparer_;
 
+	InclAntichainType& ant_;
+	ConsequentType& cons_;
+
 private:  // methods
 
-	bool expand(const StateType& smallerState, const StateSet& biggerStateSet)
+	std::tuple<bool, InclAntichainType, ConsequentType> expand(
+		const StateType& smallerState, const StateSet& biggerStateSet)
 	{
 		auto key = std::make_pair(smallerState, biggerStateSet);
 
-		if (isInWorkset(key))
+		bool res;
+		WorkSetElement elem;
+
+		if (std::get<0>(std::tie(res, elem) = isInWorkset(key)))
 		{	// in case we returned somewhere we already know
-			return true;
+			InclAntichainType antec;
+			antec.insert(elem.first, elem.second);
+			return std::make_tuple(true, antec, ConsequentType());
+		}
+		else if (isInclusionImplied(key))
+		{	// in case we know that the inclusion does hold
+			return std::make_tuple(true, InclAntichainType(), ConsequentType());
 		}
 		else if (isNoninclusionImplied(key))
 		{	// in case we know that the inclusion does not hold
-			return false;
+			return std::make_tuple(false, InclAntichainType(), ConsequentType());
 		}
 		else if (isImpliedByChildren(key))
 		{
-			return true;
+			return std::make_tuple(true, InclAntichainType(), ConsequentType());
 		}
 		else if (IsImpliedByPreorder(key))
 		{
-			return true;
+			return std::make_tuple(true, InclAntichainType(), ConsequentType());
 		}
 
 		workset_.insert(key);
 
-		DownwardInclusionFunctor innerFctor(*this);
+		InclAntichainType antecedent;
+		ConsequentType consequent;
+
+		OptDownwardInclusionFunctor innerFctor(*this, antecedent, consequent);
 		Aut::ForeachDownSymbolFromStateAndStateSetDo(smaller_, bigger_,
 			smallerState, biggerStateSet, innerFctor);
 
@@ -271,7 +286,17 @@ private:  // methods
 			processFoundNoninclusion(smallerState, biggerStateSet);
 		}
 
-		return innerFctor.InclusionHolds();
+		if (antecedent.empty())
+		{
+			for (const auto& consElem : consequent)
+			{
+				processFoundGlobalInclusion(consElem.first, consElem.second);
+			}
+
+			consequent.clear();
+		}
+
+		return std::make_tuple(innerFctor.InclusionHolds(), antecedent, consequent);
 	}
 
 	inline void failProcessing()
@@ -281,7 +306,8 @@ private:  // methods
 	}
 
 	// workset antichain
-	inline bool isInWorkset(const WorkSetElement& elem) const
+	inline std::tuple<bool, WorkSetElement> isInWorkset(
+		const WorkSetElement& elem) const
 	{
 		for (auto stateSetPair : workset_)
 		{
@@ -289,12 +315,12 @@ private:  // methods
 			{	// if the pair is worth processing
 				if (smallerComparer_(stateSetPair.second, elem.second))
 				{
-					return true;
+					return std::make_tuple(true, stateSetPair);
 				}
 			}
 		}
 
-		return false;
+		return std::make_tuple(false, WorkSetElement());
 	}
 
 	inline bool isImpliedByChildren(const WorkSetElement& elem) const
@@ -309,6 +335,12 @@ private:  // methods
 			elem.second, biggerComparer_);
 	}
 
+	inline bool isInclusionImplied(const WorkSetElement& elem) const
+	{
+		return incl_.contains(preorderBigger_[elem.first],
+			elem.second, smallerComparer_);
+	}
+
 	inline void processFoundInclusion(const StateType& smallerState,
 		const StateSet& biggerStateSet)
 	{
@@ -318,6 +350,18 @@ private:  // methods
 			childrenCache_.refine(preorderSmaller_[smallerState], biggerStateSet,
 				smallerComparer_);
 			childrenCache_.insert(smallerState, biggerStateSet);
+		}
+	}
+
+	inline void processFoundGlobalInclusion(const StateType& smallerState,
+		const StateSet& biggerStateSet)
+	{
+		if (!incl_.contains(preorderSmaller_[smallerState], biggerStateSet,
+			smallerComparer_))
+		{	// if the element is not implied by the antichain
+			incl_.refine(preorderSmaller_[smallerState], biggerStateSet,
+				smallerComparer_);
+			incl_.insert(smallerState, biggerStateSet);
 		}
 	}
 
@@ -335,42 +379,48 @@ private:  // methods
 
 public:   // methods
 
-	DownwardInclusionFunctor(const Aut& smaller, const Aut& bigger,
-		WorkSetType& workset, InclAntichainType& /* incl */,
-		NonInclAntichainType& nonIncl,
-		const Relation& preorder, const IndexType& preorderSmaller,
-		const IndexType& preorderBigger,
+	OptDownwardInclusionFunctor(const Aut& smaller, const Aut& bigger,
+		WorkSetType& workset, InclAntichainType& incl,
+		NonInclAntichainType& nonIncl, const Relation& preorder,
+		const IndexType& preorderSmaller, const IndexType& preorderBigger,
 		const SetComparerSmaller& smallerComparer,
 		const SetComparerBigger& biggerComparer,
-		InclAntichainType& /* ant */, ConsequentType& /* cons */) :
+		InclAntichainType& ant, ConsequentType& cons) :
 		smaller_(smaller),
 		bigger_(bigger),
 		processingStopped_(false),
 		inclusionHolds_(true),
 		workset_(workset),
+		incl_(incl),
 		nonIncl_(nonIncl),
 		childrenCache_(),
 		preorder_(preorder),
 		preorderSmaller_(preorderSmaller),
 		preorderBigger_(preorderBigger),
 		smallerComparer_(smallerComparer),
-		biggerComparer_(biggerComparer)
+		biggerComparer_(biggerComparer),
+		ant_(ant),
+		cons_(cons)
 	{ }
 
-	DownwardInclusionFunctor(
-		DownwardInclusionFunctor& downFctor) :
+	OptDownwardInclusionFunctor(
+		OptDownwardInclusionFunctor& downFctor,
+		InclAntichainType& ant, ConsequentType& cons) :
 		smaller_(downFctor.smaller_),
 		bigger_(downFctor.bigger_),
 		processingStopped_(false),
 		inclusionHolds_(true),
 		workset_(downFctor.workset_),
+		incl_(downFctor.incl_),
 		nonIncl_(downFctor.nonIncl_),
 		childrenCache_(),
 		preorder_(downFctor.preorder_),
 		preorderSmaller_(downFctor.preorderSmaller_),
 		preorderBigger_(downFctor.preorderBigger_),
 		smallerComparer_(downFctor.smallerComparer_),
-		biggerComparer_(downFctor.biggerComparer_)
+		biggerComparer_(downFctor.biggerComparer_),
+		ant_(ant),
+		cons_(cons)
 	{ }
 
 	inline bool IsImpliedByPreorder(const WorkSetElement& elem) const
@@ -438,10 +488,31 @@ public:   // methods
 					valid = true;
 					for (size_t i = 0; i < arity; ++i)
 					{
-						if (!expand(lhsTuple[i], StateSet(rhsTuple[i])))
+						bool res;
+						InclAntichainType ant;
+						ConsequentType cons;
+						std::tie(res, ant, cons) = expand(lhsTuple[i], StateSet(rhsTuple[i]));
+						if (!res)
 						{
 							valid = false;
 							break;
+						}
+						else
+						{
+							StateType antElemFirst;
+							StateSet antElemSecond;
+							while (ant.next(antElemFirst, antElemSecond))
+							{
+								if (!ant_.contains(preorderSmaller_[antElemFirst],
+									antElemSecond, smallerComparer_))
+								{	// if the element is not implied by the antichain
+									ant_.refine(preorderSmaller_[antElemFirst], antElemSecond,
+										smallerComparer_);
+									ant_.insert(antElemFirst, antElemSecond);
+								}
+							}
+
+							cons_.insert(cons.begin(), cons.end());
 						}
 					}
 
@@ -492,9 +563,29 @@ public:   // methods
 							continue;
 						}
 
-						if (expand(lhsTuple[tuplePos], rhsSetForTuplePos))
+						bool res;
+						InclAntichainType ant;
+						ConsequentType cons;
+						std::tie(res, ant, cons) =
+							expand(lhsTuple[tuplePos], rhsSetForTuplePos);
+						if (res)
 						{	// in case inclusion holds for this case
 							found = true;
+
+							StateType antElemFirst;
+							StateSet antElemSecond;
+							while (ant.next(antElemFirst, antElemSecond))
+							{
+								if (!ant_.contains(preorderSmaller_[antElemFirst],
+									antElemSecond, smallerComparer_))
+								{	// if the element is not implied by the antichain
+									ant_.refine(preorderSmaller_[antElemFirst], antElemSecond,
+										smallerComparer_);
+									ant_.insert(antElemFirst, antElemSecond);
+								}
+							}
+
+							cons_.insert(cons.begin(), cons.end());
 							break;
 						}
 					}

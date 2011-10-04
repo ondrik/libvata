@@ -28,6 +28,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	Options options = args.options;
 	options.insert(std::make_pair("sim", "no"));
 	options.insert(std::make_pair("dir", "up"));
+	options.insert(std::make_pair("inclCache", "no"));
 
 	std::runtime_error optErrorEx("Invalid options for inclusion: " +
 			Convert::ToString(options));
@@ -43,7 +44,19 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 		}
 		else if (options["dir"] == "down")
 		{
-			return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, ident);
+			if (options["optC"] == "no")
+			{
+				return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, ident);
+			}
+			else if (options["optC"] == "yes")
+			{
+				return VATA::CheckOptDownwardInclusionWithPreorder(
+					smaller, bigger, ident);
+			}
+			else
+			{
+				throw optErrorEx;
+			}
 		}
 		else
 		{
@@ -87,7 +100,7 @@ VATA::AutBase::StateBinaryRelation ComputeSimulation(Automaton aut,
 
 	// insert default values
 	Options options = args.options;
-	options.insert(std::make_pair("dir", "up"));
+	options.insert(std::make_pair("dir", "down"));
 
 	AutBase::StateType states = AutBase::SanitizeAutForSimulation(aut);
 
