@@ -5,3 +5,4 @@ small_timbuk/down_sim_4  small_timbuk/down_sim_4_result
 small_timbuk/down_sim_5  small_timbuk/down_sim_5_result
 small_timbuk/down_sim_6  small_timbuk/down_sim_6_result
 small_timbuk/down_sim_7  small_timbuk/down_sim_7_result
+small_timbuk/down_sim_8  small_timbuk/down_sim_8_result
