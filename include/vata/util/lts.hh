@@ -26,8 +26,7 @@ class VATA::Util::LTS {
 
 public:
 
-	LTS() : _labels(0), _states(0), _transitions(0), _dataPre(), _lPre() {
-	}
+	LTS() : _labels(0), _states(0), _transitions(0), _dataPre(), _lPre() {}
 /*
 	LTS(const LTS& lts) :
 		_labels(lts._labels), _states(lts._states), _transitions(lts._transitions),

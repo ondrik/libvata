@@ -32,24 +32,32 @@ namespace VATA
 class VATA::Util::BinaryRelation {
 
 	std::vector<bool> data_;
+	size_t rowSize_;
+	size_t size_;
+
 
 protected:
 
-	size_t cap_;
-	size_t size_;
-
-	void grow(size_t newCap, bool defVal) {
-		assert(this->cap_ <= newCap);
-		std::vector<bool> tmp(newCap*newCap, defVal);
+	void realloc(size_t oldSize, size_t newRowSize, bool defVal) {
+		assert(newRowSize);
+		std::vector<bool> tmp(newRowSize*newRowSize, defVal);
 		std::vector<bool>::const_iterator src = this->data_.begin();
 		std::vector<bool>::iterator dst = tmp.begin();
 		while (src != this->data_.end()) {
-			std::copy(src, src + this->size_, dst);
-			src += this->cap_;
-			dst += newCap;
+			std::copy(src, src + oldSize, dst);
+			src += this->rowSize_;
+			dst += newRowSize;
 		}
 		std::swap(this->data_, tmp);
-		this->cap_ = newCap;
+		this->rowSize_ = newRowSize;
+	}
+
+	void grow(size_t newSize, bool defVal) {
+		assert(this->rowSize_ < newSize);
+		size_t newRowSize = this->rowSize_;
+		while (newRowSize < newSize)
+			newRowSize *= 2;
+		this->realloc(this->size_, newRowSize, defVal);
 	}
 
 public:
@@ -60,29 +68,28 @@ public:
 	}
 
 	void resize(size_t size, bool defVal = false) {
-		size_t newCap = this->cap_;
-		if (newCap < size*size) {
-			while (newCap < size*size)
-				newCap *= 2;
-			this->grow(newCap, defVal);
+		if (this->rowSize_ < size) {
+			this->grow(size, defVal);
+		} else {
+			this->realloc(size, this->rowSize_, defVal);
 		}
 		this->size_ = size;
 	}
 
 	size_t newEntry(bool defVal = false) {
-		while (this->size_*this->size_ >= this->cap_)
-			this->grow(2*this->cap_, defVal);
+		if (this->size_ >= this->rowSize_)
+			this->grow(this->size_ + 1, defVal);
 		return this->size_++;
 	}
 
 	bool get(size_t r, size_t c) const {
 		assert(r < this->size_ && c < this->size_);
-		return this->data_[r*this->cap_ + c];
+		return this->data_[r*this->rowSize_ + c];
 	}
 
 	void set(size_t r, size_t c, bool v) {
 		assert(r < this->size_ && c < this->size_);
-		this->data_[r*this->cap_ + c] = v;
+		this->data_[r*this->rowSize_ + c] = v;
 	}
 
 	size_t size() const {
@@ -93,13 +100,16 @@ public:
 
 	typedef std::vector<std::vector<size_t>> IndexType;
 
-	BinaryRelation(size_t size = 0, bool defVal = false, size_t cap = 16)
-		: data_((size < cap)?(cap*cap):(size*size), defVal),
-		cap_((size*size < cap)?(cap):(size*size)), size_(size) {}
+	BinaryRelation(size_t size = 0, bool defVal = false, size_t rowSize = 4)
+		: data_(rowSize*rowSize, defVal), rowSize_(rowSize), size_(0) {
+		this->resize(size, defVal);
+	}
 
 	BinaryRelation(const std::vector<std::vector<bool> >& rel)
-		: data_(rel.size()*rel.size(), false), cap_(rel.size()*rel.size()), size_(rel.size()) {
+		: data_(4*4, false), rowSize_(4), size_(0) {
+		this->resize(rel.size(), false);
 		for (size_t i = 0; i < rel.size(); ++i) {
+			assert(rel[i].size() == rel.size());
 			for (size_t j = 0; j < rel.size(); ++j)
 				this->set(i, j, rel[i][j]);
 		}
