@@ -65,8 +65,13 @@ namespace VATA {
 
 		ExplicitTreeAut<SymbolType> res(lhs);
 
-		res.uniqueClusterMap()->insert(rhs.transitions_.begin(), rhs.transitions_.end());
+		assert(rhs.transitions_);
+
+		res.uniqueClusterMap()->insert(rhs.transitions_->begin(), rhs.transitions_->end());
+		assert(lhs.transitions_->size() + rhs.transitions_->size() == res.transitions_->size());
+
 		res.finalStates_.insert(rhs.finalStates_.begin(), rhs.finalStates_.end());
+		assert(lhs.finalStates_.size() + rhs.finalStates_.size() == res.finalStates_.size());
 
 		return res;
 
@@ -94,8 +99,7 @@ namespace VATA {
 		const ExplicitTreeAut<SymbolType>& bigger) {
 
 		return CheckUpwardInclusionWithoutUseless(
-			RemoveUnreachableStates(RemoveUselessStates(smaller)),
-			RemoveUnreachableStates(RemoveUselessStates(bigger))
+			RemoveUselessStates(smaller), RemoveUselessStates(bigger)
 		);
 
 	}
@@ -114,8 +118,7 @@ namespace VATA {
 		const ExplicitTreeAut<SymbolType>& bigger) {
 
 		return CheckDownwardInclusionWithoutUseless(
-			RemoveUnreachableStates(RemoveUselessStates(smaller)),
-			RemoveUnreachableStates(RemoveUselessStates(bigger))
+			RemoveUselessStates(smaller), RemoveUselessStates(bigger)
 		);
 
 	}
@@ -124,9 +127,33 @@ namespace VATA {
 	bool CheckDownwardInclusionWithSimulation(
 		const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger) {
-		assert(&smaller != nullptr);
-		assert(&bigger != nullptr);
-		throw std::runtime_error("Unimplemented");
+
+		typedef AutBase::StateType StateType;
+		typedef AutBase::StateToStateMap StateToStateMap;
+		typedef AutBase::StateToStateTranslator StateToStateTranslator;
+		typedef ExplicitTreeAut<SymbolType> ExplAut;
+
+		StateType stateCnt = 0;
+		StateToStateMap stateMap;
+		StateToStateTranslator stateTrans(stateMap,
+			[&stateCnt](const StateType&){return stateCnt++;});
+
+		Explicit::TupleCache tupleCache;
+
+		ExplAut newSmaller(tupleCache), newBigger(tupleCache);
+
+		smaller.ReindexStates(newSmaller, stateTrans);
+
+		stateMap.clear();
+
+		bigger.ReindexStates(newBigger, stateTrans);
+
+		ExplAut unionAut = UnionDisjunctStates(newSmaller, newBigger);
+
+		return CheckDownwardTreeInclusion<ExplAut, VATA::DownwardInclusionFunctor>(
+			newSmaller, newBigger, ComputeDownwardSimulation(unionAut)
+		);
+
 	}
 
 	template <class SymbolType>
