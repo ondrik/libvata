@@ -120,7 +120,7 @@ public:   // methods
 
 		if (p.second)
 		{	// in case there is no translation for the value
-			p.first->second = resultAllocFunc_(value);
+			p.first->second = resultAllocFunc_(p.first->first);
 		}
 
 		return p.first->second;
