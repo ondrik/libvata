@@ -100,7 +100,7 @@ private:  // data types
 	typedef typename Container::key_type InputType;
 	typedef typename Container::mapped_type ResultType;
 
-	typedef std::function<ResultType(InputType)> ResultAllocFuncType;
+	typedef std::function<ResultType(const InputType&)> ResultAllocFuncType;
 
 private:  // data members
 
