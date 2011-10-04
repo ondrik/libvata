@@ -76,7 +76,7 @@ public:   // methods
 		tmpAut = RemoveUselessStates(bigger);
 		stateMap.clear();
 		Automaton newBigger;
-		bigger.ReindexStates(newBigger, stateTrans);
+		tmpAut.ReindexStates(newBigger, stateTrans);
 
 		smaller = newSmaller;
 		bigger = newBigger;
