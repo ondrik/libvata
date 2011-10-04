@@ -14,7 +14,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/util/antichain2c.hh>
+#include <vata/util/antichain2c_v2.hh>
 
 
 namespace VATA
@@ -34,32 +34,15 @@ public:   // data types
 	typedef typename AutType::StateTuple StateTuple;
 	typedef typename AutType::StateTupleSet StateTupleSet;
 
-private:  // data types
-
-	typedef std::pair<StateType, StateSet> ACPair;
-
-	struct ACComparer{bool operator()(const ACPair& lhs, const ACPair& rhs)
-	{
-		return lhs.second.IsSubsetOf(rhs.second);
-	}};
-
-	struct ACComparerStrict{bool operator()(const ACPair& lhs, const ACPair& rhs)
-	{
-		return lhs.second.IsSubsetOf(rhs.second) &&
-			lhs.second.size() < rhs.second.size();
-	}};
-
-	typedef VATA::Util::Convert Convert;
-
-public:   // data types
-
-	typedef VATA::Util::Antichain2C
+	typedef VATA::Util::Antichain2Cv2
 	<
 		StateType,
-		StateSet,
-		ACComparer,
-		ACComparerStrict
+		StateSet
 	> AntichainType;
+
+private:  // data types
+
+	typedef VATA::Util::Convert Convert;
 
 private:  // data members
 
@@ -82,20 +65,38 @@ private:  // methods
 
 	bool isImplied(const StateType& smallerState, const StateSet& biggerSet) const
 	{
-		return antichain_.find(std::make_pair(smallerState, biggerSet)) !=
-			antichain_.end();
+		std::vector<StateType> tmpList = {smallerState};
+		return antichain_.contains(tmpList, biggerSet,
+			[](const StateSet& lhs, const StateSet& rhs){return lhs.IsSubsetOf(rhs);});
 	}
 
-	inline bool cachePair(const StateType& smallerState,
+	inline void cachePair(const StateType& smallerState,
 		const StateSet& biggerSet) const
 	{
-		return antichain_.insert(std::make_pair(smallerState, biggerSet)).second;
+		std::vector<StateType> tmpList = {smallerState};
+		auto comparer = [](const StateSet& lhs, const StateSet& rhs)
+			{return lhs.IsSubsetOf(rhs);};
+
+		if (!antichain_.contains(tmpList, biggerSet, comparer))
+		{	// if the element is not implied by the antichain
+			antichain_.refine(tmpList, biggerSet, comparer);
+			antichain_.insert(smallerState, biggerSet);
+			addToWorkset(smallerState, biggerSet);
+		}
 	}
 
 	inline void addToWorkset(const StateType& smallerState,
 		const StateSet& biggerSet) const
 	{
-		workset_.insert(std::make_pair(smallerState, biggerSet));
+		std::vector<StateType> tmpList = {smallerState};
+		auto comparer = [](const StateSet& lhs, const StateSet& rhs)
+			{return lhs.IsSubsetOf(rhs);};
+
+		if (!workset_.contains(tmpList, biggerSet, comparer))
+		{	// if the element is not implied by the antichain
+			workset_.refine(tmpList, biggerSet, comparer);
+			workset_.insert(smallerState, biggerSet);
+		}
 	}
 
 public:   // methods
@@ -139,10 +140,7 @@ public:   // methods
 					}
 				}
 
-				if (cachePair(stateLhs, rhs))
-				{	// if the pair is not implied by the antichain
-					addToWorkset(stateLhs, rhs);
-				}
+				cachePair(stateLhs, rhs);
 			}
 		}
 	}
