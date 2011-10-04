@@ -45,35 +45,35 @@ RETVAL="?"
 
 case "${OPERATION}" in
   symdown)
-    ${VATA} -r bdd-td -t incl "${FILE_LHS}" "${FILE_RHS}"
+    ${VATA} -r bdd-td -t incl -o dir=down,sim=no "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  symdown-ul)
-    ${VATA} -r bdd-td -t incl -s "${FILE_LHS}" "${FILE_RHS}"
+  symdown-sim)
+    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   symup)
     ${VATA} -r bdd-bu -t incl "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  symup-ul)
-    ${VATA} -r bdd-bu -t incl -s "${FILE_LHS}" "${FILE_RHS}"
-    RETVAL="$?"
-    ;;
   expldown)
-    ${VATA} -r expl -t incl "${FILE_LHS}" "${FILE_RHS}"
+    ${VATA} -r expl -t incl -o dir=down,sim=no "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  expldown-ul)
-    ${VATA} -r expl -t incl -s "${FILE_LHS}" "${FILE_RHS}"
+  expldown-sim)
+    ${VATA} -r expl -t incl -o dir=down,sim=yes "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  explup)
+    ${VATA} -r expl -t incl -o dir=up,sim=no "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  explup-sim)
+    ${VATA} -r expl -t incl -o dir=up,sim=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   olddown)
     ${OLDVATA} -t incl "${FILE_LHS}" "${FILE_RHS}"
-    RETVAL="$?"
-    ;;
-  olddown-ul)
-    ${OLDVATA} -t incl -s "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   symdownX)
