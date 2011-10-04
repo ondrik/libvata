@@ -67,6 +67,18 @@ namespace VATA
 	}
 
 	template <class Rel>
+	bool CheckOptDownwardInclusionWithPreorder(
+		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
+		const Rel& preorder)
+	{
+		BDDTopDownTreeAut invertSmaller = smaller.GetTopDownAut();
+		BDDTopDownTreeAut invertBigger = bigger.GetTopDownAut();
+
+		return CheckOptDownwardInclusionWithPreorder(invertSmaller, invertBigger,
+			preorder);
+	}
+
+	template <class Rel>
 	bool CheckUpwardInclusionWithPreorder(
 		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
 		const Rel& preorder)

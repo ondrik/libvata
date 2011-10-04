@@ -16,6 +16,7 @@
 #include <vata/bdd_td_tree_aut.hh>
 #include <vata/tree_incl_down.hh>
 #include <vata/down_tree_incl_fctor.hh>
+#include <vata/down_tree_opt_incl_fctor.hh>
 
 
 namespace VATA
@@ -63,6 +64,15 @@ namespace VATA
 	{
 		return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
 			DownwardInclusionFunctor>(smaller, bigger, preorder);
+	}
+
+	template <class Rel>
+	bool CheckOptDownwardInclusionWithPreorder(
+		const BDDTopDownTreeAut& smaller, const BDDTopDownTreeAut& bigger,
+		const Rel& preorder)
+	{
+		return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
+			OptDownwardInclusionFunctor>(smaller, bigger, preorder);
 	}
 
 	template <class Rel>
