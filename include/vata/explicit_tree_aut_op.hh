@@ -193,7 +193,7 @@ namespace VATA {
 
 		ExplAut unionAut = UnionDisjunctStates(newSmaller, newBigger);
 
-		return CheckDownwardTreeInclusion<ExplAut, VATA::DownwardInclusionFunctor>(
+		return CheckDownwardInclusionWithPreorder(
 			newSmaller, newBigger, ComputeDownwardSimulation(unionAut)
 		);
 
