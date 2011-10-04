@@ -1,0 +1,8 @@
+Ops bot0:0 bot2:2
+
+Automaton A0053
+States q p
+Final States q
+
+Transitions 
+bot2(q,q) -> p

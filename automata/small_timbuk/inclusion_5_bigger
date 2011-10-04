@@ -1,0 +1,10 @@
+Ops no:2
+
+Automaton A0054
+
+States p q r z
+
+Final States z
+
+Transitions 
+no(p,q) -> r
