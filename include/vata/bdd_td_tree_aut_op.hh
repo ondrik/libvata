@@ -27,6 +27,9 @@ namespace VATA
 		AutBase::StateToStateMap* pTranslMapLhs = nullptr,
 		AutBase::StateToStateMap* pTranslMapRhs = nullptr);
 
+	BDDTopDownTreeAut UnionDisjunctStates(const BDDTopDownTreeAut& lhs,
+		const BDDTopDownTreeAut& rhs);
+
 	BDDTopDownTreeAut Intersection(const BDDTopDownTreeAut& lhs,
 		const BDDTopDownTreeAut& rhs,
 		AutBase::ProductTranslMap* pTranslMap = nullptr);
