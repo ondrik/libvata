@@ -180,12 +180,12 @@ namespace
 
 		const BUTransTable& transTable_;
 		StateBinaryRelation& sim_;
-		RemoveList& remove_;
+		RemoveSet& remove_;
 
 	public:   // methods
 
 		RefineApplyFctor(const BUTransTable& transTable, StateBinaryRelation& sim,
-			RemoveList& remove) :
+			RemoveSet& remove) :
 			transTable_(transTable),
 			sim_(sim),
 			remove_(remove)
@@ -218,7 +218,7 @@ namespace
 								[this](const StateTuple& pTuple, const StateTuple& sTuple){
 									if (componentWiseSim(sim_, pTuple, sTuple))
 									{
-										remove_.push(std::make_pair(pTuple, sTuple));
+										remove_.insert(std::make_pair(pTuple, sTuple));
 									}}
 								);
 
@@ -226,9 +226,7 @@ namespace
 							sim_.set(p, s, false);
 						}
 					}
-
 				}
-
 			}
 
 			return result;
@@ -268,7 +266,7 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 	bool isSim;
 	InitRefineApplyFctor initRefFctor(isSim);
 
-	RemoveList remove;
+	RemoveSet remove;
 
 	for (auto firstStateBddPair : topDownAut.GetStates())
 	{
@@ -292,7 +290,7 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 				forAllTuplesWithMatchingStatesDo(
 					aut.GetTransTable(), firstState, secondState,
 					[&remove](const StateTuple& firstTuple, const StateTuple& secondTuple){
-						remove.push(std::make_pair(firstTuple, secondTuple));}
+						remove.insert(std::make_pair(firstTuple, secondTuple));}
 					);
 			}
 		}
@@ -308,8 +306,10 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 
 	while (!remove.empty())
 	{
-		RemoveElement elem = remove.top();
-		remove.pop();
+		RemoveSet::const_iterator itRem = remove.begin();
+		assert(itRem != remove.end());
+		RemoveElement elem = *itRem;
+		remove.erase(itRem);
 
 		// Assertions
 		assert(elem.first.size() == elem.second.size());
