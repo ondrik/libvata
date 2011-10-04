@@ -20,11 +20,10 @@
 
 namespace VATA {
 
-	void computeSimulation(Util::BinaryRelation& result, const Util::LTS& lts, size_t outputSize);
+	void computeSimulation(Util::BinaryRelation& result, size_t outputSize, const Util::LTS& lts);
 
-	void computeSimulation(Util::BinaryRelation& result, const Util::LTS& lts, size_t outputSize,
-		const std::vector<std::vector<size_t>>& initPart, const Util::BinaryRelation& initRel,
-		const std::vector<size_t>& finalStates);
+	void computeSimulation(Util::BinaryRelation& result, size_t outputSize, const Util::LTS& lts,
+		const std::vector<std::vector<size_t>>& part, const std::vector<size_t>& finalStates);
 
 }
 

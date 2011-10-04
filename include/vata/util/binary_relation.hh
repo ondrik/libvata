@@ -35,7 +35,6 @@ class VATA::Util::BinaryRelation {
 	size_t rowSize_;
 	size_t size_;
 
-
 protected:
 
 	void realloc(size_t oldSize, size_t newRowSize, bool defVal) {
@@ -53,10 +52,18 @@ protected:
 	}
 
 	void grow(size_t newSize, bool defVal) {
-		assert(this->rowSize_ < newSize);
+		assert(this->rowSize_ <= newSize);
 		size_t newRowSize = this->rowSize_;
-		while (newRowSize < newSize)
-			newRowSize *= 2;
+		while (newRowSize <= newSize)
+			newRowSize <<= 1;
+		this->realloc(this->size_, newRowSize, defVal);
+	}
+
+	void shrink(size_t newSize, bool defVal) {
+		assert(this->rowSize_ >= newSize);
+		size_t newRowSize = this->rowSize_;
+		while ((newRowSize >> 1) >= newSize)
+			newRowSize >>= 1;
 		this->realloc(this->size_, newRowSize, defVal);
 	}
 
@@ -64,16 +71,21 @@ public:
 
 	void reset(bool defVal = false) {
 		std::fill(this->data_.begin(), this->data_.end(), defVal);
-		this->size_ = 0;
 	}
 
 	void resize(size_t size, bool defVal = false) {
+
+		if (this->rowSize_ == size)
+			return;
+
 		if (this->rowSize_ < size) {
 			this->grow(size, defVal);
+			this->size_ = size;
 		} else {
-			this->realloc(size, this->rowSize_, defVal);
+			this->size_ = size;
+			this->shrink(size, defVal);
 		}
-		this->size_ = size;
+
 	}
 
 	size_t newEntry(bool defVal = false) {
@@ -100,13 +112,13 @@ public:
 
 	typedef std::vector<std::vector<size_t>> IndexType;
 
-	BinaryRelation(size_t size = 0, bool defVal = false, size_t rowSize = 4)
+	BinaryRelation(size_t size = 0, bool defVal = false, size_t rowSize = 16)
 		: data_(rowSize*rowSize, defVal), rowSize_(rowSize), size_(0) {
 		this->resize(size, defVal);
 	}
 
 	BinaryRelation(const std::vector<std::vector<bool> >& rel)
-		: data_(4*4, false), rowSize_(4), size_(0) {
+		: data_(16*16, false), rowSize_(16), size_(0) {
 		this->resize(rel.size(), false);
 		for (size_t i = 0; i < rel.size(); ++i) {
 			assert(rel[i].size() == rel.size());

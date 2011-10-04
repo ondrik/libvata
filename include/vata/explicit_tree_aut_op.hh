@@ -100,11 +100,11 @@ namespace VATA {
 
 		Util::LTS lts;
 
-		aut.ToDownwardLTS(lts);
+		aut.TranslateDownward(lts);
 
 		AutBase::StateBinaryRelation res;
 
-		computeSimulation(res, lts, aut.transitions_->size());
+		computeSimulation(res, aut.transitions_->size(), lts);
 
 		return res;
 
@@ -112,11 +112,28 @@ namespace VATA {
 
 	template <class SymbolType>
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut)
-	{
-		assert(&aut != nullptr);
+		const ExplicitTreeAut<SymbolType>& aut) {
 
-		throw std::runtime_error("Unimplemented");
+		Util::LTS lts;
+
+		AutBase::StateBinaryRelation result;
+
+		std::vector<std::vector<size_t>> partition;
+
+		assert(aut.transitions_);
+
+		aut.TranslateUpward(lts, partition, result, Util::Identity(aut.transitions_->size()));
+
+		computeSimulation(
+			result,
+			aut.transitions_->size(),
+			lts,
+			partition,
+			std::vector<AutBase::StateType>(aut.finalStates_.begin(), aut.finalStates_.end())
+		);
+
+		return result;
+
 	}
 
 	template <class SymbolType, class Rel>
