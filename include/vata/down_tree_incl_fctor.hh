@@ -43,54 +43,6 @@ public:   // data types
 	typedef Rel Relation;
 	typedef typename Relation::IndexType IndexType;
 
-private:  // data types
-
-	typedef std::pair<StateType, StateSet> ACPair;
-
-	class InclACComparer
-	{
-	private:  // data members
-
-	public:   // methods
-		bool operator()(const ACPair& lhs, const ACPair& rhs)
-		{
-			return lhs.second.IsSubsetOf(rhs.second);
-		}
-	};
-
-	class InclACComparerStrict
-	{
-	public:   // methods
-		bool operator()(const ACPair& lhs, const ACPair& rhs)
-		{
-			return lhs.second.IsSubsetOf(rhs.second) &&
-				lhs.second.size() < rhs.second.size();
-		}
-	};
-
-	class NonInclACComparer
-	{
-	public:   // methods
-		bool operator()(const ACPair& lhs, const ACPair& rhs)
-		{
-			return rhs.second.IsSubsetOf(lhs.second);
-		}
-	};
-
-	class NonInclACComparerStrict
-	{
-	public:
-		bool operator()(const ACPair& lhs, const ACPair& rhs)
-		{
-			return rhs.second.IsSubsetOf(lhs.second) &&
-				rhs.second.size() < lhs.second.size();
-		}
-	};
-
-	typedef VATA::Util::Convert Convert;
-
-public:   // data types
-
 	typedef VATA::Util::Antichain2Cv2
 	<
 		StateType,
@@ -178,6 +130,8 @@ public:   // data types
 	};
 
 private:  // data types
+
+	typedef VATA::Util::Convert Convert;
 
 	typedef std::vector<unsigned> ChoiceFunctionType;
 
@@ -355,17 +309,25 @@ private:  // methods
 	inline void processFoundInclusion(const StateType& smallerState,
 		const StateSet& biggerStateSet)
 	{
-		childrenCache_.refine(preorderSmaller_[smallerState], biggerStateSet,
-			smallerComparer_);
-		childrenCache_.insert(smallerState, biggerStateSet);
+		if (!childrenCache_.contains(preorderSmaller_[smallerState], biggerStateSet,
+			smallerComparer_))
+		{	// if the element is not implied by the antichain
+			childrenCache_.refine(preorderSmaller_[smallerState], biggerStateSet,
+				smallerComparer_);
+			childrenCache_.insert(smallerState, biggerStateSet);
+		}
 	}
 
 	inline void processFoundNoninclusion(const StateType& smallerState,
 		const StateSet& biggerStateSet)
 	{
-		nonIncl_.refine(preorderBigger_[smallerState], biggerStateSet,
-			biggerComparer_);
-		nonIncl_.insert(smallerState, biggerStateSet);
+		if (!nonIncl_.contains(preorderBigger_[smallerState], biggerStateSet,
+			biggerComparer_))
+		{	// if the element is not implied by the antichain
+			nonIncl_.refine(preorderBigger_[smallerState], biggerStateSet,
+				biggerComparer_);
+			nonIncl_.insert(smallerState, biggerStateSet);
+		}
 	}
 
 public:   // methods
