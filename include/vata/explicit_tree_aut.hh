@@ -81,6 +81,10 @@ GCC_DIAG_ON(effc++)
 		AutBase::StateToStateMap*, AutBase::StateToStateMap*);
 
 	template <class SymbolType>
+	friend ExplicitTreeAut<SymbolType> UnionDisjunctStates(const ExplicitTreeAut<SymbolType>& lhs,
+		const ExplicitTreeAut<SymbolType>& rhs);
+
+	template <class SymbolType>
 	friend ExplicitTreeAut<SymbolType> Intersection(
 		const ExplicitTreeAut<SymbolType>&, const ExplicitTreeAut<SymbolType>&,
 		AutBase::ProductTranslMap*);
