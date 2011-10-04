@@ -38,6 +38,8 @@ namespace fs = boost::filesystem;
  *                                  Constants                                 *
  ******************************************************************************/
 
+const fs::path LOAD_TIMBUK_FILE =
+	AUT_DIR / "load_timbuk.txt";
 
 
 /******************************************************************************
@@ -65,9 +67,10 @@ BOOST_AUTO_TEST_CASE(correct_format)
 	TimbukParser parser;
 	TimbukSerializer serializer;
 
-	auto filenames = GetTimbukAutFilenames();
-	for (const std::string& filename : filenames)
+	auto testfileContent = ParseTestFile(LOAD_TIMBUK_FILE.string());
+	for (auto testcase : testfileContent)
 	{
+		std::string filename = (AUT_DIR / testcase[0]).string();
 		BOOST_MESSAGE("Parsing automaton " + filename + "...");
 		std::string autStr = VATA::Util::ReadFile(filename);
 
