@@ -95,128 +95,6 @@ namespace VATA {
 		AutBase::StateToStateMap* pTranslMap = nullptr);
 
 	template <class SymbolType>
-	bool CheckUpwardInclusion(const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger) {
-
-		return CheckUpwardInclusionWithoutUseless(
-			RemoveUselessStates(smaller), RemoveUselessStates(bigger)
-		);
-
-	}
-
-	template <class SymbolType>
-	bool CheckUpwardInclusionWithSimulation(
-		const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger) {
-		assert(&smaller != nullptr);
-		assert(&bigger != nullptr);
-		throw std::runtime_error("Unimplemented");
-	}
-
-	template <class SymbolType>
-	bool CheckDownwardInclusion(const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger) {
-
-		return CheckDownwardInclusionWithoutUseless(
-			RemoveUselessStates(smaller), RemoveUselessStates(bigger)
-		);
-
-	}
-
-	template <class SymbolType>
-	bool CheckDownwardInclusionWithSimulation(
-		const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger) {
-
-		typedef AutBase::StateType StateType;
-		typedef AutBase::StateToStateMap StateToStateMap;
-		typedef AutBase::StateToStateTranslator StateToStateTranslator;
-		typedef ExplicitTreeAut<SymbolType> ExplAut;
-
-		StateType stateCnt = 0;
-		StateToStateMap stateMap;
-		StateToStateTranslator stateTrans(stateMap,
-			[&stateCnt](const StateType&){return stateCnt++;});
-
-		Explicit::TupleCache tupleCache;
-
-		ExplAut newSmaller(tupleCache), newBigger(tupleCache);
-
-		smaller.ReindexStates(newSmaller, stateTrans);
-
-		stateMap.clear();
-
-		bigger.ReindexStates(newBigger, stateTrans);
-
-		ExplAut unionAut = UnionDisjunctStates(newSmaller, newBigger);
-
-		return CheckDownwardTreeInclusion<ExplAut, VATA::DownwardInclusionFunctor>(
-			newSmaller, newBigger, ComputeDownwardSimulation(unionAut)
-		);
-
-	}
-
-	template <class SymbolType>
-	bool CheckDownwardInclusionWithoutUseless(
-		const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger) {
-
-		typedef AutBase::StateType StateType;
-		typedef AutBase::StateToStateMap StateToStateMap;
-		typedef AutBase::StateToStateTranslator StateToStateTranslator;
-		typedef ExplicitTreeAut<SymbolType> ExplAut;
-
-		StateType stateCnt = 0;
-		StateToStateMap stateMap;
-		StateToStateTranslator stateTrans(stateMap,
-			[&stateCnt](const StateType&){return stateCnt++;});
-
-		Explicit::TupleCache tupleCache;
-
-		ExplAut newSmaller(tupleCache), newBigger(tupleCache);
-
-		smaller.ReindexStates(newSmaller, stateTrans);
-
-		stateMap.clear();
-
-		bigger.ReindexStates(newBigger, stateTrans);
-
-		VATA::Util::Identity ident(stateCnt);
-		return CheckDownwardTreeInclusion<ExplAut,
-			VATA::DownwardInclusionFunctor>(newSmaller, newBigger, ident);
-
-	}
-
-	template <class SymbolType>
-	bool CheckUpwardInclusionWithoutUseless(const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger) {
-
-		typedef AutBase::StateType StateType;
-		typedef AutBase::StateToStateMap StateToStateMap;
-		typedef AutBase::StateToStateTranslator StateToStateTranslator;
-
-		StateToStateMap stateMap;
-
-		StateType stateCnt = 0;
-		auto translFunc = [&stateCnt](const StateType&){return stateCnt++;};
-
-		StateToStateTranslator stateTrans(stateMap, translFunc);
-
-		Explicit::TupleCache tupleCache;
-
-		ExplicitTreeAut<SymbolType> newSmaller(tupleCache), newBigger(tupleCache);
-
-		smaller.ReindexStates(newSmaller, stateTrans);
-
-		stateMap.clear();
-
-		bigger.ReindexStates(newBigger, stateTrans);
-
-		return ExplicitUpwardInclusion::Check(newSmaller, newBigger, Util::Identity(stateCnt));
-
-	}
-
-	template <class SymbolType>
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		const ExplicitTreeAut<SymbolType>& aut) {
 
@@ -239,6 +117,94 @@ namespace VATA {
 		assert(&aut != nullptr);
 
 		throw std::runtime_error("Unimplemented");
+	}
+
+	template <class SymbolType, class Rel>
+	bool CheckUpwardInclusionWithPreorder(const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
+
+		return ExplicitUpwardInclusion::Check(smaller, bigger, preorder);
+
+	}
+
+	template <class SymbolType, class Rel>
+	bool CheckDownwardInclusionWithPreorder(const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
+
+		return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
+			VATA::DownwardInclusionFunctor>(smaller, bigger, preorder);
+
+	}
+
+	template <class SymbolType>
+	bool CheckUpwardInclusion(const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger) {
+
+		typedef AutBase::StateType StateType;
+		typedef AutBase::StateToStateMap StateToStateMap;
+		typedef AutBase::StateToStateTranslator StateToStateTranslator;
+
+		StateToStateMap stateMap;
+
+		StateType stateCnt = 0;
+		auto translFunc = [&stateCnt](const StateType&){return stateCnt++;};
+
+		StateToStateTranslator stateTrans(stateMap, translFunc);
+
+		Explicit::TupleCache tupleCache;
+
+		ExplicitTreeAut<SymbolType> newSmaller(tupleCache), newBigger(tupleCache);
+
+		RemoveUselessStates(smaller).ReindexStates(newSmaller, stateTrans);
+
+		stateMap.clear();
+
+		RemoveUnreachableStates(bigger).ReindexStates(newBigger, stateTrans);
+
+		return CheckUpwardInclusionWithPreorder(
+			newBigger, newSmaller, Util::Identity(stateCnt)
+		);
+
+	}
+
+	template <class SymbolType>
+	bool CheckDownwardInclusion(const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger) {
+
+		typedef AutBase::StateType StateType;
+		typedef AutBase::StateToStateMap StateToStateMap;
+		typedef AutBase::StateToStateTranslator StateToStateTranslator;
+		typedef ExplicitTreeAut<SymbolType> ExplAut;
+
+		StateType stateCnt = 0;
+		StateToStateMap stateMap;
+		StateToStateTranslator stateTrans(stateMap,
+			[&stateCnt](const StateType&){return stateCnt++;});
+
+		Explicit::TupleCache tupleCache;
+
+		ExplAut newSmaller(tupleCache), newBigger(tupleCache);
+
+		RemoveUselessStates(smaller).ReindexStates(newSmaller, stateTrans);
+
+		stateMap.clear();
+
+		RemoveUselessStates(bigger).ReindexStates(newBigger, stateTrans);
+
+		ExplAut unionAut = UnionDisjunctStates(newSmaller, newBigger);
+
+		return CheckDownwardTreeInclusion<ExplAut, VATA::DownwardInclusionFunctor>(
+			newSmaller, newBigger, ComputeDownwardSimulation(unionAut)
+		);
+
+	}
+
+	template <class SymbolType>
+	bool CheckInclusion(const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger) {
+
+		return CheckUpwardInclusion(smaller, bigger);
+
 	}
 
 }
