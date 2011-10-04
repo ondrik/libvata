@@ -66,17 +66,9 @@ BDDBottomUpTreeAut VATA::Union(const BDDBottomUpTreeAut& lhs,
 
 		StateToStateTranslator stateTransLhs(*pTranslMapLhs, translFunc);
 		TransMTBDD lhsMtbdd = lhs.ReindexStates(result, stateTransLhs);
-		for (const StateType& lhsFst : lhs.GetFinalStates())
-		{
-			result.SetStateFinal(stateTransLhs(lhsFst));
-		}
 
 		StateToStateTranslator stateTransRhs(*pTranslMapRhs, translFunc);
 		TransMTBDD rhsMtbdd = rhs.ReindexStates(result, stateTransRhs);
-		for (const StateType& rhsFst : rhs.GetFinalStates())
-		{
-			result.SetStateFinal(stateTransRhs(rhsFst));
-		}
 
 		result.SetMtbdd(StateTuple(), unionFunc(lhsMtbdd, rhsMtbdd));
 

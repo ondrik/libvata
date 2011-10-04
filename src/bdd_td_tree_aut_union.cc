@@ -102,17 +102,9 @@ BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
 
 		StateToStateTranslator stateTransLhs(*pTranslMapLhs, translFunc);
 		lhs.ReindexStates(result, stateTransLhs);
-		for (const StateType& lhsFst : lhs.GetFinalStates())
-		{
-			result.SetStateFinal(stateTransLhs(lhsFst));
-		}
 
 		StateToStateTranslator stateTransRhs(*pTranslMapRhs, translFunc);
 		rhs.ReindexStates(result, stateTransRhs);
-		for (const StateType& rhsFst : rhs.GetFinalStates())
-		{
-			result.SetStateFinal(stateTransRhs(rhsFst));
-		}
 
 		return result;
 	}

@@ -542,6 +542,11 @@ public:   // public methods
 			StateType newState = stateTrans(stateBddPair.first);
 			dstAut.SetMtbdd(newState, rewriter(stateBddPair.second));
 		}
+
+		for (const StateType& fst : GetFinalStates())
+		{
+			dstAut.SetStateFinal(stateTrans(fst));
+		}
 	}
 
 	template <class MTBDD>
