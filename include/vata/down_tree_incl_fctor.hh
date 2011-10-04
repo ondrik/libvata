@@ -35,6 +35,9 @@ public:   // data types
 	typedef typename Aut::DownInclStateTupleSet StateTupleSet;
 	typedef typename Aut::DownInclStateTupleVector StateTupleVector;
 
+	// nonsense types
+	typedef char ConsequentType;
+
 	typedef std::pair<StateType, StateSet> WorkSetElement;
 
 	typedef std::unordered_multimap<typename WorkSetElement::first_type,
@@ -333,11 +336,13 @@ private:  // methods
 public:   // methods
 
 	DownwardInclusionFunctor(const Aut& smaller, const Aut& bigger,
-		WorkSetType& workset, NonInclAntichainType& nonIncl,
+		WorkSetType& workset, InclAntichainType& /* incl */,
+		NonInclAntichainType& nonIncl,
 		const Relation& preorder, const IndexType& preorderSmaller,
 		const IndexType& preorderBigger,
 		const SetComparerSmaller& smallerComparer,
-		const SetComparerBigger& biggerComparer) :
+		const SetComparerBigger& biggerComparer,
+		InclAntichainType& /* ant */, ConsequentType& /* cons */) :
 		smaller_(smaller),
 		bigger_(bigger),
 		processingStopped_(false),
