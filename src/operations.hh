@@ -100,7 +100,7 @@ VATA::AutBase::StateBinaryRelation ComputeSimulation(Automaton aut,
 
 	// insert default values
 	Options options = args.options;
-	options.insert(std::make_pair("dir", "up"));
+	options.insert(std::make_pair("dir", "down"));
 
 	AutBase::StateType states = AutBase::SanitizeAutForSimulation(aut);
 
