@@ -130,6 +130,8 @@ public:
 
 	void clear() { this->data_.clear(); }
 
+	inline bool empty() { return data_.empty();}
+
 	friend std::ostream& operator<<(std::ostream& os, const Antichain2Cv2& ac) {
 
 		os << '{';
