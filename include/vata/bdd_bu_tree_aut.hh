@@ -721,6 +721,11 @@ public:   // methods
 			dstAut.SetMtbdd(newTuple, rewriter(tupleBddPair.second));
 		}
 
+		for (const StateType& fst : GetFinalStates())
+		{
+			dstAut.SetStateFinal(stateTrans(fst));
+		}
+
 		TransMTBDD nullaryBdd = rewriter(GetMtbdd(StateTuple()));
 		dstAut.SetMtbdd(StateTuple(), nullaryBdd);
 

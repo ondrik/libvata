@@ -72,19 +72,11 @@ public:   // methods
 		Automaton tmpAut = RemoveUselessStates(smaller);
 		Automaton newSmaller;
 		tmpAut.ReindexStates(newSmaller, stateTrans);
-		for (const StateType& fst : smaller.GetFinalStates())
-		{
-			newSmaller.SetStateFinal(stateTrans(fst));
-		}
 
 		tmpAut = RemoveUselessStates(bigger);
 		stateMap.clear();
 		Automaton newBigger;
 		bigger.ReindexStates(newBigger, stateTrans);
-		for (const StateType& fst : bigger.GetFinalStates())
-		{
-			newBigger.SetStateFinal(stateTrans(fst));
-		}
 
 		smaller = newSmaller;
 		bigger = newBigger;
