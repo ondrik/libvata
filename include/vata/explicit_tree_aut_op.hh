@@ -216,9 +216,29 @@ namespace VATA {
 
 	}
 
+	template <class SymbolType, class Rel>
+	bool CheckDownwardInclusionWithPreorder(const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
+		assert(&smaller != nullptr);
+		assert(&bigger != nullptr);
+		assert(&preorder != nullptr);
+
+		throw std::runtime_error("Unimplemented!");
+	}
+
+	template <class SymbolType, class Rel>
+	bool CheckUpwardInclusionWithPreorder(const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
+		assert(&smaller != nullptr);
+		assert(&bigger != nullptr);
+		assert(&preorder != nullptr);
+
+		throw std::runtime_error("Unimplemented!");
+	}
+
 	template <class SymbolType>
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut) {
+		const ExplicitTreeAut<SymbolType>& aut, const size_t& /* size */ = 0) {
 
 		Util::LTS lts;
 
@@ -234,7 +254,7 @@ namespace VATA {
 
 	template <class SymbolType>
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut)
+		const ExplicitTreeAut<SymbolType>& aut, const size_t& /* size */ = 0)
 	{
 		assert(&aut != nullptr);
 

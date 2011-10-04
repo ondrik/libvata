@@ -239,26 +239,20 @@ namespace
 StateBinaryRelation VATA::ComputeDownwardSimulation(
 	const BDDBottomUpTreeAut& aut)
 {
-	StateType stateCnt = 0;
-	StateToStateMap stateMap;
-	StateToStateTranslator stateTrans(stateMap,
-		[&stateCnt](const StateType&){return stateCnt++;});
+	BDDBottomUpTreeAut newAut = aut;
+	StateType states = AutBase::SanitizeAutForSimulation(newAut);
 
-	BDDBottomUpTreeAut newAut = RemoveUselessStates(aut);
-	BDDBottomUpTreeAut reindexedAut;
-	newAut.ReindexStates(reindexedAut, stateTrans);
-
-	return ComputeDownwardSimulation(newAut, stateCnt);
+	return ComputeDownwardSimulation(newAut, states);
 }
 
 StateBinaryRelation VATA::ComputeDownwardSimulation(
-	const BDDBottomUpTreeAut& aut, const size_t& states)
+	const BDDBottomUpTreeAut& aut, const size_t& size)
 {
-	StateBinaryRelation sim(states);
+	StateBinaryRelation sim(size);
 
 	BDDTopDownTreeAut topDownAut = aut.GetTopDownAut();
 
-	CounterMTBDD initCnt((CounterElementMap(states)));
+	CounterMTBDD initCnt((CounterElementMap(size)));
 
 	StateType firstState;
 	InitCntApplyFctor initCntFctor(firstState);
@@ -329,6 +323,13 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 }
 
 StateBinaryRelation VATA::ComputeUpwardSimulation(const BDDBottomUpTreeAut& aut)
+{
+	assert(&aut != nullptr);
+
+	throw std::runtime_error("Unimplemented");
+}
+
+StateBinaryRelation VATA::ComputeUpwardSimulation(const BDDBottomUpTreeAut& aut, const size_t& /* size */)
 {
 	assert(&aut != nullptr);
 

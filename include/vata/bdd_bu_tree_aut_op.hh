@@ -14,6 +14,8 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_bu_tree_aut.hh>
+#include <vata/tree_incl_up.hh>
+#include <vata/up_tree_incl_fctor.hh>
 
 
 namespace VATA
@@ -47,21 +49,37 @@ namespace VATA
 		const BDDBottomUpTreeAut& bigger);
 
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const BDDBottomUpTreeAut& aut, const size_t& states);
+		const BDDBottomUpTreeAut& aut);
 
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const BDDBottomUpTreeAut& aut);
+		const BDDBottomUpTreeAut& aut, const size_t& size);
 
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
 		const BDDBottomUpTreeAut& aut);
 
-	bool CheckDownwardInclusionWithSimulation(
-		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger);
+	AutBase::StateBinaryRelation ComputeUpwardSimulation(
+		const BDDBottomUpTreeAut& aut, const size_t& size);
 
 	template <class Rel>
 	bool CheckDownwardInclusionWithPreorder(
 		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
-		const Rel& preorder);
+		const Rel& preorder)
+	{
+		BDDTopDownTreeAut invertSmaller = smaller.GetTopDownAut();
+		BDDTopDownTreeAut invertBigger = bigger.GetTopDownAut();
+
+		return CheckDownwardInclusionWithPreorder(invertSmaller, invertBigger,
+			preorder);
+	}
+
+	template <class Rel>
+	bool CheckUpwardInclusionWithPreorder(
+		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
+		const Rel& preorder)
+	{
+		return CheckUpwardTreeInclusion<BDDBottomUpTreeAut,
+			VATA::UpwardInclusionFunctor>(smaller, bigger, preorder);
+	}
 }
 
 #endif

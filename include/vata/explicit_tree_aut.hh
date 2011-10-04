@@ -99,7 +99,7 @@ GCC_DIAG_ON(effc++)
 
 	template <class SymbolType>
 	friend AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut);
+		const ExplicitTreeAut<SymbolType>& aut, const size_t& size = 0);
 
 public:   // public data types
 

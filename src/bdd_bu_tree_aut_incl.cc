@@ -14,7 +14,6 @@
 #include <vata/bdd_bu_tree_aut_op.hh>
 #include <vata/bdd_td_tree_aut_op.hh>
 #include <vata/tree_incl_up.hh>
-#include <vata/up_tree_incl_fctor.hh>
 
 using VATA::AutBase;
 using VATA::BDDBottomUpTreeAut;
@@ -28,71 +27,4 @@ bool VATA::CheckDownwardInclusion(const BDDBottomUpTreeAut& smaller,
 	BDDTopDownTreeAut invBigger = bigger.GetTopDownAut();
 
 	return CheckDownwardInclusion(invSmaller, invBigger);
-}
-
-bool VATA::CheckUpwardInclusionWithoutUseless(const BDDBottomUpTreeAut& smaller,
-	const BDDBottomUpTreeAut& bigger)
-{
-	assert(&smaller != nullptr);
-	assert(&bigger != nullptr);
-
-	throw std::runtime_error("Unimplemented");
-}
-
-bool VATA::CheckUpwardInclusion(const BDDBottomUpTreeAut& smaller,
-	const BDDBottomUpTreeAut& bigger)
-{
-	// TODO: This function should be rewritten
-
-	return CheckUpwardTreeInclusion<BDDBottomUpTreeAut,
-		VATA::UpwardInclusionFunctor>(smaller, bigger);
-}
-
-bool VATA::CheckUpwardInclusionWithSimulation(const BDDBottomUpTreeAut& smaller,
-	const BDDBottomUpTreeAut& bigger)
-{
-	assert(&smaller != nullptr);
-	assert(&bigger != nullptr);
-
-	throw std::runtime_error("Unimplemented");
-}
-
-bool VATA::CheckDownwardInclusionWithSimulation(
-	const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger)
-{
-	typedef AutBase::StateType StateType;
-	typedef AutBase::StateToStateMap StateToStateMap;
-	typedef AutBase::StateToStateTranslator StateToStateTranslator;
-
-	StateType stateCnt = 0;
-	StateToStateMap stateMap;
-	StateToStateTranslator stateTrans(stateMap,
-		[&stateCnt](const StateType&){return stateCnt++;});
-
-	BDDBottomUpTreeAut tmpAut = RemoveUselessStates(smaller);
-	BDDBottomUpTreeAut newSmaller;
-	tmpAut.ReindexStates(newSmaller, stateTrans);
-	for (const StateType& fst : smaller.GetFinalStates())
-	{
-		newSmaller.SetStateFinal(stateTrans(fst));
-	}
-
-	stateMap.clear();
-	tmpAut = RemoveUselessStates(bigger);
-	BDDBottomUpTreeAut newBigger;
-	tmpAut.ReindexStates(newBigger, stateTrans);
-	for (const StateType& fst : bigger.GetFinalStates())
-	{
-		newBigger.SetStateFinal(stateTrans(fst));
-	}
-
-	BDDBottomUpTreeAut unionAut = UnionDisjunctStates(newSmaller, newBigger);
-
-	AutBase::StateBinaryRelation sim =
-		ComputeDownwardSimulation(unionAut, stateCnt);
-
-	BDDTopDownTreeAut invertSmaller = newSmaller.GetTopDownAut();
-	BDDTopDownTreeAut invertBigger = newBigger.GetTopDownAut();
-
-	return CheckDownwardInclusionWithPreorder(invertSmaller, invertBigger, sim);
 }
