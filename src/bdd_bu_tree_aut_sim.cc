@@ -40,7 +40,7 @@ typedef std::unordered_map<StateTuple, CounterMTBDD, boost::hash<StateTuple>>
 typedef BDDTopDownTreeAut::TransMTBDD TopDownMTBDD;
 
 typedef std::pair<StateTuple, StateTuple> RemoveElement;
-typedef std::stack<RemoveElement, std::list<RemoveElement>> RemoveList;
+typedef std::unordered_set<RemoveElement, boost::hash<RemoveElement>> RemoveSet;
 
 typedef BDDBottomUpTreeAut::TransTable BUTransTable;
 
@@ -313,6 +313,7 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 
 		// Assertions
 		assert(elem.first.size() == elem.second.size());
+
 		CounterHT::iterator itCnt;
 		if ((itCnt = cnt.find(elem.first)) == cnt.end())
 		{
