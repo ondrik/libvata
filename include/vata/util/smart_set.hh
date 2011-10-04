@@ -32,7 +32,7 @@ class VATA::Util::SmartSet {
 			return Iterator(this->_i++);
 		}
 		
-		int operator*() {
+		size_t operator*() {
 			return this->_i->first;
 		}
 		

@@ -343,6 +343,7 @@ protected:
 				this->_relation.set((*j)->index(), bint->index(), this->_relation.get((*j)->index(), (*i)->index()));
 				this->_relation.set(bint->index(), (*j)->index(), this->_relation.get((*i)->index(), (*j)->index()));
 			}
+			this->_relation.set(bint->index(), bint->index(), true);
 		}
 	}
 
@@ -375,6 +376,7 @@ protected:
 				this->_relation.set((*j)->index(), bint->index(), this->_relation.get((*j)->index(), (*i)->index()));
 				this->_relation.set(bint->index(), (*j)->index(), this->_relation.get((*i)->index(), (*j)->index()));
 			}
+			this->_relation.set(bint->index(), bint->index(), true);
 			for (SmartSet::iterator j = bint->inset().begin(); j != bint->inset().end(); ++j) {
 				bint->counter().copyRow(*j, (*i)->counter());
 				if ((*i)->remove()[*j]) {
@@ -440,8 +442,9 @@ public:
 		: _lts(&lts), _partition(), _relation(rel), _index(), _queue(), _tmp(lts.states()), _delta(),
 		_delta1(), _key(), _range(), _removeCache() {
 		assert(lts.states());
-		this->_relation.resize(0, true);
-		OLRTBlock* block = new OLRTBlock(this->_relation.newEntry(true), lts, this->_key, this->_range);
+		assert(rel.size() > 0);
+		assert(rel.get(0,0));
+		OLRTBlock* block = new OLRTBlock(0, lts, this->_key, this->_range);
 		block->storeStates(this->_index);
 		this->_partition.push_back(block);
 	}
@@ -451,7 +454,7 @@ public:
 			delete *i;
 		this->rcCollect();
 	}
-	
+/*
 	void reset(const LTS& lts) {
 		assert(lts.states());
 		for (std::vector<OLRTBlock*>::iterator i = this->_partition.begin(); i != this->_partition.end(); ++i)
@@ -464,7 +467,7 @@ public:
 		block->storeStates(this->_index);
 		this->_partition.push_back(block);
 	}
-
+*/
 	void init() {
 		this->_lts->buildDelta(this->_delta, this->_delta1);
 		this->_key.resize(this->_lts->labels());
@@ -557,6 +560,7 @@ public:
 			}
 		}
 		*/
+		assert(this->_relation.get(blockIndex, blockIndex));
 		assert(remove.size() > 0);
 
 		OLRTBlock* block = this->_index[remove.front()]->block();
@@ -637,9 +641,11 @@ void VATA::computeSimulation(BinaryRelation& result, size_t outputSize, const LT
 	if (lts.states() == 0)
 		return;
 
-	OLRTAlgorithm alg(lts, result);
+	result.resize(0);
+	result.newEntry(true);
+	result.set(0, 0, true);
 
-	result.reset(true);
+	OLRTAlgorithm alg(lts, result);
 
 	alg.init();
 	alg.run();

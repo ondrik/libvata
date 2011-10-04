@@ -939,6 +939,7 @@ public:
 				envMap,
 				[&envCnt, &head, &part, &param](const Env& env) -> size_t {
 					for (size_t i = 0; i < head.size(); ++i) {
+						assert(head[i]);
 						if (!head[i]->equal(env, param))
 							continue;
 						part[i].push_back(envCnt);
@@ -993,12 +994,17 @@ public:
 
 			for (size_t j = 0; j < head.size(); ++j) {
 
+				assert(head[i]);
+				assert(head[j]);
+				
 				if (head[i]->lessThan(*head[j], param))
 					rel.set(i + 2, j + 2, true);
 
 			}
 
 		}
+
+		lts.init();
 
 	}
 
