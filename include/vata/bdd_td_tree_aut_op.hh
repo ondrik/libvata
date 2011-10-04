@@ -27,6 +27,9 @@ namespace VATA
 		AutBase::StateToStateMap* pTranslMapLhs = nullptr,
 		AutBase::StateToStateMap* pTranslMapRhs = nullptr);
 
+	BDDTopDownTreeAut UnionDisjunctStates(const BDDTopDownTreeAut& lhs,
+		const BDDTopDownTreeAut& rhs);
+
 	BDDTopDownTreeAut Intersection(const BDDTopDownTreeAut& lhs,
 		const BDDTopDownTreeAut& rhs,
 		AutBase::ProductTranslMap* pTranslMap = nullptr);
@@ -47,14 +50,14 @@ namespace VATA
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		const BDDTopDownTreeAut& aut);
 
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		const BDDTopDownTreeAut& aut, const size_t& size);
+
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
 		const BDDTopDownTreeAut& aut);
 
-	bool CheckDownwardInclusionWithSimulation(const BDDTopDownTreeAut& smaller,
-		const BDDTopDownTreeAut& bigger);
-
-	bool CheckUpwardInclusionWithSimulation(const BDDTopDownTreeAut& smaller,
-		const BDDTopDownTreeAut& bigger);
+	AutBase::StateBinaryRelation ComputeUpwardSimulation(
+		const BDDTopDownTreeAut& aut, const size_t& size);
 
 	template <class Rel>
 	bool CheckDownwardInclusionWithPreorder(
@@ -63,6 +66,18 @@ namespace VATA
 	{
 		return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
 			DownwardInclusionFunctor>(smaller, bigger, preorder);
+	}
+
+	template <class Rel>
+	bool CheckUpwardInclusionWithPreorder(
+		const BDDTopDownTreeAut& smaller, const BDDTopDownTreeAut& bigger,
+		const Rel& preorder)
+	{
+		assert(&smaller != nullptr);
+		assert(&bigger != nullptr);
+		assert(&preorder != nullptr);
+
+		throw std::runtime_error("Unimplemented");
 	}
 }
 

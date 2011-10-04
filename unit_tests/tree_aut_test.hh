@@ -30,6 +30,32 @@ using VATA::Util::Convert;
 
 
 /******************************************************************************
+ *                                  Constants                                 *
+ ******************************************************************************/
+
+const fs::path LOAD_TIMBUK_FILE =
+	AUT_DIR / "load_timbuk.txt";
+
+const fs::path USELESS_TIMBUK_FILE =
+	AUT_DIR / "useless_removal_timbuk.txt";
+
+const fs::path INCLUSION_TIMBUK_FILE =
+	AUT_DIR / "inclusion_timbuk.txt";
+
+const fs::path UNION_TIMBUK_FILE =
+	AUT_DIR / "union_timbuk.txt";
+
+const fs::path INTERSECTION_TIMBUK_FILE =
+	AUT_DIR / "intersection_timbuk.txt";
+
+const fs::path ADD_TRANS_TIMBUK_FILE =
+	AUT_DIR / "add_trans_timbuk.txt";
+
+const fs::path DOWN_SIM_TIMBUK_FILE =
+	AUT_DIR / "down_sim_timbuk.txt";
+
+
+/******************************************************************************
  *                                  Fixtures                                  *
  ******************************************************************************/
 
@@ -47,8 +73,13 @@ protected:// data types
 	typedef AutBase::StringToStateDict StringToStateDict;
 
 	typedef AutBase::StateToStateMap StateToStateMap;
+	typedef AutType::StateToStateTranslator StateToStateTranslator;
 	typedef AutBase::StateType StateType;
 	typedef AutType::StateTuple StateTuple;
+	typedef AutType::StateBinaryRelation StateBinaryRelation;
+	typedef VATA::Util::TranslatorStrict<StringToStateDict>
+		StringToStateStrictTranslator;
+
 
 	typedef VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>
 		StateBackTranslatorStrict;
@@ -99,7 +130,7 @@ protected:// methods
 			SymbolBackTranslatorStrict(Automaton::GetSymbolDict().GetReverseMap()));
 	}
 
-	void testInclusion(bool (*inclFunc)(const AutType&, const AutType&))
+	void testInclusion(bool (*inclFunc)(AutType, AutType))
 	{
 		auto testfileContent = ParseTestFile(INCLUSION_TIMBUK_FILE.string());
 
@@ -133,6 +164,125 @@ protected:// methods
 				"\n\nError checking inclusion " + inputSmallerFile + " <= " +
 				inputBiggerFile + ": expected " + Convert::ToString(expectedResult) +
 				", got " + Convert::ToString(doesInclusionHold));
+		}
+	}
+
+	static bool checkDownInclusion(AutType smaller, AutType bigger)
+	{
+		AutBase::StateType states =
+			AutBase::SanitizeAutsForInclusion(smaller, bigger);
+
+		VATA::Util::Identity ident(states);
+
+		return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, ident);
+	}
+
+	static bool checkDownInclusionWithSimulation(AutType smaller, AutType bigger)
+	{
+		AutBase::StateType states =
+			AutBase::SanitizeAutsForInclusion(smaller, bigger);
+
+		AutType unionAut = VATA::UnionDisjunctStates(smaller, bigger);
+		StateBinaryRelation sim = VATA::ComputeDownwardSimulation(unionAut, states);
+
+		return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, sim);
+	}
+
+	static bool checkUpInclusion(AutType smaller, AutType bigger)
+	{
+		AutBase::StateType states =
+			AutBase::SanitizeAutsForInclusion(smaller, bigger);
+
+		VATA::Util::Identity ident(states);
+
+		return VATA::CheckUpwardInclusionWithPreorder(smaller, bigger, ident);
+	}
+
+	void testDownwardSimulation()
+	{
+		auto testfileContent = ParseTestFile(DOWN_SIM_TIMBUK_FILE.string());
+
+		for (auto testcase : testfileContent)
+		{
+			BOOST_REQUIRE_MESSAGE(testcase.size() == 2, "Invalid format of a testcase: " +
+				Convert::ToString(testcase));
+
+			std::string inputFile = (AUT_DIR / testcase[0]).string();
+			std::string resultFile = (AUT_DIR / testcase[1]).string();
+
+			BOOST_MESSAGE("Computing downward simulation for " + inputFile + "...");
+
+			std::string autStr = VATA::Util::ReadFile(inputFile);
+			std::string correctSimStr = VATA::Util::ReadFile(resultFile);
+
+			StringToStateDict stateDict;
+			AutType aut;
+			readAut(aut, stateDict, autStr);
+
+			StateType stateCnt = 0;
+			StateToStateMap stateMap;
+			StateToStateTranslator stateTrans(stateMap,
+				[&stateCnt](const StateType&){return stateCnt++;});
+
+			aut = VATA::RemoveUselessStates(aut);
+			AutType reindexedAut;
+			aut.ReindexStates(reindexedAut, stateTrans);
+			for (const StateType& fst : aut.GetFinalStates())
+			{
+				reindexedAut.SetStateFinal(stateTrans(fst));
+			}
+
+			stateDict = RebindMap(stateDict, stateMap);
+
+			StateBinaryRelation sim = VATA::ComputeDownwardSimulation(
+				reindexedAut, stateCnt);
+
+			auto simulationContent = ParseTestFile(resultFile);
+			StateBinaryRelation refSim(stateCnt);
+
+			StringToStateStrictTranslator stateStrictTrans(stateDict);
+
+			for (auto& simulationLine : simulationContent)
+			{	// load the reference relation
+				assert(simulationLine.size() == 3);
+				assert(simulationLine[1] == "<=");
+
+				StateType firstState;
+				StateType secondState;
+
+				StringToStateDict::const_iterator itDictFirst;
+				StringToStateDict::const_iterator itDictSecond;
+				if (((itDictFirst = stateDict.FindFwd(simulationLine[0]))
+					== stateDict.EndFwd()) ||
+					((itDictSecond = stateDict.FindFwd(simulationLine[2]))
+					== stateDict.EndFwd()))
+				{
+					continue;
+				}
+
+				firstState = itDictFirst->second;
+				secondState = itDictSecond->second;
+
+				refSim.set(firstState, secondState, true);
+			}
+
+			for (const auto& firstStringStatePair : stateDict)
+			{
+				for (const auto& secondStringStatePair : stateDict)
+				{
+					const std::string& firstName = firstStringStatePair.first;
+					const StateType& firstState = firstStringStatePair.second;
+					const std::string& secondName = secondStringStatePair.first;
+					const StateType& secondState = secondStringStatePair.second;
+
+					BOOST_CHECK_MESSAGE(sim.get(firstState, secondState)
+						== refSim.get(firstState, secondState),
+						"Invalid simulation value for (" + firstName + ", " + secondName +
+						"): got "
+						+ Convert::ToString(sim.get(firstState, secondState)) + ", expected " +
+						Convert::ToString(refSim.get(firstState, secondState)));
+				}
+			}
 		}
 	}
 };
@@ -519,6 +669,6 @@ BOOST_AUTO_TEST_CASE(aut_remove_useless)
 
 BOOST_AUTO_TEST_CASE(aut_down_inclusion)
 {
-	testInclusion(VATA::CheckDownwardInclusion);
+	testInclusion(checkDownInclusion);
 }
 

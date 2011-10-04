@@ -20,6 +20,7 @@
 #include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
 #include <vata/util/lts.hh>
+#include <vata/util/convert.hh>
 
 // Standard library headers
 #include <cstdint>
@@ -44,6 +45,7 @@ namespace VATA {
 			boost::hash<StateTuple>> TupleCache;
 
 		static TupleCache tupleCache;
+		
 /*
 		struct TuplePtrHash {
 	
@@ -96,14 +98,6 @@ GCC_DIAG_ON(effc++)
 	template <class SymbolType>
 	friend ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
 		const ExplicitTreeAut<SymbolType>&, AutBase::StateToStateMap*);
-
-	template <class SymbolType>
-	friend AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut);
-
-	template <class SymbolType>
-	friend AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut);
 
 public:   // public data types
 
@@ -210,8 +204,10 @@ protected:
 		if (!p.second)
 			return TuplePtr(p.first->second);
 
+		TupleCache* cachePtr = &this->cache_;
+
 		TuplePtr ptr = TuplePtr(const_cast<StateTuple*>(&p.first->first),
-			[this](StateTuple* tuple) { this->cache_.erase(*tuple); });
+			[cachePtr](StateTuple* tuple) { cachePtr->erase(*tuple); });
 
 		p.first->second = std::weak_ptr<StateTuple>(ptr);
 
@@ -541,9 +537,12 @@ public:
 		transitions_(aut.transitions_)
 	{ }
 
-	ExplicitTreeAut(const ExplicitTreeAut& aut, Explicit::TupleCache& tupleCache)
-		: cache_(tupleCache), finalStates_(aut.finalStates_), transitions_(aut.transitions),
-		accepting(*this) {}
+	ExplicitTreeAut(const ExplicitTreeAut& aut, Explicit::TupleCache& tupleCache) :
+		accepting(*this),
+		cache_(tupleCache),
+		finalStates_(aut.finalStates_),
+		transitions_(aut.transitions)
+	{ }
 
 	ExplicitTreeAut& operator=(const ExplicitTreeAut& rhs) {
 
@@ -725,6 +724,9 @@ public:
 		const ExplicitTreeAut& rhs, const StateType& lhsState,
 		const StateSetLight& rhsSet, OperationFunc& opFunc)
 	{
+
+		assert(lhs.transitions_);
+		assert(rhs.transitions_);
 
 		auto leftCluster = ExplicitTreeAut::genericLookup(*lhs.transitions_, lhsState);
 
@@ -921,10 +923,8 @@ public:
 	void TranslateUpward(Util::LTS& lts, std::vector<std::vector<size_t>>& part,
 		Util::BinaryRelation& rel, const Rel& param) const {
 
-		std::unordered_map<SymbolType, size_t> symbolMap;
-		std::unordered_map<Env, size_t> envMap;
-
 		size_t symbolCnt = 0;
+		std::unordered_map<SymbolType, size_t> symbolMap;
 		VATA::Util::TranslatorWeak2<std::unordered_map<SymbolType, size_t>>
 			symbolTranslator(symbolMap, [&symbolCnt](const SymbolType&){ return symbolCnt++; });
 
@@ -933,7 +933,8 @@ public:
 		std::vector<const Env*> head;
 
 		size_t envCnt = this->transitions_->size();
-		VATA::Util::TranslatorWeak2<std::unordered_map<Env, size_t>>
+		std::unordered_map<Env, size_t, boost::hash<Env>> envMap;
+		VATA::Util::TranslatorWeak2<std::unordered_map<Env, size_t, boost::hash<Env>>>
 			envTranslator(
 				envMap,
 				[&envCnt, &head, &part, &param](const Env& env) -> size_t {
@@ -981,7 +982,7 @@ public:
 		}
 
 		rel.resize(part.size() + 2);
-		rel.reset();
+		rel.reset(false);
 
 		// 0 non-accepting, 1 accepting, 2 .. environments
 		rel.set(0, 0, true);

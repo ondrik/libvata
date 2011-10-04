@@ -74,7 +74,7 @@ BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
 	};
 
 
-	if (lhs.GetTransTable() == rhs.GetTransTable())
+	if (BDDTopDownTreeAut::ShareTransTable(lhs, rhs))
 	{	// in case the automata share their transition table
 		BDDTopDownTreeAut result = lhs;
 		result.finalStates_.insert(rhs.finalStates_.begin(), rhs.finalStates_.end());

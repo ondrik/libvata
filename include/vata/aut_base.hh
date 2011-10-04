@@ -61,6 +61,53 @@ public:   // methods
 		pNextState_ = pNextState;
 	}
 
+	template <class Automaton>
+	static StateType SanitizeAutsForInclusion(Automaton& smaller, Automaton& bigger)
+	{
+		StateType stateCnt = 0;
+		StateToStateMap stateMap;
+		StateToStateTranslator stateTrans(stateMap,
+			[&stateCnt](const StateType&){return stateCnt++;});
+
+		Automaton tmpAut = RemoveUselessStates(smaller);
+		Automaton newSmaller;
+		tmpAut.ReindexStates(newSmaller, stateTrans);
+		for (const StateType& fst : smaller.GetFinalStates())
+		{
+			newSmaller.SetStateFinal(stateTrans(fst));
+		}
+
+		tmpAut = RemoveUselessStates(bigger);
+		stateMap.clear();
+		Automaton newBigger;
+		tmpAut.ReindexStates(newBigger, stateTrans);
+		for (const StateType& fst : bigger.GetFinalStates())
+		{
+			newBigger.SetStateFinal(stateTrans(fst));
+		}
+
+		smaller = newSmaller;
+		bigger = newBigger;
+
+		return stateCnt;
+	}
+
+	template <class Automaton>
+	static StateType SanitizeAutForSimulation(Automaton& aut)
+	{
+		StateType stateCnt = 0;
+		StateToStateMap stateMap;
+		StateToStateTranslator stateTrans(stateMap,
+			[&stateCnt](const StateType&){return stateCnt++;});
+
+		Automaton newAut = RemoveUselessStates(aut);
+		Automaton reindexedAut;
+		newAut.ReindexStates(reindexedAut, stateTrans);
+
+		aut = reindexedAut;
+
+		return stateCnt;
+	}
 };
 
 #endif

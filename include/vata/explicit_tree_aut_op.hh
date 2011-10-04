@@ -96,23 +96,31 @@ namespace VATA {
 
 	template <class SymbolType>
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut) {
+		const ExplicitTreeAut<SymbolType>& aut, const size_t& size) {
 
 		Util::LTS lts;
 
 		aut.TranslateDownward(lts);
 
-		AutBase::StateBinaryRelation res;
+		AutBase::StateBinaryRelation result;
 
-		computeSimulation(res, aut.transitions_->size(), lts);
+		computeSimulation(result, size, lts);
 
-		return res;
+		return result;
+
+	}
+
+	template <class SymbolType>
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		const ExplicitTreeAut<SymbolType>& aut) {
+
+		return ComputeDownwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
 
 	}
 
 	template <class SymbolType>
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut) {
+		const ExplicitTreeAut<SymbolType>& aut, const size_t& size) {
 
 		Util::LTS lts;
 
@@ -120,19 +128,27 @@ namespace VATA {
 
 		std::vector<std::vector<size_t>> partition;
 
-		assert(aut.transitions_);
-
-		aut.TranslateUpward(lts, partition, result, Util::Identity(aut.transitions_->size()));
+		aut.TranslateUpward(lts, partition, result, Util::Identity(size));
 
 		computeSimulation(
 			result,
-			aut.transitions_->size(),
+			size,
 			lts,
 			partition,
-			std::vector<AutBase::StateType>(aut.finalStates_.begin(), aut.finalStates_.end())
+			std::vector<AutBase::StateType>(
+				aut.GetFinalStates().begin(), aut.GetFinalStates().end()
+			)
 		);
 
 		return result;
+
+	}
+
+	template <class SymbolType>
+	AutBase::StateBinaryRelation ComputeUpwardSimulation(
+		const ExplicitTreeAut<SymbolType>& aut) {
+
+		return ComputeUpwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
 
 	}
 
@@ -157,29 +173,8 @@ namespace VATA {
 	bool CheckUpwardInclusion(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger) {
 
-		typedef AutBase::StateType StateType;
-		typedef AutBase::StateToStateMap StateToStateMap;
-		typedef AutBase::StateToStateTranslator StateToStateTranslator;
-
-		StateToStateMap stateMap;
-
-		StateType stateCnt = 0;
-		auto translFunc = [&stateCnt](const StateType&){return stateCnt++;};
-
-		StateToStateTranslator stateTrans(stateMap, translFunc);
-
-		Explicit::TupleCache tupleCache;
-
-		ExplicitTreeAut<SymbolType> newSmaller(tupleCache), newBigger(tupleCache);
-
-		RemoveUselessStates(smaller).ReindexStates(newSmaller, stateTrans);
-
-		stateMap.clear();
-
-		RemoveUnreachableStates(bigger).ReindexStates(newBigger, stateTrans);
-
 		return CheckUpwardInclusionWithPreorder(
-			newBigger, newSmaller, Util::Identity(stateCnt)
+			smaller, bigger, Util::Identity(AutBase::SanitizeAutsForInclusion(smaller, bigger))
 		);
 
 	}
@@ -188,30 +183,10 @@ namespace VATA {
 	bool CheckDownwardInclusion(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger) {
 
-		typedef AutBase::StateType StateType;
-		typedef AutBase::StateToStateMap StateToStateMap;
-		typedef AutBase::StateToStateTranslator StateToStateTranslator;
-		typedef ExplicitTreeAut<SymbolType> ExplAut;
-
-		StateType stateCnt = 0;
-		StateToStateMap stateMap;
-		StateToStateTranslator stateTrans(stateMap,
-			[&stateCnt](const StateType&){return stateCnt++;});
-
-		Explicit::TupleCache tupleCache;
-
-		ExplAut newSmaller(tupleCache), newBigger(tupleCache);
-
-		RemoveUselessStates(smaller).ReindexStates(newSmaller, stateTrans);
-
-		stateMap.clear();
-
-		RemoveUselessStates(bigger).ReindexStates(newBigger, stateTrans);
-
-		ExplAut unionAut = UnionDisjunctStates(newSmaller, newBigger);
+		auto size = AutBase::SanitizeAutsForInclusion(smaller, bigger);
 
 		return CheckDownwardInclusionWithPreorder(
-			newSmaller, newBigger, ComputeDownwardSimulation(unionAut)
+			smaller, bigger, ComputeDownwardSimulation(UnionDisjunctStates(smaller, bigger), size)
 		);
 
 	}

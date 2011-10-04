@@ -570,8 +570,7 @@ public:
 
 		block->checkEmpty();
 
-		if (!block->tmp())
-			return false;
+		assert(block->tmp());
 
 		this->_partition.push_back(new OLRTBlock(blockIndex, block, *this->_lts));
 
@@ -639,6 +638,8 @@ void VATA::computeSimulation(BinaryRelation& result, size_t outputSize, const LT
 		return;
 
 	OLRTAlgorithm alg(lts, result);
+
+	result.reset(true);
 
 	alg.init();
 	alg.run();

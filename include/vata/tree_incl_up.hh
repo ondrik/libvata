@@ -17,8 +17,9 @@
 
 namespace VATA
 {
-	template <class Aut, template <class> class UpwardInclFctor>
-	bool CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger);
+	template <class Aut, template <class> class UpwardInclFctor, class Rel>
+	bool CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger,
+		const Rel& preorder);
 }
 
 /**
@@ -29,8 +30,9 @@ namespace VATA
  *
  * @todo  Write this documentation
  */
-template <class Aut, template <class> class UpwardInclFctor>
-bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger)
+template <class Aut, template <class> class UpwardInclFctor, class Rel>
+bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger,
+	const Rel& /* preorder */)
 {
 	typedef UpwardInclFctor<Aut> InclFctor;
 	typedef typename InclFctor::StateType StateType;
@@ -132,13 +134,10 @@ bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 		return false;
 	}
 
-	while (!workset.empty())
+	StateType procState;
+	StateSet procSet;
+	while (workset.next(procState, procSet))
 	{
-		auto procPair = *(workset.begin());
-		const StateType& procState = procPair.first;
-		const StateSet& procSet = procPair.second;
-		workset.erase(workset.begin());
-
 		for (auto tupleBddPair : smaller.GetTransTable())
 		{	// for each tuple in the smaller aut
 			const StateTuple& tuple = tupleBddPair.first;
@@ -155,7 +154,7 @@ bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 					continue;
 				}
 
-				if (antichain.find(tuple[index]) == antichain.end())
+				if (antichain.lookup(tuple[index]) == nullptr)
 				{
 					allElementsInAntichain = false;
 					break;
@@ -179,13 +178,15 @@ bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger)
 				}
 				else
 				{
-					auto keyRange = antichain.equal_range(tuple[index]);
-					assert(keyRange.first != antichain.end());
-
-					for (; keyRange.first != keyRange.second; ++(keyRange.first))
+					const typename AntichainType::TList* keyList;
+					if ((keyList = antichain.lookup(tuple[index])) != nullptr)
 					{
-						stateSetTuple[index].insert((keyRange.first)->second.begin(),
-							(keyRange.first)->second.end());
+						assert(keyList->begin() != keyList->end());
+
+						for (auto& listElem : *(keyList))
+						{
+							stateSetTuple[index].insert(listElem.begin(), listElem.end());
+						}
 					}
 				}
 

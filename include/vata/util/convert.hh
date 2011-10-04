@@ -155,6 +155,27 @@ public:
 	}
 
 	/**
+	 * @brief  Converts an object to string (weak_ptr specialization)
+	 *
+	 * Static method for conversion of a weak pointer of an object of any class with
+	 * the << output operator into a string
+	 *
+	 * @param[in]  ptr  Weak pointer for the conversion
+	 *
+	 * @returns  The string representation of the weak pointer
+	 */
+	template <typename T>
+	static std::string ToString(const std::weak_ptr<T>& ptr)
+	{
+		// the output stream for the string
+		std::ostringstream oss;
+		// insert the string of the underlying class into the stream
+		oss << ptr.use_count();
+		// return the string
+		return oss.str();
+	}
+
+	/**
 	 * @brief  Converts an object to string (std::vector specialization)
 	 *
 	 * Static method for conversion of a vector of objects of any class with the
@@ -304,8 +325,8 @@ public:
 	 *
 	 * @returns  The string representation of the unordered map
 	 */
-	template <typename T, typename U>
-	static std::string ToString(const std::unordered_map<T, U>& unmap)
+	template <typename T, typename U, class H>
+	static std::string ToString(const std::unordered_map<T, U, H>& unmap)
 	{
 		// the output stream for the string
 		std::ostringstream oss;
