@@ -227,6 +227,17 @@ namespace VATA {
 	}
 
 	template <class SymbolType, class Rel>
+	bool CheckOptDownwardInclusionWithPreorder(
+		const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
+		assert(&smaller != nullptr);
+		assert(&bigger != nullptr);
+		assert(&preorder != nullptr);
+
+		throw std::runtime_error("Unimplemented!");
+	}
+
+	template <class SymbolType, class Rel>
 	bool CheckUpwardInclusionWithPreorder(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
 		assert(&smaller != nullptr);
