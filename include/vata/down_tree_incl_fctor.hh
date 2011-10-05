@@ -69,38 +69,93 @@ public:   // data types
 
 	class SetComparerSmaller
 	{
-	private:  // data members
+	private:  // data types
 
-		const Relation& preorder_;
-
-	public:   // methods
-
-		SetComparerSmaller(const Relation& preorder) :
-			preorder_(preorder)
-		{ }
-
-		// TODO: this could be done better
-		bool operator()(const BiggerType& lhs, const BiggerType& rhs) const
+		class NonCachedLte
 		{
-			for (const StateType& lhsState : *lhs)
+		private:
+
+			const typename Relation::IndexType& ind_;
+
+		public:
+
+			NonCachedLte(const typename Relation::IndexType& ind) :
+				ind_(ind)
+			{ }
+
+			inline bool operator()(const StateSet* x, const StateSet* y) const
 			{
-				bool found = false;
-				for (const StateType& rhsState : *rhs)
+				// Assertions
+				assert(x != nullptr);
+				assert(y != nullptr);
+
+				for (const auto& s : *x)
 				{
-					if (preorder_.get(lhsState, rhsState))
+					assert(s < ind_.size());
+
+					const auto& s1 = ind_[s];
+					const auto& s2 = *y;
+
+					auto i1 = s1.begin(), i2 = s2.begin();
+
+					bool found;
+					while (i1 != s1.end() && i2 != s2.end())
 					{
-						found = true;
-						break;
+						found = false;
+
+						if (*i1 < *i2)
+						{
+							++i1;
+						}
+						else if (*i2 < *i1)
+						{
+							++i2;
+						}
+						else
+						{
+							found = true;
+							break;
+						}
+					}
+
+					if (!found)
+					{
+						return false;
 					}
 				}
 
-				if (!found)
-				{
-					return false;
-				}
+				return true;
 			}
+		};
 
-			return true;
+
+	private:  // data members
+
+		LteCache& lteCache_;
+		NonCachedLte noncachedLte_;
+
+	public:   // methods
+
+		explicit SetComparerSmaller(LteCache& lteCache,
+			const typename Relation::IndexType& ind) :
+			lteCache_(lteCache),
+			noncachedLte_(ind)
+		{ }
+
+		bool operator()(const BiggerType& lhs, const BiggerType& rhs) const
+		{
+			// Assertions
+			assert(lhs != nullptr);
+			assert(rhs != nullptr);
+
+			if (lhs == rhs)
+			{
+				return true;
+			}
+			else
+			{
+				return lteCache_.lookup(lhs.get(), rhs.get(), noncachedLte_);
+			}
 		}
 	};
 
@@ -108,18 +163,18 @@ public:   // data types
 	{
 	private:  // data members
 
-		const Relation& preorder_;
+		SetComparerSmaller& smallerCmp_;
 
 	public:   // methods
 
-		SetComparerBigger(const Relation& preorder) :
-			preorder_(preorder)
+		SetComparerBigger(SetComparerSmaller& smallerCmp) :
+			smallerCmp_(smallerCmp)
 		{ }
 
 		// TODO: this could be done better
 		bool operator()(const BiggerType& lhs, const BiggerType& rhs) const
 		{
-			return SetComparerSmaller(preorder_)(rhs, lhs);
+			return smallerCmp_(rhs, lhs);
 		}
 	};
 

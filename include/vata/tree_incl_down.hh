@@ -71,8 +71,8 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger,
 	typename Rel::IndexType preorderBigger;
 	preorder.buildIndex(preorderBigger, preorderSmaller);
 
-	typename InclFctor::SetComparerSmaller compSmaller(preorder);
-	typename InclFctor::SetComparerBigger compBigger(preorder);
+	typename InclFctor::SetComparerSmaller compSmaller(lteCache, preorderBigger);
+	typename InclFctor::SetComparerBigger compBigger(compSmaller);
 
 	typename InclFctor::InclAntichainType incl;
 	typename InclFctor::InclAntichainType antecedent;
