@@ -344,11 +344,11 @@ private:  // methods
 	inline void processFoundInclusion(const StateType& smallerState,
 		const StateSet& biggerStateSet)
 	{
-		if (!childrenCache_.contains(preorderSmaller_[smallerState], biggerStateSet,
+		if (!childrenCache_.contains(preorderBigger_[smallerState], biggerStateSet,
 			smallerComparer_))
 		{	// if the element is not implied by the antichain
 			childrenCache_.refine(preorderSmaller_[smallerState], biggerStateSet,
-				smallerComparer_);
+				biggerComparer_);
 			childrenCache_.insert(smallerState, biggerStateSet);
 		}
 	}
@@ -356,11 +356,11 @@ private:  // methods
 	inline void processFoundGlobalInclusion(const StateType& smallerState,
 		const StateSet& biggerStateSet)
 	{
-		if (!incl_.contains(preorderSmaller_[smallerState], biggerStateSet,
+		if (!incl_.contains(preorderBigger_[smallerState], biggerStateSet,
 			smallerComparer_))
 		{	// if the element is not implied by the antichain
 			incl_.refine(preorderSmaller_[smallerState], biggerStateSet,
-				smallerComparer_);
+				biggerComparer_);
 			incl_.insert(smallerState, biggerStateSet);
 		}
 	}
@@ -368,11 +368,11 @@ private:  // methods
 	inline void processFoundNoninclusion(const StateType& smallerState,
 		const StateSet& biggerStateSet)
 	{
-		if (!nonIncl_.contains(preorderBigger_[smallerState], biggerStateSet,
+		if (!nonIncl_.contains(preorderSmaller_[smallerState], biggerStateSet,
 			biggerComparer_))
 		{	// if the element is not implied by the antichain
 			nonIncl_.refine(preorderBigger_[smallerState], biggerStateSet,
-				biggerComparer_);
+				smallerComparer_);
 			nonIncl_.insert(smallerState, biggerStateSet);
 		}
 	}
