@@ -20,6 +20,7 @@
 using VATA::Util::Convert;
 using VATA::AutBase;
 
+extern timespec startTime;
 
 template <class Automaton>
 bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
@@ -29,11 +30,14 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	options.insert(std::make_pair("sim", "no"));
 	options.insert(std::make_pair("dir", "up"));
 	options.insert(std::make_pair("optC", "no"));
+	options.insert(std::make_pair("timeS", "yes"));
 
 	std::runtime_error optErrorEx("Invalid options for inclusion: " +
 			Convert::ToString(options));
 
 	AutBase::StateType states = AutBase::SanitizeAutsForInclusion(smaller, bigger);
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
 
 	if (options["sim"] == "no")
 	{
@@ -68,6 +72,17 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 		Automaton unionAut = VATA::UnionDisjunctStates(smaller, bigger);
 		AutBase::StateBinaryRelation sim =
 			ComputeDownwardSimulation(unionAut, states);
+
+		if (options["timeS"] == "no")
+		{
+			clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
+		}
+		else if (options["timeS"] == "yes")
+		{ }
+		else
+		{
+			throw optErrorEx;
+		}
 
 		if (options["dir"] == "up")
 		{

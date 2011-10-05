@@ -1,0 +1,32 @@
+Ops yred:2 yblack:2 yUNDEF:2 yNULL:2 xyred:2 xyblack:2 xyUNDEF:2 xyNULL:2 xxpyred:2 xxpyblack:2 xxpyUNDEF:2 xxpyNULL:2 xxpxppyred:2 xxpxppyblack:2 xxpxppyUNDEF:2 xxpxppyNULL:2 xxpxppred:2 xxpxppblack:2 xxpxppUNDEF:2 xxpxppNULL:2 xxpred:2 xxppyred:2 xxppyblack:2 xxppyUNDEF:2 xxppyNULL:2 xxppred:2 xxppblack:2 xxppUNDEF:2 xxppNULL:2 xxpblack:2 xxpUNDEF:2 xxpNULL:2 xred:2 xpyred:2 xpyblack:2 xpyUNDEF:2 xpyNULL:2 xpxppyred:2 xpxppyblack:2 xpxppyUNDEF:2 xpxppyNULL:2 xpxppred:2 xpxppblack:2 xpxppUNDEF:2 xpxppNULL:2 xpred:2 xppyred:2 xppyblack:2 xppyUNDEF:2 xppyNULL:2 xppred:2 xppblack:2 xppUNDEF:2 xppNULL:2 xpblack:2 xpUNDEF:2 xpNULL:2 xblack:2 xUNDEF:2 xNULL:2 rootyred:2 rootyblack:2 rootyUNDEF:2 rootyNULL:2 rootxyred:2 rootxyblack:2 rootxyUNDEF:2 rootxyNULL:2 rootxxpyred:2 rootxxpyblack:2 rootxxpyUNDEF:2 rootxxpyNULL:2 rootxxpxppyred:2 rootxxpxppyblack:2 rootxxpxppyUNDEF:2 rootxxpxppyNULL:2 rootxxpxppred:2 rootxxpxppblack:2 rootxxpxppUNDEF:2 rootxxpxppNULL:2 rootxxpred:2 rootxxppyred:2 rootxxppyblack:2 rootxxppyUNDEF:2 rootxxppyNULL:2 rootxxppred:2 rootxxppblack:2 rootxxppUNDEF:2 rootxxppNULL:2 rootxxpblack:2 rootxxpUNDEF:2 rootxxpNULL:2 rootxred:2 rootxpyred:2 rootxpyblack:2 rootxpyUNDEF:2 rootxpyNULL:2 rootxpxppyred:2 rootxpxppyblack:2 rootxpxppyUNDEF:2 rootxpxppyNULL:2 rootxpxppred:2 rootxpxppblack:2 rootxpxppUNDEF:2 rootxpxppNULL:2 rootxpred:2 rootxppyred:2 rootxppyblack:2 rootxppyUNDEF:2 rootxppyNULL:2 rootxppred:2 rootxppblack:2 rootxppUNDEF:2 rootxppNULL:2 rootxpblack:2 rootxpUNDEF:2 rootxpNULL:2 rootxblack:2 rootxUNDEF:2 rootxNULL:2 rootred:2 rootblack:2 rootUNDEF:2 rootNULL:2 red:2 normal:2 bot2:2 bot0:0 black:2 bad:2 UNDEF:2 NULL:2 
+
+
+
+
+Automaton A0177
+
+States q176:0 q175:0 q174:0 q173:0 q172:0 q171:0 q170:0 q169:0 q168:0 q167:0 q166:0 q165:0 q164:0 q163:0 q162:0 q161:0 q160:0 q159:0 q158:0 q157:0 q156:0 q155:0 q154:0 q153:0 q152:0 q151:0 q150:0 q149:0 q148:0 q147:0 q146:0 q145:0 q144:0 q143:0 q142:0 q141:0 q140:0 q139:0 q138:0 q137:0 q136:0 q135:0 q134:0 q133:0 q132:0 q131:0 q130:0 q129:0 q128:0 q127:0 q126:0 q125:0 q124:0 q123:0 q122:0 q121:0 q120:0 q119:0 q118:0 q117:0 q116:0 q115:0 q114:0 q113:0 q112:0 q111:0 q110:0 q109:0 q108:0 q107:0 q106:0 q105:0 q104:0 q103:0 q102:0 q101:0 q100:0 q99:0 q98:0 q97:0 q96:0 q95:0 q94:0 q93:0 q92:0 q91:0 q90:0 q89:0 q88:0 q87:0 q86:0 q85:0 q84:0 q83:0 q82:0 q81:0 q80:0 q79:0 q78:0 q77:0 q76:0 q75:0 q74:0 q73:0 q72:0 q71:0 q70:0 q69:0 q68:0 q67:0 q66:0 q65:0 q64:0 q63:0 q62:0 q61:0 q60:0 q59:0 q58:0 q57:0 q56:0 q55:0 q54:0 q53:0 q52:0 q51:0 q50:0 q49:0 q48:0 q47:0 q46:0 q45:0 q44:0 q43:0 q42:0 q41:0 q40:0 q39:0 q38:0 q37:0 q36:0 q35:0 q34:0 q33:0 q32:0 q31:0 q30:0 q29:0 q28:0 q27:0 q26:0 q25:0 q24:0 q23:0 q22:0 q21:0 q20:0 q19:0 q18:0 q17:0 q16:0 q15:0 q14:0 q13:0 q12:0 q11:0 q10:0 q9:0 q8:0 q7:0 q6:0 q5:0 q4:0 q3:0 q2:0 q1:0 q0:0 
+
+Final States q32 
+
+Transitions 
+UNDEF(q175,q174) -> q173
+normal(q173,q174) -> q32
+xpxppyNULL(q24,q174) -> q175
+normal(q30,q31) -> q32
+xppyNULL(q140,q31) -> q34
+rootblack(q145,q1) -> q140
+red(q165,q1) -> q145
+red(q167,q0) -> q165
+xpblack(q22,q0) -> q167
+xred(q1,q1) -> q22
+black(q31,q31) -> q1
+black(q31,q31) -> q0
+bot0 -> q176
+bot2(q176,q176) -> q174
+bot2(q176,q176) -> q31
+black(q174,q174) -> q101
+red(q101,q101) -> q104
+red(q104,q104) -> q163
+rootxred(q163,q104) -> q24
+UNDEF(q34,q31) -> q30
