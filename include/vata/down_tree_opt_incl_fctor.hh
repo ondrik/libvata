@@ -97,11 +97,9 @@ public:   // data types
 
 					auto i1 = s1.begin(), i2 = s2.begin();
 
-					bool found;
+					bool found = false;
 					while (i1 != s1.end() && i2 != s2.end())
 					{
-						found = false;
-
 						if (*i1 < *i2)
 						{
 							++i1;
