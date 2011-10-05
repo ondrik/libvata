@@ -15,6 +15,7 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/util/antichain2c_v2.hh>
+#include <vata/util/cache.hh>
 
 
 namespace VATA
@@ -35,10 +36,18 @@ public:   // data types
 	typedef typename Aut::DownInclStateTupleSet StateTupleSet;
 	typedef typename Aut::DownInclStateTupleVector StateTupleVector;
 
-	// nonsense types
+	// nonsense type
 	typedef char ConsequentType;
 
-	typedef std::pair<StateType, StateSet> WorkSetElement;
+	typedef typename Util::Cache<
+		StateSet, std::function<void(const StateSet*)>
+	> BiggerTypeCache;
+
+	typedef typename BiggerTypeCache::TPtr BiggerType;
+
+	typedef Util::CachedBinaryOp<const StateSet*, const StateSet*, bool> LteCache;
+
+	typedef std::pair<StateType, BiggerType> WorkSetElement;
 
 	typedef std::unordered_multimap<typename WorkSetElement::first_type,
 		typename WorkSetElement::second_type> WorkSetType;
@@ -49,13 +58,13 @@ public:   // data types
 	typedef VATA::Util::Antichain2Cv2
 	<
 		StateType,
-		StateSet
+		BiggerType
 	> InclAntichainType;
 
 	typedef VATA::Util::Antichain2Cv2
 	<
 		StateType,
-		StateSet
+		BiggerType
 	> NonInclAntichainType;
 
 	class SetComparerSmaller
@@ -71,12 +80,12 @@ public:   // data types
 		{ }
 
 		// TODO: this could be done better
-		bool operator()(const StateSet& lhs, const StateSet& rhs) const
+		bool operator()(const BiggerType& lhs, const BiggerType& rhs) const
 		{
-			for (const StateType& lhsState : lhs)
+			for (const StateType& lhsState : *lhs)
 			{
 				bool found = false;
-				for (const StateType& rhsState : rhs)
+				for (const StateType& rhsState : *rhs)
 				{
 					if (preorder_.get(lhsState, rhsState))
 					{
@@ -108,7 +117,7 @@ public:   // data types
 		{ }
 
 		// TODO: this could be done better
-		bool operator()(const StateSet& lhs, const StateSet& rhs) const
+		bool operator()(const BiggerType& lhs, const BiggerType& rhs) const
 		{
 			return SetComparerSmaller(preorder_)(rhs, lhs);
 		}
@@ -178,6 +187,8 @@ private:  // data members
 	const Aut& smaller_;
 	const Aut& bigger_;
 
+	BiggerTypeCache& biggerTypeCache_;
+
 	bool processingStopped_;
 	bool inclusionHolds_;
 
@@ -197,7 +208,7 @@ private:  // data members
 
 private:  // methods
 
-	bool expand(const StateType& smallerState, const StateSet& biggerStateSet)
+	bool expand(const StateType& smallerState, const BiggerType& biggerStateSet)
 	{
 		auto key = std::make_pair(smallerState, biggerStateSet);
 
@@ -222,7 +233,7 @@ private:  // methods
 
 		DownwardInclusionFunctor innerFctor(*this);
 		Aut::ForeachDownSymbolFromStateAndStateSetDo(smaller_, bigger_,
-			smallerState, biggerStateSet, innerFctor);
+			smallerState, *biggerStateSet, innerFctor);
 
 		// erase the element
 		bool erased = false;
@@ -292,7 +303,7 @@ private:  // methods
 	}
 
 	inline void processFoundInclusion(const StateType& smallerState,
-		const StateSet& biggerStateSet)
+		const BiggerType& biggerStateSet)
 	{
 		if (!childrenCache_.contains(preorderBigger_[smallerState], biggerStateSet,
 			smallerComparer_))
@@ -304,7 +315,7 @@ private:  // methods
 	}
 
 	inline void processFoundNoninclusion(const StateType& smallerState,
-		const StateSet& biggerStateSet)
+		const BiggerType& biggerStateSet)
 	{
 		if (!nonIncl_.contains(preorderSmaller_[smallerState], biggerStateSet,
 			biggerComparer_))
@@ -318,6 +329,7 @@ private:  // methods
 public:   // methods
 
 	DownwardInclusionFunctor(const Aut& smaller, const Aut& bigger,
+		BiggerTypeCache& biggerTypeCache,
 		WorkSetType& workset, InclAntichainType& /* incl */,
 		NonInclAntichainType& nonIncl,
 		const Relation& preorder, const IndexType& preorderSmaller,
@@ -327,6 +339,7 @@ public:   // methods
 		InclAntichainType& /* ant */, ConsequentType& /* cons */) :
 		smaller_(smaller),
 		bigger_(bigger),
+		biggerTypeCache_(biggerTypeCache),
 		processingStopped_(false),
 		inclusionHolds_(true),
 		workset_(workset),
@@ -343,6 +356,7 @@ public:   // methods
 		DownwardInclusionFunctor& downFctor) :
 		smaller_(downFctor.smaller_),
 		bigger_(downFctor.bigger_),
+		biggerTypeCache_(downFctor.biggerTypeCache_),
 		processingStopped_(false),
 		inclusionHolds_(true),
 		workset_(downFctor.workset_),
@@ -357,7 +371,7 @@ public:   // methods
 
 	inline bool IsImpliedByPreorder(const WorkSetElement& elem) const
 	{
-		for (const StateType& biggerState : elem.second)
+		for (const StateType& biggerState : *(elem.second))
 		{
 			if (preorder_.get(elem.first, biggerState))
 			{
@@ -420,7 +434,8 @@ public:   // methods
 					valid = true;
 					for (size_t i = 0; i < arity; ++i)
 					{
-						if (!expand(lhsTuple[i], StateSet(rhsTuple[i])))
+						if (!expand(lhsTuple[i],
+							biggerTypeCache_.lookup(StateSet(rhsTuple[i]))))
 						{
 							valid = false;
 							break;
@@ -474,7 +489,8 @@ public:   // methods
 							continue;
 						}
 
-						if (expand(lhsTuple[tuplePos], rhsSetForTuplePos))
+						if (expand(lhsTuple[tuplePos],
+							biggerTypeCache_.lookup(rhsSetForTuplePos)))
 						{	// in case inclusion holds for this case
 							found = true;
 							break;
