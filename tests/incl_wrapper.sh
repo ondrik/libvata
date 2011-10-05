@@ -65,11 +65,19 @@ case "${OPERATION}" in
     RETVAL="$?"
     ;;
   expldown)
-    ${VATA} -r expl -t incl -o dir=down,sim=no "${FILE_LHS}" "${FILE_RHS}"
+    ${VATA} -r expl -t incl -o dir=down,sim=no,optC=no "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   expldown-sim)
-    ${VATA} -r expl -t incl -o dir=down,sim=yes "${FILE_LHS}" "${FILE_RHS}"
+    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=no "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  expldown-optC)
+    ${VATA} -r expl -t incl -o dir=down,sim=no,optC=yes "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  expldown-sim-optC)
+    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   explup)
