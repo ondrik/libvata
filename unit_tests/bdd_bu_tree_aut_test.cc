@@ -108,6 +108,11 @@ BOOST_AUTO_TEST_CASE(aut_down_inclusion_sim)
 	testInclusion(&checkDownInclusionWithSimulation);
 }
 
+BOOST_AUTO_TEST_CASE(aut_down_inclusion_sim_opt)
+{
+	testInclusion(checkOptDownInclusionWithSimulation);
+}
+
 BOOST_AUTO_TEST_CASE(aut_up_inclusion)
 {
 	testInclusion(checkUpInclusion);
