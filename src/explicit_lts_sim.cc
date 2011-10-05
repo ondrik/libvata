@@ -286,7 +286,7 @@ class OLRTAlgorithm {
 
 	const LTS* _lts;
 	std::vector<OLRTBlock*> _partition;
-	BinaryRelation& _relation;
+	BinaryRelation _relation;
 	std::vector<StateListElem*> _index;
 	std::vector<std::pair<OLRTBlock*, size_t> > _queue;
 	std::vector<bool> _tmp;
@@ -438,7 +438,7 @@ protected:
 
 public:
 
-	OLRTAlgorithm(const LTS& lts, BinaryRelation& rel)
+	OLRTAlgorithm(const LTS& lts, const BinaryRelation& rel)
 		: _lts(&lts), _partition(), _relation(rel), _index(), _queue(), _tmp(lts.states()), _delta(),
 		_delta1(), _key(), _range(), _removeCache() {
 		assert(lts.states());
@@ -603,8 +603,8 @@ public:
 	BinaryRelation& relation() {
 		return this->_relation;
 	}
-/*	
-	void buildRel(size_t size, BinaryRelation& rel) const {
+
+	void buildRel(BinaryRelation& rel, size_t size) const {
 		rel.resize(size);
 		for (size_t i = 0; i < size; ++i) {
 			size_t ii = this->_index[i]->block()->index();
@@ -612,7 +612,11 @@ public:
 				rel.set(i, j, this->_relation.get(ii, this->_index[j]->block()->index()));
 		}
 	}
-*/	
+
+	size_t blockCount() const {
+		return this->_partition.size();
+	}
+
 	size_t buildIndex(std::vector<size_t>& index, size_t size) const {
 		size_t blockCount = 0;
 		std::vector<bool> tmp(this->_partition.size(), false);
@@ -649,8 +653,7 @@ void VATA::computeSimulation(BinaryRelation& result, size_t outputSize, const LT
 
 	alg.init();
 	alg.run();
-
-	result.resize(outputSize);
+	alg.buildRel(result, outputSize);
 
 }
 
@@ -669,9 +672,10 @@ void VATA::computeSimulation(BinaryRelation& result, size_t outputSize, const LT
 	for (size_t i = 0; i < part.size(); ++i)
 		alg.fakeSplit(part[i], i + 2);
 
+	assert(result.size() == alg.blockCount());
+
 	alg.init();
 	alg.run();
-
-	result.resize(outputSize);
+	alg.buildRel(result, outputSize);
 
 }
