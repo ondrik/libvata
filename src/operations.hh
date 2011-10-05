@@ -70,8 +70,8 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	else if (options["sim"] == "yes")
 	{
 		Automaton unionAut = VATA::UnionDisjunctStates(smaller, bigger);
-		AutBase::StateBinaryRelation sim =
-			ComputeDownwardSimulation(unionAut, states);
+
+
 
 		if (options["timeS"] == "no")
 		{
@@ -86,10 +86,12 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 
 		if (options["dir"] == "up")
 		{
+			AutBase::StateBinaryRelation sim = ComputeUpwardSimulation(unionAut, states);
 			return VATA::CheckUpwardInclusionWithPreorder(smaller, bigger, sim);
 		}
 		else if (options["dir"] == "down")
 		{
+			AutBase::StateBinaryRelation sim = ComputeDownwardSimulation(unionAut, states);
 			return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, sim);
 		}
 		else
