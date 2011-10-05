@@ -71,12 +71,12 @@ public:   // data types
 		// TODO: this could be done better
 		bool operator()(const StateSet& lhs, const StateSet& rhs) const
 		{
-			for (const StateType& rhsState : rhs)
+			for (const StateType& lhsState : lhs)
 			{
 				bool found = false;
-				for (const StateType& lhsState : lhs)
+				for (const StateType& rhsState : rhs)
 				{
-					if (preorder_.get(rhsState, lhsState))
+					if (preorder_.get(lhsState, rhsState))
 					{
 						found = true;
 						break;
@@ -108,25 +108,7 @@ public:   // data types
 		// TODO: this could be done better
 		bool operator()(const StateSet& lhs, const StateSet& rhs) const
 		{
-			for (const StateType& lhsState : lhs)
-			{
-				bool found = false;
-				for (const StateType& rhsState : rhs)
-				{
-					if (preorder_.get(lhsState, rhsState))
-					{
-						found = true;
-						break;
-					}
-				}
-
-				if (!found)
-				{
-					return false;
-				}
-			}
-
-			return true;
+			return SetComparerSmaller(preorder_)(rhs, lhs);
 		}
 	};
 
