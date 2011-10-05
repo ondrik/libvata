@@ -84,6 +84,8 @@ const char VATA_USAGE_COMMANDS[] =
 	"          'sim=no'   : do not use simulation (default)\n"
 	"          'optC=yes' : use optimised cache for downward direction\n"
 	"          'optC=no'  : without optimised cache (default)\n"
+	"          'timeS=yes': include time of simulation computation (default)\n"
+	"          'timeS=no' : do not include time of simulation computation\n"
 	;
 
 const char VATA_USAGE_FLAGS[] =
@@ -114,6 +116,8 @@ const char VATA_USAGE_FLAGS[] =
 	;
 
 const size_t BDD_SIZE = 16;
+
+timespec startTime;
 
 void printHelp(bool full = false)
 {
@@ -194,13 +198,9 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	AutBase::StateToStateMap opTranslMap2;
 	AutBase::ProductTranslMap prodTranslMap;
 
-	// get the start time
-	timespec startTime;
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
+
 	timespec finishTime;
-	if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime))
-	{
-		throw std::runtime_error("Could not get the start time");
-	}
 
 	// process command
 	if (args.command == COMMAND_LOAD)
