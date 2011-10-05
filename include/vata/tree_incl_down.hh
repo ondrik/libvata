@@ -54,6 +54,16 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger,
 
 	typedef VATA::Util::Convert Convert;
 
+	typename InclFctor::LteCache lteCache;
+
+	typename InclFctor::BiggerTypeCache biggerTypeCache(
+			[&lteCache](const StateSet* v) {
+				lteCache.invalidateFirst(v);
+				lteCache.invalidateSecond(v);
+			}
+		);
+
+	// NB: antichains need to be declared after the cache!!!!!
 	WorkSetType workset;
 	NonInclusionCache nonIncl;
 
@@ -61,23 +71,24 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger,
 	typename Rel::IndexType preorderBigger;
 	preorder.buildIndex(preorderBigger, preorderSmaller);
 
-	typename InclFctor::SetComparerSmaller compSmaller(preorder);
-	typename InclFctor::SetComparerBigger compBigger(preorder);
+	typename InclFctor::SetComparerSmaller compSmaller(lteCache, preorderBigger);
+	typename InclFctor::SetComparerBigger compBigger(compSmaller);
 
 	typename InclFctor::InclAntichainType incl;
 	typename InclFctor::InclAntichainType antecedent;
 	typename InclFctor::ConsequentType consequent;
 
-	InclFctor downFctor(smaller, bigger, workset, incl, nonIncl, preorder,
-		preorderSmaller, preorderBigger, compSmaller, compBigger, antecedent,
-		consequent);
+	InclFctor downFctor(smaller, bigger, biggerTypeCache, workset, incl, nonIncl,
+		preorder, preorderSmaller, preorderBigger, compSmaller, compBigger,
+		antecedent, consequent);
 
 	StateSet finalStatesBigger(bigger.GetFinalStates().begin(),
 		bigger.GetFinalStates().end());
 
 	for (const StateType& smSt : smaller.GetFinalStates())
 	{	// for each final state of the smaller automaton
-		if (downFctor.IsImpliedByPreorder(std::make_pair(smSt, finalStatesBigger)))
+		if (downFctor.IsImpliedByPreorder(
+			std::make_pair(smSt,biggerTypeCache.lookup(finalStatesBigger))))
 		{
 			continue;
 		}

@@ -177,6 +177,16 @@ protected:// methods
 		return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, ident);
 	}
 
+	static bool checkOptDownInclusion(AutType smaller, AutType bigger)
+	{
+		AutBase::StateType states =
+			AutBase::SanitizeAutsForInclusion(smaller, bigger);
+
+		VATA::Util::Identity ident(states);
+
+		return VATA::CheckOptDownwardInclusionWithPreorder(smaller, bigger, ident);
+	}
+
 	static bool checkDownInclusionWithSimulation(AutType smaller, AutType bigger)
 	{
 		AutBase::StateType states =
@@ -186,6 +196,17 @@ protected:// methods
 		StateBinaryRelation sim = VATA::ComputeDownwardSimulation(unionAut, states);
 
 		return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, sim);
+	}
+
+	static bool checkOptDownInclusionWithSimulation(AutType smaller, AutType bigger)
+	{
+		AutBase::StateType states =
+			AutBase::SanitizeAutsForInclusion(smaller, bigger);
+
+		AutType unionAut = VATA::UnionDisjunctStates(smaller, bigger);
+		StateBinaryRelation sim = VATA::ComputeDownwardSimulation(unionAut, states);
+
+		return VATA::CheckOptDownwardInclusionWithPreorder(smaller, bigger, sim);
 	}
 
 	static bool checkUpInclusion(AutType smaller, AutType bigger)
@@ -679,3 +700,7 @@ BOOST_AUTO_TEST_CASE(aut_down_inclusion)
 	testInclusion(checkDownInclusion);
 }
 
+BOOST_AUTO_TEST_CASE(aut_down_inclusion_opt)
+{
+	testInclusion(checkOptDownInclusion);
+}

@@ -28,7 +28,7 @@ extern int yylineno;
 using VATA::Util::Convert;
 using VATA::Util::AutDescription;
 
-void yyerror(AutDescription&, char* msg)
+void yyerror(AutDescription&, const char* msg)
 {
 	throw std::runtime_error("Parser error at line " +
 		Convert::ToString(yylineno) + ": " + std::string(msg));
