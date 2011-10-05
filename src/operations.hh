@@ -28,7 +28,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	Options options = args.options;
 	options.insert(std::make_pair("sim", "no"));
 	options.insert(std::make_pair("dir", "up"));
-	options.insert(std::make_pair("inclCache", "no"));
+	options.insert(std::make_pair("optC", "no"));
 
 	std::runtime_error optErrorEx("Invalid options for inclusion: " +
 			Convert::ToString(options));
