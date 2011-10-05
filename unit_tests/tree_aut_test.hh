@@ -198,6 +198,17 @@ protected:// methods
 		return VATA::CheckUpwardInclusionWithPreorder(smaller, bigger, ident);
 	}
 
+	static bool checkUpInclusionWithSimulation(AutType smaller, AutType bigger)
+	{
+		AutBase::StateType states =
+			AutBase::SanitizeAutsForInclusion(smaller, bigger);
+
+		AutType unionAut = VATA::UnionDisjunctStates(smaller, bigger);
+		StateBinaryRelation sim = VATA::ComputeUpwardSimulation(unionAut, states);
+
+		return VATA::CheckUpwardInclusionWithPreorder(smaller, bigger, sim);
+	}
+
 	void testDownwardSimulation()
 	{
 		auto testfileContent = ParseTestFile(DOWN_SIM_TIMBUK_FILE.string());

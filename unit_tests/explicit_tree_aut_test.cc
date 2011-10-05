@@ -65,4 +65,9 @@ BOOST_AUTO_TEST_CASE(aut_up_inclusion)
 	testInclusion(checkUpInclusion);
 }
 
+BOOST_AUTO_TEST_CASE(aut_up_inclusion_sim)
+{
+	testInclusion(checkUpInclusionWithSimulation);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
