@@ -67,8 +67,6 @@ public:
 	template <class Aut, class Rel>
 	static bool Check(const Aut& smaller, const Aut& bigger, const Rel& preorder) {
 
-		VATA_LOGGER_INFO("preorder:\n" + Util::Convert::ToString(preorder));
-
 		typedef Explicit::StateType SmallerType;
 		typedef std::vector<Explicit::StateType> StateSet;
 
