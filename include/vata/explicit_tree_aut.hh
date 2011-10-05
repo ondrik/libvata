@@ -21,6 +21,7 @@
 #include <vata/util/transl_weak.hh>
 #include <vata/util/lts.hh>
 #include <vata/util/convert.hh>
+#include <vata/util/cache.hh>
 
 // Standard library headers
 #include <cstdint>
@@ -41,33 +42,10 @@ namespace VATA {
 		typedef std::set<StateTuple> TupleSet;
 		typedef std::unordered_set<StateType> StateSet;
 
-		typedef std::unordered_map<StateTuple, std::weak_ptr<StateTuple>,
-			boost::hash<StateTuple>> TupleCache;
+		typedef Util::Cache<StateTuple> TupleCache;
 
 		static TupleCache tupleCache;
 		
-/*
-		struct TuplePtrHash {
-	
-			size_t operator()(const VATA::Explicit::TuplePtr& ptr) const {
-	
-				return reinterpret_cast<size_t>(ptr.get());
-	
-			}
-	
-		};
-	
-		struct TuplePtrLess {
-	
-			bool operator()(const VATA::Explicit::TuplePtr& ptr1,
-				const VATA::Explicit::TuplePtr& ptr2) const {
-	
-				return ptr1.get() < ptr2.get();
-	
-			}
-	
-		};
-*/
 	};
 
 }
@@ -199,19 +177,7 @@ protected:
 
 	TuplePtr tupleLookup(const StateTuple& tuple) {
 
-		auto p = this->cache_.insert(std::make_pair(tuple, std::weak_ptr<StateTuple>()));
-
-		if (!p.second)
-			return TuplePtr(p.first->second);
-
-		TupleCache* cachePtr = &this->cache_;
-
-		TuplePtr ptr = TuplePtr(const_cast<StateTuple*>(&p.first->first),
-			[cachePtr](StateTuple* tuple) { cachePtr->erase(*tuple); });
-
-		p.first->second = std::weak_ptr<StateTuple>(ptr);
-
-		return ptr;
+		return this->cache_.lookup(tuple);
 
 	}
 
@@ -500,27 +466,7 @@ public:   // public methods
 	};
 
 	typedef std::shared_ptr<Transition> TransitionPtr;
-/*
-	struct TransitionPtrHash {
 
-		size_t operator()(const TransitionPtr& ptr) const {
-
-			return reinterpret_cast<size_t>(ptr.get());
-
-		}
-
-	};
-
-	struct TransitionPtrLess {
-
-		bool operator()(const TransitionPtr& ptr1, const TransitionPtr& ptr2) const {
-
-			return ptr1.get() < ptr2.get();
-
-		}
-
-	};
-*/
 public:
 
 	ExplicitTreeAut(Explicit::TupleCache& tupleCache = Explicit::tupleCache) :

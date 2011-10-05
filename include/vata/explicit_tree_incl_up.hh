@@ -16,6 +16,7 @@
 #include <boost/functional/hash.hpp>
 
 #include <vata/util/cache.hh>
+#include <vata/util/cached_binary_op.hh>
 #include <vata/util/antichain1c.hh>
 #include <vata/util/antichain2c_v2.hh>
 
@@ -25,28 +26,6 @@
 namespace VATA {
 
 	class ExplicitUpwardInclusion;
-
-}
-
-namespace std {
-
-	template<class T1, class T2>
-	struct hash<std::pair<T1, T2>> {
-
-		size_t operator()(const std::pair<T1, T2>& v) const {
-			return boost::hash_value(v);
-		}
-
-	};
-
-	template<class T>
-	struct hash<std::vector<T>> {
-
-		size_t operator()(const std::vector<T>& v) const {
-			return boost::hash_value(v);
-		}
-
-	};
 
 }
 
@@ -88,6 +67,8 @@ public:
 	template <class Aut, class Rel>
 	static bool Check(const Aut& smaller, const Aut& bigger, const Rel& preorder) {
 
+		VATA_LOGGER_INFO("preorder:\n" + Util::Convert::ToString(preorder));
+
 		typedef Explicit::StateType SmallerType;
 		typedef std::vector<Explicit::StateType> StateSet;
 
@@ -98,17 +79,9 @@ public:
 		typedef std::unordered_set<const Transition*> TransitionSet;
 		typedef typename std::shared_ptr<TransitionSet> TransitionSetPtr;
 
-		typedef typename Util::Cache<
-			StateSet, std::function<void(const StateSet*)>
-		> BiggerTypeCache;
+		typedef typename Util::Cache<StateSet> BiggerTypeCache;
 
 		typedef typename BiggerTypeCache::TPtr BiggerType;
-
-		typedef Util::CachedBinaryOp<const StateSet*, const StateSet*, bool> LteCache;
-
-		typedef Util::CachedBinaryOp<
-			std::pair<SymbolType, size_t>, const StateSet*, TransitionSetPtr
-		> EvalTransitionsCache;
 
 		typedef typename Util::Antichain1C<SmallerType> Antichain1C;
 		typedef typename Util::Antichain2Cv2<SmallerType, BiggerType> Antichain2C;
@@ -212,7 +185,7 @@ public:
 
 		};
 
-		LteCache lteCache;
+		Util::CachedBinaryOp<const StateSet*, const StateSet*, bool> lteCache;
 
 		auto lte = [&noncachedLte, &lteCache](const BiggerType& x, const BiggerType& y) -> bool {
 
@@ -261,7 +234,9 @@ public:
 
 		};
 
-		EvalTransitionsCache evalTransitionsCache;
+		Util::CachedBinaryOp<
+			std::pair<SymbolType, size_t>, const StateSet*, TransitionSetPtr
+		> evalTransitionsCache;
 
 		auto evalTransitions = [&noncachedEvalTransitions, &evalTransitionsCache](
 			const SymbolType& symbol, size_t i, const StateSet* states)
@@ -443,7 +418,7 @@ public:
 	
 						if (checkIntersection(ind[smallerTransition->state()], tmp))
 							continue;
-	
+
 						auto ptr = biggerTypeCache.lookup(tmp);
 	
 						if (next.contains(ind[smallerTransition->state()], ptr, lte))
@@ -495,13 +470,9 @@ public:
 		typedef std::vector<Explicit::StateType> StateSet;
 		typedef typename Aut::TransitionPtr TransitionPtr;
 
-		typedef typename Util::Cache<
-			StateSet, std::function<void(const StateSet*)>
-		> BiggerTypeCache;
+		typedef typename Util::Cache<StateSet> BiggerTypeCache;
 
 		typedef typename BiggerTypeCache::TPtr BiggerType;
-
-		typedef Util::CachedBinaryOp<const StateSet*, const StateSet*, bool> LteCache;
 
 		typedef typename Util::Antichain1C<SmallerType> Antichain1C;
 		typedef typename Util::Antichain2Cv2<SmallerType, BiggerType> Antichain2C;
@@ -629,7 +600,7 @@ public:
 
 		};
 
-		LteCache lteCache;
+		Util::CachedBinaryOp<const StateSet*, const StateSet*, bool> lteCache;
 
 		auto lte = [&noncachedLte, &lteCache](const BiggerType& x, const BiggerType& y) -> bool {
 
