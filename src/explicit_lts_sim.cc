@@ -103,7 +103,7 @@ public:
 
 struct StateListElem {
 	
-	size_t state_;
+	size_t index_;
 	class OLRTBlock* block_;
 	StateListElem* next_;
 	StateListElem* prev_;
@@ -160,7 +160,7 @@ class OLRTBlock {
 
 public:
 
-	OLRTBlock(size_t index, StateListElem* states, const LTS& lts,
+	OLRTBlock(const LTS& lts, size_t index, StateListElem* states,
 		const std::vector<std::vector<size_t> >& key, const std::vector<size_t>& range) :
 		_index(index), _states(states), _remove(lts.labels()), _counter(lts.labels(), key, range),
 		_inset(lts.labels()), _tmp(NULL) {
@@ -174,21 +174,21 @@ public:
 
 	}
 	
-	OLRTBlock(size_t index, OLRTBlock* parent, const LTS& lts)
-		: _index(index), _states(parent->_tmp), _remove(lts.labels(), NULL),
-		_counter(parent->_counter), _inset(lts.labels()), _tmp(NULL) {
+	OLRTBlock(const LTS& lts, OLRTBlock& parent, size_t index) : _index(index),
+		_states(parent._tmp), _remove(lts.labels(), NULL), _counter(parent._counter),
+		_inset(lts.labels()), _tmp(NULL) {
 
-		assert(parent->_tmp);
+		assert(this->_states);
 
-		parent->_tmp = NULL;
+		parent._tmp = NULL;
 
 		StateListElem* elem = this->_states;
 
 		do {
 
-			for (auto& a : lts.bwLabels(elem->state_)) {
+			for (auto& a : lts.bwLabels(elem->index_)) {
 
-				parent->_inset.removeStrict(a);
+				parent._inset.removeStrict(a);
 
 				this->_inset.add(a);
 
@@ -209,20 +209,6 @@ public:
 		return this->_tmp;
 	}
 
-	void storeStates(std::vector<StateListElem*>& v) const {
-
-		StateListElem* elem = this->_states;
-
-		do {
-
-			v.push_back(elem);
-
-			elem = elem->next_;
-
-		} while (elem != this->_states);
-
-	}
-	
 	void moveToTmp(StateListElem& elem) {
 
 		elem.move(this->_states, this->_tmp);	
@@ -267,7 +253,7 @@ public:
 
 		do {
 
-			os << " " << elem->state_;
+			os << " " << elem->index_;
 
 			elem = elem->next_;
 
@@ -321,6 +307,36 @@ class OLRTAlgorithm {
 
 protected:
 
+	template <class T>
+	void buildPre(T& pre, StateListElem* states, size_t label) const {
+
+		std::vector<bool> blockMask(this->_partition.size(), false);
+
+		StateListElem* elem = states;
+
+		do {
+
+			for (auto& q : this->_lts.pre(label)[elem->index_]) {
+
+				OLRTBlock* block = this->_index[q].block_;
+
+				assert(block);
+
+				if (blockMask[block->index()])
+					continue;
+
+				blockMask[block->index()] = true;
+
+				pre.push_back(block);
+
+			}
+
+			elem = elem->next_;
+
+		} while (elem != states);
+
+	}
+
 	template <class T1, class T2>
 	void internalSplit(T1& modifiedBlocks, const T2& remove) {
 
@@ -367,7 +383,7 @@ protected:
 
 			size_t newIndex = this->_relation.split(block->index(), true);
 
-			this->_partition.push_back(new OLRTBlock(newIndex, block, this->_lts));
+			this->_partition.push_back(new OLRTBlock(this->_lts, *block, newIndex));
 
 		}
 
@@ -394,7 +410,7 @@ protected:
 
 			size_t newIndex = this->_relation.split(block->index(), true);
 
-			OLRTBlock* newBlock = new OLRTBlock(newIndex, block, this->_lts);
+			OLRTBlock* newBlock = new OLRTBlock(this->_lts, *block, newIndex);
 
 			this->_partition.push_back(newBlock);
 
@@ -421,83 +437,68 @@ protected:
 
 	void processRemove(OLRTBlock* block, size_t label) {
 
+		assert(block);
+
 		std::vector<size_t>* remove = block->remove()[label];
 
 		assert(remove);
 
 		block->remove()[label] = NULL;
 
-		std::vector<StateListElem*> states;
+		std::vector<OLRTBlock*> preList, removeList;
 
-		block->storeStates(states);
-
-		std::vector<OLRTBlock*> removeList;
+		this->buildPre(preList, block->states(), label);
 
 		this->split(removeList, *remove);
 
-		std::vector<bool> blockMask(this->_partition.size(), false);
+		this->rcFree(remove);
 
-		for (auto i = states.begin(); i != states.end(); ++i) {
+		for (auto& b1 : preList) {
 
-			for (auto& pre : this->_lts.pre(label)[(*i)->state_]) {
+			for (auto& b2 : removeList) {
 
-				OLRTBlock* b1 = this->_index[pre].block_;
+				assert(b1->index() != b2->index());
 
-				assert(b1);
-
-				if (blockMask[b1->index()])
+				if (!this->_relation.get(b1->index(), b2->index()))
 					continue;
 
-				blockMask[b1->index()] = true;
+				this->_relation.set(b1->index(), b2->index(), false);
 
-				for (auto& b2 : removeList) {
+				for (auto a : b2->inset()) {
 
-					assert(b1->index() != b2->index());
-
-					if (!this->_relation.get(b1->index(), b2->index()))
+					if (!b1->inset().contains(a))
 						continue;
 
-					this->_relation.set(b1->index(), b2->index(), false);
+					StateListElem* elem2 = b2->states();
 
-					for (auto a : b2->inset()) {
+					do {
 
-						if (!b1->inset().contains(a))
-							continue;
+						for (auto& pre2 : this->_lts.pre(a)[elem2->index_]) {
 
-						StateListElem* elem2 = b2->states();
+							if (b1->counter().decr(a, pre2))
+								continue;
 
-						do {
+							if (!b1->remove()[a]) {
 
-							for (auto& pre2 : this->_lts.pre(a)[elem2->state_]) {
+								b1->remove()[a] = this->rcAlloc();
 
-								if (b1->counter().decr(a, pre2))
-									continue;
-
-								if (!b1->remove()[a]) {
-
-									b1->remove()[a] = this->rcAlloc();
-
-									this->_queue.push_back(std::make_pair(b1, a));
-
-								}
-
-								b1->remove()[a]->push_back(pre2);
+								this->_queue.push_back(std::make_pair(b1, a));
 
 							}
 
-							elem2 = elem2->next_;
+							b1->remove()[a]->push_back(pre2);
 
-						} while (elem2 != b2->states());
+						}
 
-					}
+						elem2 = elem2->next_;
+
+					} while (elem2 != b2->states());
 
 				}
 
 			}
 
 		}
-
-		this->rcFree(remove);
 
 	}
 
@@ -508,16 +509,16 @@ public:
 
 		assert(this->_index.size());
 
-		OLRTBlock* block = new OLRTBlock(0, &this->_index[0], lts, this->_key, this->_range);
+		OLRTBlock* block = new OLRTBlock(lts, 0, &this->_index[0], this->_key, this->_range);
 
 		size_t q = this->_index.size();
 
-		for (auto& elem : this->_index) {
+		for (auto& state : this->_index) {
 
-			elem.state_ = q % this->_index.size();
-			elem.block_ = block;
-			elem.next_ = &this->_index[(q + 1)%this->_index.size()];
-			elem.prev_ = &this->_index[(q - 1)%this->_index.size()];
+			state.index_ = q % this->_index.size();
+			state.block_ = block;
+			state.next_ = &this->_index[(q + 1)%this->_index.size()];
+			state.prev_ = &this->_index[(q - 1)%this->_index.size()];
 
 			++q;
 
@@ -588,7 +589,7 @@ public:
 
 				for (size_t a = 0; a < this->_lts.labels(); ++a) {
 
-					this->_delta1[a].contains(elem->state_)
+					this->_delta1[a].contains(elem->index_)
 						? pre[block->index()].push_back(a)
 						: noPre[a].push_back(block->index());
 
@@ -644,7 +645,7 @@ public:
 
 					do {
 
-						for (auto& q : this->_lts.pre(a)[elem->state_])
+						for (auto& q : this->_lts.pre(a)[elem->index_])
 							s.remove(q);
 
 						elem = elem->next_;
@@ -690,7 +691,7 @@ public:
 
 		assert(block->tmp());
 
-		this->_partition.push_back(new OLRTBlock(blockIndex, block, this->_lts));
+		this->_partition.push_back(new OLRTBlock(this->_lts, *block, blockIndex));
 
 		return true;
 
