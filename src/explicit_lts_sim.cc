@@ -325,11 +325,16 @@ class OLRTAlgorithm {
 	std::vector<std::vector<size_t>*> _removeCache;
 	
 	std::vector<size_t>* rcAlloc() {
+
 		if (this->_removeCache.empty())
 			return new std::vector<size_t>;
+
 		std::vector<size_t>* v = this->_removeCache.back();
+
 		this->_removeCache.pop_back();
+
 		return v->clear(), v;
+
 	}
 	
 	void rcFree(std::vector<size_t>* v) {
@@ -347,21 +352,26 @@ class OLRTAlgorithm {
 
 protected:
 
-	void fastSplit(const std::vector<size_t>& remove) {
+	template <class T>
+	void fastSplit(const T& remove) {
+
 		std::vector<OLRTBlock*> splitList;
-		for (std::vector<size_t>::const_iterator i = remove.begin(); i != remove.end(); ++i) {
-			StateListElem* elem = this->_index[*i];
+
+		for (auto q : remove) {
+			StateListElem* elem = this->_index[q];
 			elem->block()->moveToTmp(elem);
 			elem->block()->checkEmpty();
 		}
-		for (std::vector<size_t>::const_iterator i = remove.begin(); i != remove.end(); ++i) {
-			StateListElem* elem = this->_index[*i];
+
+		for (auto q : remove) {
+			StateListElem* elem = this->_index[q];
 			if (elem->block()->tmp() != NULL) {
 				splitList.push_back(elem->block());
 				OLRTBlock* block = new OLRTBlock(this->_relation.newEntry(true), elem->block(), this->_lts);
 				this->_partition.push_back(block);
 			}
 		}
+
 		for (std::vector<OLRTBlock*>::reverse_iterator i = splitList.rbegin(); i != splitList.rend(); ++i) {
 			OLRTBlock* bint = (*i)->intersection();
 			(*i)->intersection(NULL);
@@ -372,6 +382,7 @@ protected:
 			}
 			this->_relation.set(bint->index(), bint->index(), true);
 		}
+
 	}
 
 	void split(const std::vector<size_t>& remove, std::vector<OLRTBlock*>& removeList) {
@@ -435,7 +446,7 @@ protected:
 
 		for (std::vector<StateListElem*>::iterator i = prev.begin(); i != prev.end(); ++i) {
 
-			for (auto& pre : this->_lts.dataPre()[label][(*i)->state()]) {
+			for (auto& pre : this->_lts.pre(label)[(*i)->state()]) {
 
 				StateListElem* elem = this->_index[pre];
 
@@ -464,7 +475,7 @@ protected:
 
 						do {
 
-							for (auto& pre2 : this->_lts.dataPre()[a][elem2->state()]) {
+							for (auto& pre2 : this->_lts.pre(a)[elem2->state()]) {
 
 								if (b1->counter().decr(a, pre2))
 									continue;
@@ -473,7 +484,7 @@ protected:
 
 									b1->remove()[a] = this->rcAlloc();
 
-									this->_queue.push_back(std::pair<OLRTBlock*, size_t>(b1, a));
+									this->_queue.push_back(std::make_pair(b1, a));
 
 								}
 
@@ -553,55 +564,42 @@ public:
 
 			size_t x = 0;
 
-			for (SmartSet::iterator i = this->_delta1[a].begin(); i != this->_delta1[a].end(); ++i)
-				this->_key[a][*i] = x++;
+			for (auto q : this->_delta1[a])
+				this->_key[a][q] = x++;
 
 		}
 
-		std::vector<size_t> tmp2;
+		for (size_t a = 0; a < this->_lts.labels(); ++a)
 
-		for (size_t a = 0; a < this->_lts.labels(); ++a) {
+			this->fastSplit(this->_delta1[a]);
 
-			this->_delta1[a].buildVector(tmp2);
+		std::vector<std::vector<size_t>> pre(this->_partition.size()), noPre(this->_lts.labels());
 
-			this->fastSplit(tmp2);
+		for (auto& block : this->_partition) {
 
-		}
+			StateListElem* elem = block->states();
 
-		std::vector<std::vector<bool> > tmp[2];
+			do {
 
-		tmp[0].resize(this->_lts.labels(), std::vector<bool>(this->_partition.size(), true));
-		tmp[1].resize(this->_lts.labels(), std::vector<bool>(this->_partition.size(), true));
+				for (size_t a = 0; a < this->_lts.labels(); ++a) {
 
-		for (size_t a = 0; a < this->_lts.labels(); ++a) {
+					this->_delta1[a].contains(elem->state())
+						? pre[block->index()].push_back(a)
+						: noPre[a].push_back(block->index());
 
-			for (auto& block : this->_partition) {
+				}
 
-				StateListElem* elem = block->states();
+				elem = elem->next();
 
-				do {
-
-					tmp[(this->_delta1[a].contains(elem->state()))?(1):(0)][a][block->index()] = false;
-
-					elem = elem->next();
-
-				} while (elem != block->states());
-
-			}
+			} while (elem != block->states());
 
 		}
 
-		for (size_t a = 0; a < this->_lts.labels(); ++a) {
+		for (size_t b1 = 0; b1 < this->_partition.size(); ++b1) {
 
-			for (size_t b1 = 0; b1 < this->_partition.size(); ++b1) {
+			for (auto& a : pre[b1]) {
 
-				if (!tmp[0][a][b1])
-					continue;
-
-				for (size_t b2 = 0; b2 < this->_partition.size(); ++b2) {
-
-					if (!tmp[1][a][b2])
-						continue;
+				for (auto& b2 : noPre[a]) {
 
 					assert(b1 != b2);
 
@@ -609,22 +607,20 @@ public:
 
 				}
 
-			}			
+			}
 
-		}		
+		}
 
-		std::vector<std::vector<size_t> > post;
+		SmartSet s;
 
 //		for (std::vector<OLRTBlock*>::iterator i = this->_partition.begin(); i != this->_partition.end(); ++i) {
 		for (std::vector<OLRTBlock*>::reverse_iterator i = this->_partition.rbegin(); i != this->_partition.rend(); ++i) {
 
 			for (auto a : (*i)->inset()) {
 
-				this->_lts.buildPost(a, post);
-
 				for (auto q : this->_delta1[a]) {
 
-					for (auto r : post[q]) {
+					for (auto r : this->_lts.post(a)[q]) {
 
 						if (this->_relation.get((*i)->index(), this->_index[r]->block()->index()))
 							(*i)->counter().incr(a, q);
@@ -633,8 +629,7 @@ public:
 
 				}
 
-				for (size_t k = 0; k < this->_lts.states(); ++k)
-					this->_tmp[k] = this->_delta1[a].contains(k);
+				s.assignFlat(this->_delta1[a]);
 
 				for (auto& b2 : this->_partition) {
 
@@ -645,8 +640,8 @@ public:
 
 					do {
 
-						for (auto& q : this->_lts.dataPre()[a][elem->state()])
-							this->_tmp[q] = false;
+						for (auto& q : this->_lts.pre(a)[elem->state()])
+							s.remove(q);
 
 						elem = elem->next();
 
@@ -654,24 +649,14 @@ public:
 
 				}
 
-				std::vector<size_t>* r = this->rcAlloc();
+				if (s.empty())
+					continue;
 
-				for (size_t k = 0; k < this->_lts.states(); ++k) {
+				(*i)->remove()[a] = new std::vector<size_t>(s.begin(), s.end());
 
-					if (this->_tmp[k])
-						r->push_back(k);
+				assert(s.size() == (*i)->remove()[a]->size());
 
-				}
-
-				if (!r->empty()) {
-
-				    (*i)->remove()[a] = r;
-
-					this->_queue.push_back(std::pair<OLRTBlock*, size_t>(*i, a));
-
-				} else
-
-					this->rcFree(r);					
+				this->_queue.push_back(std::make_pair(*i, a));
 
 			}
 
