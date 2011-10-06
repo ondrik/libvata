@@ -11,6 +11,7 @@
 #include <ostream>
 #include <vector>
 #include <algorithm>
+#include <memory>
 
 #include <vata/explicit_lts_sim.hh>
 #include <vata/util/binary_relation.hh>
@@ -20,6 +21,80 @@
 using VATA::Util::BinaryRelation;
 using VATA::Util::SmartSet;
 using VATA::Util::LTS;
+
+template <class T>
+class CachingAllocator {
+
+public:
+
+	typedef T* Ptr;
+	typedef std::shared_ptr<T> SharedPtr;
+
+protected:
+
+	struct DeleteElementF {
+
+		CachingAllocator& allocator_;
+
+		DeleteElementF(CachingAllocator& allocator) : allocator_(allocator) {}
+
+		void operator()(Ptr v) {
+
+			this->allocator_.reclaim(v);
+
+		}
+
+	};
+
+private:
+
+	std::vector<T*> store_;
+
+public:
+
+	CachingAllocator() : store_() {}
+
+	~CachingAllocator() {
+
+		for (auto& element : this->store_)
+			delete element;
+
+	}
+
+	Ptr get() {
+
+		if (this->store_.empty())
+			return new T();
+
+		Ptr ptr = this->store_.back();
+
+		this->store_.pop_back();
+
+		return ptr;
+
+	}
+
+	void reclaim(Ptr ptr) {
+
+		this->store_.push_back(ptr);
+
+	}
+
+	SharedPtr getShared() {
+
+		return SharedPtr(this->get(), DeleteElementF(*this));
+
+	}
+
+	SharedPtr getShared(Ptr ptr) {
+
+		return SharedPtr(ptr, DeleteElementF(*this));
+
+	}
+
+};
+
+typedef CachingAllocator<std::vector<size_t>> VectorAllocator;
 
 class Counter {
 
@@ -114,7 +189,7 @@ struct StateListElem {
 
 		if (this == this->next_)
 
-			src = NULL;
+			src = nullptr;
 
 		else {
 
@@ -149,7 +224,7 @@ class OLRTBlock {
 
 	size_t _index;
 	StateListElem* _states;
-	std::vector<std::vector<size_t>*> _remove;
+	std::vector<VectorAllocator::Ptr> _remove;
 	Counter _counter;
 	SmartSet _inset;
 	StateListElem* _tmp;
@@ -163,7 +238,7 @@ public:
 	OLRTBlock(const LTS& lts, size_t index, StateListElem* states,
 		const std::vector<std::vector<size_t> >& key, const std::vector<size_t>& range) :
 		_index(index), _states(states), _remove(lts.labels()), _counter(lts.labels(), key, range),
-		_inset(lts.labels()), _tmp(NULL) {
+		_inset(lts.labels()), _tmp(nullptr) {
 
 		for (size_t q = 0; q < lts.states(); ++q) {
 
@@ -175,12 +250,12 @@ public:
 	}
 	
 	OLRTBlock(const LTS& lts, OLRTBlock& parent, size_t index) : _index(index),
-		_states(parent._tmp), _remove(lts.labels(), NULL), _counter(parent._counter),
-		_inset(lts.labels()), _tmp(NULL) {
+		_states(parent._tmp), _remove(lts.labels()), _counter(parent._counter),
+		_inset(lts.labels()), _tmp(nullptr) {
 
 		assert(this->_states);
 
-		parent._tmp = NULL;
+		parent._tmp = nullptr;
 
 		StateListElem* elem = this->_states;
 
@@ -217,11 +292,11 @@ public:
 	
 	bool checkEmpty() {
 
-		if (this->_states != NULL)
+		if (this->_states)
 			return false;
 
 		this->_states = this->_tmp;
-		this->_tmp = NULL;
+		this->_tmp = nullptr;
 
 		return true;
 
@@ -235,7 +310,7 @@ public:
 		return this->_inset;
 	}
 	
-	std::vector<std::vector<size_t>*>& remove() {
+	std::vector<VectorAllocator::Ptr>& remove() {
 		return this->_remove;
 	}
 	
@@ -268,6 +343,9 @@ public:
 class OLRTAlgorithm {
 
 	const LTS& _lts;
+
+	VectorAllocator allocator_;
+
 	std::vector<OLRTBlock*> _partition;
 	BinaryRelation _relation;
 	std::vector<StateListElem> _index;
@@ -276,36 +354,30 @@ class OLRTAlgorithm {
 	std::vector<SmartSet> _delta1;
 	std::vector<std::vector<size_t> > _key;
 	std::vector<size_t> _range;
-	
-	std::vector<std::vector<size_t>*> _removeCache;
-	
-	std::vector<size_t>* rcAlloc() {
-
-		if (this->_removeCache.empty())
-			return new std::vector<size_t>;
-
-		std::vector<size_t>* v = this->_removeCache.back();
-
-		this->_removeCache.pop_back();
-
-		return v->clear(), v;
-
-	}
-	
-	void rcFree(std::vector<size_t>* v) {
-		this->_removeCache.push_back(v);
-	}
-
-	void rcCollect() {
-		for (std::vector<std::vector<size_t>*>::iterator i = this->_removeCache.begin(); i != this->_removeCache.end(); ++i)
-			delete *i;
-	}
 
 	OLRTAlgorithm(const OLRTAlgorithm&);
 
 	OLRTAlgorithm& operator=(const OLRTAlgorithm&);
 
 protected:
+
+	VectorAllocator::Ptr getRemove(OLRTBlock& block, size_t label) {
+
+		auto& remove = block.remove()[label];
+
+		if (!remove) {
+
+			this->_queue.push_back(std::make_pair(&block, label));
+
+			remove = this->allocator_.get();
+			remove->clear();
+
+		}
+
+		return remove;
+
+	}
+
 
 	template <class T>
 	void buildPre(T& pre, StateListElem* states, size_t label) const {
@@ -422,10 +494,10 @@ protected:
 
 				if (block->remove()[a]) {
 
-					newBlock->remove()[a] = this->rcAlloc();
-					*newBlock->remove()[a] = *block->remove()[a];
-
 					this->_queue.push_back(std::make_pair(newBlock, a));
+
+					newBlock->remove()[a] = this->allocator_.get();
+					*newBlock->remove()[a] = *block->remove()[a];
 
 				}
 
@@ -439,11 +511,11 @@ protected:
 
 		assert(block);
 
-		std::vector<size_t>* remove = block->remove()[label];
+		auto remove = block->remove()[label];
 
 		assert(remove);
 
-		block->remove()[label] = NULL;
+		block->remove()[label] = nullptr;
 
 		std::vector<OLRTBlock*> preList, removeList;
 
@@ -451,7 +523,7 @@ protected:
 
 		this->split(removeList, *remove);
 
-		this->rcFree(remove);
+		this->allocator_.reclaim(remove);
 
 		for (auto& b1 : preList) {
 
@@ -475,18 +547,8 @@ protected:
 
 						for (auto& pre2 : this->_lts.pre(a)[elem2->index_]) {
 
-							if (b1->counter().decr(a, pre2))
-								continue;
-
-							if (!b1->remove()[a]) {
-
-								b1->remove()[a] = this->rcAlloc();
-
-								this->_queue.push_back(std::make_pair(b1, a));
-
-							}
-
-							b1->remove()[a]->push_back(pre2);
+							if (!b1->counter().decr(a, pre2))
+								this->getRemove(*b1, a)->push_back(pre2);
 
 						}
 
@@ -504,8 +566,8 @@ protected:
 
 public:
 
-	OLRTAlgorithm(const LTS& lts) : _lts(lts), _partition(), _relation(), _index(lts.states()),
-		_queue(), _delta(), _delta1(), _key(), _range(), _removeCache() {
+	OLRTAlgorithm(const LTS& lts) : _lts(lts), allocator_(), _partition(), _relation(),
+		_index(lts.states()), _queue(), _delta(), _delta1(), _key(), _range() /*_removeCache()*/ {
 
 		assert(this->_index.size());
 
@@ -532,8 +594,6 @@ public:
 
 		for (auto& block : this->_partition)
 			delete block;
-
-		this->rcCollect();
 
 	}
 
@@ -657,11 +717,11 @@ public:
 				if (s.empty())
 					continue;
 
+				this->_queue.push_back(std::make_pair(*i, a));
+
 				(*i)->remove()[a] = new std::vector<size_t>(s.begin(), s.end());
 
 				assert(s.size() == (*i)->remove()[a]->size());
-
-				this->_queue.push_back(std::make_pair(*i, a));
 
 			}
 
