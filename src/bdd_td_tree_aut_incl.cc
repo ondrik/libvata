@@ -34,8 +34,7 @@ bool VATA::CheckDownwardInclusion(
 bool VATA::CheckUpwardInclusion(const BDDTopDownTreeAut& smaller,
 	const BDDTopDownTreeAut& bigger)
 {
-	assert(&smaller != nullptr);
-	assert(&bigger != nullptr);
+	if ((&smaller == nullptr) || (&bigger == nullptr)) { }
 
 	throw std::runtime_error("Unimplemented");
 }

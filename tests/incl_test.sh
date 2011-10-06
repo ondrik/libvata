@@ -14,7 +14,36 @@ SCRIPTPATH=`dirname $SCRIPT`
 #METHODS=("symdown" "symdownX" "downT")
 #METHODS=("symdown" "symdown-ul" "olddown" "olddown-ul" "downT" "downSimT" "upT")
 #METHODS=("symdown" "symdown-ul" "expldown" "downT" "downSimT" "upT")
-METHODS=("explup" "expldown" "expldown-optC" "symup" "symdown" "symdown-sim" "symdown-optC" "symdown-sim-optC")
+#METHODS=("explup" "explup-sim" "expldown" "expldown-sim" "expldown-optC" "expldown-sim-optC" "symup" "symdown" "symdown-sim" "symdown-optC" "symdown-sim-optC")
+
+METHODS=( 
+  "expldown"
+  "expldown-sim"
+  "expldown-sim-nosimtime"
+  "expldown-optC"
+  "expldown-sim-optC"
+  "expldown-sim-optC-nosimtime"
+  "explup"
+  "explup-sim"
+  "explup-sim-nosimtime"
+  "symdown"
+  "symdown-sim"
+  "symdown-sim-nosimtime"
+  "symdown-optC"
+  "symdown-sim-optC"
+  "symdown-sim-optC-nosimtime"
+  "symup"
+  "symdownX"
+  "symdown-simX"
+  "symdown-sim-nosimtimeX"
+  "symupX"
+  "expldownT"
+  "expldown-simT"
+  "expldown-sim-nosimtimeT"
+  "explupT"
+  "explup-simT"
+  "explup-sim-nosimtimeT"
+)
 
 ################################# FUNCTIONS ##################################
 

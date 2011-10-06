@@ -324,14 +324,15 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 
 StateBinaryRelation VATA::ComputeUpwardSimulation(const BDDBottomUpTreeAut& aut)
 {
-	assert(&aut != nullptr);
+	if (&aut == nullptr) { }
 
 	throw std::runtime_error("Unimplemented");
 }
 
-StateBinaryRelation VATA::ComputeUpwardSimulation(const BDDBottomUpTreeAut& aut, const size_t& /* size */)
+StateBinaryRelation VATA::ComputeUpwardSimulation(const BDDBottomUpTreeAut& aut,
+	const size_t& size)
 {
-	assert(&aut != nullptr);
+	if ((&aut == nullptr) || (&size == nullptr)) { }
 
 	throw std::runtime_error("Unimplemented");
 }

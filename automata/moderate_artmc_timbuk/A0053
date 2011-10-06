@@ -1,0 +1,177 @@
+Ops yred:2 yblack:2 yUNDEF:2 yNULL:2 xyred:2 xyblack:2 xyUNDEF:2 xyNULL:2 xxpyred:2 xxpyblack:2 xxpyUNDEF:2 xxpyNULL:2 xxpxppyred:2 xxpxppyblack:2 xxpxppyUNDEF:2 xxpxppyNULL:2 xxpxppred:2 xxpxppblack:2 xxpxppUNDEF:2 xxpxppNULL:2 xxpred:2 xxppyred:2 xxppyblack:2 xxppyUNDEF:2 xxppyNULL:2 xxppred:2 xxppblack:2 xxppUNDEF:2 xxppNULL:2 xxpblack:2 xxpUNDEF:2 xxpNULL:2 xred:2 xpyred:2 xpyblack:2 xpyUNDEF:2 xpyNULL:2 xpxppyred:2 xpxppyblack:2 xpxppyUNDEF:2 xpxppyNULL:2 xpxppred:2 xpxppblack:2 xpxppUNDEF:2 xpxppNULL:2 xpred:2 xppyred:2 xppyblack:2 xppyUNDEF:2 xppyNULL:2 xppred:2 xppblack:2 xppUNDEF:2 xppNULL:2 xpblack:2 xpUNDEF:2 xpNULL:2 xblack:2 xUNDEF:2 xNULL:2 rootyred:2 rootyblack:2 rootyUNDEF:2 rootyNULL:2 rootxyred:2 rootxyblack:2 rootxyUNDEF:2 rootxyNULL:2 rootxxpyred:2 rootxxpyblack:2 rootxxpyUNDEF:2 rootxxpyNULL:2 rootxxpxppyred:2 rootxxpxppyblack:2 rootxxpxppyUNDEF:2 rootxxpxppyNULL:2 rootxxpxppred:2 rootxxpxppblack:2 rootxxpxppUNDEF:2 rootxxpxppNULL:2 rootxxpred:2 rootxxppyred:2 rootxxppyblack:2 rootxxppyUNDEF:2 rootxxppyNULL:2 rootxxppred:2 rootxxppblack:2 rootxxppUNDEF:2 rootxxppNULL:2 rootxxpblack:2 rootxxpUNDEF:2 rootxxpNULL:2 rootxred:2 rootxpyred:2 rootxpyblack:2 rootxpyUNDEF:2 rootxpyNULL:2 rootxpxppyred:2 rootxpxppyblack:2 rootxpxppyUNDEF:2 rootxpxppyNULL:2 rootxpxppred:2 rootxpxppblack:2 rootxpxppUNDEF:2 rootxpxppNULL:2 rootxpred:2 rootxppyred:2 rootxppyblack:2 rootxppyUNDEF:2 rootxppyNULL:2 rootxppred:2 rootxppblack:2 rootxppUNDEF:2 rootxppNULL:2 rootxpblack:2 rootxpUNDEF:2 rootxpNULL:2 rootxblack:2 rootxUNDEF:2 rootxNULL:2 rootred:2 rootblack:2 rootUNDEF:2 rootNULL:2 red:2 normal:2 bot2:2 bot0:0 black:2 bad:2 UNDEF:2 NULL:2 
+
+
+
+
+Automaton A0053
+
+States q52:0 q51:0 q50:0 q49:0 q48:0 q47:0 q46:0 q45:0 q44:0 q43:0 q42:0 q41:0 q40:0 q39:0 q38:0 q37:0 q36:0 q35:0 q34:0 q33:0 q32:0 q31:0 q30:0 q29:0 q28:0 q27:0 q26:0 q25:0 q24:0 q23:0 q22:0 q21:0 q20:0 q19:0 q18:0 q17:0 q16:0 q15:0 q14:0 q13:0 q12:0 q11:0 q10:0 q9:0 q8:0 q7:0 q6:0 q5:0 q4:0 q3:0 q2:0 q1:0 q0:0 
+
+Final States q47 q5 
+
+Transitions 
+yblack(q1,q19) -> q22
+yblack(q9,q9) -> q18
+yblack(q11,q9) -> q18
+yblack(q14,q14) -> q18
+yblack(q19,q19) -> q22
+yblack(q24,q24) -> q22
+xxpxppyNULL(q10,q14) -> q16
+xxppyNULL(q23,q24) -> q25
+xppred(q21,q22) -> q0
+xppred(q22,q19) -> q3
+xpblack(q0,q1) -> q20
+xpblack(q0,q19) -> q20
+xpblack(q7,q1) -> q6
+xpblack(q7,q3) -> q20
+xpblack(q7,q19) -> q6
+xpblack(q11,q9) -> q17
+xNULL(q12,q24) -> q25
+xNULL(q15,q14) -> q16
+rootxppblack(q17,q18) -> q15
+rootxpblack(q0,q1) -> q12
+rootxpblack(q0,q19) -> q12
+rootxpblack(q7,q1) -> q23
+rootxpblack(q7,q3) -> q12
+rootxpblack(q7,q19) -> q23
+rootblack(q2,q1) -> q23
+rootblack(q2,q3) -> q12
+rootblack(q2,q19) -> q23
+rootblack(q6,q1) -> q23
+rootblack(q6,q19) -> q23
+rootblack(q8,q9) -> q10
+rootblack(q8,q11) -> q10
+rootblack(q9,q9) -> q10
+rootblack(q11,q9) -> q10
+rootblack(q11,q11) -> q10
+rootblack(q20,q1) -> q12
+rootblack(q20,q19) -> q12
+red(q1,q19) -> q1
+red(q2,q19) -> q2
+red(q6,q19) -> q2
+red(q6,q19) -> q6
+red(q8,q9) -> q8
+red(q9,q9) -> q11
+red(q11,q9) -> q11
+red(q19,q19) -> q1
+red(q19,q19) -> q7
+red(q20,q19) -> q20
+normal(q4,q24) -> q5
+normal(q13,q14) -> q5
+bot2(q14,q14) -> q14
+bot2(q14,q14) -> q24
+bot0 -> q14
+black(q1,q19) -> q19
+black(q1,q19) -> q21
+black(q2,q3) -> q20
+black(q2,q19) -> q6
+black(q6,q1) -> q6
+black(q6,q19) -> q6
+black(q8,q9) -> q8
+black(q8,q11) -> q8
+black(q9,q9) -> q9
+black(q11,q9) -> q8
+black(q11,q9) -> q9
+black(q11,q11) -> q8
+black(q14,q14) -> q9
+black(q19,q19) -> q19
+black(q20,q1) -> q20
+black(q20,q19) -> q20
+black(q24,q24) -> q19
+UNDEF(q16,q14) -> q13
+UNDEF(q25,q24) -> q4
+yblack(q27,q35) -> q39
+yblack(q31,q32) -> q34
+yblack(q32,q32) -> q34
+yblack(q35,q35) -> q39
+yblack(q41,q41) -> q39
+yblack(q45,q45) -> q39
+yblack(q48,q45) -> q39
+yblack(q50,q50) -> q34
+xxppyNULL(q40,q41) -> q42
+xppred(q37,q39) -> q26
+xppred(q39,q35) -> q43
+xppred(q39,q45) -> q43
+xppred(q46,q39) -> q26
+xpblack(q26,q27) -> q36
+xpblack(q26,q35) -> q36
+xpblack(q26,q45) -> q36
+xpblack(q26,q48) -> q36
+xpblack(q31,q32) -> q33
+xpblack(q48,q43) -> q36
+xpblack(q48,q45) -> q51
+xpblack(q52,q27) -> q51
+xpblack(q52,q35) -> q51
+xpblack(q52,q43) -> q36
+xNULL(q29,q50) -> q28
+xNULL(q30,q41) -> q42
+rootxppblack(q33,q34) -> q29
+rootxpblack(q26,q27) -> q30
+rootxpblack(q26,q35) -> q30
+rootxpblack(q26,q45) -> q30
+rootxpblack(q26,q48) -> q30
+rootxpblack(q48,q43) -> q30
+rootxpblack(q48,q45) -> q40
+rootxpblack(q48,q48) -> q40
+rootxpblack(q52,q27) -> q40
+rootxpblack(q52,q35) -> q40
+rootxpblack(q52,q43) -> q30
+rootblack(q36,q27) -> q30
+rootblack(q36,q35) -> q30
+rootblack(q36,q45) -> q30
+rootblack(q36,q48) -> q30
+rootblack(q38,q27) -> q40
+rootblack(q38,q35) -> q40
+rootblack(q38,q43) -> q30
+rootblack(q38,q45) -> q40
+rootblack(q38,q48) -> q40
+rootblack(q51,q27) -> q40
+rootblack(q51,q35) -> q40
+rootblack(q51,q45) -> q40
+red(q27,q35) -> q27
+red(q31,q32) -> q31
+red(q32,q32) -> q31
+red(q35,q35) -> q27
+red(q35,q35) -> q52
+red(q36,q35) -> q36
+red(q36,q45) -> q36
+red(q38,q35) -> q38
+red(q38,q45) -> q38
+red(q45,q45) -> q48
+red(q51,q35) -> q38
+red(q51,q35) -> q51
+red(q51,q45) -> q38
+normal(q44,q41) -> q47
+normal(q49,q50) -> q47
+bot2(q50,q50) -> q41
+bot2(q50,q50) -> q50
+bot0 -> q50
+black(q27,q35) -> q35
+black(q27,q35) -> q37
+black(q31,q32) -> q32
+black(q32,q32) -> q32
+black(q35,q35) -> q35
+black(q36,q27) -> q36
+black(q36,q35) -> q36
+black(q36,q45) -> q36
+black(q36,q48) -> q36
+black(q38,q35) -> q51
+black(q38,q43) -> q36
+black(q38,q45) -> q51
+black(q41,q41) -> q35
+black(q41,q41) -> q45
+black(q45,q45) -> q45
+black(q48,q45) -> q45
+black(q48,q45) -> q46
+black(q50,q50) -> q32
+black(q51,q27) -> q51
+black(q51,q35) -> q51
+black(q51,q45) -> q51
+UNDEF(q28,q50) -> q49
+UNDEF(q42,q41) -> q44
+
+
+
+
+
+
