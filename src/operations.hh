@@ -71,27 +71,38 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	{
 		Automaton unionAut = VATA::UnionDisjunctStates(smaller, bigger);
 
-
-
-		if (options["timeS"] == "no")
-		{
-			clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
-		}
-		else if (options["timeS"] == "yes")
-		{ }
-		else
-		{
-			throw optErrorEx;
-		}
-
 		if (options["dir"] == "up")
 		{
 			AutBase::StateBinaryRelation sim = ComputeUpwardSimulation(unionAut, states);
+
+			if (options["timeS"] == "no")
+			{
+				clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
+			}
+			else if (options["timeS"] == "yes")
+			{ }
+			else
+			{
+				throw optErrorEx;
+			}
+
 			return VATA::CheckUpwardInclusionWithPreorder(smaller, bigger, sim);
 		}
 		else if (options["dir"] == "down")
 		{
 			AutBase::StateBinaryRelation sim = ComputeDownwardSimulation(unionAut, states);
+
+			if (options["timeS"] == "no")
+			{
+				clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
+			}
+			else if (options["timeS"] == "yes")
+			{ }
+			else
+			{
+				throw optErrorEx;
+			}
+
 			return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, sim);
 		}
 		else
