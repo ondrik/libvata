@@ -38,8 +38,6 @@ public:
 	Counter& operator=(const Counter& rhs) {
 
 		this->_data = rhs._data;
-//		this->_key = rhs._key;
-//		this->_range = rhs._range;
 
 		return *this;
 
@@ -66,15 +64,7 @@ public:
 		return --this->_data[label][this->_key[label][state]];
 
 	}
-/*
-	const std::vector<size_t>& getRow(size_t label) const {
 
-		assert(label < this->_data.size());
-
-		return this->_data[label]; 
-
-	}
-*/
 	void copyRow(size_t label, const Counter& c) {
 
 		assert(label < this->_data.size());
@@ -111,81 +101,48 @@ public:
 
 };
 
-class OLRTBlock;
-
-class StateListElem {
+struct StateListElem {
 	
-	size_t _state;
-	OLRTBlock* _block;
-	StateListElem* _next;
-	StateListElem* _prev;
+	size_t state_;
+	class OLRTBlock* block_;
+	StateListElem* next_;
+	StateListElem* prev_;
 
-protected:
+	void move(StateListElem*& src, StateListElem*& dst) {
 
-	void insert(StateListElem*& dst) {
-		if (!dst) {
-			dst = this;
-			this->_next = this;
-			this->_prev = this;
-		} else {
-			this->_prev = dst->_prev;
-			this->_next = dst;
-			this->_prev->_next = this;
-			this->_next->_prev = this;
-		}	
-	}
-
-	StateListElem(const StateListElem&);
-
-	StateListElem& operator=(const StateListElem&);
-
-public:
-
-	StateListElem(size_t state, OLRTBlock* block)
-		: _state(state), _block(block), _next(this), _prev(this) {}
-
-	StateListElem(size_t state, OLRTBlock* block, StateListElem*& dst)
-		: _state(state), _block(block), _next(nullptr), _prev(nullptr) {
-		this->insert(dst);
-	}
-	
-	~StateListElem() {
-		if (this != this->_next) {
-			this->_next->_prev = this->_prev;
-			this->_prev->_next = this->_next;
-		}
-	}
-
-	void moveToList(StateListElem*& src, StateListElem*& dst) {
 		assert(src);
-		if (this == this->_next)
+
+		if (this == this->next_)
+
 			src = NULL;
+
 		else {
-			src = this->_next;
-			this->_next->_prev = this->_prev;
-			this->_prev->_next = this->_next;
+
+			src = this->next_;
+
+			this->next_->prev_ = this->prev_;
+			this->prev_->next_ = this->next_;
+
 		}
-		this->insert(dst);
+
+		if (!dst) {
+
+			dst = this;
+
+			this->next_ = this;
+			this->prev_ = this;
+
+		} else {
+
+			this->next_ = dst;
+			this->prev_ = dst->prev_;
+			this->next_->prev_ = this;
+			this->prev_->next_ = this;
+
+		}
+
 	}
-	
-	size_t state() const {
-		return this->_state;
-	}
-	
-	OLRTBlock* block() const {
-/*		if (!this->_block)
-			throw std::runtime_error("StateListElem::block() : block empty");*/
-		return this->_block;
-	}
-	
-	void block(OLRTBlock* b) {
-		this->_block = b;
-	}
-	
-	StateListElem* next() const {
-		return this->_next;
-	}
-	
+
 };
 
 class OLRTBlock {
@@ -194,7 +151,6 @@ class OLRTBlock {
 	StateListElem* _states;
 	std::vector<std::vector<size_t>*> _remove;
 	Counter _counter;
-	OLRTBlock* _intersection;
 	SmartSet _inset;
 	StateListElem* _tmp;
 
@@ -204,36 +160,47 @@ class OLRTBlock {
 
 public:
 
-	OLRTBlock(size_t index, const LTS& lts, const std::vector<std::vector<size_t> >& key, const std::vector<size_t>& range)
-		: _index(index), _states(NULL), _remove(lts.labels()), _counter(lts.labels(), key, range), _intersection(NULL), _inset(lts.labels()), _tmp(NULL) {
-		for (size_t i = 0; i < lts.states(); ++i) {
-			new StateListElem(i, this, this->_states);
-			for (SmartSet::iterator j = lts.lPre()[i].begin(); j != lts.lPre()[i].end(); ++j)
-				this->_inset.add(*j);
+	OLRTBlock(size_t index, StateListElem* states, const LTS& lts,
+		const std::vector<std::vector<size_t> >& key, const std::vector<size_t>& range) :
+		_index(index), _states(states), _remove(lts.labels()), _counter(lts.labels(), key, range),
+		_inset(lts.labels()), _tmp(NULL) {
+
+		for (size_t q = 0; q < lts.states(); ++q) {
+
+			for (auto& a : lts.bwLabels(q))
+				this->_inset.add(a);
+
 		}
+
 	}
 	
 	OLRTBlock(size_t index, OLRTBlock* parent, const LTS& lts)
-		: _index(index), _states(parent->_tmp), _remove(lts.labels(), NULL), _counter(parent->_counter), _intersection(NULL), _inset(lts.labels()), _tmp(NULL) {
+		: _index(index), _states(parent->_tmp), _remove(lts.labels(), NULL),
+		_counter(parent->_counter), _inset(lts.labels()), _tmp(NULL) {
+
+		assert(parent->_tmp);
+
 		parent->_tmp = NULL;
-		parent->_intersection = this;
+
 		StateListElem* elem = this->_states;
+
 		do {
-			for (SmartSet::iterator i = lts.lPre()[elem->state()].begin(); i != lts.lPre()[elem->state()].end(); ++i) {
-				parent->_inset.remove(*i);
-				this->_inset.add(*i);
+
+			for (auto& a : lts.bwLabels(elem->state_)) {
+
+				parent->_inset.removeStrict(a);
+
+				this->_inset.add(a);
+
 			}
-			elem->block(this);
-			elem = elem->next();
+
+			elem->block_ = this;
+			elem = elem->next_;
+
 		} while (elem != this->_states);
+
 	}
 	
-	~OLRTBlock() {
-		while (this->_states != this->_states->next())
-			delete this->_states->next();
-		delete this->_states;
-	}
-
 	StateListElem* states() {
 		return this->_states;
 	}
@@ -243,38 +210,41 @@ public:
 	}
 
 	void storeStates(std::vector<StateListElem*>& v) const {
-		v.clear();
+
 		StateListElem* elem = this->_states;
+
 		do {
+
 			v.push_back(elem);
-			elem = elem->next();
+
+			elem = elem->next_;
+
 		} while (elem != this->_states);
+
 	}
 	
-	void moveToTmp(StateListElem* elem) {
-		elem->moveToList(this->_states, this->_tmp);	
+	void moveToTmp(StateListElem& elem) {
+
+		elem.move(this->_states, this->_tmp);	
+
 	}
 	
 	bool checkEmpty() {
+
 		if (this->_states != NULL)
 			return false;
+
 		this->_states = this->_tmp;
 		this->_tmp = NULL;
+
 		return true;
+
 	}
 	
 	Counter& counter() {
 		return this->_counter;
 	}
-	
-	OLRTBlock* intersection() const {
-		return this->_intersection;
-	}
 
-	void intersection(OLRTBlock* b) {
-		this->_intersection = b;
-	}
-	
 	SmartSet& inset() {
 		return this->_inset;
 	}
@@ -297,9 +267,9 @@ public:
 
 		do {
 
-			os << " " << elem->state();
+			os << " " << elem->state_;
 
-			elem = elem->next();
+			elem = elem->next_;
 
 		} while (elem != block._states);
 
@@ -314,9 +284,8 @@ class OLRTAlgorithm {
 	const LTS& _lts;
 	std::vector<OLRTBlock*> _partition;
 	BinaryRelation _relation;
-	std::vector<StateListElem*> _index;
+	std::vector<StateListElem> _index;
 	std::vector<std::pair<OLRTBlock*, size_t> > _queue;
-	std::vector<bool> _tmp;
 	std::vector<SmartSet> _delta;
 	std::vector<SmartSet> _delta1;
 	std::vector<std::vector<size_t> > _key;
@@ -352,78 +321,102 @@ class OLRTAlgorithm {
 
 protected:
 
-	template <class T>
-	void fastSplit(const T& remove) {
+	template <class T1, class T2>
+	void internalSplit(T1& modifiedBlocks, const T2& remove) {
 
-		std::vector<OLRTBlock*> splitList;
+		std::vector<bool> blockMask(this->_partition.size(), false);
 
-		for (auto q : remove) {
-			StateListElem* elem = this->_index[q];
-			elem->block()->moveToTmp(elem);
-			elem->block()->checkEmpty();
-		}
+		for (auto& q : remove) {
 
-		for (auto q : remove) {
-			StateListElem* elem = this->_index[q];
-			if (elem->block()->tmp() != NULL) {
-				splitList.push_back(elem->block());
-				OLRTBlock* block = new OLRTBlock(this->_relation.newEntry(true), elem->block(), this->_lts);
-				this->_partition.push_back(block);
-			}
-		}
+			assert(q < this->_index.size());
 
-		for (std::vector<OLRTBlock*>::reverse_iterator i = splitList.rbegin(); i != splitList.rend(); ++i) {
-			OLRTBlock* bint = (*i)->intersection();
-			(*i)->intersection(NULL);
-//			for (std::vector<OLRTBlock*>::iterator j = this->_partition.begin(); j != this->_partition.end(); ++j) {
-			for (std::vector<OLRTBlock*>::reverse_iterator j = this->_partition.rbegin(); j != this->_partition.rend(); ++j) {
-				this->_relation.set((*j)->index(), bint->index(), this->_relation.get((*j)->index(), (*i)->index()));
-				this->_relation.set(bint->index(), (*j)->index(), this->_relation.get((*i)->index(), (*j)->index()));
-			}
-			this->_relation.set(bint->index(), bint->index(), true);
+			StateListElem& elem = this->_index[q];
+
+			OLRTBlock* block = elem.block_;
+
+			assert(block);
+
+			block->moveToTmp(elem);
+
+			assert(block->index() < this->_partition.size());
+
+			if (blockMask[block->index()])
+				continue;
+
+			blockMask[block->index()] = true;;
+
+			modifiedBlocks.push_back(block);
+
 		}
 
 	}
 
-	void split(const std::vector<size_t>& remove, std::vector<OLRTBlock*>& removeList) {
-		removeList.clear();
-		std::vector<OLRTBlock*> splitList;
-//		for (std::vector<int>::const_iterator i = remove.begin(); i != remove.end(); ++i) {
-		for (std::vector<size_t>::const_reverse_iterator i = remove.rbegin(); i != remove.rend(); ++i) {
-			StateListElem* elem = this->_index[*i];
-			elem->block()->moveToTmp(elem);
-			if (elem->block()->checkEmpty())
-				removeList.push_back(elem->block());
+	template <class T>
+	void fastSplit(const T& remove) {
+
+		std::vector<OLRTBlock*> modifiedBlocks;
+
+		this->internalSplit(modifiedBlocks, remove);
+
+		for (auto& block : modifiedBlocks) {
+
+			block->checkEmpty();
+
+			if (!block->tmp())
+				continue;
+
+			size_t newIndex = this->_relation.split(block->index(), true);
+
+			this->_partition.push_back(new OLRTBlock(newIndex, block, this->_lts));
+
 		}
-//		for (std::vector<int>::const_iterator i = remove.begin(); i != remove.end(); ++i) {
-		for (std::vector<size_t>::const_reverse_iterator i = remove.rbegin(); i != remove.rend(); ++i) {
-			StateListElem* elem = this->_index[*i];
-			if (elem->block()->tmp() != NULL) {
-				splitList.push_back(elem->block());
-				OLRTBlock* block = new OLRTBlock(this->_relation.newEntry(true), elem->block(), this->_lts);
-				this->_partition.push_back(block);
+
+	}
+
+	template <class T1, class T2>
+	void split(T1& removeList, const T2& remove) {
+
+		std::vector<OLRTBlock*> modifiedBlocks;
+
+		this->internalSplit(modifiedBlocks, remove);
+
+		for (auto& block : modifiedBlocks) {
+
+			if (block->checkEmpty()) {
+
 				removeList.push_back(block);
+
+				continue;
+
 			}
-		}
-//		for (std::vector<OLRTBlock*>::iterator i = splitList.begin(); i != splitList.end(); ++i) {
-		for (std::vector<OLRTBlock*>::reverse_iterator i = splitList.rbegin(); i != splitList.rend(); ++i) {
-			OLRTBlock* bint = (*i)->intersection();
-			(*i)->intersection(NULL);
-//			for (std::vector<OLRTBlock*>::iterator j = this->_partition.begin(); j != this->_partition.end(); ++j) {
-			for (std::vector<OLRTBlock*>::reverse_iterator j = this->_partition.rbegin(); j != this->_partition.rend(); ++j) {
-				this->_relation.set((*j)->index(), bint->index(), this->_relation.get((*j)->index(), (*i)->index()));
-				this->_relation.set(bint->index(), (*j)->index(), this->_relation.get((*i)->index(), (*j)->index()));
-			}
-			this->_relation.set(bint->index(), bint->index(), true);
-			for (SmartSet::iterator j = bint->inset().begin(); j != bint->inset().end(); ++j) {
-				bint->counter().copyRow(*j, (*i)->counter());
-				if ((*i)->remove()[*j]) {
-					bint->remove()[*j] = this->rcAlloc();
-					*bint->remove()[*j] = *(*i)->remove()[*j];
-					this->_queue.push_back(std::pair<OLRTBlock*, size_t>(bint, *j));
+
+			assert(block->tmp());
+
+			size_t newIndex = this->_relation.split(block->index(), true);
+
+			OLRTBlock* newBlock = new OLRTBlock(newIndex, block, this->_lts);
+
+			this->_partition.push_back(newBlock);
+
+			removeList.push_back(newBlock);
+
+			for (auto& a : newBlock->inset()) {
+
+				newBlock->counter().copyRow(a, block->counter());
+
+				if (block->remove()[a]) {
+
+					newBlock->remove()[a] = this->rcAlloc();
+					*newBlock->remove()[a] = *block->remove()[a];
+
+					this->_queue.push_back(std::make_pair(newBlock, a));
+
 				}
+
 			}
+
 		}
+
 	}
 
 	void processRemove(OLRTBlock* block, size_t label) {
@@ -434,28 +427,28 @@ protected:
 
 		block->remove()[label] = NULL;
 
-		std::vector<StateListElem*> prev;
+		std::vector<StateListElem*> states;
 
-		block->storeStates(prev);
+		block->storeStates(states);
 
 		std::vector<OLRTBlock*> removeList;
 
-		this->split(*remove, removeList);
+		this->split(removeList, *remove);
 
-		std::fill(this->_tmp.begin(), this->_tmp.end(), true);
+		std::vector<bool> blockMask(this->_partition.size(), false);
 
-		for (std::vector<StateListElem*>::iterator i = prev.begin(); i != prev.end(); ++i) {
+		for (auto i = states.begin(); i != states.end(); ++i) {
 
-			for (auto& pre : this->_lts.pre(label)[(*i)->state()]) {
+			for (auto& pre : this->_lts.pre(label)[(*i)->state_]) {
 
-				StateListElem* elem = this->_index[pre];
+				OLRTBlock* b1 = this->_index[pre].block_;
 
-				OLRTBlock* b1 = elem->block();
+				assert(b1);
 
-				if (!this->_tmp[b1->index()])
+				if (blockMask[b1->index()])
 					continue;
 
-				this->_tmp[b1->index()] = false;
+				blockMask[b1->index()] = true;
 
 				for (auto& b2 : removeList) {
 
@@ -475,7 +468,7 @@ protected:
 
 						do {
 
-							for (auto& pre2 : this->_lts.pre(a)[elem2->state()]) {
+							for (auto& pre2 : this->_lts.pre(a)[elem2->state_]) {
 
 								if (b1->counter().decr(a, pre2))
 									continue;
@@ -492,7 +485,7 @@ protected:
 
 							}
 
-							elem2 = elem2->next();
+							elem2 = elem2->next_;
 
 						} while (elem2 != b2->states());
 
@@ -510,15 +503,25 @@ protected:
 
 public:
 
-	OLRTAlgorithm(const LTS& lts, const BinaryRelation& rel) : _lts(lts), _partition(),
-		_relation(rel), _index(), _queue(), _tmp(lts.states()), _delta(), _delta1(), _key(),
-		_range(), _removeCache() {
+	OLRTAlgorithm(const LTS& lts) : _lts(lts), _partition(), _relation(), _index(lts.states()),
+		_queue(), _delta(), _delta1(), _key(), _range(), _removeCache() {
 
-		assert(lts.states());
+		assert(this->_index.size());
 
-		OLRTBlock* block = new OLRTBlock(0, lts, this->_key, this->_range);
+		OLRTBlock* block = new OLRTBlock(0, &this->_index[0], lts, this->_key, this->_range);
 
-		block->storeStates(this->_index);
+		size_t q = this->_index.size();
+
+		for (auto& elem : this->_index) {
+
+			elem.state_ = q % this->_index.size();
+			elem.block_ = block;
+			elem.next_ = &this->_index[(q + 1)%this->_index.size()];
+			elem.prev_ = &this->_index[(q - 1)%this->_index.size()];
+
+			++q;
+
+		}			
 
 		this->_partition.push_back(block);
 
@@ -538,9 +541,9 @@ public:
 		if (this->_partition.size() != this->_relation.size())
 			return false;
 
-		for (auto& block : this->_partition) {
+		for (size_t i = 0; i < this->_partition.size(); ++i) {
 
-			if (!this->_relation.get(block->index(), block->index()))
+			if (!this->_relation.get(i, i))
 				return false;
 
 		}
@@ -549,7 +552,9 @@ public:
 
 	}
 
-	void init() {
+	void init(const BinaryRelation& relation) {
+
+		this->_relation = relation;
 
 		assert(this->isConsistent());
 
@@ -583,13 +588,13 @@ public:
 
 				for (size_t a = 0; a < this->_lts.labels(); ++a) {
 
-					this->_delta1[a].contains(elem->state())
+					this->_delta1[a].contains(elem->state_)
 						? pre[block->index()].push_back(a)
 						: noPre[a].push_back(block->index());
 
 				}
 
-				elem = elem->next();
+				elem = elem->next_;
 
 			} while (elem != block->states());
 
@@ -613,16 +618,15 @@ public:
 
 		SmartSet s;
 
-//		for (std::vector<OLRTBlock*>::iterator i = this->_partition.begin(); i != this->_partition.end(); ++i) {
 		for (std::vector<OLRTBlock*>::reverse_iterator i = this->_partition.rbegin(); i != this->_partition.rend(); ++i) {
 
-			for (auto a : (*i)->inset()) {
+			for (auto& a : (*i)->inset()) {
 
 				for (auto q : this->_delta1[a]) {
 
 					for (auto r : this->_lts.post(a)[q]) {
 
-						if (this->_relation.get((*i)->index(), this->_index[r]->block()->index()))
+						if (this->_relation.get((*i)->index(), this->_index[r].block_->index()))
 							(*i)->counter().incr(a, q);
 
 					}
@@ -640,10 +644,10 @@ public:
 
 					do {
 
-						for (auto& q : this->_lts.pre(a)[elem->state()])
+						for (auto& q : this->_lts.pre(a)[elem->state_])
 							s.remove(q);
 
-						elem = elem->next();
+						elem = elem->next_;
 
 					} while (elem != b2->states());
 
@@ -664,17 +668,18 @@ public:
 
 	}
 
-	bool fakeSplit(const std::vector<size_t>& remove, size_t blockIndex) {
+	template <class T>
+	bool makeBlock(const T& states, size_t blockIndex) {
 
-		assert(remove.size() > 0);
+		assert(states.size() > 0);
 
-		OLRTBlock* block = this->_index[remove.front()]->block();
+		OLRTBlock* block = this->_index[states.front()].block_;
 
-		for (std::vector<size_t>::const_iterator i = remove.begin(); i != remove.end(); ++i) {
+		for (auto& q : states) {
 
-			StateListElem* elem = this->_index[*i];
+			StateListElem& elem = this->_index[q];
 
-			assert(block == elem->block());
+			assert(block == elem.block_);
 			assert(block->states());
 
 			block->moveToTmp(elem);
@@ -705,40 +710,22 @@ public:
 
 	}
 	
-//	BinaryRelation& relation() { return this->_relation; }
+	void buildResult(BinaryRelation& result, size_t size) const {
 
-	void buildRel(BinaryRelation& rel, size_t size) const {
-
-		rel.resize(size);
+		result.resize(size);
 
 		for (size_t i = 0; i < size; ++i) {
 
-			size_t ii = this->_index[i]->block()->index();
+			size_t ii = this->_index[i].block_->index();
 
 			for (size_t j = 0; j < size; ++j)
 
-				rel.set(i, j, this->_relation.get(ii, this->_index[j]->block()->index()));
+				result.set(i, j, this->_relation.get(ii, this->_index[j].block_->index()));
 
 		}
 
 	}
 
-//	size_t blockCount() const { return this->_partition.size(); }
-/*
-	size_t buildIndex(std::vector<size_t>& index, size_t size) const {
-		size_t blockCount = 0;
-		std::vector<bool> tmp(this->_partition.size(), false);
-		index.resize(size);
-		for (size_t i = 0; i < size; ++i) {
-			index[i] = this->_index[i]->block()->index();
-			if (!tmp[index[i]]) {
-				tmp[index[i]] = true;
-				++blockCount;
-			}
-		}
-		return blockCount;
-	}
-*/
 	friend std::ostream& operator<<(std::ostream& os, const OLRTAlgorithm& alg) {
 
 		for (auto& block : alg._partition)
@@ -755,15 +742,11 @@ void VATA::computeSimulation(BinaryRelation& result, size_t outputSize, const LT
 	if (lts.states() == 0)
 		return;
 
-	result.resize(0);
-	result.newEntry(true);
-	result.set(0, 0, true);
+	OLRTAlgorithm alg(lts);
 
-	OLRTAlgorithm alg(lts, result);
-
-	alg.init();
+	alg.init(BinaryRelation(1, true));
 	alg.run();
-	alg.buildRel(result, outputSize);
+	alg.buildResult(result, outputSize);
 
 }
 
@@ -773,17 +756,17 @@ void VATA::computeSimulation(BinaryRelation& result, size_t outputSize, const LT
 	if (lts.states() == 0)
 		return;
 
-	OLRTAlgorithm alg(lts, result);
+	OLRTAlgorithm alg(lts);
 
 	// accepting states to block 1
-	alg.fakeSplit(finalStates, 1);
+	alg.makeBlock(finalStates, 1);
 
 	// environments to blocks 2, 3, ...
 	for (size_t i = 0; i < part.size(); ++i)
-		alg.fakeSplit(part[i], i + 2);
+		alg.makeBlock(part[i], i + 2);
 
-	alg.init();
+	alg.init(result);
 	alg.run();
-	alg.buildRel(result, outputSize);
+	alg.buildResult(result, outputSize);
 
 }

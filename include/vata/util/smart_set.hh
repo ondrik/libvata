@@ -15,51 +15,35 @@
 #include <vector>
 #include <list>
 
-namespace VATA { namespace Util { class SmartSet; } }
+namespace VATA {
+		namespace Util {
+				class SmartSet;
+		}
+}
 
 class VATA::Util::SmartSet {
 
 public:
 
-	typedef std::pair<size_t, size_t> KeyCountPair;
+	typedef size_t Key;
+	typedef std::pair<Key, size_t> KeyCountPair;
 	typedef std::list<KeyCountPair> KeyCountPairList;
-	typedef std::vector<KeyCountPairList::iterator> KeyCountPairListElementIndex;
+	typedef std::vector<typename KeyCountPairList::iterator> KeyCountPairListElementIndex;
 
 private:
 
-	class Iterator {
+	GCC_DIAG_OFF(effc++)
+	struct Iterator : public KeyCountPairList::const_iterator {
+	GCC_DIAG_ON(effc++)
 		
-		KeyCountPairList::const_iterator i_;
+		typedef Key value_type;
+		typedef Key* pointer;
+		typedef Key& reference;
 
-	public:
+		Iterator(const typename KeyCountPairList::const_iterator& i)
+			: KeyCountPairList::const_iterator(i) {}
 
-		typedef std::input_iterator_tag iterator_category;
-		typedef size_t value_type;
-		typedef size_t difference_type;
-		typedef size_t* pointer;
-		typedef size_t& reference;
-
-		Iterator(KeyCountPairList::const_iterator i) : i_(i) {}
-
-		Iterator& operator++() {
-			return ++this->i_, *this;
-		}
-
-		Iterator operator++(int) {
-			return Iterator(this->i_++);
-		}
-		
-		size_t operator*() {
-			return this->i_->first;
-		}
-		
-		bool operator==(const Iterator& rhs) {
-			return this->i_ == rhs.i_;
-		}
-
-		bool operator!=(const Iterator& rhs) {
-			return this->i_ != rhs.i_;
-		}
+		const Key& operator*() { return (*this)->first; }
 
 	};
 
@@ -70,12 +54,12 @@ public:
 private:
 
 	KeyCountPairList elements_;
-	KeyCountPairList::iterator sentinel_;
+	typename KeyCountPairList::iterator sentinel_;
 	KeyCountPairListElementIndex index_;
 
 protected:
 
-	size_t& insert(size_t key) {
+	size_t& insert(const Key& key) {
 
 		auto& iter = this->index_[key];
 		
@@ -133,7 +117,7 @@ public:
 	SmartSet::iterator begin() const { return SmartSet::Iterator(this->elements_.begin()); }
 	SmartSet::iterator end() const { return SmartSet::Iterator(this->elements_.end()); }
 
-	bool contains(size_t key) const {
+	bool contains(const Key& key) const {
 
 		assert(key < this->index_.size());
 
@@ -145,7 +129,7 @@ public:
 
 	}
 	
-	size_t count(size_t key) const {
+	size_t count(const Key& key) const {
 
 		assert(key < this->index_.size());
 
@@ -157,7 +141,7 @@ public:
 
 	}
 
-	void init(size_t key, size_t count) {
+	void init(const Key& key, size_t count) {
 
 		assert(key < this->index_.size());
 
@@ -183,7 +167,7 @@ public:
 
 	}
 
-	void add(size_t key) {
+	void add(const Key& key) {
 
 		assert(key < this->index_.size());
 
@@ -191,7 +175,7 @@ public:
 
 	}
 
-	void remove(size_t key) {
+	void remove(const Key& key) {
 
 		assert(key < this->index_.size());
 
@@ -200,6 +184,25 @@ public:
 		if (iter == this->sentinel_)
 			return;
 
+		assert(key == iter->first);
+
+		if (iter->second == 1) {
+
+			this->elements_.erase(iter);
+			iter = this->sentinel_;
+
+		} else
+			--iter->second;
+
+	}
+
+	void removeStrict(const Key& key) {
+
+		assert(key < this->index_.size());
+
+		auto& iter = this->index_[key];
+
+		assert(iter != this->sentinel_);
 		assert(key == iter->first);
 
 		if (iter->second == 1) {
@@ -224,15 +227,6 @@ public:
 		this->elements_.clear();
 
 	}
-	
-	void buildVector(std::vector<size_t>& v) const {
-
-		v.clear();
-
-		for (auto i = this->elements_.begin(); i != this->elements_.end(); ++i)
-			v.push_back(i->first);
-
-	}
 
 	friend std::ostream& operator<<(std::ostream& os, const SmartSet& s) {
 
@@ -246,7 +240,5 @@ public:
 	}
 
 };
-
-//std::ostream& operator<<(std::ostream& os, const VATA::Util::SmartSet& x);
 
 #endif
