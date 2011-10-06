@@ -19,7 +19,8 @@ VATA="${SCRIPTPATH}/../build/src/vata"
 OLDVATA="${SCRIPTPATH}/old-vata"
 
 # SFTA executable
-SFTA="${SCRIPTPATH}/sfta"
+#SFTA="${SCRIPTPATH}/sfta"
+SFTA="${SCRIPTPATH}/sfta_wrapper.sh"
 
 # TAlib executable
 TALIB="${SCRIPTPATH}/talib"
@@ -44,32 +45,16 @@ RHS=$(${TALIB} n < "${FILE_RHS}")
 RETVAL="?"
 
 case "${OPERATION}" in
-  symdown)
-    ${VATA} -r bdd-td -t incl -o dir=down,sim=no,optC=no "${FILE_LHS}" "${FILE_RHS}"
-    RETVAL="$?"
-    ;;
-  symdown-sim)
-    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes,optC=no "${FILE_LHS}" "${FILE_RHS}"
-    RETVAL="$?"
-    ;;
-  symdown-optC)
-    ${VATA} -r bdd-td -t incl -o dir=down,sim=no,optC=yes "${FILE_LHS}" "${FILE_RHS}"
-    RETVAL="$?"
-    ;;
-  symdown-sim-optC)
-    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes,optC=yes "${FILE_LHS}" "${FILE_RHS}"
-    RETVAL="$?"
-    ;;
-  symup)
-    ${VATA} -r bdd-bu -t incl "${FILE_LHS}" "${FILE_RHS}"
-    RETVAL="$?"
-    ;;
   expldown)
     ${VATA} -r expl -t incl -o dir=down,sim=no,optC=no "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   expldown-sim)
-    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=no "${FILE_LHS}" "${FILE_RHS}"
+    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=no,timeS=yes "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  expldown-sim-nosimtime)
+    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=no,timeS=no "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   expldown-optC)
@@ -77,7 +62,11 @@ case "${OPERATION}" in
     RETVAL="$?"
     ;;
   expldown-sim-optC)
-    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=yes "${FILE_LHS}" "${FILE_RHS}"
+    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=yes,timeS=yes "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  expldown-sim-optC-nosimtime)
+    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=yes,timeS=no "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   explup)
@@ -85,27 +74,79 @@ case "${OPERATION}" in
     RETVAL="$?"
     ;;
   explup-sim)
-    ${VATA} -r expl -t incl -o dir=up,sim=yes "${FILE_LHS}" "${FILE_RHS}"
+    ${VATA} -r expl -t incl -o dir=up,sim=yes,timeS=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  olddown)
-    ${OLDVATA} -t incl "${FILE_LHS}" "${FILE_RHS}"
+  explup-sim-nosimtime)
+    ${VATA} -r expl -t incl -o dir=up,sim=yes,timeS=no "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  symdown)
+    ${VATA} -r bdd-td -t incl -o dir=down,sim=no,optC=no "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  symdown-sim)
+    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes,optC=no,timeS=yes "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  symdown-sim-nosimtime)
+    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes,optC=no,timeS=no "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  symdown-optC)
+    ${VATA} -r bdd-td -t incl -o dir=down,sim=no,optC=yes "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  symdown-sim-optC)
+    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes,optC=yes,timeS=yes "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  symdown-sim-optC-nosimtime)
+    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes,optC=yes,timeS=no "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  symup)
+    ${VATA} -r bdd-bu -t incl -o dir=up,sim=no "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   symdownX)
-    ${SFTA} -o "${FILE_LHS}" "${FILE_RHS}"
+    ${SFTA} symsd <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
-  downT)
+  symdown-simX)
+    ${SFTA} symsdsb <<< $(echo "${LHS}" "${RHS}")
+    RETVAL="$?"
+    ;;
+  symdown-sim-nosimtimeX)
+    ${SFTA} symsdsbw <<< $(echo "${LHS}" "${RHS}")
+    RETVAL="$?"
+    ;;
+  symupX)
+    ${SFTA} symsu <<< $(echo "${LHS}" "${RHS}")
+    RETVAL="$?"
+    ;;
+  expldownT)
     ${TALIB} sdif <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
-  downSimT)
+  expldown-simT)
     ${TALIB} sddf <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
-  upT)
+  expldown-sim-nosimtimeT)
+    ${TALIB} sdds <<< $(echo "${LHS}" "${RHS}")
+    RETVAL="$?"
+    ;;
+  explupT)
     ${TALIB} suif <<< $(echo "${LHS}" "${RHS}")
+    RETVAL="$?"
+    ;;
+  explup-simT)
+    ${TALIB} suuf <<< $(echo "${LHS}" "${RHS}")
+    RETVAL="$?"
+    ;;
+  explup-sim-nosimtimeT)
+    ${TALIB} suus <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
   *) die "Invalid option ${OPERATION}"
