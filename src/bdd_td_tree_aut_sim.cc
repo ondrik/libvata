@@ -23,8 +23,7 @@ typedef VATA::AutBase::StateBinaryRelation StateBinaryRelation;
 StateBinaryRelation VATA::ComputeDownwardSimulation(
 	const BDDTopDownTreeAut& aut, const size_t& size)
 {
-	assert(&aut != nullptr);
-	assert(&size != nullptr);
+	if ((&aut == nullptr) || (&size == nullptr)) { }
 
 	throw std::runtime_error("Unimplemented");
 }
@@ -32,8 +31,7 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 StateBinaryRelation VATA::ComputeUpwardSimulation(
 	const BDDTopDownTreeAut& aut, const size_t& size)
 {
-	assert(&aut != nullptr);
-	assert(&size != nullptr);
+	if ((&aut == nullptr) || (&size == nullptr)) { }
 
 	throw std::runtime_error("Unimplemented");
 }

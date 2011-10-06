@@ -80,9 +80,8 @@ namespace VATA
 		const BDDTopDownTreeAut& smaller, const BDDTopDownTreeAut& bigger,
 		const Rel& preorder)
 	{
-		assert(&smaller != nullptr);
-		assert(&bigger != nullptr);
-		assert(&preorder != nullptr);
+		if ((&smaller == nullptr) || (&bigger == nullptr) ||
+			(&preorder == nullptr)) { }
 
 		throw std::runtime_error("Unimplemented");
 	}
