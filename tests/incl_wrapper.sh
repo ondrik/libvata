@@ -44,6 +44,8 @@ RHS=$(${TALIB} n < "${FILE_RHS}")
 
 RETVAL="?"
 
+ulimit -s 1000000
+
 case "${OPERATION}" in
   expldown)
     ${VATA} -r expl -t incl -o dir=down,sim=no,optC=no "${FILE_LHS}" "${FILE_RHS}"
