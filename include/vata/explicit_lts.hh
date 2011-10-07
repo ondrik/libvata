@@ -4,19 +4,21 @@
  *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
  *  Description:
- *    Header file for LTS definition.
+ *    Header file for LTS class definition.
  *
  *****************************************************************************/
 
-#ifndef _VATA_LTS_HH_
-#define _VATA_LTS_HH_
+#ifndef _VATA_EXPLICIT_LTS_HH_
+#define _VATA_EXPLICIT_LTS_HH_
 
-#include <vata/util/convert.hh>
+#include <vector>
+
+#include <vata/util/binary_relation.hh>
 #include <vata/util/smart_set.hh>
 
-namespace VATA { namespace Util { class LTS; } }
+namespace VATA { class ExplicitLTS; }
 
-class VATA::Util::LTS {
+class VATA::ExplicitLTS {
 
 	size_t states_;
 	size_t transitions_;
@@ -26,11 +28,11 @@ class VATA::Util::LTS {
 			std::vector<std::vector<size_t>>
 		>
 	> data_;
-	std::vector<SmartSet> bwLabels_;
+	std::vector<Util::SmartSet> bwLabels_;
 
 public:
 
-	LTS() : states_(0), transitions_(0), data_(), bwLabels_() {}
+	ExplicitLTS() : states_(0), transitions_(0), data_(), bwLabels_() {}
 
 	void addTransition(size_t q, size_t a, size_t r) {
 
@@ -58,7 +60,7 @@ public:
 
 	void init() {
 
-		this->bwLabels_.resize(this->states_, SmartSet(this->data_.size()));
+		this->bwLabels_.resize(this->states_, Util::SmartSet(this->data_.size()));
 
 		for (size_t a = 0; a < this->data_.size(); ++a) {
 
@@ -97,7 +99,7 @@ public:
 
 	}
 
-	const SmartSet& bwLabels(size_t q) const {
+	const Util::SmartSet& bwLabels(size_t q) const {
 
 		assert(q < this->bwLabels_.size());
 
@@ -105,10 +107,10 @@ public:
 
 	}
 	
-	void buildDelta(std::vector<SmartSet>& delta, std::vector<SmartSet>& delta1) const {
+	void buildDelta(std::vector<Util::SmartSet>& delta, std::vector<Util::SmartSet>& delta1) const {
 
-		delta.resize(this->data_.size(), SmartSet(this->states_));
-		delta1.resize(this->data_.size(), SmartSet(this->states_));
+		delta.resize(this->data_.size(), Util::SmartSet(this->states_));
+		delta1.resize(this->data_.size(), Util::SmartSet(this->states_));
 
 		for (size_t a = 0; a < this->data_.size(); ++a) {
 
@@ -131,7 +133,7 @@ public:
 
 	size_t states() const { return this->states_; }
 
-	friend std::ostream& operator<<(std::ostream& os, const LTS& lts) {
+	friend std::ostream& operator<<(std::ostream& os, const ExplicitLTS& lts) {
 
 		for (size_t a = 0; a < lts.data_.size(); ++a) {
 
@@ -147,6 +149,20 @@ public:
 		return os;
 
 	}
+
+public:
+
+	void computeSimulation(const std::vector<std::vector<size_t>>& partition,
+		Util::BinaryRelation& relation, size_t outputSize);
+
+	void computeSimulation(Util::BinaryRelation& relation, size_t outputSize) {
+
+		relation = Util::BinaryRelation(1, true);
+
+		this->computeSimulation(std::vector<std::vector<size_t>>(), relation, outputSize);
+
+	}
+
 
 };
 

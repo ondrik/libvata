@@ -14,12 +14,12 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/aut_base.hh>
+#include <vata/explicit_lts.hh>
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
 #include <vata/util/ord_vector.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
-#include <vata/util/lts.hh>
 #include <vata/util/convert.hh>
 #include <vata/util/cache.hh>
 
@@ -720,7 +720,7 @@ public:
 
 	}
 
-	void TranslateDownward(Util::LTS& lts) const {
+	void TranslateDownward(ExplicitLTS& lts) const {
 
 		std::unordered_map<SymbolType, size_t> symbolMap;
 		std::unordered_map<const StateTuple*, size_t> lhsMap;
@@ -750,7 +750,7 @@ public:
 					assert(tuple);
 
 					if (tuple->size() == 1) {
-						// skip lhs of size 1 >:-)
+						// inline lhs of size 1 >:-)
 						lts.addTransition(stateClusterPair.first, symbol, tuple->front());
 					} else {
 						lts.addTransition(
@@ -866,7 +866,7 @@ protected:
 public:
 
 	template <class Rel>
-	void TranslateUpward(Util::LTS& lts, std::vector<std::vector<size_t>>& part,
+	void TranslateUpward(ExplicitLTS& lts, std::vector<std::vector<size_t>>& part,
 		Util::BinaryRelation& rel, const Rel& param) const {
 
 		size_t symbolCnt = 0;
@@ -876,6 +876,12 @@ public:
 
 		assert(this->transitions_);
 
+		size_t base = ((0 < this->finalStates_.size()) &&
+			(this->finalStates_.size() < this->transitions_->size())) ? 2 : 1;
+
+		part.clear();
+		part.resize(base);
+
 		std::vector<const Env*> head;
 
 		size_t envCnt = this->transitions_->size();
@@ -883,12 +889,12 @@ public:
 		VATA::Util::TranslatorWeak2<std::unordered_map<Env, size_t, boost::hash<Env>>>
 			envTranslator(
 				envMap,
-				[&envCnt, &head, &part, &param](const Env& env) -> size_t {
+				[&base, &envCnt, &head, &part, &param](const Env& env) -> size_t {
 					for (size_t i = 0; i < head.size(); ++i) {
 						assert(head[i]);
 						if (!head[i]->equal(env, param))
 							continue;
-						part[i].push_back(envCnt);
+						part[base + i].push_back(envCnt);
 						return envCnt++;
 					}
 					head.push_back(&env);
@@ -897,11 +903,13 @@ public:
 				}
 		);
 
-		part.clear();
-
 		for (auto& stateClusterPair : *this->transitions_) {
 	
 			assert(stateClusterPair.second);
+
+			part[this->IsFinalState(stateClusterPair.first)?(0):(base - 1)].push_back(
+				stateClusterPair.first
+			);
 
 			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
 	
@@ -912,6 +920,12 @@ public:
 				for (auto& tuple : *symbolTupleSetPair.second) {
 	
 					assert(tuple);
+
+					if (tuple->size() == 1) {
+						// inline lhs of size 1 >:-)
+						lts.addTransition((*tuple)[0], symbol, stateClusterPair.first);
+						continue;
+					}
 
 					for (size_t i = 0; i < tuple->size(); ++i) {
 
@@ -928,23 +942,30 @@ public:
 
 		}
 
-		rel.resize(part.size() + 2);
+		rel.resize(part.size());
 		rel.reset(false);
 
-		// 0 non-accepting, 1 accepting, 2 .. environments
+		// 0 accepting, 1 non-accepting, 2 .. environments
 		rel.set(0, 0, true);
-		rel.set(0, 1, true);
-		rel.set(1, 1, true);
+
+		if (base == 2) {
+
+			rel.set(1, 0, true);
+			rel.set(1, 1, true);
+
+		}
 
 		for (size_t i = 0; i < head.size(); ++i) {
 
+			assert(head[i]);
+			assert(head[i]->lessThan(*head[i], param));
+
 			for (size_t j = 0; j < head.size(); ++j) {
 
-				assert(head[i]);
 				assert(head[j]);
 				
 				if (head[i]->lessThan(*head[j], param))
-					rel.set(i + 2, j + 2, true);
+					rel.set(base + i, base + j, true);
 
 			}
 

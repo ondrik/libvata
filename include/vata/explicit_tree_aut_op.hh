@@ -18,7 +18,7 @@
 #include <vata/explicit_tree_useless.hh>
 #include <vata/explicit_tree_unreach.hh>
 #include <vata/explicit_tree_incl_up.hh>
-#include <vata/explicit_lts_sim.hh>
+#include <vata/explicit_lts.hh>
 #include <vata/down_tree_incl_fctor.hh>
 #include <vata/down_tree_opt_incl_fctor.hh>
 #include <vata/tree_incl_down.hh>
@@ -99,15 +99,15 @@ namespace VATA {
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		const ExplicitTreeAut<SymbolType>& aut, const size_t& size) {
 
-		Util::LTS lts;
+		ExplicitLTS lts;
 
 		aut.TranslateDownward(lts);
 
-		AutBase::StateBinaryRelation result;
+		AutBase::StateBinaryRelation relation;
 
-		computeSimulation(result, size, lts);
+		lts.computeSimulation(relation, size);
 
-		return result;
+		return relation;
 
 	}
 
@@ -123,25 +123,17 @@ namespace VATA {
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
 		const ExplicitTreeAut<SymbolType>& aut, const size_t& size) {
 
-		Util::LTS lts;
-
-		AutBase::StateBinaryRelation result;
+		ExplicitLTS lts;
 
 		std::vector<std::vector<size_t>> partition;
 
-		aut.TranslateUpward(lts, partition, result, Util::Identity(size));
+		AutBase::StateBinaryRelation relation;
 
-		computeSimulation(
-			result,
-			size,
-			lts,
-			partition,
-			std::vector<AutBase::StateType>(
-				aut.GetFinalStates().begin(), aut.GetFinalStates().end()
-			)
-		);
+		aut.TranslateUpward(lts, partition, relation, Util::Identity(size));
 
-		return result;
+		lts.computeSimulation(partition, relation, size);
+
+		return relation;
 
 	}
 

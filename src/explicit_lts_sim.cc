@@ -13,14 +13,12 @@
 #include <algorithm>
 #include <memory>
 
-#include <vata/explicit_lts_sim.hh>
 #include <vata/util/binary_relation.hh>
 #include <vata/util/smart_set.hh>
-#include <vata/util/lts.hh>
+#include <vata/explicit_lts.hh>
 
 using VATA::Util::BinaryRelation;
 using VATA::Util::SmartSet;
-using VATA::Util::LTS;
 
 template <class T>
 class CachingAllocator {
@@ -235,7 +233,7 @@ class OLRTBlock {
 
 public:
 
-	OLRTBlock(const LTS& lts, size_t index, StateListElem* states,
+	OLRTBlock(const VATA::ExplicitLTS& lts, size_t index, StateListElem* states,
 		const std::vector<std::vector<size_t> >& key, const std::vector<size_t>& range) :
 		_index(index), _states(states), _remove(lts.labels()), _counter(lts.labels(), key, range),
 		_inset(lts.labels()), _tmp(nullptr) {
@@ -249,7 +247,7 @@ public:
 
 	}
 	
-	OLRTBlock(const LTS& lts, OLRTBlock& parent, size_t index) : _index(index),
+	OLRTBlock(const VATA::ExplicitLTS& lts, OLRTBlock& parent, size_t index) : _index(index),
 		_states(parent._tmp), _remove(lts.labels()), _counter(parent._counter),
 		_inset(lts.labels()), _tmp(nullptr) {
 
@@ -342,7 +340,7 @@ public:
 
 class OLRTAlgorithm {
 
-	const LTS& _lts;
+	const VATA::ExplicitLTS& _lts;
 
 	VectorAllocator allocator_;
 
@@ -507,6 +505,31 @@ protected:
 
 	}
 
+	template <class T>
+	void makeBlock(const T& states, size_t blockIndex) {
+
+		assert(states.size() > 0);
+
+		OLRTBlock* block = this->_index[states.front()].block_;
+
+		for (auto& q : states) {
+
+			StateListElem& elem = this->_index[q];
+
+			assert(block == elem.block_);
+			assert(block->states());
+
+			block->moveToTmp(elem);
+
+		}
+
+		assert(block->states());
+		assert(block->tmp());
+
+		this->_partition.push_back(new OLRTBlock(this->_lts, *block, blockIndex));
+
+	}
+
 	void processRemove(OLRTBlock* block, size_t label) {
 
 		assert(block);
@@ -564,10 +587,54 @@ protected:
 
 	}
 
+	bool static isPartition(const std::vector<std::vector<size_t>>& part, size_t states) {
+	
+		std::vector<bool> mask(states, false);
+	
+		for (auto& cls : part) {
+	
+			for (auto& q : cls) {
+	
+				if (mask[q])
+					return false;
+	
+				mask[q] = true;
+	
+			}
+	
+		}
+	
+		for (auto b : mask) {
+	
+			if (!b)
+				return false;
+	
+		}
+	
+		return true;
+	
+	}
+
+	bool isConsistent() const {
+
+		if (this->_partition.size() != this->_relation.size())
+			return false;
+
+		for (size_t i = 0; i < this->_partition.size(); ++i) {
+
+			if (!this->_relation.get(i, i))
+				return false;
+
+		}
+
+		return true;
+
+	}
+
 public:
 
-	OLRTAlgorithm(const LTS& lts) : _lts(lts), allocator_(), _partition(), _relation(),
-		_index(lts.states()), _queue(), _delta(), _delta1(), _key(), _range() /*_removeCache()*/ {
+	OLRTAlgorithm(const VATA::ExplicitLTS& lts) : _lts(lts), allocator_(), _partition(),
+		 _relation(), _index(lts.states()), _queue(), _delta(), _delta1(), _key(), _range() {
 
 		assert(this->_index.size());
 
@@ -597,23 +664,12 @@ public:
 
 	}
 
-	bool isConsistent() const {
+	void init(const std::vector<std::vector<size_t>>& partition, const BinaryRelation& relation) {
 
-		if (this->_partition.size() != this->_relation.size())
-			return false;
+		assert(partition.empty() || OLRTAlgorithm::isPartition(partition, this->_lts.states()));
 
-		for (size_t i = 0; i < this->_partition.size(); ++i) {
-
-			if (!this->_relation.get(i, i))
-				return false;
-
-		}
-
-		return true;
-
-	}
-
-	void init(const BinaryRelation& relation) {
+		for (size_t i = 1; i < partition.size(); ++i)
+			this->makeBlock(partition[i], i);
 
 		this->_relation = relation;
 
@@ -729,34 +785,6 @@ public:
 
 	}
 
-	template <class T>
-	bool makeBlock(const T& states, size_t blockIndex) {
-
-		assert(states.size() > 0);
-
-		OLRTBlock* block = this->_index[states.front()].block_;
-
-		for (auto& q : states) {
-
-			StateListElem& elem = this->_index[q];
-
-			assert(block == elem.block_);
-			assert(block->states());
-
-			block->moveToTmp(elem);
-
-		}
-
-		block->checkEmpty();
-
-		assert(block->tmp());
-
-		this->_partition.push_back(new OLRTBlock(this->_lts, *block, blockIndex));
-
-		return true;
-
-	}
-
 	void run() {
 
 	    while (!this->_queue.empty()) {
@@ -798,36 +826,16 @@ public:
 
 };
 
-void VATA::computeSimulation(BinaryRelation& result, size_t outputSize, const LTS& lts) {
+void VATA::ExplicitLTS::computeSimulation(const std::vector<std::vector<size_t>>& partition,
+	BinaryRelation& relation, size_t outputSize) {
 
-	if (lts.states() == 0)
+	if (this->states_ == 0)
 		return;
 
-	OLRTAlgorithm alg(lts);
+	OLRTAlgorithm alg(*this);
 
-	alg.init(BinaryRelation(1, true));
+	alg.init(partition, relation);
 	alg.run();
-	alg.buildResult(result, outputSize);
-
-}
-
-void VATA::computeSimulation(BinaryRelation& result, size_t outputSize, const LTS& lts,
-	const std::vector<std::vector<size_t>>& part, const std::vector<size_t>& finalStates) {
-
-	if (lts.states() == 0)
-		return;
-
-	OLRTAlgorithm alg(lts);
-
-	// accepting states to block 1
-	alg.makeBlock(finalStates, 1);
-
-	// environments to blocks 2, 3, ...
-	for (size_t i = 0; i < part.size(); ++i)
-		alg.makeBlock(part[i], i + 2);
-
-	alg.init(result);
-	alg.run();
-	alg.buildResult(result, outputSize);
+	alg.buildResult(relation, outputSize);
 
 }
