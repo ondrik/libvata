@@ -15,84 +15,34 @@
 
 #include <vata/util/binary_relation.hh>
 #include <vata/util/smart_set.hh>
+#include <vata/util/caching_allocator.hh>
+#include <vata/util/shared_list.hh>
 #include <vata/explicit_lts.hh>
 
 using VATA::Util::BinaryRelation;
 using VATA::Util::SmartSet;
+using VATA::Util::CachingAllocator;
+using VATA::Util::SharedList;
 
-template <class T>
-class CachingAllocator {
+typedef CachingAllocator<std::vector<size_t>> VectorAllocator;
 
-public:
+struct SharedListInitF {
 
-	typedef T* Ptr;
-	typedef std::shared_ptr<T> SharedPtr;
+	VectorAllocator& allocator_;
 
-protected:
+	SharedListInitF(VectorAllocator& allocator) : allocator_(allocator) {}
 
-	struct DeleteElementF {
+	void operator()(SharedList<std::vector<size_t>>* list) {
 
-		CachingAllocator& allocator_;
+		auto sublist = this->allocator_();
 
-		DeleteElementF(CachingAllocator& allocator) : allocator_(allocator) {}
+		sublist->clear();
 
-		void operator()(Ptr v) {
-
-			this->allocator_.reclaim(v);
-
-		}
-
-	};
-
-private:
-
-	std::vector<T*> store_;
-
-public:
-
-	CachingAllocator() : store_() {}
-
-	~CachingAllocator() {
-
-		for (auto& element : this->store_)
-			delete element;
-
-	}
-
-	Ptr get() {
-
-		if (this->store_.empty())
-			return new T();
-
-		Ptr ptr = this->store_.back();
-
-		this->store_.pop_back();
-
-		return ptr;
-
-	}
-
-	void reclaim(Ptr ptr) {
-
-		this->store_.push_back(ptr);
-
-	}
-
-	SharedPtr getShared() {
-
-		return SharedPtr(this->get(), DeleteElementF(*this));
-
-	}
-
-	SharedPtr getShared(Ptr ptr) {
-
-		return SharedPtr(ptr, DeleteElementF(*this));
+		list->init(sublist);
 
 	}
 
 };
-
-typedef CachingAllocator<std::vector<size_t>> VectorAllocator;
 
 class Counter {
 
@@ -218,14 +168,24 @@ struct StateListElem {
 
 };
 
-class OLRTBlock {
+typedef SharedList<std::vector<size_t>> RemoveList;
+typedef CachingAllocator<RemoveList, SharedListInitF> RemoveAllocator;
+
+struct OLRTBlock {
 
 	size_t _index;
 	StateListElem* _states;
-	std::vector<VectorAllocator::Ptr> _remove;
+	std::vector<RemoveList*> _remove;
 	Counter _counter;
 	SmartSet _inset;
 	StateListElem* _tmp;
+
+public:
+
+	VectorAllocator& vectorAllocator_;
+	RemoveAllocator& removeAllocator_;
+
+protected:
 
 	OLRTBlock(const OLRTBlock&);
 
@@ -234,9 +194,11 @@ class OLRTBlock {
 public:
 
 	OLRTBlock(const VATA::ExplicitLTS& lts, size_t index, StateListElem* states,
-		const std::vector<std::vector<size_t> >& key, const std::vector<size_t>& range) :
+		const std::vector<std::vector<size_t> >& key, const std::vector<size_t>& range,
+		VectorAllocator& vectorAllocator, RemoveAllocator& removeAllocator) :
 		_index(index), _states(states), _remove(lts.labels()), _counter(lts.labels(), key, range),
-		_inset(lts.labels()), _tmp(nullptr) {
+		_inset(lts.labels()), _tmp(nullptr), vectorAllocator_(vectorAllocator),
+		removeAllocator_(removeAllocator) {
 
 		for (size_t q = 0; q < lts.states(); ++q) {
 
@@ -249,7 +211,8 @@ public:
 	
 	OLRTBlock(const VATA::ExplicitLTS& lts, OLRTBlock& parent, size_t index) : _index(index),
 		_states(parent._tmp), _remove(lts.labels()), _counter(parent._counter),
-		_inset(lts.labels()), _tmp(nullptr) {
+		_inset(lts.labels()), _tmp(nullptr), vectorAllocator_(parent.vectorAllocator_),
+		removeAllocator_(parent.removeAllocator_) {
 
 		assert(this->_states);
 
@@ -307,11 +270,11 @@ public:
 	SmartSet& inset() {
 		return this->_inset;
 	}
-	
+/*	
 	std::vector<VectorAllocator::Ptr>& remove() {
 		return this->_remove;
 	}
-	
+*/
 	size_t index() const {
 		return this->_index;
 	}
@@ -342,7 +305,8 @@ class OLRTAlgorithm {
 
 	const VATA::ExplicitLTS& _lts;
 
-	VectorAllocator allocator_;
+	VectorAllocator vectorAllocator_;
+	RemoveAllocator removeAllocator_;
 
 	std::vector<OLRTBlock*> _partition;
 	BinaryRelation _relation;
@@ -359,23 +323,12 @@ class OLRTAlgorithm {
 
 protected:
 
-	VectorAllocator::Ptr getRemove(OLRTBlock& block, size_t label) {
+	void enqueueToRemove(OLRTBlock* block, size_t label, size_t state) {
 
-		auto& remove = block.remove()[label];
-
-		if (!remove) {
-
-			this->_queue.push_back(std::make_pair(&block, label));
-
-			remove = this->allocator_.get();
-			remove->clear();
-
-		}
-
-		return remove;
+		if (RemoveList::append(block->_remove[label], state, this->removeAllocator_))
+			this->_queue.push_back(std::make_pair(block, label));
 
 	}
-
 
 	template <class T>
 	void buildPre(T& pre, StateListElem* states, size_t label) const {
@@ -490,12 +443,11 @@ protected:
 
 				newBlock->counter().copyRow(a, block->counter());
 
-				if (block->remove()[a]) {
+				if (block->_remove[a]) {
 
 					this->_queue.push_back(std::make_pair(newBlock, a));
 
-					newBlock->remove()[a] = this->allocator_.get();
-					*newBlock->remove()[a] = *block->remove()[a];
+					newBlock->_remove[a] = block->_remove[a]->copy();
 
 				}
 
@@ -534,11 +486,11 @@ protected:
 
 		assert(block);
 
-		auto remove = block->remove()[label];
+		RemoveList* remove = block->_remove[label];
+
+		block->_remove[label] = nullptr;
 
 		assert(remove);
-
-		block->remove()[label] = nullptr;
 
 		std::vector<OLRTBlock*> preList, removeList;
 
@@ -546,7 +498,12 @@ protected:
 
 		this->split(removeList, *remove);
 
-		this->allocator_.reclaim(remove);
+		remove->unsafeRelease(
+			[this](RemoveList* list){
+					this->vectorAllocator_.reclaim(list->subList());
+					this->removeAllocator_.reclaim(list);
+			}
+		);
 
 		for (auto& b1 : preList) {
 
@@ -571,7 +528,7 @@ protected:
 						for (auto& pre2 : this->_lts.pre(a)[elem2->index_]) {
 
 							if (!b1->counter().decr(a, pre2))
-								this->getRemove(*b1, a)->push_back(pre2);
+								this->enqueueToRemove(b1, a, pre2);
 
 						}
 
@@ -604,13 +561,6 @@ protected:
 	
 		}
 	
-		for (auto b : mask) {
-	
-			if (!b)
-				return false;
-	
-		}
-	
 		return true;
 	
 	}
@@ -633,12 +583,21 @@ protected:
 
 public:
 
-	OLRTAlgorithm(const VATA::ExplicitLTS& lts) : _lts(lts), allocator_(), _partition(),
-		 _relation(), _index(lts.states()), _queue(), _delta(), _delta1(), _key(), _range() {
+	OLRTAlgorithm(const VATA::ExplicitLTS& lts) : _lts(lts), vectorAllocator_(),
+		removeAllocator_(SharedListInitF(vectorAllocator_)), _partition(), _relation(),
+		_index(lts.states()), _queue(), _delta(), _delta1(), _key(), _range() {
 
 		assert(this->_index.size());
 
-		OLRTBlock* block = new OLRTBlock(lts, 0, &this->_index[0], this->_key, this->_range);
+		OLRTBlock* block = new OLRTBlock(
+			lts,
+			0,
+			&this->_index[0],
+			this->_key,
+			this->_range,
+			this->vectorAllocator_,
+			this->removeAllocator_
+		);
 
 		size_t q = this->_index.size();
 
@@ -666,7 +625,7 @@ public:
 
 	void init(const std::vector<std::vector<size_t>>& partition, const BinaryRelation& relation) {
 
-		assert(partition.empty() || OLRTAlgorithm::isPartition(partition, this->_lts.states()));
+		assert(OLRTAlgorithm::isPartition(partition, this->_lts.states()));
 
 		for (size_t i = 1; i < partition.size(); ++i)
 			this->makeBlock(partition[i], i);
@@ -686,7 +645,7 @@ public:
 
 			size_t x = 0;
 
-			for (auto q : this->_delta1[a])
+			for (auto& q : this->_delta1[a])
 				this->_key[a][q] = x++;
 
 		}
@@ -773,11 +732,11 @@ public:
 				if (s.empty())
 					continue;
 
+				(*i)->_remove[a] = new RemoveList(new std::vector<size_t>(s.begin(), s.end()));
+
 				this->_queue.push_back(std::make_pair(*i, a));
 
-				(*i)->remove()[a] = new std::vector<size_t>(s.begin(), s.end());
-
-				assert(s.size() == (*i)->remove()[a]->size());
+				assert(s.size() == (*i)->_remove[a]->subList()->size());
 
 			}
 
@@ -826,16 +785,24 @@ public:
 
 };
 
-void VATA::ExplicitLTS::computeSimulation(const std::vector<std::vector<size_t>>& partition,
-	BinaryRelation& relation, size_t outputSize) {
+BinaryRelation VATA::ExplicitLTS::computeSimulation(
+	const std::vector<std::vector<size_t>>& partition,
+	const BinaryRelation& relation,
+	size_t outputSize
+) {
 
 	if (this->states_ == 0)
-		return;
+		return BinaryRelation();
 
 	OLRTAlgorithm alg(*this);
 
 	alg.init(partition, relation);
 	alg.run();
-	alg.buildResult(relation, outputSize);
+
+	BinaryRelation result;
+
+	alg.buildResult(result, outputSize);
+
+	return result;
 
 }

@@ -99,15 +99,7 @@ namespace VATA {
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		const ExplicitTreeAut<SymbolType>& aut, const size_t& size) {
 
-		ExplicitLTS lts;
-
-		aut.TranslateDownward(lts);
-
-		AutBase::StateBinaryRelation relation;
-
-		lts.computeSimulation(relation, size);
-
-		return relation;
+		return aut.TranslateDownward().computeSimulation(size);
 
 	}
 
@@ -123,17 +115,13 @@ namespace VATA {
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
 		const ExplicitTreeAut<SymbolType>& aut, const size_t& size) {
 
-		ExplicitLTS lts;
-
 		std::vector<std::vector<size_t>> partition;
 
 		AutBase::StateBinaryRelation relation;
 
-		aut.TranslateUpward(lts, partition, relation, Util::Identity(size));
-
-		lts.computeSimulation(partition, relation, size);
-
-		return relation;
+		return aut.TranslateUpward(
+			partition, relation, Util::Identity(size)
+		).computeSimulation(partition, relation, size);
 
 	}
 

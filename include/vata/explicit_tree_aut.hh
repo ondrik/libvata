@@ -720,7 +720,7 @@ public:
 
 	}
 
-	void TranslateDownward(ExplicitLTS& lts) const {
+	ExplicitLTS TranslateDownward() const {
 
 		std::unordered_map<SymbolType, size_t> symbolMap;
 		std::unordered_map<const StateTuple*, size_t> lhsMap;
@@ -734,6 +734,8 @@ public:
 		size_t lhsCnt = this->transitions_->size();
 		Util::TranslatorWeak2<std::unordered_map<const StateTuple*, size_t>>
 			lhsTranslator(lhsMap, [&lhsCnt](const StateTuple*){ return lhsCnt++; });
+
+		ExplicitLTS result;
 
 		for (auto& stateClusterPair : *this->transitions_) {
 	
@@ -751,9 +753,9 @@ public:
 
 					if (tuple->size() == 1) {
 						// inline lhs of size 1 >:-)
-						lts.addTransition(stateClusterPair.first, symbol, tuple->front());
+						result.addTransition(stateClusterPair.first, symbol, tuple->front());
 					} else {
-						lts.addTransition(
+						result.addTransition(
 							stateClusterPair.first, symbol, lhsTranslator(tuple.get())
 						);
 					}
@@ -772,7 +774,7 @@ public:
 
 			for (auto& state : *tupleIndexPair.first) {
 
-				lts.addTransition(tupleIndexPair.second, symbolMap.size() + i, state);
+				result.addTransition(tupleIndexPair.second, symbolMap.size() + i, state);
 
 				++i;
 
@@ -780,7 +782,9 @@ public:
 
 		}
 
-		lts.init();
+		result.init();
+
+		return result;
 
 	}
 
@@ -866,39 +870,41 @@ protected:
 public:
 
 	template <class Rel>
-	void TranslateUpward(ExplicitLTS& lts, std::vector<std::vector<size_t>>& part,
-		Util::BinaryRelation& rel, const Rel& param) const {
-
-		size_t symbolCnt = 0;
-		std::unordered_map<SymbolType, size_t> symbolMap;
-		VATA::Util::TranslatorWeak2<std::unordered_map<SymbolType, size_t>>
-			symbolTranslator(symbolMap, [&symbolCnt](const SymbolType&){ return symbolCnt++; });
+	ExplicitLTS TranslateUpward(std::vector<std::vector<size_t>>& partition,
+		Util::BinaryRelation& relation, const Rel& param) const {
 
 		assert(this->transitions_);
+
+		size_t symbolCnt = 0;
+		size_t envCnt = this->transitions_->size();
+
+		std::unordered_map<SymbolType, size_t> symbolMap;
+		std::unordered_map<Env, size_t, boost::hash<Env>> envMap;
 
 		size_t base = ((0 < this->finalStates_.size()) &&
 			(this->finalStates_.size() < this->transitions_->size())) ? 2 : 1;
 
-		part.clear();
-		part.resize(base);
+		partition.clear();
+		partition.resize(base);
 
 		std::vector<const Env*> head;
 
-		size_t envCnt = this->transitions_->size();
-		std::unordered_map<Env, size_t, boost::hash<Env>> envMap;
+		VATA::Util::TranslatorWeak2<std::unordered_map<SymbolType, size_t>>
+			symbolTranslator(symbolMap, [&symbolCnt](const SymbolType&){ return symbolCnt++; });
+
 		VATA::Util::TranslatorWeak2<std::unordered_map<Env, size_t, boost::hash<Env>>>
 			envTranslator(
 				envMap,
-				[&base, &envCnt, &head, &part, &param](const Env& env) -> size_t {
+				[&base, &envCnt, &head, &partition, &param](const Env& env) -> size_t {
 					for (size_t i = 0; i < head.size(); ++i) {
 						assert(head[i]);
 						if (!head[i]->equal(env, param))
 							continue;
-						part[base + i].push_back(envCnt);
+						partition[base + i].push_back(envCnt);
 						return envCnt++;
 					}
 					head.push_back(&env);
-					part.push_back(std::vector<size_t>(1, envCnt));
+					partition.push_back(std::vector<size_t>(1, envCnt));
 					return envCnt++;
 				}
 		);
@@ -907,9 +913,24 @@ public:
 	
 			assert(stateClusterPair.second);
 
-			part[this->IsFinalState(stateClusterPair.first)?(0):(base - 1)].push_back(
-				stateClusterPair.first
-			);
+			if ((base == 2) && this->IsFinalState(stateClusterPair.first))
+				partition[1].push_back(stateClusterPair.first);
+
+			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
+	
+				assert(symbolTupleSetPair.second);
+
+				symbolTranslator(symbolTupleSetPair.first);
+
+			}
+
+		}
+
+		ExplicitLTS result;
+
+		for (auto& stateClusterPair : *this->transitions_) {
+	
+			assert(stateClusterPair.second);
 
 			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
 	
@@ -923,35 +944,44 @@ public:
 
 					if (tuple->size() == 1) {
 						// inline lhs of size 1 >:-)
-						lts.addTransition((*tuple)[0], symbol, stateClusterPair.first);
+						result.addTransition((*tuple)[0], symbol, stateClusterPair.first);
 						continue;
 					}
 
 					for (size_t i = 0; i < tuple->size(); ++i) {
 
-						size_t env = envTranslator(Env(*tuple, i, symbol, stateClusterPair.first));
-
-						lts.addTransition((*tuple)[i], symbolCnt, env);
-						lts.addTransition(env, symbol, stateClusterPair.first);
+						result.addTransition(
+							(*tuple)[i],
+							symbolCnt,
+							envTranslator(Env(*tuple, i, symbol, stateClusterPair.first))
+						);
 
 					}
 
 				}
-					
+
 			}
 
 		}
 
-		rel.resize(part.size());
-		rel.reset(false);
+		for (auto& envIndexPair : envMap) {
+
+			result.addTransition(
+				envIndexPair.second, envIndexPair.first.symbol_, envIndexPair.first.state_
+			);
+
+		}
+	
+		relation.resize(partition.size());
+		relation.reset(false);
 
 		// 0 accepting, 1 non-accepting, 2 .. environments
-		rel.set(0, 0, true);
+		relation.set(0, 0, true);
 
 		if (base == 2) {
 
-			rel.set(1, 0, true);
-			rel.set(1, 1, true);
+			relation.set(1, 0, true);
+			relation.set(1, 1, true);
 
 		}
 
@@ -965,13 +995,15 @@ public:
 				assert(head[j]);
 				
 				if (head[i]->lessThan(*head[j], param))
-					rel.set(base + i, base + j, true);
+					relation.set(base + i, base + j, true);
 
 			}
 
 		}
 
-		lts.init();
+		result.init();
+
+		return result;
 
 	}
 

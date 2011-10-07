@@ -152,17 +152,27 @@ public:
 
 public:
 
-	void computeSimulation(const std::vector<std::vector<size_t>>& partition,
-		Util::BinaryRelation& relation, size_t outputSize);
+	Util::BinaryRelation computeSimulation(
+		const std::vector<std::vector<size_t>>& partition,
+		const Util::BinaryRelation& relation,
+		size_t outputSize
+	);
 
-	void computeSimulation(Util::BinaryRelation& relation, size_t outputSize) {
+	Util::BinaryRelation computeSimulation(size_t outputSize) {
 
-		relation = Util::BinaryRelation(1, true);
-
-		this->computeSimulation(std::vector<std::vector<size_t>>(), relation, outputSize);
+		return this->computeSimulation(
+			std::vector<std::vector<size_t>>(), Util::BinaryRelation(1, true), outputSize
+		);
 
 	}
 
+	Util::BinaryRelation computeSimulation() {
+
+		return this->computeSimulation(
+			std::vector<std::vector<size_t>>(), Util::BinaryRelation(1, true), this->states_
+		);
+
+	}
 
 };
 
