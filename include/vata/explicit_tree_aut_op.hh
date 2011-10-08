@@ -14,16 +14,17 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/explicit_tree_aut.hh>
+#include <vata/explicit_lts.hh>
 #include <vata/explicit_tree_isect.hh>
 #include <vata/explicit_tree_useless.hh>
 #include <vata/explicit_tree_unreach.hh>
+#include <vata/explicit_tree_transl.hh>
 #include <vata/explicit_tree_incl_up.hh>
-#include <vata/explicit_lts.hh>
 #include <vata/down_tree_incl_fctor.hh>
 #include <vata/down_tree_opt_incl_fctor.hh>
 #include <vata/tree_incl_down.hh>
 #include <vata/util/binary_relation.hh>
-#include <vata/util/convert.hh>
+//#include <vata/util/convert.hh>
 
 namespace VATA {
 
@@ -95,11 +96,17 @@ namespace VATA {
 		const ExplicitTreeAut<SymbolType>& aut,
 		AutBase::StateToStateMap* pTranslMap = nullptr);
 
+	template <class SymbolType, class Rel>
+	ExplicitTreeAut<SymbolType> CollapseStates(const ExplicitTreeAut<SymbolType>& aut,
+		const Rel& preorder) {
+
+	}
+
 	template <class SymbolType>
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		const ExplicitTreeAut<SymbolType>& aut, const size_t& size) {
 
-		return aut.TranslateDownward().computeSimulation(size);
+		return TranslateDownward(aut).computeSimulation(size);
 
 	}
 
@@ -119,8 +126,8 @@ namespace VATA {
 
 		AutBase::StateBinaryRelation relation;
 
-		return aut.TranslateUpward(
-			partition, relation, Util::Identity(size)
+		return TranslateUpward(
+			aut, partition, relation, Util::Identity(size)
 		).computeSimulation(partition, relation, size);
 
 	}
