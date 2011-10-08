@@ -96,11 +96,11 @@ private:
 
 	SharedList* next_;
 	T* subList_;
-	size_t counter_;
+	size_t refCount_;
 
 public:
 
-	SharedList(T* subList = nullptr) : next_(nullptr), subList_(subList), counter_(1) {}
+	SharedList(T* subList = nullptr) : next_(nullptr), subList_(subList), refCount_(1) {}
 
 	void init(T* subList) {
 
@@ -121,7 +121,7 @@ public:
 
 		SharedList* elem = this, * tmp;
 
-		while (elem && elem->counter_ == 1) {
+		while (elem && elem->refCount_ == 1) {
 			tmp = elem;
 			elem = elem->next_;
 			deleter(tmp);
@@ -137,19 +137,19 @@ public:
 
 		SharedList* elem = this;
 
-		while (elem && elem->counter_ == 1) {
+		while (elem && elem->refCount_ == 1) {
 			deleter(elem);
 			elem = elem->next_;
 		}
 
 		if (elem)
-			--elem->counter_;
+			--elem->refCount_;
 
 	}
 
 	SharedList* copy() {
 
-		++this->counter_;
+		++this->refCount_;
 
 		return this;
 
@@ -169,7 +169,7 @@ public:
 
 		}
 
-		if (list->counter_ > 1) {
+		if (list->refCount_ > 1) {
 
 			SharedList* tmp = allocator();
 			tmp->next_ = list;
