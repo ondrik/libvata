@@ -24,6 +24,7 @@
 #include <vata/down_tree_opt_incl_fctor.hh>
 #include <vata/tree_incl_down.hh>
 #include <vata/util/transl_strict.hh>
+#include <vata/util/two_way_dict.hh>
 #include <vata/util/binary_relation.hh>
 #include <vata/util/util.hh>
 //#include <vata/util/convert.hh>
@@ -103,22 +104,38 @@ namespace VATA {
 		class Rel,
 		class Index = Util::IdentityTranslator<AutBase::StateType>
 	>
+	ExplicitTreeAut<SymbolType> RemoveUnreachableStates(const ExplicitTreeAut<SymbolType>& aut,
+		const Rel& rel, const Index& index = Index());
+
+	template <
+		class SymbolType,
+		class Rel,
+		class Index = Util::IdentityTranslator<AutBase::StateType>
+	>
 	ExplicitTreeAut<SymbolType> CollapseStates(const ExplicitTreeAut<SymbolType>& aut,
-		const Rel& rel, const Index& invStateIndex = Index()) {
+		const Rel& rel, const Index& bwIndex = Index()) {
 
 		std::vector<size_t> representatives;
 
 		rel.buildClasses(representatives);
 
-		std::vector<AutBase::StateType> transl;
+		std::vector<AutBase::StateType> transl(representatives.size());
 
-		Util::RebindMap2(transl, representatives, invStateIndex);
+		Util::RebindMap2(transl, representatives, bwIndex);
 
 		ExplicitTreeAut<SymbolType> res(aut.cache_);
 
 		aut.ReindexStates(res, transl);
 
 		return res;
+
+	}
+
+	template <class SymbolType, class Index>
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		const ExplicitTreeAut<SymbolType>& aut, const size_t& size, const Index& index) {
+
+		return TranslateDownward(aut, index).computeSimulation(size);
 
 	}
 
@@ -135,6 +152,20 @@ namespace VATA {
 		const ExplicitTreeAut<SymbolType>& aut) {
 
 		return ComputeDownwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
+
+	}
+
+	template <class SymbolType, class Index>
+	AutBase::StateBinaryRelation ComputeUpwardSimulation(
+		const ExplicitTreeAut<SymbolType>& aut, const size_t& size, const Index& index) {
+
+		std::vector<std::vector<size_t>> partition;
+
+		AutBase::StateBinaryRelation relation;
+
+		return TranslateUpward(
+			aut, partition, relation, Util::Identity(size), index
+		).computeSimulation(partition, relation, size);
 
 	}
 
@@ -157,6 +188,41 @@ namespace VATA {
 		const ExplicitTreeAut<SymbolType>& aut) {
 
 		return ComputeUpwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
+
+	}
+
+	template <class SymbolType>
+	ExplicitTreeAut<SymbolType> Reduce(const ExplicitTreeAut<SymbolType>& aut) {
+
+		typedef AutBase::StateType StateType;
+
+		typedef Util::TwoWayDict<
+			StateType,
+			StateType,
+			std::unordered_map<StateType, StateType>,
+			std::unordered_map<StateType, StateType>
+		> StateDict;
+
+		size_t stateCnt = 0;
+
+		StateDict stateDict;
+		Util::TranslatorWeak<StateDict> stateTranslator(
+			stateDict, [&stateCnt](const StateType&){ return stateCnt++; }
+		);
+
+		aut.BuildStateIndex(stateTranslator);
+
+		AutBase::StateBinaryRelation sim = ComputeDownwardSimulation(
+			aut, stateDict.size(), Util::TranslatorStrict<StateDict>(stateDict)
+		);
+
+		return RemoveUnreachableStates(
+			CollapseStates(
+				aut, sim, Util::TranslatorStrict<StateDict::MapBwdType>(stateDict.GetReverseMap())
+			),
+			sim,
+			Util::TranslatorStrict<StateDict>(stateDict)
+		);
 
 	}
 

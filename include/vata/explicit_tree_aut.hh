@@ -61,8 +61,8 @@ GCC_DIAG_ON(effc++)
 		AutBase::StateToStateMap*, AutBase::StateToStateMap*);
 
 	template <class SymbolType>
-	friend ExplicitTreeAut<SymbolType> UnionDisjunctStates(const ExplicitTreeAut<SymbolType>& lhs,
-		const ExplicitTreeAut<SymbolType>& rhs);
+	friend ExplicitTreeAut<SymbolType> UnionDisjunctStates(const ExplicitTreeAut<SymbolType>&,
+		const ExplicitTreeAut<SymbolType>&);
 
 	template <class SymbolType>
 	friend ExplicitTreeAut<SymbolType> Intersection(
@@ -77,14 +77,20 @@ GCC_DIAG_ON(effc++)
 	friend ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
 		const ExplicitTreeAut<SymbolType>&, AutBase::StateToStateMap*);
 
+	template <class SymbolType, class Rel, class Index>
+	friend ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
+		const ExplicitTreeAut<SymbolType>&, const Rel&, const Index&);
+
 	template <class SymbolType, class Index>
-	friend ExplicitLTS TranslateDownward(const ExplicitTreeAut<SymbolType>& aut,
-		const Index& stateIndex);
+	friend ExplicitLTS TranslateDownward(const ExplicitTreeAut<SymbolType>&, const Index&);
 
 	template <class SymbolType, class Rel, class Index>
-	friend ExplicitLTS TranslateUpward(const ExplicitTreeAut<SymbolType>& aut,
-		std::vector<std::vector<size_t>>& partition, Util::BinaryRelation& relation,
-		const Rel& param, const Index& stateIndex);
+	friend ExplicitLTS TranslateUpward(const ExplicitTreeAut<SymbolType>&,
+		std::vector<std::vector<size_t>>&, Util::BinaryRelation&, const Rel&, const Index&);
+
+	template <class SymbolType, class Rel, class Index>
+	friend ExplicitTreeAut<SymbolType> CollapseStates(const ExplicitTreeAut<SymbolType>&,
+		const Rel&, const Index&);
 
 public:   // public data types
 
