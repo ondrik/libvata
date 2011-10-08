@@ -29,6 +29,9 @@ namespace VATA
 		template <class Container1, class Container2, class Translator>
 		void RebindMap2(Container1& dst, const Container2& src, const Translator& transl);
 
+		template <class Container1, class T, class Translator>
+		void RebindMap2(Container1& dst, const std::vector<T>& src, const Translator& transl);
+
 		VATA::AutBase::StringToStateDict CreateProductStringToStateMap(
 			const VATA::AutBase::StringToStateDict& lhsCont,
 			const VATA::AutBase::StringToStateDict& rhsCont,
