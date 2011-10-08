@@ -44,70 +44,174 @@ struct SharedListInitF {
 
 };
 
-class Counter {
+struct CounterRow {
 
-	std::vector<std::vector<size_t> > _data;
-	const std::vector<std::vector<size_t> >& _key;
-	const std::vector<size_t>& _range;
-	
-public:
+	size_t refCount_;
+	size_t counter_;
+	VectorAllocator::Ptr data_;
 
-	Counter(size_t labels, const std::vector<std::vector<size_t> >& key, const std::vector<size_t>& range)
-		: _data(labels), _key(key), _range(range) {}
+	CounterRow* copy() {
+		
+		++this->refCount_;
 
-	Counter(const Counter& counter)
-		: _data(counter._data.size()), _key(counter._key), _range(counter._range) {}
-
-	Counter& operator=(const Counter& rhs) {
-
-		this->_data = rhs._data;
-
-		return *this;
+		return this;
 
 	}
 
-	size_t incr(size_t label, size_t state) {
+};
 
-		assert(label < this->_data.size());
+typedef CachingAllocator<CounterRow> RowAllocator;
 
-		if (this->_data[label].size() == 0)
-			this->_data[label].resize(this->_range[label]);
+class SharedCounter {
 
-		return ++this->_data[label][this->_key[label][state]];
+	const std::vector<size_t>& key_;
+	const size_t& states_;
+	const std::vector<size_t>& range_;
+
+	std::vector<CounterRow*> data_;
+
+	VectorAllocator& vectorAllocator_;
+	RowAllocator& rowAllocator_;
+
+protected:
+
+	VectorAllocator::Ptr allocateEmptyData(size_t size) {
+
+		auto data = this->vectorAllocator_();
+
+		assert(data);
+
+		data->resize(size);
+		
+		std::fill(data->begin(), data->end(), 0);
+
+		return data;
+		
+	}
+
+	SharedCounter& operator=(const SharedCounter& rhs);
+
+public:
+
+	SharedCounter(size_t labels, const std::vector<size_t>& key, const size_t& states,
+		const std::vector<size_t>& range, VectorAllocator& vectorAllocator,
+		RowAllocator& rowAllocator) : key_(key), states_(states), range_(range), data_(labels),
+		vectorAllocator_(vectorAllocator), rowAllocator_(rowAllocator) {}
+
+	SharedCounter(SharedCounter& counter) : key_(counter.key_), states_(counter.states_),
+		range_(counter.range_), data_(counter.data_.size()),
+		vectorAllocator_(counter.vectorAllocator_), rowAllocator_(counter.rowAllocator_) {}
+
+	void incr(size_t label, size_t state) {
+
+		assert(label < this->data_.size());
+
+		CounterRow*& row = this->data_[label];
+
+		if (row) {
+
+			assert(row->refCount_ == 1);
+			assert(row->data_);
+			assert(this->key_[label*this->states_ + state] < row->data_->size());
+	
+			++row->counter_;
+			++(*row->data_)[this->key_[label*this->states_ + state]];
+
+			return;
+	
+		}
+
+		auto rowData = this->vectorAllocator_();
+		rowData->assign(this->range_[label], 0);
+
+		assert(this->key_[label*this->states_ + state] < rowData->size());
+
+		(*rowData)[this->key_[label*this->states_ + state]] = 1;
+
+		row = this->rowAllocator_();
+		row->refCount_ = 1;
+		row->counter_ = 1;
+		row->data_ = rowData;
+	
+		this->data_[label] = row;
 
 	} 
 	
 	size_t decr(size_t label, size_t state) {
 
-		assert(label < this->_key.size());
-		assert(label < this->_data.size());
-		assert(state < this->_key[label].size());
-		assert(this->_key[label][state] < this->_data[label].size());
+		assert(label < this->data_.size());
 
-		return --this->_data[label][this->_key[label][state]];
+		CounterRow*& row = this->data_[label];
+
+		assert(row);
+		assert(row->data_);
+		assert(this->key_[label*this->states_ + state] < row->data_->size());
+
+		if (row->counter_ == 1) {
+
+			assert((*row->data_)[this->key_[label*this->states_ + state]] == 1);
+
+			if (row->refCount_ == 1) {
+
+				this->vectorAllocator_.reclaim(row->data_);
+				this->rowAllocator_.reclaim(row);
+
+			} else {
+				
+				--row->refCount_;
+
+			}
+
+			assert(!(row = nullptr));
+
+			return 0;
+
+		}
+
+		if (row->refCount_ > 1) {
+
+			auto rowData = this->vectorAllocator_();
+			rowData->assign(row->data_->begin(), row->data_->end());
+
+			--row->refCount_;
+
+			size_t counter = row->counter_;
+			
+			row = this->rowAllocator_();
+			row->refCount_ = 1;
+			row->counter_ = counter;
+			row->data_ = rowData;
+			
+		}
+
+		--row->counter_;
+
+		return --(*row->data_)[this->key_[label*this->states_ + state]];
 
 	}
 
-	void copyRow(size_t label, const Counter& c) {
+	void copyRow(size_t label, SharedCounter& cnt) {
 
-		assert(label < this->_data.size());
-		assert(label < c._data.size());
+		assert(label < this->data_.size());
+		assert(this->data_.size() == cnt.data_.size());
+		assert(cnt.data_[label]);
+		assert(this->data_[label] == nullptr);
 
-		this->_data[label] = c._data[label];
+		this->data_[label] = cnt.data_[label]->copy();
 
 	}
 
-	friend std::ostream& operator<<(std::ostream& os, const Counter& cnt) {
+	friend std::ostream& operator<<(std::ostream& os, const SharedCounter& cnt) {
 
 		size_t i = 0;
 		
-		for (auto& row : cnt._data) {
+		for (auto& row : cnt.data_) {
 			
-			if (row.size()) {
+			if (row->data_->size()) {
 
 				os << i << ": ";
 	
-				for (auto& col : row)
+				for (auto& col : *row->data_)
 					os << col;
 	
 				os << std::endl;
@@ -176,14 +280,9 @@ struct OLRTBlock {
 	size_t _index;
 	StateListElem* _states;
 	std::vector<RemoveList*> _remove;
-	Counter _counter;
+	SharedCounter _counter;
 	SmartSet _inset;
 	StateListElem* _tmp;
-
-public:
-
-	VectorAllocator& vectorAllocator_;
-	RemoveAllocator& removeAllocator_;
 
 protected:
 
@@ -194,11 +293,10 @@ protected:
 public:
 
 	OLRTBlock(const VATA::ExplicitLTS& lts, size_t index, StateListElem* states,
-		const std::vector<std::vector<size_t> >& key, const std::vector<size_t>& range,
-		VectorAllocator& vectorAllocator, RemoveAllocator& removeAllocator) :
-		_index(index), _states(states), _remove(lts.labels()), _counter(lts.labels(), key, range),
-		_inset(lts.labels()), _tmp(nullptr), vectorAllocator_(vectorAllocator),
-		removeAllocator_(removeAllocator) {
+		const std::vector<size_t>& key, const std::vector<size_t>& range,
+		VectorAllocator& vectorAllocator, RowAllocator& rowAllocator) : _index(index),
+		_states(states), _remove(lts.labels()), _counter(lts.labels(), key, lts.states(), range,
+		vectorAllocator, rowAllocator), _inset(lts.labels()), _tmp(nullptr) {
 
 		for (size_t q = 0; q < lts.states(); ++q) {
 
@@ -211,8 +309,7 @@ public:
 	
 	OLRTBlock(const VATA::ExplicitLTS& lts, OLRTBlock& parent, size_t index) : _index(index),
 		_states(parent._tmp), _remove(lts.labels()), _counter(parent._counter),
-		_inset(lts.labels()), _tmp(nullptr), vectorAllocator_(parent.vectorAllocator_),
-		removeAllocator_(parent.removeAllocator_) {
+		_inset(lts.labels()), _tmp(nullptr) {
 
 		assert(this->_states);
 
@@ -263,18 +360,14 @@ public:
 
 	}
 	
-	Counter& counter() {
+	SharedCounter& counter() {
 		return this->_counter;
 	}
 
 	SmartSet& inset() {
 		return this->_inset;
 	}
-/*	
-	std::vector<VectorAllocator::Ptr>& remove() {
-		return this->_remove;
-	}
-*/
+
 	size_t index() const {
 		return this->_index;
 	}
@@ -307,6 +400,7 @@ class OLRTAlgorithm {
 
 	VectorAllocator vectorAllocator_;
 	RemoveAllocator removeAllocator_;
+	RowAllocator rowAllocator_;
 
 	std::vector<OLRTBlock*> _partition;
 	BinaryRelation _relation;
@@ -314,7 +408,7 @@ class OLRTAlgorithm {
 	std::vector<std::pair<OLRTBlock*, size_t> > _queue;
 	std::vector<SmartSet> _delta;
 	std::vector<SmartSet> _delta1;
-	std::vector<std::vector<size_t> > _key;
+	std::vector<size_t> _key;
 	std::vector<size_t> _range;
 
 	OLRTAlgorithm(const OLRTAlgorithm&);
@@ -584,8 +678,8 @@ protected:
 public:
 
 	OLRTAlgorithm(const VATA::ExplicitLTS& lts) : _lts(lts), vectorAllocator_(),
-		removeAllocator_(SharedListInitF(vectorAllocator_)), _partition(), _relation(),
-		_index(lts.states()), _queue(), _delta(), _delta1(), _key(), _range() {
+		removeAllocator_(SharedListInitF(vectorAllocator_)), rowAllocator_(), _partition(),
+		_relation(), _index(lts.states()), _queue(), _delta(), _delta1(), _key(), _range() {
 
 		assert(this->_index.size());
 
@@ -596,7 +690,7 @@ public:
 			this->_key,
 			this->_range,
 			this->vectorAllocator_,
-			this->removeAllocator_
+			this->rowAllocator_
 		);
 
 		size_t q = this->_index.size();
@@ -635,18 +729,17 @@ public:
 		assert(this->isConsistent());
 
 		this->_lts.buildDelta(this->_delta, this->_delta1);
-		this->_key.resize(this->_lts.labels());
+		this->_key.resize(this->_lts.labels()*this->_lts.states(), static_cast<size_t>(-1));
 		this->_range.resize(this->_lts.labels());
 
 		for (size_t a = 0; a < this->_lts.labels(); ++a) {
 
-			this->_key[a].resize(this->_lts.states());
 			this->_range[a] = this->_delta1[a].size();
 
 			size_t x = 0;
 
 			for (auto& q : this->_delta1[a])
-				this->_key[a][q] = x++;
+				this->_key[a*this->_lts.states() + q] = x++;
 
 		}
 

@@ -131,7 +131,7 @@ public:
 
 	size_t labels() const { return this->data_.size(); }
 
-	size_t states() const { return this->states_; }
+	const size_t& states() const { return this->states_; }
 
 	friend std::ostream& operator<<(std::ostream& os, const ExplicitLTS& lts) {
 
