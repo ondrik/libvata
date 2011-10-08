@@ -11,6 +11,8 @@
 #ifndef _VATA_UTIL_HH_
 #define _VATA_UTIL_HH_
 
+#include <vector>
+
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/aut_base.hh>
@@ -23,6 +25,9 @@ namespace VATA
 
 		template <class Container, class Translator>
 		Container RebindMap(const Container& container, const Translator& transl);
+
+		template <class Container1, class Container2, class Translator>
+		void RebindMap2(Container1& dst, const Container2& src, const Translator& transl);
 
 		VATA::AutBase::StringToStateDict CreateProductStringToStateMap(
 			const VATA::AutBase::StringToStateDict& lhsCont,
@@ -42,14 +47,13 @@ namespace VATA
 	}
 }
 
-
 template <class Container, class Translator>
 Container VATA::Util::RebindMap(const Container& container,
 	const Translator& transl)
 {
 	Container result;
 
-	for (auto contElem : container)
+	for (auto& contElem : container)
 	{	// for each element in the container
 		const auto& key = contElem.first;
 		const auto& value = contElem.second;
@@ -62,6 +66,25 @@ Container VATA::Util::RebindMap(const Container& container,
 	}
 
 	return result;
+}
+
+template <class Container1, class Container2, class Translator>
+void VATA::Util::RebindMap2(Container1& dst, const Container2& src, const Translator& transl)
+{
+	for (auto& contElem : src)
+	{	// for each element in the container
+		dst[contElem.first] = transl[contElem.second];
+	}
+}
+
+template <class Container1, class T, class Translator>
+void VATA::Util::RebindMap2(Container1& dst, const std::vector<T>& src, const Translator& transl)
+{
+	size_t i = 0;
+	for (auto& contElem : src)
+	{	// for each element in the container
+		dst[i++] = transl[contElem];
+	}
 }
 
 #endif
