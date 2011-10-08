@@ -45,12 +45,17 @@ public:
 			if (++this->iter_ != this->pos_->subList_->end())
 				return *this;
 
-			if ((this->pos_ = this->pos_->next_) == nullptr)
-				return *this;
+			if ((this->pos_ = this->pos_->next_) != nullptr) {
+				
+				assert(this->pos_->subList_);
 
-			assert(this->pos_->subList_);
+				this->iter_ = this->pos_->subList_->begin();
 
-			this->iter_ = this->pos_->subList_->begin();
+			} else {
+
+				this->iter_ = typename T::const_iterator();
+
+			}
 
 			return *this;
 
@@ -64,23 +69,11 @@ public:
 
 		bool operator==(const Iterator& rhs) const {
 
-			if (this->pos_ != rhs.pos_)
-				return false;
-
-			if (!this->pos_)
-				return true;
-				
 			return this->iter_ == rhs.iter_;
 
 		}
 
 		bool operator!=(const Iterator& rhs) const {
-
-			if (this->pos_ != rhs.pos_)
-				return true;
-
-			if (!this->pos_)
-				return false;
 
 			return this->iter_ != rhs.iter_;
 
