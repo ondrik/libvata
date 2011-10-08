@@ -24,6 +24,12 @@ namespace VATA
 			class Cont
 		>
 		class TranslatorStrict;
+
+		template
+		<
+			class T
+		>
+		class IdentityTranslator;
 	}
 }
 
@@ -66,6 +72,37 @@ public:   // methods
 			throw std::runtime_error("No translation for " + Convert::ToString(value));
 		}
 	}
+
+	inline ResultType operator[](const InputType& value) const
+	{
+		return this->operator()(value);
+	}
+	
+};
+
+/**
+ * @brief  Identity translator
+ * 
+ */
+template
+<
+	class T
+>
+class VATA::Util::IdentityTranslator
+{
+
+public:   // methods
+
+	inline T operator()(const T& value) const
+	{
+		return value;
+	}
+
+	inline T operator[](const T& value) const
+	{
+		return value;
+	}
+	
 };
 
 #endif
