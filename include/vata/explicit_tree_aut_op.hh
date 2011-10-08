@@ -23,7 +23,9 @@
 #include <vata/down_tree_incl_fctor.hh>
 #include <vata/down_tree_opt_incl_fctor.hh>
 #include <vata/tree_incl_down.hh>
+#include <vata/util/transl_strict.hh>
 #include <vata/util/binary_relation.hh>
+#include <vata/util/util.hh>
 //#include <vata/util/convert.hh>
 
 namespace VATA {
@@ -96,9 +98,27 @@ namespace VATA {
 		const ExplicitTreeAut<SymbolType>& aut,
 		AutBase::StateToStateMap* pTranslMap = nullptr);
 
-	template <class SymbolType, class Rel>
+	template <
+		class SymbolType,
+		class Rel,
+		class Index = Util::IdentityTranslator<AutBase::StateType>
+	>
 	ExplicitTreeAut<SymbolType> CollapseStates(const ExplicitTreeAut<SymbolType>& aut,
-		const Rel& preorder) {
+		const Rel& rel, const Index& invStateIndex = Index()) {
+
+		std::vector<size_t> representatives;
+
+		rel.buildClasses(representatives);
+
+		std::vector<AutBase::StateType> transl;
+
+		Util::RebindMap2(transl, representatives, invStateIndex);
+
+		ExplicitTreeAut<SymbolType> res(aut.cache_);
+
+		aut.ReindexStates(res, transl);
+
+		return res;
 
 	}
 
