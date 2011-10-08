@@ -339,6 +339,13 @@ Arguments parseArguments(int argc, char* argv[])
 
 					parserState = PARSING_LOAD_FILE;
 				}
+				else if (currentArg == "red")
+				{
+					args.command   = COMMAND_RED;
+					args.operands  = 1;
+
+					parserState = PARSING_LOAD_FILE;
+				}
 				else if (currentArg == "incl")
 				{
 					args.command   = COMMAND_INCLUSION;

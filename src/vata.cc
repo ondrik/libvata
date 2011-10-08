@@ -74,6 +74,12 @@ const char VATA_USAGE_COMMANDS[] =
 	"          'dir=down' : downward simulation (default)\n"
 	"          'dir=up'   : upward simulation\n"
 	"\n"
+	"    red <file>              Reduces the automaton in <file> using simulation\n"
+	"                            relation. Options:\n"
+	"\n"
+	"          'dir=down' : downward simulation (default)\n"
+	"          'dir=up'   : upward simulation\n"
+	"\n"
 	"    incl <file1> <file2>    Checks language inclusion of automata from <file1>\n"
 	"                            and <file2>, i.e., whether L(<file1>) is a subset\n"
 	"                            of L(<file2>). Options:\n"
@@ -166,7 +172,8 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 
 	if ((args.command == COMMAND_LOAD) ||
 		(args.command == COMMAND_UNION) ||
-		(args.command == COMMAND_INTERSECTION))
+		(args.command == COMMAND_INTERSECTION) ||
+		(args.command == COMMAND_RED))
 	{
 		if (args.pruneUseless)
 		{
@@ -223,6 +230,10 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	{
 		relResult = ComputeSimulation(autInput1, args);
 	}
+	else if (args.command == COMMAND_RED)
+	{
+		autResult = ComputeReduction(autInput1, args);
+	}
 	else
 	{
 		throw std::runtime_error("Internal error: invalid command");
@@ -243,7 +254,8 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 
 	if (!args.dontOutputResult)
 	{	// in case output is not forbidden
-		if (args.command == COMMAND_LOAD)
+		if ((args.command == COMMAND_LOAD) ||
+			(args.command == COMMAND_RED))
 		{
 			std::cout << autResult.DumpToString(serializer,
 				StateBackTranslatorStrict(stateDict1.GetReverseMap()),
