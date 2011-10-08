@@ -193,6 +193,11 @@ public:   // Public methods
 		return bwdMap_;
 	}
 
+	inline size_t size() const
+	{
+		return this->fwdMap_.size();
+	}
+
 	friend std::ostream& operator<<(std::ostream& os,
 		const TwoWayDict& dict)
 	{
