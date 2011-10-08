@@ -4,7 +4,7 @@
  *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
  *  Description:
- *    Upward inclusion for explicitly represented tree automata.
+ *    Tree automata to LTS translation for explicitly represented tree automata.
  *
  *****************************************************************************/
 
@@ -18,22 +18,29 @@
 #include <vata/vata.hh>
 #include <vata/explicit_tree_aut.hh>
 #include <vata/explicit_lts.hh>
+#include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
 
 namespace VATA {
 
-	template <class SymbolType>
-	ExplicitLTS TranslateDownward(const ExplicitTreeAut<SymbolType>& aut);
+	template <class SymbolType, class Index = Util::IdentityTranslator<AutBase::StateType>>
+	ExplicitLTS TranslateDownward(const ExplicitTreeAut<SymbolType>& aut,
+		const Index& stateIndex = Index());
 
-	template <class SymbolType, class Rel>
+	template <
+		class SymbolType,
+		class Rel,
+		class Index = Util::IdentityTranslator<AutBase::StateType>
+	>
 	ExplicitLTS TranslateUpward(const ExplicitTreeAut<SymbolType>& aut,
 		std::vector<std::vector<size_t>>& partition, Util::BinaryRelation& relation,
-		const Rel& param);
+		const Rel& param, const Index& stateIndex = Index());
 
 }
 
-template <class SymbolType>
-VATA::ExplicitLTS VATA::TranslateDownward(const ExplicitTreeAut<SymbolType>& aut) {
+template <class SymbolType, class Index>
+VATA::ExplicitLTS VATA::TranslateDownward(const ExplicitTreeAut<SymbolType>& aut,
+	const Index& stateIndex) {
 
 	typedef Explicit::StateTuple StateTuple;
 
@@ -56,6 +63,8 @@ VATA::ExplicitLTS VATA::TranslateDownward(const ExplicitTreeAut<SymbolType>& aut
 
 		assert(stateClusterPair.second);
 
+		size_t state = stateIndex[stateClusterPair.first];
+
 		for (auto& symbolTupleSetPair : *stateClusterPair.second) {
 
 			assert(symbolTupleSetPair.second);
@@ -68,7 +77,7 @@ VATA::ExplicitLTS VATA::TranslateDownward(const ExplicitTreeAut<SymbolType>& aut
 
 				if (tuple->size() == 1) {
 					// inline lhs of size 1 >:-)
-					result.addTransition(stateClusterPair.first, symbol, tuple->front());
+					result.addTransition(state, symbol, tuple->front());
 				} else {
 					result.addTransition(
 						stateClusterPair.first, symbol, lhsTranslator(tuple.get())
@@ -89,7 +98,7 @@ VATA::ExplicitLTS VATA::TranslateDownward(const ExplicitTreeAut<SymbolType>& aut
 
 		for (auto& state : *tupleIndexPair.first) {
 
-			result.addTransition(tupleIndexPair.second, symbolMap.size() + i, state);
+			result.addTransition(tupleIndexPair.second, symbolMap.size() + i, stateIndex[state]);
 
 			++i;
 
@@ -103,10 +112,10 @@ VATA::ExplicitLTS VATA::TranslateDownward(const ExplicitTreeAut<SymbolType>& aut
 
 }
 
-template <class SymbolType, class Rel>
+template <class SymbolType, class Rel, class Index>
 VATA::ExplicitLTS VATA::TranslateUpward(const ExplicitTreeAut<SymbolType>& aut,
 	std::vector<std::vector<size_t>>& partition, Util::BinaryRelation& relation,
-	const Rel& param) {
+	const Rel& param, const Index& stateIndex) {
 
 	typedef Explicit::StateTuple StateTuple;
 
@@ -230,7 +239,7 @@ VATA::ExplicitLTS VATA::TranslateUpward(const ExplicitTreeAut<SymbolType>& aut,
 		assert(stateClusterPair.second);
 
 		if ((base == 2) && aut.IsFinalState(stateClusterPair.first))
-			partition[1].push_back(stateClusterPair.first);
+			partition[1].push_back(stateIndex[stateClusterPair.first]);
 
 		for (auto& symbolTupleSetPair : *stateClusterPair.second) {
 
@@ -248,6 +257,8 @@ VATA::ExplicitLTS VATA::TranslateUpward(const ExplicitTreeAut<SymbolType>& aut,
 
 		assert(stateClusterPair.second);
 
+		size_t state = stateIndex[stateClusterPair.first];
+
 		for (auto& symbolTupleSetPair : *stateClusterPair.second) {
 
 			assert(symbolTupleSetPair.second);
@@ -260,16 +271,16 @@ VATA::ExplicitLTS VATA::TranslateUpward(const ExplicitTreeAut<SymbolType>& aut,
 
 				if (tuple->size() == 1) {
 					// inline lhs of size 1 >:-)
-					result.addTransition((*tuple)[0], symbol, stateClusterPair.first);
+					result.addTransition(stateIndex[(*tuple)[0]], symbol, state);
 					continue;
 				}
 
 				for (size_t i = 0; i < tuple->size(); ++i) {
 
 					result.addTransition(
-						(*tuple)[i],
+						stateIndex[(*tuple)[i]],
 						symbolCnt,
-						envTranslator(Env(*tuple, i, symbol, stateClusterPair.first))
+						envTranslator(Env(*tuple, i, symbol, state))
 					);
 
 				}
@@ -283,7 +294,7 @@ VATA::ExplicitLTS VATA::TranslateUpward(const ExplicitTreeAut<SymbolType>& aut,
 	for (auto& envIndexPair : envMap) {
 
 		result.addTransition(
-			envIndexPair.second, envIndexPair.first.symbol_, envIndexPair.first.state_
+			envIndexPair.second, envIndexPair.first.symbol_, stateIndex[envIndexPair.first.state_]
 		);
 
 	}
