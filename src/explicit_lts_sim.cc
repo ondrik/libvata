@@ -12,6 +12,7 @@
 #include <vector>
 #include <algorithm>
 #include <memory>
+#include <unordered_map>
 #include <unordered_set>
 
 #include <vata/util/binary_relation.hh>
@@ -45,73 +46,28 @@ struct SharedListInitF {
 
 };
 
-class SharedCounter {
+class HashedCounter {
 
-	const std::vector<size_t>& key_;
-	const size_t& states_;
-	const std::vector<size_t>& range_;
-
-	std::vector<VectorAllocator::Ptr> data_;
-
-	VectorAllocator& vectorAllocator_;
+	std::vector<std::unordered_map<size_t, size_t>*> data_;
 
 protected:
 
-	VectorAllocator::Ptr allocateEmptyData(size_t size) {
-
-		auto data = this->vectorAllocator_();
-
-		assert(data);
-
-		data->resize(size);
-		
-		std::fill(data->begin(), data->end(), 0);
-
-		return data;
-		
-	}
-
-	SharedCounter& operator=(const SharedCounter& rhs);
+	HashedCounter& operator=(const HashedCounter& rhs);
 
 public:
 
-	SharedCounter(size_t labels, const std::vector<size_t>& key, const size_t& states,
-		const std::vector<size_t>& range, VectorAllocator& vectorAllocator) : key_(key),
-		states_(states), range_(range), data_(labels), vectorAllocator_(vectorAllocator) {}
+	HashedCounter(size_t labels) : data_(labels) {}
 
-	SharedCounter(SharedCounter& counter) : key_(counter.key_), states_(counter.states_),
-		range_(counter.range_), data_(counter.data_.size()),
-		vectorAllocator_(counter.vectorAllocator_) {}
+	HashedCounter(HashedCounter& counter) : data_(counter.data_.size()) {}
 
 	void incr(size_t label, size_t state) {
 
 		assert(label < this->data_.size());
 
-		auto& row = this->data_[label];
+		if (!this->data_[label])
+			this->data_[label] = new std::unordered_map<size_t, size_t>();
 
-		if (row) {
-
-			assert((*row)[0] == 1); // refCount
-			assert(2 + this->key_[label*this->states_ + state] < row->size());
-	
-			++(*row)[1]; // master;
-			++(*row)[2 + this->key_[label*this->states_ + state]];
-
-			return;
-	
-		}
-
-		row = this->vectorAllocator_();
-		row->resize(2 + this->range_[label]);
-		
-		assert(2 + this->key_[label*this->states_ + state] < row->size());
-
-		(*row)[0] = 1; // refCount
-		(*row)[1] = 1; // master
-
-		std::fill(row->begin() + 2, row->end(), 0);
-
-		(*row)[2 + this->key_[label*this->states_ + state]] = 1;
+		++this->data_[label]->insert(std::make_pair(state, 0)).first->second;
 
 	} 
 	
@@ -119,67 +75,38 @@ public:
 
 		assert(label < this->data_.size());
 
-		auto*& row = this->data_[label];
+		auto& table = this->data_[label];
 
-		assert(row);
-		assert(2 + this->key_[label*this->states_ + state] < row->size());
+		assert(table);
 
-		if ((*row)[1] == 1) { // master
+		auto iter = table->find(state);
 
-			assert((*row)[2 + this->key_[label*this->states_ + state]] == 1);
+		assert(iter != table->end());
 
-			if ((*row)[0] == 1) { // refCount
+		if (iter->second == 1) {
 
-				this->vectorAllocator_.reclaim(row);
-
-			} else {
-				
-				--(*row)[0]; // refCount
-
-			}
-
-			assert(!(row = nullptr));
+			table->erase(iter);
 
 			return 0;
 
 		}
 
-		if ((*row)[0] > 1) { // refCount
-
-			--(*row)[0]; // refCount
-
-			auto newRow = this->vectorAllocator_();
-
-			newRow->resize(row->size());
-
-			(*newRow)[0] = 1; // refCount
-
-			std::copy(row->begin() + 1, row->end(), newRow->begin() + 1);
-
-			row = newRow;
-
-		}
-
-		--(*row)[1]; // master
-
-		return --(*row)[2 + this->key_[label*this->states_ + state]];
+		return --iter->second;
 
 	}
 
-	void copyRow(size_t label, SharedCounter& cnt) {
+	void copyRow(size_t label, HashedCounter& cnt) {
 
 		assert(label < this->data_.size());
 		assert(this->data_.size() == cnt.data_.size());
 		assert(cnt.data_[label]);
 		assert(this->data_[label] == nullptr);
 
-		++(*cnt.data_[label])[0]; // refCount
-
-		this->data_[label] = cnt.data_[label];
+		this->data_[label] = new std::unordered_map<size_t, size_t>(*cnt.data_[label]);
 
 	}
 
-	friend std::ostream& operator<<(std::ostream& os, const SharedCounter& cnt) {
+	friend std::ostream& operator<<(std::ostream& os, const HashedCounter& cnt) {
 
 		size_t i = 0;
 		
@@ -187,12 +114,12 @@ public:
 			
 			if (row) {
 
-				os << i << ": ";
+				os << i << ". (";
 	
 				for (auto& col : *row)
-					os << col;
+					os << ' ' << col.first << ':' << col.second;
 	
-				os << std::endl;
+				os << " )" << std::endl;
 
 			}
 
@@ -275,7 +202,7 @@ struct OLRTBlock {
 	size_t _index;
 	StateListElem* _states;
 	std::vector<RemoveList*> _remove;
-	SharedCounter _counter;
+	HashedCounter _counter;
 	SmartSet _inset;
 	StateListElem* _tmp;
 	std::unordered_set<OLRTBlock*> bigger_;
@@ -289,11 +216,9 @@ protected:
 
 public:
 
-	OLRTBlock(const VATA::ExplicitLTS& lts, size_t index, StateListElem* states,
-		const std::vector<size_t>& key, const std::vector<size_t>& range,
-		VectorAllocator& vectorAllocator) : _index(index), _states(states), _remove(lts.labels()),
-		_counter(lts.labels(), key, lts.states(), range, vectorAllocator), _inset(lts.labels()),
-		_tmp(nullptr), bigger_(), smaller_() {
+	OLRTBlock(const VATA::ExplicitLTS& lts, size_t index, StateListElem* states) : _index(index),
+	_states(states), _remove(lts.labels()),	_counter(lts.labels()), _inset(lts.labels()),
+	_tmp(nullptr), bigger_(), smaller_() {
 
 		StateListElem* elem = this->_states;
 
@@ -309,7 +234,7 @@ public:
 
 	}
 	
-	OLRTBlock(const VATA::ExplicitLTS& lts, OLRTBlock& parent, size_t index) : _index(index),
+	OLRTBlock(const VATA::ExplicitLTS& lts, size_t index, OLRTBlock& parent) : _index(index),
 		_states(parent._tmp), _remove(lts.labels()), _counter(parent._counter),
 		_inset(lts.labels()), _tmp(nullptr), bigger_(), smaller_() {
 
@@ -433,7 +358,7 @@ public:
 
 	}
 	
-	SharedCounter& counter() {
+	HashedCounter& counter() {
 		return this->_counter;
 	}
 
@@ -477,10 +402,6 @@ class OLRTAlgorithm {
 	std::vector<OLRTBlock*> _partition;
 	std::vector<StateListElem> _index;
 	std::vector<std::pair<OLRTBlock*, size_t> > _queue;
-	std::vector<SmartSet> _delta;
-	std::vector<SmartSet> _delta1;
-	std::vector<size_t> _key;
-	std::vector<size_t> _range;
 
 	OLRTAlgorithm(const OLRTAlgorithm&);
 
@@ -569,7 +490,7 @@ protected:
 			if (!block->_tmp)
 				continue;
 
-			auto newBlock = new OLRTBlock(this->_lts, *block, this->_partition.size());
+			auto newBlock = new OLRTBlock(this->_lts, this->_partition.size(), *block);
 
 			newBlock->initBigger(block, this->_partition);
 
@@ -598,7 +519,7 @@ protected:
 
 			assert(block->_tmp);
 
-			OLRTBlock* newBlock = new OLRTBlock(this->_lts, *block, this->_partition.size());
+			OLRTBlock* newBlock = new OLRTBlock(this->_lts, this->_partition.size(), *block);
 
 			newBlock->initRelation(block);
 
@@ -640,11 +561,7 @@ protected:
 
 		}
 
-		this->_partition.push_back(
-			new OLRTBlock(
-				this->_lts, blockIndex, list, this->_key, this->_range, this->vectorAllocator_
-			)
-		);
+		this->_partition.push_back(new OLRTBlock(this->_lts, blockIndex, list));
 
 	}
 
@@ -757,7 +674,7 @@ public:
 
 	OLRTAlgorithm(const VATA::ExplicitLTS& lts) : _lts(lts), vectorAllocator_(),
 		removeAllocator_(SharedListInitF(vectorAllocator_)), _partition(), _index(lts.states()),
-		_queue(), _delta(), _delta1(), _key(), _range() {
+		_queue() {
 
 		assert(this->_index.size());
 
@@ -775,22 +692,9 @@ public:
 		assert(OLRTAlgorithm::isPartition(partition, this->_lts.states()));
 		assert(OLRTAlgorithm::isConsistent(partition, relation));
 
-		// build counter maps
+		std::vector<SmartSet> delta, delta1;
 
-		this->_lts.buildDelta(this->_delta, this->_delta1);
-		this->_key.resize(this->_lts.labels()*this->_lts.states(), static_cast<size_t>(-1));
-		this->_range.resize(this->_lts.labels());
-
-		for (size_t a = 0; a < this->_lts.labels(); ++a) {
-
-			this->_range[a] = this->_delta1[a].size();
-
-			size_t x = 0;
-
-			for (auto& q : this->_delta1[a])
-				this->_key[a*this->_lts.states() + q] = x++;
-
-		}
+		this->_lts.buildDelta(delta, delta1);
 
 		// initilize patition-relation
 
@@ -818,7 +722,7 @@ public:
 		// make initial refinement
 
 		for (size_t a = 0; a < this->_lts.labels(); ++a)
-			this->fastSplit(this->_delta1[a]);
+			this->fastSplit(delta1[a]);
 
 		// prune relation
 
@@ -833,7 +737,7 @@ public:
 
 				for (size_t a = 0; a < this->_lts.labels(); ++a) {
 
-					this->_delta1[a].contains(elem->index_)
+					delta1[a].contains(elem->index_)
 						? pre[block->_index].push_back(a)
 						: noPre[a].push_back(block);
 
@@ -871,7 +775,7 @@ public:
 
 			for (auto& a : (*i)->inset()) {
 
-				for (auto q : this->_delta1[a]) {
+				for (auto q : delta1[a]) {
 
 					for (auto r : this->_lts.post(a)[q]) {
 
@@ -882,7 +786,7 @@ public:
 
 				}
 
-				s.assignFlat(this->_delta1[a]);
+				s.assignFlat(delta1[a]);
 
 				for (auto& b2 : this->_partition) {
 
