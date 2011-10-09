@@ -20,6 +20,8 @@
 #include <vata/util/shared_list.hh>
 #include <vata/explicit_lts.hh>
 
+#include <vata/util/convert.hh>
+
 using VATA::Util::BinaryRelation;
 using VATA::Util::SmartSet;
 using VATA::Util::CachingAllocator;
@@ -45,31 +47,26 @@ struct SharedListInitF {
 
 };
 
+struct CounterRow {
+	
+	size_t master_;
+	VectorAllocator::Ptr data_;
+
+	CounterRow() : master_(0), data_(nullptr) {}
+
+};
+
 class SharedCounter {
 
 	const std::vector<size_t>& key_;
 	const size_t& states_;
 	const std::vector<size_t>& range_;
 
-	std::vector<VectorAllocator::Ptr> data_;
+	std::vector<CounterRow> data_;
 
 	VectorAllocator& vectorAllocator_;
 
 protected:
-
-	VectorAllocator::Ptr allocateEmptyData(size_t size) {
-
-		auto data = this->vectorAllocator_();
-
-		assert(data);
-
-		data->resize(size);
-		
-		std::fill(data->begin(), data->end(), 0);
-
-		return data;
-		
-	}
 
 	SharedCounter& operator=(const SharedCounter& rhs);
 
@@ -83,35 +80,46 @@ public:
 		range_(counter.range_), data_(counter.data_.size()),
 		vectorAllocator_(counter.vectorAllocator_) {}
 
+	void releaseSingletons() {
+
+		for (auto& row : this->data_) {
+
+			if (row.master_ == 1)
+				this->vectorAllocator_.reclaim(row.data_);
+
+		}
+
+	}
+
 	void incr(size_t label, size_t state) {
 
 		assert(label < this->data_.size());
 
 		auto& row = this->data_[label];
 
-		if (row) {
+		if (row.master_) {
 
-			assert((*row)[0] == 1); // refCount
-			assert(2 + this->key_[label*this->states_ + state] < row->size());
+			assert(row.data_);
+			assert(1 + this->key_[label*this->states_ + state] < row.data_->size());
 	
-			++(*row)[1]; // master;
-			++(*row)[2 + this->key_[label*this->states_ + state]];
+			++row.master_;
+			++(*row.data_)[1 + this->key_[label*this->states_ + state]];
 
 			return;
 	
 		}
 
-		row = this->vectorAllocator_();
-		row->resize(2 + this->range_[label]);
+		row.data_ = this->vectorAllocator_();
+		row.data_->resize(1 + this->range_[label]);
 		
-		assert(2 + this->key_[label*this->states_ + state] < row->size());
+		assert(1 + this->key_[label*this->states_ + state] < row->size());
 
-		(*row)[0] = 1; // refCount
-		(*row)[1] = 1; // master
+		(*row.data_)[0] = 1; // refCount
+		row.master_ = 1;
 
-		std::fill(row->begin() + 2, row->end(), 0);
+		std::fill(row.data_->begin() + 1, row.data_->end(), 0);
 
-		(*row)[2 + this->key_[label*this->states_ + state]] = 1;
+		(*row.data_)[1 + this->key_[label*this->states_ + state]] = 1;
 
 	} 
 	
@@ -119,50 +127,56 @@ public:
 
 		assert(label < this->data_.size());
 
-		auto*& row = this->data_[label];
+		auto& row = this->data_[label];
 
-		assert(row);
-		assert(2 + this->key_[label*this->states_ + state] < row->size());
+		assert(row.master_);
 
-		if ((*row)[1] == 1) { // master
+		if (row.master_ == 1) {
 
-			assert((*row)[2 + this->key_[label*this->states_ + state]] == 1);
-
-			if ((*row)[0] == 1) { // refCount
-
-				this->vectorAllocator_.reclaim(row);
-
-			} else {
-				
-				--(*row)[0]; // refCount
-
-			}
-
-			assert(!(row = nullptr));
+			assert(--row.master_ == 0);
 
 			return 0;
 
 		}
 
-		if ((*row)[0] > 1) { // refCount
+		assert(row.data_);
+		assert(1 + this->key_[label*this->states_ + state] < row.data_->size());
 
-			--(*row)[0]; // refCount
+		if (row.master_ == 2) {
 
-			auto newRow = this->vectorAllocator_();
+			if ((*row.data_)[0] == 1) { // refCount
 
-			newRow->resize(row->size());
+				this->vectorAllocator_.reclaim(row.data_);
 
-			(*newRow)[0] = 1; // refCount
+			} else {
+				
+				--(*row.data_)[0]; // refCount
 
-			std::copy(row->begin() + 1, row->end(), newRow->begin() + 1);
+			}
 
-			row = newRow;
+			return --row.master_;
 
 		}
 
-		--(*row)[1]; // master
+		if ((*row.data_)[0] > 1) { // refCount
 
-		return --(*row)[2 + this->key_[label*this->states_ + state]];
+			--(*row.data_)[0]; // refCount
+
+			auto newData = this->vectorAllocator_();
+
+			newData->resize(row.data_->size());
+
+			(*newData)[0] = 1; // refCount
+
+			std::copy(row.data_->begin() + 1, row.data_->end(), newData->begin() + 1);
+
+			row.data_ = newData;
+
+		}
+
+		--row.master_; // master
+
+		return --(*row.data_)[1 + this->key_[label*this->states_ + state]];
 
 	}
 
@@ -173,7 +187,7 @@ public:
 		assert(cnt.data_[label]);
 		assert(this->data_[label] == nullptr);
 
-		++(*cnt.data_[label])[0]; // refCount
+		++(*cnt.data_[label].data_)[0]; // refCount
 
 		this->data_[label] = cnt.data_[label];
 
@@ -185,11 +199,11 @@ public:
 		
 		for (auto& row : cnt.data_) {
 			
-			if (row) {
+			if (row.data_) {
 
 				os << i << ": ";
 	
-				for (auto& col : *row)
+				for (auto& col : *row.data_)
 					os << col;
 	
 				os << std::endl;
@@ -477,8 +491,6 @@ class OLRTAlgorithm {
 	std::vector<OLRTBlock*> _partition;
 	std::vector<StateListElem> _index;
 	std::vector<std::pair<OLRTBlock*, size_t> > _queue;
-	std::vector<SmartSet> _delta;
-	std::vector<SmartSet> _delta1;
 	std::vector<size_t> _key;
 	std::vector<size_t> _range;
 
@@ -757,7 +769,7 @@ public:
 
 	OLRTAlgorithm(const VATA::ExplicitLTS& lts) : _lts(lts), vectorAllocator_(),
 		removeAllocator_(SharedListInitF(vectorAllocator_)), _partition(), _index(lts.states()),
-		_queue(), _delta(), _delta1(), _key(), _range() {
+		_queue(), _key(), _range() {
 
 		assert(this->_index.size());
 
@@ -776,18 +788,21 @@ public:
 		assert(OLRTAlgorithm::isConsistent(partition, relation));
 
 		// build counter maps
+		std::vector<SmartSet> delta;
+		std::vector<SmartSet> delta1;
 
-		this->_lts.buildDelta(this->_delta, this->_delta1);
+		this->_lts.buildDelta(delta, delta1);
+
 		this->_key.resize(this->_lts.labels()*this->_lts.states(), static_cast<size_t>(-1));
 		this->_range.resize(this->_lts.labels());
 
 		for (size_t a = 0; a < this->_lts.labels(); ++a) {
 
-			this->_range[a] = this->_delta1[a].size();
+			this->_range[a] = delta1[a].size();
 
 			size_t x = 0;
 
-			for (auto& q : this->_delta1[a])
+			for (auto& q : delta1[a])
 				this->_key[a*this->_lts.states() + q] = x++;
 
 		}
@@ -818,7 +833,7 @@ public:
 		// make initial refinement
 
 		for (size_t a = 0; a < this->_lts.labels(); ++a)
-			this->fastSplit(this->_delta1[a]);
+			this->fastSplit(delta1[a]);
 
 		// prune relation
 
@@ -833,7 +848,7 @@ public:
 
 				for (size_t a = 0; a < this->_lts.labels(); ++a) {
 
-					this->_delta1[a].contains(elem->index_)
+					delta1[a].contains(elem->index_)
 						? pre[block->_index].push_back(a)
 						: noPre[a].push_back(block);
 
@@ -871,7 +886,7 @@ public:
 
 			for (auto& a : (*i)->inset()) {
 
-				for (auto q : this->_delta1[a]) {
+				for (auto q : delta1[a]) {
 
 					for (auto r : this->_lts.post(a)[q]) {
 
@@ -882,7 +897,7 @@ public:
 
 				}
 
-				s.assignFlat(this->_delta1[a]);
+				s.assignFlat(delta1[a]);
 
 				for (auto& b2 : this->_partition) {
 
@@ -912,6 +927,8 @@ public:
 				assert(s.size() == (*i)->_remove[a]->subList()->size());
 
 			}
+
+			(*i)->counter().releaseSingletons();
 
 		}
 
