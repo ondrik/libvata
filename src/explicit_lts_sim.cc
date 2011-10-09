@@ -358,14 +358,12 @@ public:
 	void makeRelated(OLRTBlock* block) {
 
 		this->bigger_.insert(block);
-//		block->smaller_.insert(this);
 
 	}
 
 	void breakRelated(OLRTBlock* block) {
 
 		this->bigger_.erase(block);
-//		block->smaller_.erase(this);
 
 	}
 
