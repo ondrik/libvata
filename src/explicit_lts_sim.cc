@@ -311,7 +311,7 @@ public:
 	
 	OLRTBlock(const VATA::ExplicitLTS& lts, OLRTBlock& parent, size_t index) : _index(index),
 		_states(parent._tmp), _remove(lts.labels()), _counter(parent._counter),
-		_inset(lts.labels()), _tmp(nullptr), bigger_(parent.bigger_), smaller_(parent.smaller_) {
+		_inset(lts.labels()), _tmp(nullptr), bigger_(), smaller_() {
 
 		assert(this->_states);
 
@@ -333,17 +333,6 @@ public:
 			elem = elem->next_;
 
 		} while (elem != this->_states);
-
-
-		for (auto& bigger : this->bigger_)
-			bigger->smaller_.insert(this);
-
-		this->bigger_.insert(this);
-
-		for (auto& smaller : this->smaller_)
-			smaller->bigger_.insert(this);
-
-		this->smaller_.insert(this);
 
 	}
 
@@ -369,14 +358,54 @@ public:
 	void makeRelated(OLRTBlock* block) {
 
 		this->bigger_.insert(block);
-		block->smaller_.insert(this);
+//		block->smaller_.insert(this);
 
 	}
 
 	void breakRelated(OLRTBlock* block) {
 
 		this->bigger_.erase(block);
-		block->smaller_.erase(this);
+//		block->smaller_.erase(this);
+
+	}
+
+	template <class T>
+	void initBigger(OLRTBlock* parent, const T& candidates) {
+
+		for (auto& block : candidates) {
+
+			if (block->isRelated(parent))
+				block->makeRelated(this);
+				
+		}
+
+		this->bigger_ = parent->bigger_;
+		this->makeRelated(this);
+
+	}
+
+	void initSmaller() {
+
+		for (auto& block : this->bigger_)
+			block->smaller_.insert(this);
+
+		this->smaller_.insert(this);
+
+	}
+
+	void initRelation(OLRTBlock* parent) {
+
+		this->bigger_ = parent->bigger_;
+		this->smaller_ = parent->smaller_;
+
+		for (auto& bigger : this->bigger_)
+			bigger->smaller_.insert(this);
+
+		for (auto& smaller : this->smaller_)
+			smaller->bigger_.insert(this);
+
+		this->bigger_.insert(this);
+		this->smaller_.insert(this);
 
 	}
 	
@@ -520,7 +549,7 @@ protected:
 			if (blockMask[block->index()])
 				continue;
 
-			blockMask[block->index()] = true;;
+			blockMask[block->index()] = true;
 
 			modifiedBlocks.push_back(block);
 
@@ -542,7 +571,11 @@ protected:
 			if (!block->_tmp)
 				continue;
 
-			this->_partition.push_back(new OLRTBlock(this->_lts, *block, this->_partition.size()));
+			auto newBlock = new OLRTBlock(this->_lts, *block, this->_partition.size());
+
+			newBlock->initBigger(block, this->_partition);
+
+			this->_partition.push_back(newBlock);
 
 		}
 
@@ -568,6 +601,8 @@ protected:
 			assert(block->_tmp);
 
 			OLRTBlock* newBlock = new OLRTBlock(this->_lts, *block, this->_partition.size());
+
+			newBlock->initRelation(block);
 
 			this->_partition.push_back(newBlock);
 
@@ -787,6 +822,8 @@ public:
 		for (size_t a = 0; a < this->_lts.labels(); ++a)
 			this->fastSplit(this->_delta1[a]);
 
+		// prune relation
+
 		std::vector<std::vector<size_t>> pre(this->_partition.size());
 		std::vector<std::vector<OLRTBlock*>> noPre(this->_lts.labels());
 
@@ -823,6 +860,8 @@ public:
 				}
 
 			}
+
+			b1->initSmaller();
 
 		}
 
