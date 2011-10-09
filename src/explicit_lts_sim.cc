@@ -20,8 +20,6 @@
 #include <vata/util/shared_list.hh>
 #include <vata/explicit_lts.hh>
 
-#include <vata/util/convert.hh>
-
 using VATA::Util::BinaryRelation;
 using VATA::Util::SmartSet;
 using VATA::Util::CachingAllocator;
@@ -47,20 +45,28 @@ struct SharedListInitF {
 
 };
 
-struct CounterRow {
-	
-	size_t master_;
-	VectorAllocator::Ptr data_;
-
-	CounterRow() : master_(0), data_(nullptr) {}
-
-};
-
 class SharedCounter {
 
-	const std::vector<size_t>& key_;
+	struct CounterRow {
+		
+		size_t master_;
+		VectorAllocator::Ptr data_;
+	
+		CounterRow() : master_(0), data_(nullptr) {}
+	
+	};
+
+public:
+
+	typedef std::vector<size_t> Key;
+	typedef std::vector<std::pair<size_t, size_t>> LabelMap;
+
+private:
+
+	const Key& key_;
 	const size_t& states_;
-	const std::vector<size_t>& range_;
+	const LabelMap& labelMap_;
+	const size_t& rowSize_;
 
 	std::vector<CounterRow> data_;
 
@@ -72,62 +78,105 @@ protected:
 
 public:
 
-	SharedCounter(size_t labels, const std::vector<size_t>& key, const size_t& states,
-		const std::vector<size_t>& range, VectorAllocator& vectorAllocator) : key_(key),
-		states_(states), range_(range), data_(labels), vectorAllocator_(vectorAllocator) {}
+	SharedCounter(const Key& key, const size_t& states, const LabelMap& labelMap,
+		const size_t& rowSize, VectorAllocator& vectorAllocator) : key_(key), states_(states),
+		labelMap_(labelMap), rowSize_(rowSize), data_(), vectorAllocator_(vectorAllocator) {}
 
 	SharedCounter(SharedCounter& counter) : key_(counter.key_), states_(counter.states_),
-		range_(counter.range_), data_(counter.data_.size()),
+		labelMap_(counter.labelMap_), rowSize_(counter.rowSize_), data_(),
 		vectorAllocator_(counter.vectorAllocator_) {}
 
 	void releaseSingletons() {
 
 		for (auto& row : this->data_) {
 
-			if (row.master_ == 1)
+			if (row.master_ == 1) {
+
 				this->vectorAllocator_.reclaim(row.data_);
+
+				assert(!(row.data_ = nullptr));
+
+			}
 
 		}
 
 	}
 
+	size_t get(size_t label, size_t state) const{
+
+		assert(label*this->states_ + state < this->key_.size());
+
+		size_t index = this->key_[label*this->states_ + state];
+		size_t bucket = index / this->rowSize_;
+		size_t col = index % this->rowSize_;
+
+		assert(bucket < this->data_.size());
+
+		auto& row = this->data_[bucket];
+
+		assert(row.master_);
+
+		if (row.master_ == 1)
+			return 1;
+
+		assert(row.data_);
+		assert(this->rowSize_ < row.data_->size());
+		assert(col < row.data_->size());
+
+		return (*row.data_)[col];
+
+	}
+
 	void incr(size_t label, size_t state) {
 
-		assert(label < this->data_.size());
+		assert(label*this->states_ + state < this->key_.size());
 
-		auto& row = this->data_[label];
+		size_t index = this->key_[label*this->states_ + state];
+		size_t bucket = index / this->rowSize_;
+		size_t col = index % this->rowSize_;
+
+		if (bucket >= this->data_.size())
+			this->data_.resize(bucket + 1);
+
+		auto& row = this->data_[bucket];
 
 		if (row.master_) {
 
 			assert(row.data_);
-			assert(1 + this->key_[label*this->states_ + state] < row.data_->size());
+			assert(col + 1 < row.data_->size());
 	
 			++row.master_;
-			++(*row.data_)[1 + this->key_[label*this->states_ + state]];
+			++(*row.data_)[col];
 
 			return;
 	
 		}
 
-		row.data_ = this->vectorAllocator_();
-		row.data_->resize(1 + this->range_[label]);
-		
-		assert(1 + this->key_[label*this->states_ + state] < row->size());
-
-		(*row.data_)[0] = 1; // refCount
 		row.master_ = 1;
+		row.data_ = this->vectorAllocator_();
+		row.data_->resize(this->rowSize_ + 1);
+		
+		(*row.data_)[this->rowSize_] = 1; // refCount
 
-		std::fill(row.data_->begin() + 1, row.data_->end(), 0);
+		std::fill(row.data_->begin(), row.data_->end() - 1, 0);
 
-		(*row.data_)[1 + this->key_[label*this->states_ + state]] = 1;
+		assert(col < row.data_->size());
+
+		(*row.data_)[col] = 1;
 
 	} 
 	
 	size_t decr(size_t label, size_t state) {
 
-		assert(label < this->data_.size());
+		assert(label*this->states_ + state < this->key_.size());
 
-		auto& row = this->data_[label];
+		size_t index = this->key_[label*this->states_ + state];
+		size_t bucket = index / this->rowSize_;
+		size_t col = index % this->rowSize_;
+
+		assert(bucket < this->data_.size());
+
+		auto& row = this->data_[bucket];
 
 		assert(row.master_);
 
@@ -140,56 +189,96 @@ public:
 		}
 
 		assert(row.data_);
-		assert(1 + this->key_[label*this->states_ + state] < row.data_->size());
+		assert(this->rowSize_ < row.data_->size());
 
 		if (row.master_ == 2) {
 
-			if ((*row.data_)[0] == 1) { // refCount
+			--row.master_;
+	
+			assert(col < row.data_->size());
+	
+			size_t result = ((*row.data_)[col] - 1);
+
+			if ((*row.data_)[this->rowSize_] == 1) { // refCount
 
 				this->vectorAllocator_.reclaim(row.data_);
 
 			} else {
 				
-				--(*row.data_)[0]; // refCount
+				--(*row.data_)[this->rowSize_]; // refCount
 
 			}
 
-			return --row.master_;
+			assert(!(row.data_ = nullptr));
+
+			return result;
 
 		}
 
-		if ((*row.data_)[0] > 1) { // refCount
+		if ((*row.data_)[this->rowSize_] > 1) { // refCount
 
-			--(*row.data_)[0]; // refCount
+			--(*row.data_)[this->rowSize_]; // refCount
 
 			auto newData = this->vectorAllocator_();
 
-			newData->resize(row.data_->size());
+			newData->resize(this->rowSize_ + 1);
 
-			(*newData)[0] = 1; // refCount
+			(*newData)[this->rowSize_] = 1; // refCount
 
-			std::copy(row.data_->begin() + 1, row.data_->end(), newData->begin() + 1);
+			std::copy(row.data_->begin(), row.data_->end() - 1, newData->begin());
 
 			row.data_ = newData;
 
 		}
 
-		--row.master_; // master
+		assert((*row.data_)[this->rowSize_] == 1);
 
-		return --(*row.data_)[1 + this->key_[label*this->states_ + state]];
+		--row.master_;
+
+		assert(col < row.data_->size());
+
+		return --(*row.data_)[col];
 
 	}
 
-	void copyRow(size_t label, SharedCounter& cnt) {
+	template <class T>
+	void copyLabels(const T& labels, SharedCounter& cnt) {
 
-		assert(label < this->data_.size());
-		assert(this->data_.size() == cnt.data_.size());
-		assert(cnt.data_[label]);
-		assert(this->data_[label] == nullptr);
+		std::vector<bool> bucketMask(cnt.data_.size(), false);
 
-		++(*cnt.data_[label].data_)[0]; // refCount
+		for (auto& label : labels) {
 
-		this->data_[label] = cnt.data_[label];
+			assert(label < this->labelMap_.size());
+
+			for (size_t i = this->labelMap_[label].first; i < this->labelMap_[label].second; ++i) {
+
+				if (bucketMask[i])
+					continue;
+
+				bucketMask[i] = true;
+
+				if (i >= cnt.data_.size())
+					break;
+
+				if (!cnt.data_[i].master_)
+					continue;
+
+				if (i >= this->data_.size())
+					this->data_.resize(i + 1);
+
+				if ((this->data_[i].master_ = cnt.data_[i].master_) == 1)
+					continue;
+
+				assert(cnt.data_[i].data_);
+				assert(this->rowSize_ < cnt.data_[i].data_->size());
+
+				++(*cnt.data_[i].data_)[this->rowSize_]; // refCount
+	
+				this->data_[i].data_ = cnt.data_[i].data_;
+	
+			}
+
+		}
 
 	}
 
@@ -304,10 +393,10 @@ protected:
 public:
 
 	OLRTBlock(const VATA::ExplicitLTS& lts, size_t index, StateListElem* states,
-		const std::vector<size_t>& key, const std::vector<size_t>& range,
-		VectorAllocator& vectorAllocator) : _index(index), _states(states), _remove(lts.labels()),
-		_counter(lts.labels(), key, lts.states(), range, vectorAllocator), _inset(lts.labels()),
-		_tmp(nullptr), bigger_(), smaller_() {
+		const SharedCounter::Key& key, const SharedCounter::LabelMap& labelMap,
+		const size_t& rowSize, VectorAllocator& vectorAllocator) : _index(index), _states(states),
+		_remove(lts.labels()), _counter(key, lts.states(), labelMap, rowSize, vectorAllocator),
+		_inset(lts.labels()), _tmp(nullptr), bigger_(), smaller_() {
 
 		StateListElem* elem = this->_states;
 
@@ -483,21 +572,6 @@ public:
 
 class OLRTAlgorithm {
 
-	const VATA::ExplicitLTS& _lts;
-
-	VectorAllocator vectorAllocator_;
-	RemoveAllocator removeAllocator_;
-
-	std::vector<OLRTBlock*> _partition;
-	std::vector<StateListElem> _index;
-	std::vector<std::pair<OLRTBlock*, size_t> > _queue;
-	std::vector<size_t> _key;
-	std::vector<size_t> _range;
-
-	OLRTAlgorithm(const OLRTAlgorithm&);
-
-	OLRTAlgorithm& operator=(const OLRTAlgorithm&);
-
 protected:
 
 	void enqueueToRemove(OLRTBlock* block, size_t label, size_t state) {
@@ -618,17 +692,16 @@ protected:
 
 			removeList.push_back(newBlock);
 
+			newBlock->counter().copyLabels(newBlock->inset(), block->counter());
+
 			for (auto& a : newBlock->inset()) {
 
-				newBlock->counter().copyRow(a, block->counter());
+				if (!block->_remove[a])
+					continue;
 
-				if (block->_remove[a]) {
+				this->_queue.push_back(std::make_pair(newBlock, a));
 
-					this->_queue.push_back(std::make_pair(newBlock, a));
-
-					newBlock->_remove[a] = block->_remove[a]->copy();
-
-				}
+				newBlock->_remove[a] = block->_remove[a]->copy();
 
 			}
 
@@ -654,7 +727,13 @@ protected:
 
 		this->_partition.push_back(
 			new OLRTBlock(
-				this->_lts, blockIndex, list, this->_key, this->_range, this->vectorAllocator_
+				this->_lts,
+				blockIndex,
+				list,
+				this->_key,
+				this->_labelMap,
+				this->rowSize_,
+				this->vectorAllocator_
 			)
 		);
 
@@ -765,11 +844,30 @@ protected:
 
 	}
 
+private:
+
+	const VATA::ExplicitLTS& _lts;
+
+	VectorAllocator vectorAllocator_;
+	RemoveAllocator removeAllocator_;
+
+	std::vector<OLRTBlock*> _partition;
+	std::vector<StateListElem> _index;
+	std::vector<std::pair<OLRTBlock*, size_t> > _queue;
+	std::vector<size_t> _key;
+	std::vector<std::pair<size_t, size_t>> _labelMap;
+
+	size_t rowSize_;
+
+	OLRTAlgorithm(const OLRTAlgorithm&);
+
+	OLRTAlgorithm& operator=(const OLRTAlgorithm&);
+
 public:
 
 	OLRTAlgorithm(const VATA::ExplicitLTS& lts) : _lts(lts), vectorAllocator_(),
 		removeAllocator_(SharedListInitF(vectorAllocator_)), _partition(), _index(lts.states()),
-		_queue(), _key(), _range() {
+		_queue(), _key(), _labelMap(), rowSize_() {
 
 		assert(this->_index.size());
 
@@ -788,19 +886,27 @@ public:
 		assert(OLRTAlgorithm::isConsistent(partition, relation));
 
 		// build counter maps
+
 		std::vector<SmartSet> delta;
 		std::vector<SmartSet> delta1;
 
 		this->_lts.buildDelta(delta, delta1);
 
 		this->_key.resize(this->_lts.labels()*this->_lts.states(), static_cast<size_t>(-1));
-		this->_range.resize(this->_lts.labels());
+		this->_labelMap.resize(this->_lts.labels());
+
+		this->rowSize_ = std::sqrt(this->_lts.labels());
+
+		if (this->rowSize_< 16)
+			this->rowSize_ = 16;
+
+		size_t x = 0;
 
 		for (size_t a = 0; a < this->_lts.labels(); ++a) {
 
-			this->_range[a] = delta1[a].size();
-
-			size_t x = 0;
+			this->_labelMap[a].first = x / this->rowSize_;
+			this->_labelMap[a].second =
+				(x + delta1[a].size() - 1) / this->rowSize_ + ((delta1[a].size())?(1):(0));
 
 			for (auto& q : delta1[a])
 				this->_key[a*this->_lts.states() + q] = x++;
