@@ -160,17 +160,20 @@ public:
 
 	Util::BinaryRelation computeSimulation(size_t outputSize) {
 
+		std::vector<std::vector<size_t>> partition(1);
+
+		for (size_t i = 0; i < this->states_; ++i)
+			partition[0].push_back(i);
+
 		return this->computeSimulation(
-			std::vector<std::vector<size_t>>(), Util::BinaryRelation(1, true), outputSize
+			partition, Util::BinaryRelation(1, true), outputSize
 		);
 
 	}
 
 	Util::BinaryRelation computeSimulation() {
 
-		return this->computeSimulation(
-			std::vector<std::vector<size_t>>(), Util::BinaryRelation(1, true), this->states_
-		);
+		return this->computeSimulation(this->states_);
 
 	}
 
