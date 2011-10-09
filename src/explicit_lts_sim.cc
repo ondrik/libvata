@@ -216,34 +216,44 @@ struct StateListElem {
 
 		assert(src);
 
-		if (this == this->next_)
+		if (this == this->next_) {
+
+			assert(this == this->prev_);
+			assert(this == src);
 
 			src = nullptr;
 
-		else {
+			if (!dst) {
 
-			src = this->next_;
+				dst = this;
 
-			this->next_->prev_ = this->prev_;
-			this->prev_->next_ = this->next_;
+				return;
 
-		}
-
-		if (!dst) {
-
-			dst = this;
-
-			this->next_ = this;
-			this->prev_ = this;
+			}
 
 		} else {
 
-			this->next_ = dst;
-			this->prev_ = dst->prev_;
-			this->next_->prev_ = this;
-			this->prev_->next_ = this;
+			src = this->next_;
+			src->prev_ = this->prev_;
+			src->prev_->next_ = src;
+	
+			if (!dst) {
+	
+				dst = this;
+	
+				dst->next_ = dst;
+				dst->prev_ = dst;
+
+				return;
+	
+			}
 
 		}
+		
+		this->next_ = dst;
+		this->prev_ = dst->prev_;
+		dst->prev_->next_ = this;
+		dst->prev_ = this;
 
 	}
 
