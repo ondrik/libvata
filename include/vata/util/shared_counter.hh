@@ -15,6 +15,7 @@
 #include <algorithm>
 
 #include <vata/util/caching_allocator.hh>
+#include <vata/util/smart_set.hh>
 
 namespace VATA {
 		namespace Util {
@@ -119,12 +120,9 @@ public:
 
 		auto& row = this->data_[bucket];
 
-		assert(row.master_);
+		if (!row.data_)
+			return row.master_;
 
-		if (row.master_ == 1)
-			return 1;
-
-		assert(row.data_);
 		assert(this->rowSize_ < row.data_->size());
 		assert(col < row.data_->size());
 
@@ -232,40 +230,42 @@ public:
 	template <class T>
 	void copyLabels(const T& labels, SharedCounter& cnt) {
 
-		std::vector<bool> bucketMask(cnt.data_.size(), false);
+		size_t sentinel = 0;
+
+		SmartSet rowSet(cnt.data_.size());
 
 		for (auto& label : labels) {
 
 			assert(label < this->labelMap_.size());
 
-			for (size_t i = this->labelMap_[label].first; i < this->labelMap_[label].second; ++i) {
+			sentinel = std::max(
+				sentinel, std::min(cnt.data_.size(), this->labelMap_[label].second)
+			);
 
-				if (bucketMask[i])
-					continue;
+			for (size_t i = this->labelMap_[label].first;
+				i < std::min(cnt.data_.size(), this->labelMap_[label].second); ++i)
 
-				bucketMask[i] = true;
+				rowSet.add(i);
 
-				if (i >= cnt.data_.size())
-					break;
+		}
 
-				if (!cnt.data_[i].master_)
-					continue;
+		this->data_.resize(sentinel);
 
-				if (i >= this->data_.size())
-					this->data_.resize(i + 1);
+		for (auto& rowIndex : rowSet) {
 
-				this->data_[i].master_ = cnt.data_[i].master_;
+			auto& src = cnt.data_[rowIndex];
+			auto& dst = this->data_[rowIndex];
 
-				if (!cnt.data_[i].data_)
-					continue;
+			dst.master_ = src.master_;
 
-				assert(this->rowSize_ < cnt.data_[i].data_->size());
+			if (!src.data_)
+				continue;
 
-				++(*cnt.data_[i].data_)[this->rowSize_]; // refCount
-	
-				this->data_[i].data_ = cnt.data_[i].data_;
-	
-			}
+			assert(this->rowSize_ < src.data_->size());
+
+			++(*src.data_)[this->rowSize_]; // refCount
+
+			dst.data_ = src.data_;
 
 		}
 
