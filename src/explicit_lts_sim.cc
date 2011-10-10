@@ -18,12 +18,14 @@
 #include <vata/util/smart_set.hh>
 #include <vata/util/caching_allocator.hh>
 #include <vata/util/shared_list.hh>
+#include <vata/util/shared_counter.hh>
 #include <vata/explicit_lts.hh>
 
 using VATA::Util::BinaryRelation;
 using VATA::Util::SmartSet;
 using VATA::Util::CachingAllocator;
 using VATA::Util::SharedList;
+using VATA::Util::SharedCounter;
 
 typedef CachingAllocator<std::vector<size_t>> VectorAllocator;
 
@@ -40,270 +42,6 @@ struct SharedListInitF {
 		sublist->clear();
 
 		list->init(sublist);
-
-	}
-
-};
-
-class SharedCounter {
-
-	struct CounterRow {
-		
-		size_t master_;
-		VectorAllocator::Ptr data_;
-	
-		CounterRow() : master_(0), data_(nullptr) {}
-	
-	};
-
-public:
-
-	typedef std::vector<size_t> Key;
-	typedef std::vector<std::pair<size_t, size_t>> LabelMap;
-
-private:
-
-	const Key& key_;
-	const size_t& states_;
-	const LabelMap& labelMap_;
-	const size_t& rowSize_;
-
-	std::vector<CounterRow> data_;
-
-	VectorAllocator& vectorAllocator_;
-
-protected:
-
-	SharedCounter& operator=(const SharedCounter& rhs);
-
-public:
-
-	SharedCounter(const Key& key, const size_t& states, const LabelMap& labelMap,
-		const size_t& rowSize, VectorAllocator& vectorAllocator) : key_(key), states_(states),
-		labelMap_(labelMap), rowSize_(rowSize), data_(), vectorAllocator_(vectorAllocator) {}
-
-	SharedCounter(SharedCounter& counter) : key_(counter.key_), states_(counter.states_),
-		labelMap_(counter.labelMap_), rowSize_(counter.rowSize_), data_(),
-		vectorAllocator_(counter.vectorAllocator_) {}
-
-	void releaseSingletons() {
-
-		for (auto& row : this->data_) {
-
-			if (row.master_ == 1) {
-
-				this->vectorAllocator_.reclaim(row.data_);
-
-				assert(!(row.data_ = nullptr));
-
-			}
-
-		}
-
-	}
-
-	size_t get(size_t label, size_t state) const{
-
-		assert(label*this->states_ + state < this->key_.size());
-
-		size_t index = this->key_[label*this->states_ + state];
-		size_t bucket = index / this->rowSize_;
-		size_t col = index % this->rowSize_;
-
-		assert(bucket < this->data_.size());
-
-		auto& row = this->data_[bucket];
-
-		assert(row.master_);
-
-		if (row.master_ == 1)
-			return 1;
-
-		assert(row.data_);
-		assert(this->rowSize_ < row.data_->size());
-		assert(col < row.data_->size());
-
-		return (*row.data_)[col];
-
-	}
-
-	void incr(size_t label, size_t state) {
-
-		assert(label*this->states_ + state < this->key_.size());
-
-		size_t index = this->key_[label*this->states_ + state];
-		size_t bucket = index / this->rowSize_;
-		size_t col = index % this->rowSize_;
-
-		if (bucket >= this->data_.size())
-			this->data_.resize(bucket + 1);
-
-		auto& row = this->data_[bucket];
-
-		if (row.master_) {
-
-			assert(row.data_);
-			assert(col + 1 < row.data_->size());
-	
-			++row.master_;
-			++(*row.data_)[col];
-
-			return;
-	
-		}
-
-		row.master_ = 1;
-		row.data_ = this->vectorAllocator_();
-		row.data_->resize(this->rowSize_ + 1);
-		
-		(*row.data_)[this->rowSize_] = 1; // refCount
-
-		std::fill(row.data_->begin(), row.data_->end() - 1, 0);
-
-		assert(col < row.data_->size());
-
-		(*row.data_)[col] = 1;
-
-	} 
-	
-	size_t decr(size_t label, size_t state) {
-
-		assert(label*this->states_ + state < this->key_.size());
-
-		size_t index = this->key_[label*this->states_ + state];
-		size_t bucket = index / this->rowSize_;
-		size_t col = index % this->rowSize_;
-
-		assert(bucket < this->data_.size());
-
-		auto& row = this->data_[bucket];
-
-		assert(row.master_);
-
-		if (row.master_ == 1) {
-
-			assert(--row.master_ == 0);
-
-			return 0;
-
-		}
-
-		assert(row.data_);
-		assert(this->rowSize_ < row.data_->size());
-
-		if (row.master_ == 2) {
-
-			--row.master_;
-	
-			assert(col < row.data_->size());
-	
-			size_t result = ((*row.data_)[col] - 1);
-
-			if ((*row.data_)[this->rowSize_] == 1) { // refCount
-
-				this->vectorAllocator_.reclaim(row.data_);
-
-			} else {
-				
-				--(*row.data_)[this->rowSize_]; // refCount
-
-			}
-
-			assert(!(row.data_ = nullptr));
-
-			return result;
-
-		}
-
-		if ((*row.data_)[this->rowSize_] > 1) { // refCount
-
-			--(*row.data_)[this->rowSize_]; // refCount
-
-			auto newData = this->vectorAllocator_();
-
-			newData->resize(this->rowSize_ + 1);
-
-			(*newData)[this->rowSize_] = 1; // refCount
-
-			std::copy(row.data_->begin(), row.data_->end() - 1, newData->begin());
-
-			row.data_ = newData;
-
-		}
-
-		assert((*row.data_)[this->rowSize_] == 1);
-
-		--row.master_;
-
-		assert(col < row.data_->size());
-
-		return --(*row.data_)[col];
-
-	}
-
-	template <class T>
-	void copyLabels(const T& labels, SharedCounter& cnt) {
-
-		std::vector<bool> bucketMask(cnt.data_.size(), false);
-
-		for (auto& label : labels) {
-
-			assert(label < this->labelMap_.size());
-
-			for (size_t i = this->labelMap_[label].first; i < this->labelMap_[label].second; ++i) {
-
-				if (bucketMask[i])
-					continue;
-
-				bucketMask[i] = true;
-
-				if (i >= cnt.data_.size())
-					break;
-
-				if (!cnt.data_[i].master_)
-					continue;
-
-				if (i >= this->data_.size())
-					this->data_.resize(i + 1);
-
-				if ((this->data_[i].master_ = cnt.data_[i].master_) == 1)
-					continue;
-
-				assert(cnt.data_[i].data_);
-				assert(this->rowSize_ < cnt.data_[i].data_->size());
-
-				++(*cnt.data_[i].data_)[this->rowSize_]; // refCount
-	
-				this->data_[i].data_ = cnt.data_[i].data_;
-	
-			}
-
-		}
-
-	}
-
-	friend std::ostream& operator<<(std::ostream& os, const SharedCounter& cnt) {
-
-		size_t i = 0;
-		
-		for (auto& row : cnt.data_) {
-			
-			if (row.data_) {
-
-				os << i << ": ";
-	
-				for (auto& col : *row.data_)
-					os << col;
-	
-				os << std::endl;
-
-			}
-
-			++i;
-
-		}
-
-		return os;
 
 	}
 
@@ -394,9 +132,10 @@ public:
 
 	OLRTBlock(const VATA::ExplicitLTS& lts, size_t index, StateListElem* states,
 		const SharedCounter::Key& key, const SharedCounter::LabelMap& labelMap,
-		const size_t& rowSize, VectorAllocator& vectorAllocator) : _index(index), _states(states),
-		_remove(lts.labels()), _counter(key, lts.states(), labelMap, rowSize, vectorAllocator),
-		_inset(lts.labels()), _tmp(nullptr), bigger_(), smaller_() {
+		const size_t& rowSize, SharedCounter::Allocator& allocator) : _index(index),
+		_states(states), _remove(lts.labels()),
+		_counter(key, lts.states(), labelMap, rowSize, allocator), _inset(lts.labels()),
+		_tmp(nullptr), bigger_(), smaller_() {
 
 		StateListElem* elem = this->_states;
 
