@@ -43,15 +43,8 @@ public:
 
 	~CachingAllocator() {
 
-		std::unordered_set<T*> guard;
-
-		for (auto& element : this->store_) {
-
-			assert(guard.insert(element).second);
-
+		for (auto& element : this->store_)
 			delete element;
-
-		}
 
 	}
 
