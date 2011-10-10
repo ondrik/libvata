@@ -65,6 +65,20 @@ public:
 		labelMap_(counter.labelMap_), rowSize_(counter.rowSize_), allocator_(counter.allocator_),
 		data_() {}
 
+	~SharedCounter() {
+
+		for (auto& row : this->data_) {
+
+			if (!row.data_)
+				continue;
+
+			if (!--(*row.data_)[this->rowSize_]) // refCount
+				this->allocator_.reclaim(row.data_);
+
+		}
+
+	}
+
 	void releaseSingletons() {
 
 		for (auto& row : this->data_) {

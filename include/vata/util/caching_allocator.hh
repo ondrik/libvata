@@ -14,6 +14,8 @@
 #include <vector>
 #include <functional>
 
+#include <unordered_set>
+
 // insert class to proper namespace
 namespace VATA {
 	namespace Util {
@@ -41,8 +43,15 @@ public:
 
 	~CachingAllocator() {
 
-		for (auto& element : this->store_)
+		std::unordered_set<T*> guard;
+
+		for (auto& element : this->store_) {
+
+			assert(guard.insert(element).second);
+
 			delete element;
+
+		}
 
 	}
 
