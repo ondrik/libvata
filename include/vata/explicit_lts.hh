@@ -107,23 +107,14 @@ public:
 
 	}
 	
-	void buildDelta(std::vector<Util::SmartSet>& delta, std::vector<Util::SmartSet>& delta1) const {
+	void buildDelta1(std::vector<Util::SmartSet>& delta1) const {
 
-		delta.resize(this->data_.size(), Util::SmartSet(this->states_));
 		delta1.resize(this->data_.size(), Util::SmartSet(this->states_));
 
 		for (size_t a = 0; a < this->data_.size(); ++a) {
 
-			for (size_t q = 0; q < this->data_[a].first.size(); ++q) {
-
-				for (auto& r : this->data_[a].first[q]) {
-
-					delta[a].add(r);
-					delta1[a].add(q);
-
-				}
-
-			}
+			for (size_t q = 0; q < this->data_[a].first.size(); ++q)
+				delta1[a].init(q, delta1[a].count(q) + this->data_[a].first[q].size());
 
 		}
 

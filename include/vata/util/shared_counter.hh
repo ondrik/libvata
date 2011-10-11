@@ -15,7 +15,6 @@
 #include <algorithm>
 
 #include <vata/util/caching_allocator.hh>
-#include <vata/util/smart_set.hh>
 
 namespace VATA {
 		namespace Util {
@@ -232,7 +231,7 @@ public:
 
 		size_t sentinel = 0;
 
-		SmartSet rowSet(cnt.data_.size());
+		std::vector<bool> rowMask(cnt.data_.size(), false);
 
 		for (auto& label : labels) {
 
@@ -245,16 +244,19 @@ public:
 			for (size_t i = this->labelMap_[label].first;
 				i < std::min(cnt.data_.size(), this->labelMap_[label].second); ++i)
 
-				rowSet.add(i);
+				rowMask[i] = true;
 
 		}
 
 		this->data_.resize(sentinel);
 
-		for (auto& rowIndex : rowSet) {
+		for (size_t i = 0; i < sentinel; ++ i) {
 
-			auto& src = cnt.data_[rowIndex];
-			auto& dst = this->data_[rowIndex];
+			if (!rowMask[i])
+				continue;
+
+			auto& src = cnt.data_[i];
+			auto& dst = this->data_[i];
 
 			dst.master_ = src.master_;
 

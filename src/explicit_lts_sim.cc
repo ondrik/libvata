@@ -626,10 +626,9 @@ public:
 
 		// build counter maps
 
-		std::vector<SmartSet> delta;
 		std::vector<SmartSet> delta1;
 
-		this->_lts.buildDelta(delta, delta1);
+		this->_lts.buildDelta1(delta1);
 
 		this->_key.resize(this->_lts.labels()*this->_lts.states(), static_cast<size_t>(-1));
 		this->_labelMap.resize(this->_lts.labels());
