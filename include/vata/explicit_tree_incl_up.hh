@@ -11,6 +11,7 @@
 #ifndef _VATA_EXPLICIT_TREE_INCL_UP_HH_
 #define _VATA_EXPLICIT_TREE_INCL_UP_HH_
 
+#include <set>
 #include <algorithm>
 
 #include <boost/functional/hash.hpp>
@@ -19,6 +20,7 @@
 #include <vata/util/cached_binary_op.hh>
 #include <vata/util/antichain1c.hh>
 #include <vata/util/antichain2c_v2.hh>
+#include <vata/util/ordered_antichain2c.hh>
 
 //#include <vata/vata.hh>
 //#include <vata/util/convert.hh>
@@ -475,6 +477,32 @@ public:
 		typedef typename Util::Antichain1C<SmallerType> Antichain1C;
 		typedef typename Util::Antichain2Cv2<SmallerType, BiggerType> Antichain2C;
 
+		typedef std::pair<SmallerType, BiggerType> SmallerBiggerPair;
+
+		struct less {
+
+			bool operator()(const SmallerBiggerPair& p1, const SmallerBiggerPair& p2) const {
+
+				if (p1.second->size() < p2.second->size())
+					return true;
+
+				if (p1.second->size() > p2.second->size())
+					return false;
+
+				if (p1.first < p2.first)
+					return true;
+
+				if (p1.first > p2.first)
+					return false;
+
+				return p1.second.get() < p2.second.get();
+
+			}
+
+		};
+
+		typedef typename Util::OrderedAntichain2C<Antichain2C, less> OrderedAntichain2C;
+
 		GCC_DIAG_OFF(effc++)
 		struct Choice {
 		GCC_DIAG_ON(effc++)
@@ -624,7 +652,8 @@ public:
 		);
 
 		Antichain1C post;
-		Antichain2C next, processed;
+		Antichain2C processed;
+		OrderedAntichain2C next;
 
 		bool isAccepting;
 
@@ -682,6 +711,7 @@ public:
 				assert(transition->state() < inv.size());
 					
 				next.refine(inv[transition->state()], ptr, gte);
+
 				next.insert(transition->state(), ptr);
 
 			}
@@ -696,7 +726,7 @@ public:
 
 		ChoiceVector choiceVector(processed, fixedList);
 
-		while (next.next(q, Q)) {
+		while (next.get(q, Q)) {
 
 			assert(q < inv.size());
 
@@ -779,6 +809,7 @@ public:
 							assert(smallerTransition->state() < inv.size());
 	
 							next.refine(inv[smallerTransition->state()], ptr, gte);
+
 							next.insert(smallerTransition->state(), ptr);
 
 						} while (choiceVector.next());
