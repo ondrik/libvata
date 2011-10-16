@@ -1,0 +1,120 @@
+*****************************************************************************
+*                                                                           *
+*                                  libvata                                  *
+*                                                                           *
+*  libvata: a C++ library for efficient manipulation with                   *
+*  non-deterministic finite tree automata                                   *
+*                                                                           *
+*****************************************************************************
+
+About
+=====
+
+libvata is a highly optimised non-deterministic finite tree automata library.
+The main focus of the library is to be used in formal verification, but we
+believe that it can be effectively used in other domains as well. There are
+two supported encoding of tree automata supported by the library: explicit and
+semi-symbolic. The semi-symbolic encoding uses multi-terminal binary decision
+diagrams (MTBDDs) for storing the transition table of the automaton. It is
+intended to be used for automata with large alphabets, which appear in several
+formal verification techniques using tree automata, e.g., in the context of
+verification of programs with complex dynamic data structures, such as the
+abstract regular tree model checking (ARTMC), or decision procedures of
+several logics, such as the monadic second-order logic (MSO) or the weak
+second-order theory of k successors (WSkS). Moreover, the library can also be
+used for finite word automata (which are, basically, unary trees).
+
+
+Downloading
+===========
+
+It is highly recommended to use a recent Linux distribution for experimenting
+with libvata. In order to be able to download the library, you need to have
+the git version control system installed.
+
+To download the library, run
+
+  $ git clone git://github.com/ondrik/libvata.git
+
+This creates a local independent copy of the source code repository.
+
+
+Prerequisites
+=============
+
+In order to compile the library and the command-line interface to the library
+the following packages need to be installed on your system:
+
+  git (>= 1.6.0.0)
+  cmake (>= 2.8.2)
+  gcc (>= 4.6.0)
+  flex (>= 2.5.35)
+  bison (>= 2.5)
+  libboost-filesystem-dev (>= 1.46.0)
+  libboost-system-dev (>= 1.46.0)
+  libboost-test-dev (>= 1.46.0)
+  liblog4cpp5-dev (>=1.0)
+
+
+Compiling
+=========
+
+For compiling the source code of the library and the command-line
+interface with compiler optimisations turned on, issue the following command
+in the root directory of the library:
+
+  $ make release
+
+In order to compile the library into a form suitable for debugging (i.e., with
+optimisations turned off and some additional runtime checks enabled, issue the
+following command:
+
+  $ make debug
+
+It is recommended to run
+
+  $ make test
+
+from the repository's root directory after compiling the code to run several
+unit tests and check that the compiled code passes them all.
+
+
+Command-Line Interface
+======================
+
+The compiled command-line interface is located in
+
+  build/src/vata
+
+The up-to-date list of supported operations and arguments is available through
+
+  $ ./vata help
+
+
+Examples
+========
+
+Loading an automaton
+--------------------
+
+In order to load and dump (to, e.g., check that the format of an
+input file is correct) automaton in file 'aut_file', run
+
+  $ ./vata load aut_file
+
+
+Union of automata
+--------------------
+
+To create an automaton that accepts a language which is the union of languages
+of automata from files 'aut_file1' and 'aut_file2', run
+
+  $ ./vata union 'aut_file1' 'aut_file2'
+
+
+
+
+Running Performance Tests
+=========================
+
+
