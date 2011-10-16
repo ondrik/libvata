@@ -8,8 +8,8 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_CACHE_HH
-#define _VATA_CACHE_HH
+#ifndef _VATA_CACHE_HH_
+#define _VATA_CACHE_HH_
 
 #include <unordered_map>
 #include <memory>

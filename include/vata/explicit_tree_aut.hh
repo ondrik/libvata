@@ -61,8 +61,8 @@ GCC_DIAG_ON(effc++)
 		AutBase::StateToStateMap*, AutBase::StateToStateMap*);
 
 	template <class SymbolType>
-	friend ExplicitTreeAut<SymbolType> UnionDisjunctStates(const ExplicitTreeAut<SymbolType>& lhs,
-		const ExplicitTreeAut<SymbolType>& rhs);
+	friend ExplicitTreeAut<SymbolType> UnionDisjunctStates(const ExplicitTreeAut<SymbolType>&,
+		const ExplicitTreeAut<SymbolType>&);
 
 	template <class SymbolType>
 	friend ExplicitTreeAut<SymbolType> Intersection(
@@ -76,6 +76,21 @@ GCC_DIAG_ON(effc++)
 	template <class SymbolType>
 	friend ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
 		const ExplicitTreeAut<SymbolType>&, AutBase::StateToStateMap*);
+
+	template <class SymbolType, class Rel, class Index>
+	friend ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
+		const ExplicitTreeAut<SymbolType>&, const Rel&, const Index&);
+
+	template <class SymbolType, class Index>
+	friend ExplicitLTS TranslateDownward(const ExplicitTreeAut<SymbolType>&, const Index&);
+
+	template <class SymbolType, class Rel, class Index>
+	friend ExplicitLTS TranslateUpward(const ExplicitTreeAut<SymbolType>&,
+		std::vector<std::vector<size_t>>&, Util::BinaryRelation&, const Rel&, const Index&);
+
+	template <class SymbolType, class Rel, class Index>
+	friend ExplicitTreeAut<SymbolType> CollapseStates(const ExplicitTreeAut<SymbolType>&,
+		const Rel&, const Index&);
 
 public:   // public data types
 
@@ -207,62 +222,36 @@ public:
 
 	struct Iterator {
 
-		const ExplicitTreeAut& aut_;
-
 		typename StateToTransitionClusterMap::const_iterator stateClusterIterator_;
+		typename StateToTransitionClusterMap::const_iterator stateClusterIteratorEnd_;
 		typename TransitionCluster::const_iterator symbolSetIterator_;
 		TuplePtrSet::const_iterator tupleIterator_;
 
-		void _init() {
+		Iterator() : stateClusterIterator_(), stateClusterIteratorEnd_(), symbolSetIterator_(),
+			tupleIterator_() {}
 
-			if (this->stateClusterIterator_ == this->aut.transitions_->end())
-				return;
-			this->symbolSetIterator_ = this->stateClusterIterator_->second->begin();
-			this->tupleIterator_ = this->symbolSetIterator_->second->begin();
-
-		}
-
-		void _increment() {
-
-			++this->tupleIterator_;
-			if (this->tupleIterator_ != this->symbolSetIterator_->second->end())
-				return;
-
-			++this->symbolSetIterator_;
-			if (this->symbolSetIterator_ != this->stateClusterIterator_->second->end()) {
-				this->tupleIterator_ = this->symbolSetIterator_->second->begin();
-				return;
-			}
-
-			++this->stateClusterIterator_;
-			this->_init();
-
-		}
-
-		Iterator(const ExplicitTreeAut& aut,
-			typename StateToTransitionClusterMap::const_iterator pos)
-			: aut_(aut), stateClusterIterator_(pos) {
-
-			this->_init();
-
-		}
-
-		bool operator==(const Iterator& rhs) const {
-
-			if (this->stateClusterIterator_ != rhs.stateClusterIterator_)
-				return false;
-
-			if (this->stateClusterIterator_ == this->aut.transitions_->end())
-				return true;
-
-			return (this->symbolSetIterator_ == rhs.symbolSetIterator_) &&
-				(this->tupleIterator_ == rhs.tupleIterator_);
-
-		}
+		Iterator(const ExplicitTreeAut& aut) : stateClusterIterator_(aut.transitions_->begin()),
+			stateClusterIteratorEnd_(aut.transitions_->end()),
+			symbolSetIterator_(stateClusterIterator_->second->begin()),
+			tupleIterator_(symbolSetIterator_->second->begin()) { }
 
 		Iterator& operator++() {
 
-			this->_increment();
+			if (++this->tupleIterator_ != this->symbolSetIterator_->second->end())
+				return *this;
+
+			if (++this->symbolSetIterator_ != this->stateClusterIterator_->second->end()) {
+				this->tupleIterator_ = this->symbolSetIterator_->second->begin();
+				return *this;
+			}
+
+			if (++this->stateClusterIterator_ != this->stateClusterIteratorEnd_) {
+				this->symbolSetIterator_ = this->stateClusterIterator_->second->begin();
+				this->tupleIterator_ = this->symbolSetIterator_->second->begin();
+				return *this;
+			}
+
+			this->tupleIterator_ = TuplePtrSet::const_iterator();
 
 			return *this;
 
@@ -270,11 +259,19 @@ public:
 
 		Iterator operator++(int) {
 
-			Iterator iter = *this;
+			return ++Iterator(*this);
 
-			iter._increment();
+		}
 
-			return iter;
+		bool operator==(const Iterator& rhs) const {
+
+			return this->tupleIterator_ == rhs.tupleIterator_;
+
+		}
+
+		bool operator!=(const Iterator& rhs) const {
+
+			return this->tupleIterator_ != rhs.tupleIterator_;
 
 		}
 
@@ -295,8 +292,8 @@ public:
 	typedef Iterator iterator;
 	typedef Iterator const_iterator;
 
-	Iterator begin() { return Iterator(*this, this->transitions_->begin()); }
-	Iterator end() { return Iterator(*this, this->transitions_->end()); }
+	Iterator begin() { return Iterator(*this); }
+	Iterator end() { return Iterator(); }
 
 public:
 
@@ -305,6 +302,80 @@ public:
 		const ExplicitTreeAut& aut_;
 
 		AcceptingTransitions(const ExplicitTreeAut& aut) : aut_(aut) {}
+/*
+		struct Iterator {
+
+			StateSet::const_iterator stateSetIterator_;
+			StateSet::const_iterator stateSetIteratorEnd_;
+			typename TransitionCluster::const_iterator symbolSetIterator_;
+			TuplePtrSet::const_iterator tupleIterator_;
+
+			typename StateToTransitionClusterMap::const_iterator stateClusterIterator_;
+			typename StateToTransitionClusterMap::const_iterator stateClusterIteratorEnd_;
+			typename TransitionCluster::const_iterator symbolSetIterator_;
+			TuplePtrSet::const_iterator tupleIterator_;
+	
+			Iterator(const ExplicitTreeAut& aut) : stateClusterIterator_(aut.transitions_->begin()),
+				stateClusterIteratorEnd_(aut.transitions_->end()),
+				symbolSetIterator_(stateClusterIterator_->second->begin()),
+				tupleIterator_(symbolSetIterator_->second->begin()) { }
+	
+			Iterator() : stateClusterIterator_(), stateClusterIteratorEnd_(), symbolSetIterator_(),
+				tupleIterator_() {}
+	
+			bool operator==(const Iterator& rhs) const {
+	
+				return this->tupleIterator_ == rhs.tupleIterator_;
+	
+			}
+	
+			bool operator!=(const Iterator& rhs) const {
+	
+				return this->tupleIterator_ != rhs.tupleIterator_;
+	
+			}
+	
+			Iterator& operator++() {
+	
+				if (++this->tupleIterator_ != this->symbolSetIterator_->second->end())
+					return *this;
+	
+				if (++this->symbolSetIterator_ != this->stateClusterIterator_->second->end()) {
+					this->tupleIterator_ = this->symbolSetIterator_->second->begin();
+					return *this;
+				}
+	
+				if (++this->stateClusterIterator_ != this->stateClusterIteratorEnd_) {
+					this->symbolSetIterator_ = this->stateClusterIterator_->second->begin();
+					this->tupleIterator_ = this->symbolSetIterator_->second->begin();
+					return *this;
+				}
+	
+				this->tupleIterator_ = TuplePtrSet::const_iterator();
+	
+				return *this;
+	
+			}
+	
+			Iterator operator++(int) {
+	
+				return ++Iterator(iter);
+	
+			}
+	
+			const StateTuple& children() const {
+				return **this->tupleIterator_;
+			}
+	
+			const SymbolType& symbol() const {
+				return this->symbolSetIterator_->first;
+			}
+	
+			const StateType& state() const {
+				return this->stateClusterIterator_->first;
+			}
+	
+		};
 
 		struct Iterator {
 
@@ -404,9 +475,9 @@ public:
 		typedef Iterator iterator;
 		typedef Iterator const_iterator;
 
-		Iterator begin() { return Iterator(this->aut_, this->aut_.finalStates_->begin()); }
-		Iterator end() { return Iterator(this->aut_, this->aut_.finalStates_->end()); }
-
+		Iterator begin() { return Iterator(this->aut_); }
+		Iterator end() { return Iterator(); }
+*/
 	};
 
 	AcceptingTransitions accepting;
@@ -626,11 +697,42 @@ public:
 
 	}
 
-	void ReindexStates(ExplicitTreeAut& dst, StateToStateTranslator& stateTrans) const {
+	template <class Index>
+	void BuildStateIndex(Index& index) const {
 
 		for (auto& state : this->finalStates_)
+			index(state);
 
-			dst.SetStateFinal(stateTrans(state));
+		for (auto& stateClusterPair : *this->transitions_) {
+
+			assert(stateClusterPair.second);
+
+			index(stateClusterPair.first);
+
+			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
+
+				assert(symbolTupleSetPair.second);
+
+				for (auto& tuple : *symbolTupleSetPair.second) {
+
+					assert(tuple);
+
+					for (auto& s : *tuple)
+						index(s);
+
+				}
+
+			}
+
+		}
+
+	}
+
+	template <class Index>
+	void ReindexStates(ExplicitTreeAut& dst, Index& index) const {
+
+		for (auto& state : this->finalStates_)
+			dst.SetStateFinal(index[state]);
 
 		auto clusterMap = dst.uniqueClusterMap();
 
@@ -638,7 +740,7 @@ public:
 
 			assert(stateClusterPair.second);
 
-			auto cluster = clusterMap->uniqueCluster(stateTrans(stateClusterPair.first));
+			auto cluster = clusterMap->uniqueCluster(index[stateClusterPair.first]);
 
 			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
 
@@ -653,7 +755,7 @@ public:
 					StateTuple newTuple;
 
 					for (auto& s : *tuple)
-						newTuple.push_back(stateTrans(s));
+						newTuple.push_back(index[s]);
 
 					tuplePtrSet->insert(dst.tupleLookup(newTuple));
 
@@ -717,261 +819,6 @@ public:
 			);
 
 		}
-
-	}
-
-	void TranslateDownward(ExplicitLTS& lts) const {
-
-		std::unordered_map<SymbolType, size_t> symbolMap;
-		std::unordered_map<const StateTuple*, size_t> lhsMap;
-
-		size_t symbolCnt = 0;
-		Util::TranslatorWeak2<std::unordered_map<SymbolType, size_t>>
-			symbolTranslator(symbolMap, [&symbolCnt](const SymbolType&){ return symbolCnt++; });
-
-		assert(this->transitions_);
-
-		size_t lhsCnt = this->transitions_->size();
-		Util::TranslatorWeak2<std::unordered_map<const StateTuple*, size_t>>
-			lhsTranslator(lhsMap, [&lhsCnt](const StateTuple*){ return lhsCnt++; });
-
-		for (auto& stateClusterPair : *this->transitions_) {
-	
-			assert(stateClusterPair.second);
-
-			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
-	
-				assert(symbolTupleSetPair.second);
-
-				size_t symbol = symbolTranslator(symbolTupleSetPair.first);
-
-				for (auto& tuple : *symbolTupleSetPair.second) {
-	
-					assert(tuple);
-
-					if (tuple->size() == 1) {
-						// inline lhs of size 1 >:-)
-						lts.addTransition(stateClusterPair.first, symbol, tuple->front());
-					} else {
-						lts.addTransition(
-							stateClusterPair.first, symbol, lhsTranslator(tuple.get())
-						);
-					}
-	
-				}
-	
-			}
-	
-		}
-
-		for (auto& tupleIndexPair : lhsMap) {
-
-			assert(tupleIndexPair.first);
-
-			size_t i = 0;
-
-			for (auto& state : *tupleIndexPair.first) {
-
-				lts.addTransition(tupleIndexPair.second, symbolMap.size() + i, state);
-
-				++i;
-
-			}
-
-		}
-
-		lts.init();
-
-	}
-
-protected:
-
-	struct Env {
-
-		StateTuple children_;
-		size_t index_;
-		size_t symbol_;
-		size_t state_;
-
-		Env(const StateTuple& children, size_t index, size_t symbol, size_t state)
-			: children_(), index_(index), symbol_(symbol), state_(state) {
-
-			this->children_.insert(
-				this->children_.end(), children.begin(), children.begin() + index
-			);
-
-			this->children_.insert(
-				this->children_.end(), children.begin() + index + 1, children.end()
-			);
-
-		}
-
-		template <class Rel>
-		bool lessThan(const Env& env, const Rel& rel) const {
-
-			if (this->children_.size() != env.children_.size()) return false;
-			if (this->index_ != env.index_) return false;
-			if (this->symbol_ != env.symbol_) return false;
-
-			for (size_t i = 0; i < this->children_.size(); ++i) {
-
-				if (!rel.get(this->children_[i], env.children_[i]))
-					return false;
-
-			}
-
-			return true;
-
-		}
-
-		template <class Rel>
-		bool equal(const Env& env, const Rel& rel) const {
-
-			if (this->children_.size() != env.children_.size()) return false;
-			if (this->index_ != env.index_) return false;
-			if (this->symbol_ != env.symbol_) return false;
-
-			for (size_t i = 0; i < this->children_.size(); ++i) {
-
-				if (!rel.sym(this->children_[i], env.children_[i]))
-					return false;
-
-			}
-
-			return true;
-
-		}
-
-		bool operator==(const Env& rhs) const {
-
-			return (this->children_.size() == rhs.children_.size()) &&
-				(this->index_ == rhs.index_) && (this->symbol_ == rhs.symbol_) &&
-				(this->children_ == rhs.children_);
-
-		}
-
-		friend size_t hash_value(const Env& env) {
-
-			size_t seed = 0;
-			boost::hash_combine(seed, env.children_);
-			boost::hash_combine(seed, env.index_);
-			boost::hash_combine(seed, env.symbol_);
-			boost::hash_combine(seed, env.state_);
-			return seed;
-
-		}
-
-	};
-
-public:
-
-	template <class Rel>
-	void TranslateUpward(ExplicitLTS& lts, std::vector<std::vector<size_t>>& part,
-		Util::BinaryRelation& rel, const Rel& param) const {
-
-		size_t symbolCnt = 0;
-		std::unordered_map<SymbolType, size_t> symbolMap;
-		VATA::Util::TranslatorWeak2<std::unordered_map<SymbolType, size_t>>
-			symbolTranslator(symbolMap, [&symbolCnt](const SymbolType&){ return symbolCnt++; });
-
-		assert(this->transitions_);
-
-		size_t base = ((0 < this->finalStates_.size()) &&
-			(this->finalStates_.size() < this->transitions_->size())) ? 2 : 1;
-
-		part.clear();
-		part.resize(base);
-
-		std::vector<const Env*> head;
-
-		size_t envCnt = this->transitions_->size();
-		std::unordered_map<Env, size_t, boost::hash<Env>> envMap;
-		VATA::Util::TranslatorWeak2<std::unordered_map<Env, size_t, boost::hash<Env>>>
-			envTranslator(
-				envMap,
-				[&base, &envCnt, &head, &part, &param](const Env& env) -> size_t {
-					for (size_t i = 0; i < head.size(); ++i) {
-						assert(head[i]);
-						if (!head[i]->equal(env, param))
-							continue;
-						part[base + i].push_back(envCnt);
-						return envCnt++;
-					}
-					head.push_back(&env);
-					part.push_back(std::vector<size_t>(1, envCnt));
-					return envCnt++;
-				}
-		);
-
-		for (auto& stateClusterPair : *this->transitions_) {
-	
-			assert(stateClusterPair.second);
-
-			part[this->IsFinalState(stateClusterPair.first)?(0):(base - 1)].push_back(
-				stateClusterPair.first
-			);
-
-			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
-	
-				assert(symbolTupleSetPair.second);
-
-				size_t symbol = symbolTranslator(symbolTupleSetPair.first);
-
-				for (auto& tuple : *symbolTupleSetPair.second) {
-	
-					assert(tuple);
-
-					if (tuple->size() == 1) {
-						// inline lhs of size 1 >:-)
-						lts.addTransition((*tuple)[0], symbol, stateClusterPair.first);
-						continue;
-					}
-
-					for (size_t i = 0; i < tuple->size(); ++i) {
-
-						size_t env = envTranslator(Env(*tuple, i, symbol, stateClusterPair.first));
-
-						lts.addTransition((*tuple)[i], symbolCnt, env);
-						lts.addTransition(env, symbol, stateClusterPair.first);
-
-					}
-
-				}
-					
-			}
-
-		}
-
-		rel.resize(part.size());
-		rel.reset(false);
-
-		// 0 accepting, 1 non-accepting, 2 .. environments
-		rel.set(0, 0, true);
-
-		if (base == 2) {
-
-			rel.set(1, 0, true);
-			rel.set(1, 1, true);
-
-		}
-
-		for (size_t i = 0; i < head.size(); ++i) {
-
-			assert(head[i]);
-			assert(head[i]->lessThan(*head[i], param));
-
-			for (size_t j = 0; j < head.size(); ++j) {
-
-				assert(head[j]);
-				
-				if (head[i]->lessThan(*head[j], param))
-					rel.set(base + i, base + j, true);
-
-			}
-
-		}
-
-		lts.init();
 
 	}
 

@@ -13,7 +13,6 @@
 
 #include <ostream>
 #include <vector>
-#include <list>
 
 namespace VATA {
 		namespace Util {
@@ -26,24 +25,66 @@ class VATA::Util::SmartSet {
 public:
 
 	typedef size_t Key;
-	typedef std::pair<Key, size_t> KeyCountPair;
-	typedef std::list<KeyCountPair> KeyCountPairList;
-	typedef std::vector<typename KeyCountPairList::iterator> KeyCountPairListElementIndex;
 
 private:
 
-	GCC_DIAG_OFF(effc++)
-	struct Iterator : public KeyCountPairList::const_iterator {
-	GCC_DIAG_ON(effc++)
-		
+	struct Element {
+
+		Element* next_;
+		Key key_;
+		size_t count_;
+
+		Element(const Key& key, size_t count = 0) : next_(nullptr), key_(key), count_(count) {}
+
+	};
+
+	struct Iterator {
+
+		typedef std::input_iterator_tag iterator_category;
+		typedef size_t difference_type;
 		typedef Key value_type;
 		typedef Key* pointer;
 		typedef Key& reference;
 
-		Iterator(const typename KeyCountPairList::const_iterator& i)
-			: KeyCountPairList::const_iterator(i) {}
+		const Element* element_;
 
-		const Key& operator*() { return (*this)->first; }
+		Iterator(const Element* element) : element_(element) {}
+
+		Iterator& operator++() {
+
+			assert(this->element_);
+
+			this->element_ = this->element_->next_;
+
+			return *this;
+
+		}
+
+		Iterator operator++(int) const {
+
+			return ++Iterator(this->element_);
+
+		}
+
+		const Key& operator*() {
+
+			assert(this->element_);
+
+			return this->element_->key_;
+
+		}
+
+		bool operator==(const Iterator& rhs) const {
+
+			return this->element_ == rhs.element_;
+
+		}
+
+		bool operator!=(const Iterator& rhs) const {
+
+			return this->element_ != rhs.element_;
+
+		}
 
 	};
 
@@ -53,47 +94,97 @@ public:
 
 private:
 
-	KeyCountPairList elements_;
-	typename KeyCountPairList::iterator sentinel_;
-	KeyCountPairListElementIndex index_;
+	Element head_;
+	Element* last_;
+	size_t size_;
+
+	std::vector<Element*> index_;
 
 protected:
 
 	size_t& insert(const Key& key) {
 
-		auto& iter = this->index_[key];
+		assert(key < this->index_.size());
+
+		auto& prev = this->index_[key];
 		
-		if (iter == this->sentinel_)
-			iter = this->elements_.insert(this->elements_.begin(), std::make_pair(key, 0));
+		if (!prev) {
 
-		assert(key == iter->first);
+			prev = this->last_;
+			prev->next_ = new Element(key);
+			this->last_ = prev->next_;
 
-		return iter->second;
+			++this->size_;
 
+		}
+
+		assert(key == prev->next_->key_);
+
+		return prev->next_->count_;
+
+	}
+
+	void erase(Element*& prev) {
+
+		assert(prev);
+
+		--this->size_;
+
+		auto el = prev->next_;
+
+		assert(el);
+
+		prev->next_ = el->next_;
+
+		if (prev->next_) {
+
+			assert(prev->next_->key_ < this->index_.size());
+			assert(this->index_[prev->next_->key_] == el);
+
+			this->index_[prev->next_->key_] = prev;
+
+		}
+			
+		delete el;
+
+		prev = nullptr;
+	
 	}
 
 public:
 
-	SmartSet(size_t size = 0) : elements_(), sentinel_(), index_(size, this->sentinel_) {}
+	SmartSet(size_t range = 0) : head_(Key(), 0), last_(&head_), size_(0), index_(range, nullptr) {}
 	
-	SmartSet(const SmartSet& s) : elements_(s.elements_), sentinel_(),
-		index_(s.index_.size(), this->sentinel_) {
+	SmartSet(const SmartSet& s) : head_(Key(), 0), last_(&head_), size_(s.size_),
+		index_(s.index_.size(), nullptr) {
 
-		for (auto i = this->elements_.begin(); i != this->elements_.end(); ++i)
-			this->index_[i->first] = i;
+		for (auto el = s.head_.next_ ; el; el = el->next_) {
+
+			this->index_[el->key_] = this->last_;
+			this->last_->next_ = new Element(el->key_, el->count_);
+			this->last_ = this->last_->next_;
+
+		}
 
 	}
 	
 	SmartSet& operator=(const SmartSet& s) {
 
-		this->elements_ = s.elements_;
+		std::fill(this->index_.begin(), this->index_.end(), nullptr);
 
-		std::fill(this->index_.begin(), this->index_.end(), this->sentinel_);
+		this->index_.resize(s.index_.size(), nullptr);
 
-		this->index_.resize(s.index_.size(), this->sentinel_);
+		this->last_ = &this->head_;
 
-		for (auto i = this->elements_.begin(); i != this->elements_.end(); ++i)
-			this->index_[i->first] = i;
+		for (auto el = s.head_.next_ ; el; el = el->next_) {
+
+			this->index_[el->key_] = this->last_;
+			this->last_->next_ = new Element(el->key_, el->count_);
+			this->last_ = this->last_->next_;
+
+		}
+
+		this->size_ = s.size();
 
 		return *this;
 
@@ -101,31 +192,38 @@ public:
 
 	void assignFlat(const SmartSet& s) {
 
-		this->elements_ = s.elements_;
+		std::fill(this->index_.begin(), this->index_.end(), nullptr);
 
-		std::fill(this->index_.begin(), this->index_.end(), this->sentinel_);
+		this->index_.resize(s.index_.size(), nullptr);
 
-		this->index_.resize(s.index_.size(), this->sentinel_);
+		this->last_ = &this->head_;
 
-		for (auto i = this->elements_.begin(); i != this->elements_.end(); ++i) {
-			this->index_[i->first] = i;
-			i->second = 1;
+		for (auto el = s.head_.next_ ; el; el = el->next_) {
+
+			this->index_[el->key_] = this->last_;
+			this->last_->next_ = new Element(el->key_, 1);
+			this->last_ = this->last_->next_;
+
 		}
+
+		this->size_ = s.size();
 
 	}
 
-	SmartSet::iterator begin() const { return SmartSet::Iterator(this->elements_.begin()); }
-	SmartSet::iterator end() const { return SmartSet::Iterator(this->elements_.end()); }
+	SmartSet::iterator begin() const { return SmartSet::Iterator(this->head_.next_); }
+	SmartSet::iterator end() const { return SmartSet::Iterator(nullptr); }
 
 	bool contains(const Key& key) const {
 
 		assert(key < this->index_.size());
 
-		auto& iter = this->index_[key];
+		if (!this->index_[key])
+			return false;
 
-		assert((iter == this->sentinel_) || (key == iter->first));
+		assert(this->index_[key]->next_);
+		assert(this->index_[key]->next_->key_ == key);
 
-		return (iter != this->sentinel_);
+		return true;
 
 	}
 	
@@ -133,17 +231,17 @@ public:
 
 		assert(key < this->index_.size());
 
-		auto& iter = this->index_[key];
+		if (!this->index_[key])
+			return 0;
 
-		assert((iter == this->sentinel_) || (key == iter->first));
+		assert(this->index_[key]->next_);
+		assert(this->index_[key]->next_->key_ == key);
 
-		return (iter == this->sentinel_)?(0):(iter->second);
+		return this->index_[key]->next_->count_;
 
 	}
 
 	void init(const Key& key, size_t count) {
-
-		assert(key < this->index_.size());
 
 		if (count) {
 
@@ -153,23 +251,16 @@ public:
 
 		}
 
-		auto& iter = this->index_[key];
+		assert(key < this->index_.size());
 
-		if (iter != this->sentinel_) {
+		auto& prev = this->index_[key];
 
-			assert(key == iter->first);
-
-			this->elements_.erase(iter);
-
-			iter = this->sentinel_;
-
-		}
+		if (prev)
+			this->erase(prev);
 
 	}
 
 	void add(const Key& key) {
-
-		assert(key < this->index_.size());
 
 		++this->insert(key);
 
@@ -179,20 +270,23 @@ public:
 
 		assert(key < this->index_.size());
 
-		auto& iter = this->index_[key];
+		auto& prev = this->index_[key];
 
-		if (iter == this->sentinel_)
+		if (!prev)
 			return;
 
-		assert(key == iter->first);
+		auto el = prev->next_;
 
-		if (iter->second == 1) {
+		assert(el);
+		assert(key == el->key_);
 
-			this->elements_.erase(iter);
-			iter = this->sentinel_;
+		if (el->count_ == 1)
 
-		} else
-			--iter->second;
+			this->erase(prev);
+
+		else
+
+			--el->count_;
 
 	}
 
@@ -200,31 +294,46 @@ public:
 
 		assert(key < this->index_.size());
 
-		auto& iter = this->index_[key];
+		auto& prev = this->index_[key];
 
-		assert(iter != this->sentinel_);
-		assert(key == iter->first);
+		assert(prev);
 
-		if (iter->second == 1) {
+		auto el = prev->next_;
 
-			this->elements_.erase(iter);
-			iter = this->sentinel_;
+		assert(key == el->key_);
 
-		} else
-			--iter->second;
+		if (el->count_ == 1)
+
+			this->erase(prev);
+
+		else
+
+			--el->count_;
 
 	}
 
-	bool empty() const { return this->elements_.empty(); }
+	bool empty() const { return this->head_.next_ == nullptr; }
 
-	size_t size() const { return this->elements_.size(); }
+	size_t size() const { return this->size_; }
 
 	void clear() {
 
-		for (auto i = this->elements_.begin(); i != this->elements_.end(); ++i)
-			this->index_[i->first] = this->sentinel_;
+		for (auto el = this->head_.next_; el; ) {
 
-		this->elements_.clear();
+			auto tmp = el;
+
+			el = el->next_;
+
+			assert(tmp->key_ < this->index_.size());
+
+			this->index_[tmp->key_] = nullptr;
+
+			delete tmp;
+
+		}
+
+		this->last_ = &this->head_;
+		this->size_ = 0;
 
 	}
 
@@ -232,9 +341,9 @@ public:
 
 		os << '{';
 
-		for (auto i = s.elements_.begin(); i != s.elements_.end(); ++i)
-			os << ' ' << i->first << ':' << i->second;
-
+		for (auto el = s.head_.next_; el; el = el->next_)
+			os << ' ' << el->key_ << ':' << el->count_;
+	
 		return os << " }";
 
 	}

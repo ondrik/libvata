@@ -136,7 +136,7 @@ bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger,
 
 	StateType procState;
 	StateSet procSet;
-	while (workset.next(procState, procSet))
+	while (workset.get(procState, procSet))
 	{
 		for (auto tupleBddPair : smaller.GetTransTable())
 		{	// for each tuple in the smaller aut

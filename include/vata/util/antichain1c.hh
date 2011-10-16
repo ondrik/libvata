@@ -12,6 +12,7 @@
 #define _VATA_ANTICHAIN_1C_HH_
 
 #include <ostream>
+#include <list>
 #include <unordered_set>
 
 #include <vata/util/convert.hh>
@@ -21,6 +22,7 @@ namespace VATA
 	namespace Util
 	{
 		template <typename Key> class Antichain1C;
+		template <typename Key> class SequentialAntichain1C;
 	}
 }
 
@@ -88,6 +90,64 @@ public:
 	void clear() { this->data_.clear(); }
 
 	friend std::ostream& operator<<(std::ostream& os, const Antichain1C& ac) {
+
+		return os << Util::Convert::ToString(ac.data_);
+
+	}
+
+};
+
+template <class Key>
+class VATA::Util::SequentialAntichain1C {
+
+public:
+
+	typedef std::list<Key> KeyList;
+
+private:
+
+	KeyList data_;
+
+public:
+
+	SequentialAntichain1C() : data_() {}
+
+	template <class Cmp>
+	bool insert(const Key& key, const Cmp& cmp) {
+
+		for (auto iter = this->data_.begin(); iter != this->data_.end(); ++iter) {
+
+			if (cmp(key, *iter))
+				return false;
+
+			if (!cmp(*iter, key))
+				continue;
+
+			iter = this->data_.erase(iter);
+
+			while (iter != this->data_.end()) {
+
+				if (cmp(*iter, key))
+					iter = this->data_.erase(iter);
+				else ++iter;
+
+			}
+
+			break;
+
+		}
+
+		this->data_.push_back(key);
+
+		return true;
+
+	}
+
+	const KeyList& data() const { return this->data_; }
+
+	void clear() { this->data_.clear(); }
+
+	friend std::ostream& operator<<(std::ostream& os, const SequentialAntichain1C& ac) {
 
 		return os << Util::Convert::ToString(ac.data_);
 

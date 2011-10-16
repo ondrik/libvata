@@ -23,6 +23,12 @@
 namespace VATA
 {
 	class AutBase;
+
+	template <class Automaton>
+	Automaton Reduce(const Automaton&)
+	{
+		throw std::runtime_error("Unimplemented.");
+	}
 }
 
 

@@ -81,6 +81,12 @@ public:   // methods
 			return result;
 		}
 	}
+
+	inline ResultType operator[](const InputType& value)
+	{
+		return this->operator()(value);
+	}
+
 };
 
 /**
@@ -125,6 +131,12 @@ public:   // methods
 
 		return p.first->second;
 	}
+
+	inline ResultType operator[](const InputType& value)
+	{
+		return this->operator()(value);
+	}
+
 };
 
 #endif

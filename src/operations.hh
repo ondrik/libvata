@@ -147,4 +147,27 @@ VATA::AutBase::StateBinaryRelation ComputeSimulation(Automaton aut,
 	}
 }
 
+template <class Automaton>
+Automaton ComputeReduction(Automaton aut,
+	const Arguments& args)
+{
+	// insert default values
+	Options options = args.options;
+	options.insert(std::make_pair("dir", "down"));
+
+	if (options["dir"] == "up")
+	{
+		throw std::runtime_error("Unimplemented.");
+	}
+	else if (options["dir"] == "down")
+	{
+		return VATA::Reduce(aut);
+	}
+	else
+	{
+		throw std::runtime_error("Invalid options for simulation: " +
+			Convert::ToString(options));
+	}
+}
+
 #endif
