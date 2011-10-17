@@ -47,13 +47,13 @@ the following packages need to be installed on your system:
 
   git (>= 1.6.0.0)
   cmake (>= 2.8.2)
+  doxygen (>= 1.7.4)
   gcc (>= 4.6.0)
   flex (>= 2.5.35)
   bison (>= 2.5)
   libboost-filesystem-dev (>= 1.46.0)
   libboost-system-dev (>= 1.46.0)
   libboost-test-dev (>= 1.46.0)
-  liblog4cpp5-dev (>=1.0)
 
 
 Compiling

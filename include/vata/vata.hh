@@ -13,8 +13,9 @@
 #ifndef _VATA_VATA_HH_
 #define _VATA_VATA_HH_
 
-// Log4cpp headers
-#include <log4cpp/Category.hh>
+// Standard library headers
+#include <cassert>
+#include <iostream>
 
 //#define NDEBUG
 
@@ -22,11 +23,9 @@
 	#define DEBUG 0
 #endif
 
-#define VATA_LOG_CATEGORY_NAME "VATA"
-
 #define VATA_LOGGER_PREFIX (std::string(__FILE__ ":" + VATA::Util::Convert::ToString(__LINE__) + ": "))
 
-#define VATA_LOGGER_LOG_MESSAGE(severity, msg) (log4cpp::Category::getInstance(VATA_LOG_CATEGORY_NAME).severity((VATA_LOGGER_PREFIX) + (msg)))
+#define VATA_LOGGER_LOG_MESSAGE(severity, msg) (std::clog << (VATA_LOGGER_PREFIX) + (msg) + std::string("\n"))
 
 #define VATA_LOGGER_DEBUG(msg)  (VATA_LOGGER_LOG_MESSAGE(debug, msg))
 #define VATA_LOGGER_INFO(msg)   (VATA_LOGGER_LOG_MESSAGE(info, msg))

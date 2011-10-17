@@ -44,7 +44,6 @@ project(libvata)
 include(CTest)
 
 # Necessary packages
-find_package(Log4CPP REQUIRED)
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 find_package(Doxygen REQUIRED)

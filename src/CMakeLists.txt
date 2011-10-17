@@ -117,5 +117,4 @@ foreach(src ${vata_sources})
 endforeach()
 
 target_link_libraries(vata libvata)
-target_link_libraries(vata ${LOG4CPP_LIBRARIES})
 target_link_libraries(vata rt)

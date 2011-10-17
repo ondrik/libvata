@@ -22,11 +22,6 @@
 #include <vata/util/transl_strict.hh>
 #include <vata/util/util.hh>
 
-// Log4cpp headers
-#include <log4cpp/Category.hh>
-#include <log4cpp/OstreamAppender.hh>
-#include <log4cpp/BasicLayout.hh>
-
 // standard library headers
 #include <cstdlib>
 #include <fstream>
@@ -327,27 +322,11 @@ int executeCommand(const Arguments& args)
 }
 
 
-void setUpLogging()
-{
-	// Create the appender
-	log4cpp::Appender* app1  = new log4cpp::OstreamAppender("ClogAppender", &std::clog);
-
-	std::string cat_name = "VATA";
-
-	log4cpp::Category::getInstance(cat_name).setAdditivity(false);
-	log4cpp::Category::getInstance(cat_name).addAppender(app1);
-	log4cpp::Category::getInstance(cat_name).setPriority(log4cpp::Priority::INFO);
-}
-
-
 int main(int argc, char* argv[])
 {
 	// Assertions
 	assert(argc > 0);
 	assert(argv != nullptr);
-
-	// start logging
-	setUpLogging();
 
 	if (argc == 1)
 	{	// in case no arguments were given

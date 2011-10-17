@@ -13,11 +13,6 @@
 #define _VATA_LOG_FIXTURE_HH_
 
 
-// Log4cpp headers
-#include <log4cpp/Category.hh>
-#include <log4cpp/OstreamAppender.hh>
-#include <log4cpp/BasicLayout.hh>
-
 // Boost headers
 #define BOOST_FILESYSTEM_NO_DEPRECATED
 #include <boost/filesystem.hpp>
@@ -41,7 +36,7 @@ const fs::path FAIL_TIMBUK_AUT_DIR = AUT_DIR / "fail_timbuk";
 /**
  * @brief   Test fixture that enables logging
  *
- * This test fixture enables Log4cpp logging for proper categories.
+ * This test fixture enables logging and some other things.
  */
 class LogFixture
 {
