@@ -135,3 +135,66 @@ where
 
   30                     ... timeout for each test (in seconds)
 
+
+Input Format
+============
+
+libvata so far supports only the Timbuk format of tree automata. The format is
+specified by the following grammar with the start symbol <file>:
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+  <file>            : 'Ops' <label_list> <automaton>
+
+  <label_list>      : <label_decl> <label_decl> ... // a list of label declarations
+
+  <label_decl>      : string ':' int // a symbol declaration (the name and the arity)
+
+  <automaton>       : 'Automaton' string 'States' <state_list> 'Final States' <state_list> 'Transitions' <transition_list>
+
+  <state_list>      : <state> <state> ... // a list of states
+
+  <state>           : string // the name of a state
+
+  <transition_list> : <transition> <transition> ... // a list of transitions
+
+  <transition>      : <label> '(' <state> ',' <state> ',' ... ')' '->' <state> // a transition
+
+  <label>           : string // the name of a label
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+An example could look like this:
+
+~~~~~~~~~~~~~~~~~~~~~
+Ops a:0 b:1 c:2
+
+Automaton A
+States q0 q1 q2
+Final States q2 
+Transitions
+a() -> q0
+b(q0) -> q1
+c(q1, q1) -> q1
+c(q1, q1) -> q2
+c(q2, q2) -> q2
+~~~~~~~~~~~~~~~~~~~~~
+
+
+Acknowledgement
+===============
+
+This work was supported by the Czech Science Foundation (within projects
+P103/10/0306 and 102/09/H042), the Czech Ministry of Education (projects COST
+OC10009 and MSM 0021630528), and the EU/Czech IT4Innovations Centre of
+Excellence project CZ.1.05/1.1.00/02.0070.
+
+
+Contact
+=======
+
+If you have further questions, do not hesitate to contact the authors:
+
+  * Ondrej Lengal  <ilengal@fit.vutbr.cz>
+  * Jiri Simacek   <isimacek@fit.vutbr.cz>
+  * Tomas Vojnar   <vojnar@fit.vutbr.cz>
