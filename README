@@ -29,7 +29,8 @@ Downloading
 ===========
 
 It is highly recommended to use a recent Linux distribution for experimenting
-with libvata. In order to be able to download the library, you need to have
+with libvata (the library was thoroughly tested on the Debian GNU/Linux
+distribution). In order to be able to download the library, you need to have
 the git version control system installed.
 
 To download the library, run
