@@ -117,4 +117,21 @@ of automata from files 'aut_file1' and 'aut_file2', run
 Running Performance Tests
 =========================
 
+In order to run performance tests of various tree automata inclusion checking
+algorithms, there exists a bash script that executes them and collects the
+results. To run the standard set of experiments, execute
+
+  $ tests/incl_test.sh automata/artmc_timbuk 30
+
+where
+
+  tests/incl_test.sh     ... path to the script executable, the script also
+                             contains the list of algorithms to evaluate; for
+                             list of all algorithms, see tests/incl_wrapper.sh
+
+  automata/artmc_timbuk  ... path to the directory containing files with tree
+                             automata; the script runs the inclusion test for
+                             each pair of automata in the directory
+
+  30                     ... timeout for each test (in seconds)
 
