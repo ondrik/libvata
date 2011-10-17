@@ -61,51 +61,6 @@ struct StateListElem {
 
 	}
 
-	void move(StateListElem*& src, StateListElem*& dst) {
-
-		assert(src);
-
-		if (this == this->next_) {
-
-			assert(this == this->prev_);
-			assert(this == src);
-
-			src = nullptr;
-
-			if (!dst) {
-
-				dst = this;
-
-				return;
-
-			}
-
-		} else {
-
-			src = this->next_;
-			src->prev_ = this->prev_;
-			src->prev_->next_ = src;
-	
-			if (!dst) {
-	
-				dst = this;
-	
-				dst->next_ = dst;
-				dst->prev_ = dst;
-
-				return;
-	
-			}
-
-		}
-		
-		this->next_ = dst;
-		this->prev_ = dst->prev_;
-		dst->prev_->next_ = this;
-		dst->prev_ = this;
-
-	}
-
 };
 
 typedef SharedList<std::vector<size_t>> RemoveList;
@@ -115,10 +70,11 @@ struct OLRTBlock {
 
 	size_t _index;
 	StateListElem* _states;
+	size_t size_;
 	std::vector<RemoveList*> _remove;
 	SharedCounter _counter;
 	SmartSet _inset;
-	StateListElem* _tmp;
+	std::vector<StateListElem*> tmp_;
 	std::unordered_set<OLRTBlock*> bigger_;
 	std::unordered_set<OLRTBlock*> smaller_;
 
@@ -130,40 +86,36 @@ protected:
 
 public:
 
-	OLRTBlock(const VATA::ExplicitLTS& lts, size_t index, StateListElem* states,
+	OLRTBlock(const VATA::ExplicitLTS& lts, size_t index, StateListElem* states, size_t size,
 		const SharedCounter::Key& key, const SharedCounter::LabelMap& labelMap,
 		const size_t& rowSize, SharedCounter::Allocator& allocator) : _index(index),
-		_states(states), _remove(lts.labels()),
+		_states(states), size_(size), _remove(lts.labels()),
 		_counter(key, lts.states(), labelMap, rowSize, allocator), _inset(lts.labels()),
-		_tmp(nullptr), bigger_(), smaller_() {
-
-		StateListElem* elem = this->_states;
+		tmp_(), bigger_(), smaller_() {
 
 		do {
 
-			for (auto& a : lts.bwLabels(elem->index_))
+			assert(states);
+
+			for (auto& a : lts.bwLabels(states->index_))
 				this->_inset.add(a);
 
-			elem->block_ = this;
-			elem = elem->next_;
+			states->block_ = this;
+			states = states->next_;
 
-		} while (elem != this->_states);
+		} while (states != this->_states);
 
 	}
 	
-	OLRTBlock(const VATA::ExplicitLTS& lts, OLRTBlock& parent, size_t index) : _index(index),
-		_states(parent._tmp), _remove(lts.labels()), _counter(parent._counter),
-		_inset(lts.labels()), _tmp(nullptr), bigger_(), smaller_() {
-
-		assert(this->_states);
-
-		parent._tmp = nullptr;
-
-		StateListElem* elem = this->_states;
+	OLRTBlock(const VATA::ExplicitLTS& lts, OLRTBlock& parent, StateListElem* states, size_t size,
+		size_t index) : _index(index), _states(states), size_(size), _remove(lts.labels()),
+		_counter(parent._counter), _inset(lts.labels()), tmp_(), bigger_(), smaller_() {
 
 		do {
 
-			for (auto& a : lts.bwLabels(elem->index_)) {
+			assert(states);
+
+			for (auto& a : lts.bwLabels(states->index_)) {
 
 				parent._inset.removeStrict(a);
 
@@ -171,10 +123,10 @@ public:
 
 			}
 
-			elem->block_ = this;
-			elem = elem->next_;
+			states->block_ = this;
+			states = states->next_;
 
-		} while (elem != this->_states);
+		} while (states != this->_states);
 
 	}
 
@@ -252,26 +204,91 @@ public:
 	StateListElem* states() {
 		return this->_states;
 	}
-	
-	StateListElem* tmp() {
-		return this->_tmp;
-	}
 
-	void moveToTmp(StateListElem& elem) {
+	void moveToTmp(StateListElem* elem) {
 
-		elem.move(this->_states, this->_tmp);	
+		this->tmp_.push_back(elem);	
 
 	}
-	
-	bool checkEmpty() {
 
-		if (this->_states)
-			return false;
+	static bool checkList(StateListElem* elem, size_t size) {
 
-		this->_states = this->_tmp;
-		this->_tmp = nullptr;
+		StateListElem* first = elem;
 
-		return true;
+		while (size--) {
+
+			assert(elem);
+
+			elem = elem->next_;
+
+		}
+
+		return elem == first;
+		
+	}
+
+	std::pair<StateListElem*, size_t> trySplit() {
+
+		assert(this->tmp_.size());
+
+		if (this->tmp_.size() == this->size_) {
+
+			this->tmp_.clear();
+
+			assert(OLRTBlock::checkList(this->_states, this->size_));
+
+			return std::make_pair(nullptr, 0);
+
+		}
+
+		StateListElem* last = this->tmp_.back();
+
+		this->tmp_.pop_back();
+
+		this->_states = last->next_;
+
+		StateListElem::link(last->prev_, last->next_);
+
+		if (this->tmp_.empty()) {
+
+			StateListElem::link(last, last);
+
+			assert(OLRTBlock::checkList(last, 1));
+			assert(OLRTBlock::checkList(this->_states, this->size_ - 1));
+
+			--this->size_;
+
+			return std::make_pair(last, 1);
+
+		}
+
+		StateListElem* elem = last;
+
+		for (auto& state : this->tmp_) {
+
+			this->_states = state->next_;
+
+			StateListElem::link(state->prev_, state->next_);
+			StateListElem::link(elem, state);
+
+			elem = state;
+			
+		}
+
+		StateListElem::link(elem, last);
+
+		size_t size = this->tmp_.size() + 1;
+
+		this->tmp_.clear();
+
+		assert(size < this->size_);
+
+		this->size_ -= size;
+
+		assert(OLRTBlock::checkList(last, size));
+		assert(OLRTBlock::checkList(this->_states, this->size_));
+
+		return std::make_pair(last, size);;
 
 	}
 	
@@ -329,6 +346,8 @@ protected:
 
 		do {
 
+			assert(elem);
+
 			for (auto& q : this->_lts.pre(label)[elem->index_]) {
 
 				OLRTBlock* block = this->_index[q].block_;
@@ -359,9 +378,9 @@ protected:
 
 			assert(q < this->_index.size());
 
-			StateListElem& elem = this->_index[q];
+			StateListElem* elem = &this->_index[q];
 
-			OLRTBlock* block = elem.block_;
+			OLRTBlock* block = elem->block_;
 
 			assert(block);
 
@@ -389,12 +408,16 @@ protected:
 
 		for (auto& block : modifiedBlocks) {
 
-			block->checkEmpty();
+			assert(block);
 
-			if (!block->_tmp)
+			auto p = block->trySplit();
+
+			if (!p.first)
 				continue;
 
-			auto newBlock = new OLRTBlock(this->_lts, *block, this->_partition.size());
+			auto newBlock = new OLRTBlock(
+				this->_lts, *block, p.first, p.second, this->_partition.size()
+			);
 
 			newBlock->initBigger(block, this->_partition);
 
@@ -413,7 +436,11 @@ protected:
 
 		for (auto& block : modifiedBlocks) {
 
-			if (block->checkEmpty()) {
+			assert(block);
+
+			auto p = block->trySplit();
+
+			if (!p.first) {
 
 				removeList.push_back(block);
 
@@ -421,9 +448,9 @@ protected:
 
 			}
 
-			assert(block->_tmp);
-
-			OLRTBlock* newBlock = new OLRTBlock(this->_lts, *block, this->_partition.size());
+			OLRTBlock* newBlock = new OLRTBlock(
+				this->_lts, *block, p.first, p.second, this->_partition.size()
+			);
 
 			newBlock->initRelation(block);
 
@@ -469,6 +496,7 @@ protected:
 				this->_lts,
 				blockIndex,
 				list,
+				states.size(),
 				this->_key,
 				this->_labelMap,
 				this->rowSize_,
@@ -496,8 +524,8 @@ protected:
 
 		remove->unsafeRelease(
 			[this](RemoveList* list){
-					this->vectorAllocator_.reclaim(list->subList());
-					this->removeAllocator_.reclaim(list);
+				this->vectorAllocator_.reclaim(list->subList());
+				this->removeAllocator_.reclaim(list);
 			}
 		);
 
@@ -505,7 +533,7 @@ protected:
 
 			for (auto& b2 : removeList) {
 
-				assert(b1->index() != b2->index());
+				assert(b1 != b2);
 
 				if (!b1->eraseIfRelated(b2))
 					continue;
@@ -518,6 +546,8 @@ protected:
 					StateListElem* elem2 = b2->states();
 
 					do {
+
+						assert(elem2);
 
 						for (auto& pre2 : this->_lts.pre(a)[elem2->index_]) {
 
