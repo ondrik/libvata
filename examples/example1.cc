@@ -1,6 +1,8 @@
 // example1.cc - loading and dumping an automaton
 
 // VATA headers
+#include <vata/bdd_bu_tree_aut.hh>
+#include <vata/bdd_td_tree_aut.hh>
 #include <vata/explicit_tree_aut.hh>
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
@@ -15,6 +17,8 @@ const char* autStr =
 	"b(q0, q0)  -> q1\n";
 
 typedef VATA::ExplicitTreeAut<unsigned> Automaton;
+//typedef VATA::BDDBottomUpTreeAut Automaton;  // uncomment for BDD BU automaton
+//typedef VATA::BDDTopDownTreeAut Automaton;   // uncomment for BDD TD automaton
 
 int main()
 {
@@ -28,6 +32,7 @@ int main()
 
 	// create the ``next symbol'' variable for the automaton
 	typename Automaton::SymbolType nextSymbol(0);
+	//typename Automaton::SymbolType nextSymbol(16, 0);  // uncomment for BDD aut
 	Automaton::SetNextSymbolPtr(&nextSymbol);
 
 	// create the dictionary for translating state names to internal state numbers
