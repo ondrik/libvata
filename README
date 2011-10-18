@@ -1,6 +1,6 @@
 *****************************************************************************
 *                                                                           *
-*                                  libvata                                  *
+*                               libvata README                              *
 *                                                                           *
 *  libvata: a C++ library for efficient manipulation with                   *
 *  non-deterministic finite tree automata                                   *
@@ -93,10 +93,10 @@ The up-to-date list of supported operations and arguments is available through
 
 
 Examples
-========
+--------
 
 Loading an automaton
---------------------
+....................
 
 In order to load and dump (to, e.g., check that the format of an
 input file is correct) automaton in file 'aut_file', run
@@ -105,7 +105,7 @@ input file is correct) automaton in file 'aut_file', run
 
 
 Union of automata
---------------------
+.................
 
 To create an automaton that accepts a language which is the union of languages
 of automata from files 'aut_file1' and 'aut_file2', run
@@ -113,6 +113,10 @@ of automata from files 'aut_file1' and 'aut_file2', run
   $ ./vata union 'aut_file1' 'aut_file2'
 
 
+Using the Library's API
+=======================
+
+See the 'examples/' directory for examples of using the library's API.
 
 
 Running Performance Tests
