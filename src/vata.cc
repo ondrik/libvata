@@ -148,7 +148,6 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 
 	VATA::AutBase::StringToStateDict stateDict1;
 	VATA::AutBase::StringToStateDict stateDict2;
-	typename Aut::StringToSymbolDict symbolDict;
 
 	VATA::AutBase::StateToStateMap translMap1;
 	VATA::AutBase::StateToStateMap translMap2;

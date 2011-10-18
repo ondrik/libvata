@@ -37,7 +37,7 @@ namespace VATA {
 
 		typedef AutBase::StateType StateType;
 
-		typedef std::vector<StateType> StateTuple;		
+		typedef std::vector<StateType> StateTuple;
 		typedef std::shared_ptr<StateTuple> TuplePtr;
 		typedef std::set<StateTuple> TupleSet;
 		typedef std::unordered_set<StateType> StateSet;
@@ -45,7 +45,7 @@ namespace VATA {
 		typedef Util::Cache<StateTuple> TupleCache;
 
 		static TupleCache tupleCache;
-		
+
 	};
 
 }
@@ -564,7 +564,7 @@ public:
 	ExplicitTreeAut& operator=(const ExplicitTreeAut& rhs) {
 
 		if (this != &rhs) {
-			
+
 			this->finalStates_ = rhs.finalStates_;
 			this->transitions_ = rhs.transitions_;
 
@@ -631,6 +631,14 @@ public:
 		return DumpToString(serializer,
 			[](const StateType& state){return Convert::ToString(state);},
 			symbolTranslator, params);
+	}
+
+	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
+		const StringToStateDict& stateDict) const
+	{
+		return DumpToString(serializer,
+			StateBackTranslatorStrict(stateDict.GetReverseMap()),
+			SymbolBackTranslatorStrict(GetSymbolDict().GetReverseMap()));
 	}
 
 	template <class StatePrintFunc, class SymbolPrintFunc>
