@@ -30,12 +30,36 @@ class VATA::Util::Antichain2Cv2 {
 
 public:
 
+	typedef Key first_type;
+	typedef T second_type;
 	typedef std::list<T> TList;
 	typedef std::unordered_map<Key, TList> KeyToTListMap;
+
+protected:
+
+	struct DummyEraser {
+		void operator()(const Key&, const typename TList::iterator&) const {}
+	};
 
 private:
 
 	KeyToTListMap data_;
+
+protected:
+
+	template <class Cont>
+	static bool checkIteratorPresence(Cont& c, const typename Cont::iterator& iter) {
+
+		for (auto i = c.begin(); i != c.end(); ++i) {
+
+			if (i == iter)
+				return true;
+
+		}
+
+		return false;
+
+	}
 
 public:
 
@@ -74,8 +98,9 @@ public:
 	}
 
 	// remove all (p, P) from ac such that q <= p and P <= Q
-	template <class Cont, class Cmp>
-	void refine(const Cont& candidates /* candidates for p */, const T& Q, const Cmp& cmp) {
+	template <class Cont, class Cmp, class Eraser = DummyEraser>
+	void refine(const Cont& candidates /* candidates for p */, const T& Q, const Cmp& cmp,
+		const Eraser& eraser = DummyEraser()) {
 
 		for (auto& p : candidates) {
 
@@ -88,8 +113,13 @@ public:
 
 				auto k = j++;
 
-				if (cmp(*k, Q))
+				if (cmp(*k, Q)) {
+
+					eraser(p, k);
+
 					i->second.erase(k);
+
+				}
 
 			}
 
@@ -101,13 +131,15 @@ public:
 	}
 
 	// add (q, Q) to ac
-	void insert(const Key& q, const T& Q) {
+	typename TList::iterator insert(const Key& q, const T& Q) {
 
-		this->data_.insert(std::make_pair(q, TList())).first->second.push_back(Q);
+		auto& list = this->data_.insert(std::make_pair(q, TList())).first->second;
+
+		return list.insert(list.end(), Q);
 
 	}
 
-	bool next(Key& q, T& Q) {
+	bool get(Key& q, T& Q) {
 
 		if (this->data_.empty())
 			return false;
@@ -126,11 +158,36 @@ public:
 
 	}
 
+	void remove(const Key& q, const typename TList::iterator& Q) {
+
+		auto iter = this->data_.find(q);
+
+		assert(iter != this->data_.end());
+		assert(Antichain2Cv2::checkIteratorPresence(iter->second, Q));
+
+		iter->second.erase(Q);
+
+		if (iter->second.empty())
+			this->data_.erase(iter);
+
+	}
+
 	const KeyToTListMap& data() const { return this->data_; }
+
+	size_t size() const {
+
+		size_t size = 0;
+
+		for (auto& p : this->data_)
+			size += p.second.size();
+
+		return size;
+
+	}
 
 	void clear() { this->data_.clear(); }
 
-	inline bool empty() { return data_.empty();}
+	inline bool empty() { return this->data_.empty();}
 
 	friend std::ostream& operator<<(std::ostream& os, const Antichain2Cv2& ac) {
 

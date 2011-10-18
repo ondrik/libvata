@@ -552,7 +552,7 @@ public:   // methods
 						{
 							StateType antElemFirst;
 							BiggerType antElemSecond;
-							while (ant.next(antElemFirst, antElemSecond))
+							while (ant.get(antElemFirst, antElemSecond))
 							{
 								if (!ant_.contains(preorderSmaller_[antElemFirst],
 									antElemSecond, smallerComparer_))
@@ -625,7 +625,7 @@ public:   // methods
 
 							StateType antElemFirst;
 							BiggerType antElemSecond;
-							while (ant.next(antElemFirst, antElemSecond))
+							while (ant.get(antElemFirst, antElemSecond))
 							{
 								if (!ant_.contains(preorderSmaller_[antElemFirst],
 									antElemSecond, smallerComparer_))
