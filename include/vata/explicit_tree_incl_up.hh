@@ -65,12 +65,27 @@ public:
 	template <class Aut, class Rel>
 	static bool Check(const Aut& smaller, const Aut& bigger, const Rel& preorder) {
 
+		typename Aut::IndexedSymbolToIndexedTransitionListMap smallerIndex;
+		typename Aut::SymbolToDoubleIndexedTransitionListMap biggerIndex;
+		typename Aut::SymbolToTransitionListMap smallerLeaves, biggerLeaves;
+
+		size_t symbolCnt = 0;
+		std::unordered_map<typename Aut::SymbolType, size_t> symbolMap;
+		Util::TranslatorWeak2<std::unordered_map<typename Aut::SymbolType, size_t>>
+			symbolTranslator(
+				symbolMap,
+				[&symbolCnt](const typename Aut::SymbolType&){ return symbolCnt++; }
+			);
+
+		smaller.bottomUpIndex(smallerIndex, smallerLeaves, symbolTranslator);
+		bigger.bottomUpIndex2(biggerIndex, biggerLeaves, symbolTranslator);
+
 		typedef Explicit::StateType SmallerType;
 		typedef std::vector<Explicit::StateType> StateSet;
 
-		typedef typename Aut::SymbolType SymbolType;
-		typedef typename Aut::Transition Transition;
-		typedef typename Aut::TransitionPtr TransitionPtr;
+		typedef size_t SymbolType;
+		typedef typename Aut::SimplifiedTransition Transition;
+		typedef typename Aut::SimplifiedTransitionPtr TransitionPtr;
 
 		typedef std::unordered_set<const Transition*> TransitionSet;
 		typedef typename std::shared_ptr<TransitionSet> TransitionSetPtr;
@@ -247,13 +262,6 @@ public:
 		
 		auto gte = [&lte](const BiggerType& x, const BiggerType& y) { return lte(y, x); };
 
-		typename Aut::IndexedSymbolToIndexedTransitionListMap smallerIndex;
-		typename Aut::SymbolToDoubleIndexedTransitionListMap biggerIndex;
-		typename Aut::SymbolToTransitionListMap smallerLeaves, biggerLeaves;
-
-		smaller.bottomUpIndex(smallerIndex, smallerLeaves);
-		bigger.bottomUpIndex(biggerIndex, biggerLeaves);
-
 		auto noncachedEvalTransitions = [&biggerIndex](const std::pair<SymbolType, size_t>& key,
 			const StateSet* states) -> TransitionSetPtr {
 
@@ -261,14 +269,14 @@ public:
 
 			TransitionSetPtr result = TransitionSetPtr(new TransitionSet());
 
-			auto iter = biggerIndex.find(key.first);
-
-			if (iter == biggerIndex.end())
+			if (biggerIndex.size() <= key.first)
 				return result;
 
-			assert(key.second < iter->second.size());
+			auto& iter = biggerIndex[key.first];
 
-			auto& indexedTransitionList = iter->second[key.second];
+			assert(key.second < iter.size());
+
+			auto& indexedTransitionList = iter[key.second];
 
 			for (auto& state: *states) {
 
@@ -318,17 +326,15 @@ public:
 
 		// Post(\emptyset)
 
-		for (auto& smallerCluster : smallerLeaves) {
+		if (biggerLeaves.size() < smallerLeaves.size())
+			return false;
 
-			auto biggerClusterIter = biggerLeaves.find(smallerCluster.first);
-
-			if (biggerClusterIter == biggerLeaves.end())
-				return false;
+		for (size_t symbol = 0; symbol < smallerLeaves.size(); ++symbol) {
 
 			post.clear();
 			isAccepting = false;
 
-			for (auto& transition : biggerClusterIter->second) {
+			for (auto& transition : biggerLeaves[symbol]) {
 
 				assert(transition);
 				assert(transition->children().empty());
@@ -352,7 +358,7 @@ public:
 
 			auto ptr = biggerTypeCache.lookup(tmp);
 
-			for (auto& transition : smallerCluster.second) {
+			for (auto& transition : smallerLeaves[symbol]) {
 
 				assert(transition);
 
@@ -398,19 +404,21 @@ public:
 
 			// Post(processed)
 
-			for (auto& symbolClusterPair : smallerIndex[q]) {
+			auto& smallerTransitionIndex = smallerIndex[q];
 
-				assert(symbolClusterPair.second.size() > 0);
+			for (size_t symbol = 0; symbol < smallerTransitionIndex.size(); ++symbol) {
 
-				size_t i = 0;
+				assert(smallerTransitionIndex[symbol].size() > 0);
 
-				for (auto& smallerTransitions : symbolClusterPair.second) {
+				size_t j = 0;
+
+				for (auto& smallerTransitions : smallerTransitionIndex[symbol]) {
 
 					for (auto& smallerTransition : smallerTransitions) {
 	
 						assert(smallerTransition);
 	
-						if (!choiceVector.build(smallerTransition->children(), i))
+						if (!choiceVector.build(smallerTransition->children(), j))
 							continue;
 	
 						do {
@@ -420,9 +428,7 @@ public:
 	
 							assert(choiceVector(0));
 	
-							auto firstSet = evalTransitions(
-								symbolClusterPair.first, 0, choiceVector(0).get()
-							);
+							auto firstSet = evalTransitions(symbol, 0, choiceVector(0).get());
 	
 							assert(firstSet);
 	
@@ -430,12 +436,12 @@ public:
 								firstSet->begin(), firstSet->end()
 							);
 	
-							for (size_t i = 1; i < choiceVector.size(); ++i) {
+							for (size_t k = 1; k < choiceVector.size(); ++k) {
 	
-								assert(choiceVector(i));
+								assert(choiceVector(k));
 				
 								auto transitions = evalTransitions(
-									symbolClusterPair.first, i, choiceVector(i).get()
+									symbol, k, choiceVector(k).get()
 								);
 	
 								assert(transitions);
@@ -517,7 +523,7 @@ public:
 	
 					}
 
-					++i;
+					++j;
 
 				}
 	

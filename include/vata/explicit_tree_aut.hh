@@ -824,18 +824,61 @@ public:
 
 public:
 
-	typedef std::vector<TransitionPtr> TransitionList;
+	class SimplifiedTransition {
+
+		TuplePtr children_;
+		size_t symbol_;
+		StateType state_;
+
+	public:
+	
+		SimplifiedTransition(const TuplePtr& children, const size_t& symbol, const StateType& state)
+			 : children_(children), symbol_(symbol), state_(state) {}
+
+		const StateTuple& children() const { return *this->children_; }
+		const size_t& symbol() const { return this->symbol_; }
+		const StateType& state() const { return this->state_; }
+
+		bool operator==(const Transition& rhs) const {
+
+			return this->children_.get() == rhs.children_.get() &&
+				this->symbol_ == rhs.symbol_ &&
+				this->state_ == rhs.state_;
+
+		}
+
+		friend std::ostream& operator<<(std::ostream& os, const SimplifiedTransition& t) {
+			return os << t.symbol_ << Util::Convert::ToString(*t.children_) << "->" << t.state_;
+		}
+
+		friend size_t hash_value(const SimplifiedTransition& t) {
+
+			size_t seed = 0;
+
+			boost::hash_combine(seed, t.children_.get());
+			boost::hash_combine(seed, t.symbol_);
+			boost::hash_combine(seed, t.state_);
+
+			return seed;
+
+		}
+
+	};
+
+	typedef std::shared_ptr<SimplifiedTransition> SimplifiedTransitionPtr;
+	typedef std::vector<SimplifiedTransitionPtr> TransitionList;
 	typedef std::vector<TransitionList> IndexedTransitionList;
 	typedef std::vector<IndexedTransitionList> DoubleIndexedTransitionList;
-	typedef std::unordered_map<Symbol, TransitionList> SymbolToTransitionListMap;
-	typedef std::unordered_map<Symbol, IndexedTransitionList> SymbolToIndexedTransitionListMap;
-	typedef std::unordered_map<Symbol, DoubleIndexedTransitionList> SymbolToDoubleIndexedTransitionListMap;
+	typedef std::vector<TransitionList> SymbolToTransitionListMap;
+	typedef std::vector<IndexedTransitionList> SymbolToIndexedTransitionListMap;
+	typedef std::vector<DoubleIndexedTransitionList> SymbolToDoubleIndexedTransitionListMap;
 	typedef std::vector<SymbolToIndexedTransitionListMap> IndexedSymbolToIndexedTransitionListMap;
 
 public:
 
+	template <class SymbolIndex>
 	void bottomUpIndex(IndexedSymbolToIndexedTransitionListMap& bottomUpIndex,
-		SymbolToTransitionListMap& leaves) const {
+		SymbolToTransitionListMap& leaves, SymbolIndex& symbolIndex) const {
 
 		for (auto& stateClusterPair : *this->transitions_) {
 
@@ -846,15 +889,18 @@ public:
 				assert(symbolTupleSetPair.second);
 				assert(symbolTupleSetPair.second->size());
 
+				auto& symbol = symbolIndex[symbolTupleSetPair.first];
+
 				auto& first = *symbolTupleSetPair.second->begin();
 
 				assert(first);
 
 				if (first->empty()) {
 
-					auto& transitionList = leaves.insert(
-						std::make_pair(symbolTupleSetPair.first, TransitionList())
-					).first->second;
+					if (leaves.size() <= symbol)
+						leaves.resize(symbol + 1);
+
+					auto& transitionList = leaves[symbol];
 
 					for (auto& tuple : *symbolTupleSetPair.second) {
 	
@@ -862,11 +908,9 @@ public:
 						assert(tuple->empty());
 	
 						transitionList.push_back(
-							TransitionPtr(
-								new Transition(
-									tuple, symbolTupleSetPair.first, stateClusterPair.first
-								)
-							)									
+							SimplifiedTransitionPtr(
+								new SimplifiedTransition(tuple, symbol, stateClusterPair.first)
+							)
 						);
 	
 					}
@@ -880,8 +924,8 @@ public:
 					assert(tuple);
 					assert(tuple->size());
 
-					TransitionPtr transition(
-						new Transition(tuple, symbolTupleSetPair.first, stateClusterPair.first)
+					SimplifiedTransitionPtr transition(
+						new SimplifiedTransition(tuple, symbol, stateClusterPair.first)
 					);
 
 					size_t i = 0;
@@ -891,9 +935,12 @@ public:
 						if (bottomUpIndex.size() <= state)
 							bottomUpIndex.resize(state + 1);
 
-						auto& indexedTransitionList = bottomUpIndex[state].insert(
-							std::make_pair(symbolTupleSetPair.first, IndexedTransitionList())
-						).first->second;
+						auto& symbolIndexedTransitionList = bottomUpIndex[state];
+
+						if (symbolIndexedTransitionList.size() <= symbol)
+							symbolIndexedTransitionList.resize(symbol + 1);
+
+						auto& indexedTransitionList = symbolIndexedTransitionList[symbol];
 
 						if (indexedTransitionList.size() <= i)
 							indexedTransitionList.resize(i + 1);
@@ -912,8 +959,9 @@ public:
 
 	}
 
-	void bottomUpIndex(SymbolToDoubleIndexedTransitionListMap& bottomUpIndex,
-		SymbolToTransitionListMap& leaves) const {
+	template <class SymbolIndex>
+	void bottomUpIndex2(SymbolToDoubleIndexedTransitionListMap& bottomUpIndex,
+		SymbolToTransitionListMap& leaves, SymbolIndex& symbolIndex) const {
 
 		for (auto& stateClusterPair : *this->transitions_) {
 
@@ -924,15 +972,18 @@ public:
 				assert(symbolTupleSetPair.second);
 				assert(symbolTupleSetPair.second->size());
 
+				auto& symbol = symbolIndex[symbolTupleSetPair.first];
+
 				auto& first = *symbolTupleSetPair.second->begin();
 
 				assert(first);
 
 				if (first->empty()) {
 
-					auto& transitionList = leaves.insert(
-						std::make_pair(symbolTupleSetPair.first, TransitionList())
-					).first->second;
+					if (leaves.size() <= symbol)
+						leaves.resize(symbol + 1);
+
+					auto& transitionList = leaves[symbol];
 
 					for (auto& tuple : *symbolTupleSetPair.second) {
 	
@@ -940,10 +991,8 @@ public:
 						assert(tuple->empty());
 	
 						transitionList.push_back(
-							TransitionPtr(
-								new Transition(
-									tuple, symbolTupleSetPair.first, stateClusterPair.first
-								)
+							SimplifiedTransitionPtr(
+								new SimplifiedTransition(tuple, symbol, stateClusterPair.first)
 							)									
 						);
 	
@@ -953,19 +1002,21 @@ public:
 
 				}
 
-				auto& doubleIndexedTransitionList = bottomUpIndex.insert(
-					std::make_pair(
-						symbolTupleSetPair.first, DoubleIndexedTransitionList(first->size())
-					)
-				).first->second;
+				if (bottomUpIndex.size() <= symbol)
+					bottomUpIndex.resize(symbol + 1);
+
+				auto& doubleIndexedTransitionList = bottomUpIndex[symbol];
+
+				if (doubleIndexedTransitionList.size() < first->size())
+					doubleIndexedTransitionList.resize(first->size());
 
 				for (auto& tuple : *symbolTupleSetPair.second) {
 
 					assert(tuple);
 					assert(tuple->size());
 
-					TransitionPtr transition(
-						new Transition(tuple, symbolTupleSetPair.first, stateClusterPair.first)
+					SimplifiedTransitionPtr transition(
+						new SimplifiedTransition(tuple, symbol, stateClusterPair.first)
 					);
 
 					size_t i = 0;
