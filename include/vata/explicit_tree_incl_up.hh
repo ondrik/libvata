@@ -22,9 +22,6 @@
 #include <vata/util/antichain2c_v2.hh>
 #include <vata/util/ordered_antichain2c.hh>
 
-//#include <vata/vata.hh>
-//#include <vata/util/convert.hh>
-
 namespace VATA {
 
 	class ExplicitUpwardInclusion;
@@ -86,16 +83,16 @@ public:
 		typedef typename Util::Antichain1C<SmallerType> Antichain1C;
 		typedef typename Util::Antichain2Cv2<SmallerType, BiggerType> Antichain2C;
 
-		typedef std::pair<SmallerType, BiggerType> SmallerBiggerPair;
+		typedef std::pair<SmallerType, Antichain2C::TList::iterator> SmallerBiggerPair;
 
 		struct less {
 
 			bool operator()(const SmallerBiggerPair& p1, const SmallerBiggerPair& p2) const {
 
-				if (p1.second->size() < p2.second->size())
+				if ((*p1.second)->size() < (*p2.second)->size())
 					return true;
 
-				if (p1.second->size() > p2.second->size())
+				if ((*p1.second)->size() > (*p2.second)->size())
 					return false;
 
 				if (p1.first < p2.first)
@@ -104,13 +101,28 @@ public:
 				if (p1.first > p2.first)
 					return false;
 
-				return p1.second.get() < p2.second.get();
+				return (*p1.second).get() < (*p2.second).get();
 
 			}
 
 		};
 
-		typedef typename Util::OrderedAntichain2C<Antichain2C, less> OrderedAntichain2C;
+		typedef std::set<SmallerBiggerPair, less> OrderedType;
+
+		struct Eraser {
+
+			OrderedType& data_;
+
+			Eraser(OrderedType& data) : data_(data) {}
+
+			void operator()(const SmallerType& q,
+				const typename Antichain2C::TList::iterator& Q) const {
+
+				this->data_.erase(std::make_pair(q, Q));
+				
+			}
+
+		};
 
 		GCC_DIAG_OFF(effc++)
 		struct Choice {
@@ -197,9 +209,15 @@ public:
 
 			}
 
-			const std::vector<Choice>& state() const {
+			const BiggerType& operator()(size_t index) const {
 
-				return this->state_;
+				return this->state_[index].get();
+
+			}
+
+			size_t size() const {
+
+				return this->state_.size();
 
 			}
 
@@ -302,7 +320,9 @@ public:
 		Antichain1C post;
 
 		Antichain2C temporary, processed;
-		OrderedAntichain2C next;
+//		OrderedAntichain2C next;
+
+		OrderedType next;
 
 		bool isAccepting;
 
@@ -359,10 +379,11 @@ public:
 
 				assert(transition->state() < inv.size());
 					
-				processed.refine(inv[transition->state()], ptr, gte);
-				processed.insert(transition->state(), ptr);
+				processed.refine(inv[transition->state()], ptr, gte, Eraser(next));
 
-				next.insert(transition->state(), ptr);
+				Antichain2C::TList::iterator iter = processed.insert(transition->state(), ptr);
+
+				next.insert(std::make_pair(transition->state(), iter));
 
 			}
 
@@ -376,7 +397,12 @@ public:
 
 		ChoiceVector choiceVector(processed, fixedList);
 
-		while (next.get(q, Q)) {
+		while (!next.empty()) {
+
+			q = next.begin()->first;
+			Q = *next.begin()->second;
+
+			next.erase(next.begin());
 
 			assert(q < inv.size());
 
@@ -402,10 +428,10 @@ public:
 							post.clear();
 							isAccepting = false;
 	
-							assert(choiceVector.state()[0].get());
+							assert(choiceVector(0));
 	
 							auto firstSet = evalTransitions(
-								symbolClusterPair.first, 0, choiceVector.state()[0].get().get()
+								symbolClusterPair.first, 0, choiceVector(0).get()
 							);
 	
 							assert(firstSet);
@@ -414,12 +440,12 @@ public:
 								firstSet->begin(), firstSet->end()
 							);
 	
-							for (size_t i = 1; i < choiceVector.state().size(); ++i) {
+							for (size_t i = 1; i < choiceVector.size(); ++i) {
 	
-								assert(choiceVector.state()[i].get());
+								assert(choiceVector(i));
 				
 								auto transitions = evalTransitions(
-									symbolClusterPair.first, i, choiceVector.state()[i].get().get()
+									symbolClusterPair.first, i, choiceVector(i).get()
 								);
 	
 								assert(transitions);
@@ -484,10 +510,14 @@ public:
 				
 								assert(smallerBiggerListPair.first < inv.size());
 		
-								processed.refine(inv[smallerBiggerListPair.first], bigger, gte);
-								processed.insert(smallerBiggerListPair.first, bigger);
+								processed.refine(
+									inv[smallerBiggerListPair.first], bigger, gte, Eraser(next)
+								);
+
+								Antichain2C::TList::iterator iter =
+									processed.insert(smallerBiggerListPair.first, bigger);
 		
-								next.insert(smallerBiggerListPair.first, bigger);
+								next.insert(std::make_pair(smallerBiggerListPair.first, iter));
 								
 							}
 	
