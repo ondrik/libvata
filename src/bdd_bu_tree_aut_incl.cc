@@ -28,3 +28,16 @@ bool VATA::CheckDownwardInclusion(const BDDBottomUpTreeAut& smaller,
 
 	return CheckDownwardInclusion(invSmaller, invBigger);
 }
+
+bool VATA::CheckUpwardInclusion(const BDDBottomUpTreeAut& smaller,
+	const BDDBottomUpTreeAut& bigger)
+{
+	BDDBottomUpTreeAut newSmaller = smaller;
+	BDDBottomUpTreeAut newBigger = bigger;
+
+	AutBase::StateType states =
+		AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
+
+	return CheckUpwardInclusionWithPreorder(newSmaller, newBigger,
+		VATA::Util::Identity(states));
+}
