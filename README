@@ -118,6 +118,8 @@ Using the Library's API
 
 See the 'examples/' directory for examples of using the library's API.
 
+See 'src/vata.cc' for a production wrapper over the library.
+
 
 Running Performance Tests
 =========================
