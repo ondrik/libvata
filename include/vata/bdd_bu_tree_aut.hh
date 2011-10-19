@@ -572,6 +572,14 @@ public:   // methods
 		}
 	}
 
+	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
+		const StringToStateDict& stateDict) const
+	{
+		return DumpToString(serializer,
+			StateBackTranslatorStrict(stateDict.GetReverseMap()),
+			SymbolBackTranslatorStrict(GetSymbolDict().GetReverseMap()));
+	}
+
 	template <class StateBackTransFunc, class SymbolTransFunc>
 	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
 		StateBackTransFunc stateBackTranslator, SymbolTransFunc symbolTranslator,
