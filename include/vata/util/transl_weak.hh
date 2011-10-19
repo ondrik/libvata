@@ -132,7 +132,7 @@ public:   // methods
 		return p.first->second;
 	}
 
-	inline ResultType operator[](const InputType& value)
+	inline const ResultType& operator[](const InputType& value)
 	{
 		return this->operator()(value);
 	}
