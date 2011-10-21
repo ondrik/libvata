@@ -13,7 +13,7 @@ SCRIPT=`readlink -f $0`
 SCRIPTPATH=`dirname $SCRIPT`
 
 # VATA executable
-VATA="${SCRIPTPATH}/../build/src/vata"
+VATA="${SCRIPTPATH}/../build/cli/vata"
 
 # VATA executable
 OLDVATA="${SCRIPTPATH}/old-vata"
