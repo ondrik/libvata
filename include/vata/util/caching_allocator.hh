@@ -14,6 +14,8 @@
 #include <vector>
 #include <functional>
 
+#include <unordered_set>
+
 // insert class to proper namespace
 namespace VATA {
 	namespace Util {

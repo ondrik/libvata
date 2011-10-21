@@ -228,13 +228,28 @@ public:
 
 	// relation index
 	void buildIndex(IndexType& dst) const {
+
 		dst.resize(this->size_);
-		for (size_t i = 0; i < this->size_; ++i) {
-			for (size_t j = 0; j < this->size_; ++j) {
-				if (this->get(i, j))
-					dst[i].push_back(j);
+
+		auto rowStart = this->data_.begin();
+		auto src = rowStart;
+		auto end = src + this->size_*this->rowSize_;
+		auto dstIter = dst.begin();
+
+		for (; src != end; src = rowStart, ++dstIter) {
+
+			auto rowEnd = src + this->size_;
+			rowStart = src + this->rowSize_;
+
+			for (size_t i = 0; src != rowEnd; ++src, ++i) {
+
+				if (*src)
+					dstIter->push_back(i);
+
 			}
+
 		}
+
 	}
 
 	// inverted relation index

@@ -238,8 +238,9 @@ VATA::ExplicitLTS VATA::TranslateUpward(const ExplicitTreeAut<SymbolType>& aut,
 
 		assert(stateClusterPair.second);
 
-		if ((base == 2) && aut.IsFinalState(stateClusterPair.first))
-			partition[1].push_back(stateIndex[stateClusterPair.first]);
+		partition[
+			aut.IsFinalState(stateClusterPair.first)?(0):(base - 1)
+		].push_back(stateIndex[stateClusterPair.first]);
 
 		for (auto& symbolTupleSetPair : *stateClusterPair.second) {
 
