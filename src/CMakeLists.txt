@@ -102,19 +102,4 @@ foreach(src ${libvata_sources})
   endif()
 endforeach()
 
-add_executable(vata
-  vata.cc
-  parse_args.cc
-)
-
 get_target_property(vata_sources vata SOURCES)
-
-foreach(src ${vata_sources})
-
-  set_source_files_properties(
-    ${src} PROPERTIES COMPILE_FLAGS ${vata_compiler_flags})
-
-endforeach()
-
-target_link_libraries(vata libvata)
-target_link_libraries(vata rt)
