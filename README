@@ -85,7 +85,7 @@ Command-Line Interface
 
 The compiled command-line interface is located in
 
-  build/src/vata
+  build/cli/vata
 
 The up-to-date list of supported operations and arguments is available through
 
@@ -118,7 +118,7 @@ Using the Library's API
 
 See the 'examples/' directory for examples of using the library's API.
 
-See 'src/vata.cc' for a production wrapper over the library.
+See 'cli/vata.cc' for a production wrapper over the library.
 
 
 Running Performance Tests
