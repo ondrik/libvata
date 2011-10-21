@@ -11,11 +11,12 @@
 #ifndef _VATA_SPLITTING_RELATION_HH_
 #define _VATA_SPLITTING_RELATION_HH_
 
-// VATA headers
-#include <vata/vata.hh>
-
 // Standard library headers
 #include <vector>
+
+// VATA headers
+#include <vata/vata.hh>
+#include <vata/util/caching_allocator.hh>
 
 namespace VATA
 {

@@ -25,6 +25,7 @@
 #include <vata/explicit_lts.hh>
 
 using VATA::Util::BinaryRelation;
+using VATA::Util::SplittingRelation;
 using VATA::Util::SmartSet;
 using VATA::Util::CachingAllocator;
 using VATA::Util::SharedList;
