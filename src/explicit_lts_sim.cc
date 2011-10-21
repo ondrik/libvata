@@ -14,6 +14,8 @@
 #include <memory>
 #include <unordered_set>
 
+#include <cstddef>
+
 #include <vata/util/binary_relation.hh>
 #include <vata/util/smart_set.hh>
 #include <vata/util/caching_allocator.hh>
@@ -68,7 +70,7 @@ typedef CachingAllocator<RemoveList, SharedListInitF> RemoveAllocator;
 
 struct OLRTBlock {
 
-	size_t _index;
+	size_t index_;
 	StateListElem* _states;
 	size_t size_;
 	std::vector<RemoveList*> _remove;
@@ -88,7 +90,7 @@ public:
 
 	OLRTBlock(const VATA::ExplicitLTS& lts, size_t index, StateListElem* states, size_t size,
 		const SharedCounter::Key& key, const SharedCounter::LabelMap& labelMap,
-		const size_t& rowSize, SharedCounter::Allocator& allocator) : _index(index),
+		const size_t& rowSize, SharedCounter::Allocator& allocator) : index_(index),
 		_states(states), size_(size), _remove(lts.labels()),
 		_counter(key, lts.states(), labelMap, rowSize, allocator), _inset(lts.labels()),
 		tmp_(), bigger_(), smaller_() {
@@ -108,7 +110,7 @@ public:
 	}
 	
 	OLRTBlock(const VATA::ExplicitLTS& lts, OLRTBlock& parent, StateListElem* states, size_t size,
-		size_t index) : _index(index), _states(states), size_(size), _remove(lts.labels()),
+		size_t index) : index_(index), _states(states), size_(size), _remove(lts.labels()),
 		_counter(parent._counter), _inset(lts.labels()), tmp_(), bigger_(), smaller_() {
 
 		do {
@@ -301,14 +303,14 @@ public:
 	}
 
 	size_t index() const {
-		return this->_index;
+		return this->index_;
 	}
 	
 	friend std::ostream& operator<<(std::ostream& os, const OLRTBlock& block) {
 
 		assert(block._states);
 
-		os << block._index << " (";
+		os << block.index_ << " (";
 
 		const StateListElem* elem = block._states;
 
@@ -321,6 +323,422 @@ public:
 		} while (elem != block._states);
 
 		return os << " )";
+
+	}
+	
+};
+
+class SplittingRelation {
+
+	struct Element {
+
+		Element* up_;
+		Element* down_;
+		Element* left_;
+		Element* right_;
+		size_t col_;
+		size_t row_;
+
+		Element(size_t row = 0, size_t col = 0) : up_(), down_(), left_(), right_(), col_(col),
+			row_(row) {}
+
+	};
+
+	std::vector<std::pair<Element*, Element*>> columns_;
+	std::vector<std::pair<Element*, Element*>> rows_;
+	size_t size_;
+
+	CachingAllocator<Element> allocator_;
+
+	Element* colBegin(size_t col) const {
+		return const_cast<Element*>(
+			reinterpret_cast<const Element*>(
+				reinterpret_cast<const char*>(&this->columns_[col].first) - offsetof(Element, down_)
+			)
+		);
+	}
+
+	Element* colEnd(size_t col) const {
+		return const_cast<Element*>(
+			reinterpret_cast<const Element*>(
+				reinterpret_cast<const char*>(&this->columns_[col].second) - offsetof(Element, up_)
+			)
+		);
+	}
+
+	Element* rowBegin(size_t row) const {
+		return const_cast<Element*>(
+			reinterpret_cast<const Element*>(
+				reinterpret_cast<const char*>(&this->rows_[row].first) - offsetof(Element, right_)
+			)
+		);
+	}
+
+	Element* rowEnd(size_t row) const {
+		return const_cast<Element*>(
+			reinterpret_cast<const Element*>(
+				reinterpret_cast<const char*>(&this->rows_[row].second) - offsetof(Element, left_)
+			)
+		);
+	}
+
+	bool checkCol(size_t i) const {
+
+		assert(i < this->size_);
+
+		Element* tmp = this->columns_[i].first;
+
+		while (tmp != this->columns_[i].second->down_) {
+
+			assert(tmp->up_->down_ == tmp);
+			assert(tmp->down_->up_ == tmp);
+			assert(tmp->left_->right_ == tmp);
+			assert(tmp->right_->left_ == tmp);
+
+			if (tmp->col_ != i)
+				return false;
+
+			if (tmp->row_ >= this->size_)
+				return false;
+
+			tmp = tmp->down_;
+
+		}
+
+		return true;
+
+	}
+
+	bool checkRow(size_t i) const {
+
+		assert(i < this->size_);
+
+		Element* tmp = this->rows_[i].first;
+
+		while (tmp != this->rows_[i].second->right_) {
+
+			assert(tmp->up_->down_ == tmp);
+			assert(tmp->down_->up_ == tmp);
+			assert(tmp->left_->right_ == tmp);
+			assert(tmp->right_->left_ == tmp);
+
+			if (tmp->row_ != i)
+				return false;
+
+			if (tmp->col_ >= this->size_)
+				return false;
+
+			tmp = tmp->right_;
+
+		}
+
+		return true;
+
+	}
+
+public:
+
+	GCC_DIAG_OFF(effc++)
+	struct IteratorBase {
+	GCC_DIAG_ON(effc++)
+
+		typedef std::input_iterator_tag iterator_category;
+		typedef size_t difference_type;
+		typedef size_t value_type;
+		typedef size_t* pointer;
+		typedef size_t& reference;
+
+		Element* el_;
+
+		IteratorBase(Element* el) : el_(el) {}
+		~IteratorBase() {}
+
+		bool operator==(const IteratorBase& rhs) { return this->el_ == rhs.el_; }
+		bool operator!=(const IteratorBase& rhs) { return this->el_ != rhs.el_; }
+
+	};
+
+	GCC_DIAG_OFF(effc++)
+	struct ColIterator : public IteratorBase {
+	GCC_DIAG_ON(effc++)
+
+		ColIterator(Element* el) : IteratorBase(el) {}
+
+		ColIterator& operator++() {
+
+			this->el_ = this->el_->down_;
+			return *this;
+
+		}
+
+		ColIterator operator++(int) {
+
+			return ++ColIterator(this->el_);
+
+		}
+
+		const size_t& operator*() const { return this->el_->row_; }
+
+	};
+
+	GCC_DIAG_OFF(effc++)
+	struct RowIterator : public IteratorBase {
+	GCC_DIAG_ON(effc++)
+
+		RowIterator(Element* el) : IteratorBase(el) {}
+
+		RowIterator& operator++() {
+
+			this->el_ = this->el_->right_;
+			return *this;
+
+		}
+
+		RowIterator operator++(int) {
+
+			return ++RowIterator(this->el_);
+
+		}
+
+		const size_t& operator*() const { return this->el_->col_; }
+
+	};
+
+	struct Column {
+
+		Element* begin_;
+		Element* end_;
+
+		Column(Element* begin, Element* end) : begin_(begin), end_(end) {}
+
+		ColIterator begin() const { return ColIterator(this->begin_); }
+		ColIterator end() const { return ColIterator(this->end_); }
+
+	};
+
+	struct Row {
+
+		Element* begin_;
+		Element* end_;
+
+		Row(Element* begin, Element* end) : begin_(begin), end_(end) {}
+
+		RowIterator begin() const { return RowIterator(this->begin_); }
+		RowIterator end() const { return RowIterator(this->end_); }
+
+	};
+
+public:
+
+	SplittingRelation(size_t maxSize) : columns_(maxSize), rows_(maxSize), size_(), allocator_() {}
+
+	~SplittingRelation() {
+
+		for (size_t i = 0; i < this->size_; ++i) {
+
+			Element* tmp = this->rows_[i].first;
+
+			while (tmp != this->rows_[i].second->right_) {
+
+				this->allocator_.reclaim(tmp);
+
+				tmp = tmp->right_;
+
+			}
+			
+		}
+
+	}
+
+	template <class Index>
+	void init(const Index& index) {
+
+		std::vector<Element*> lastV(index.size());
+
+		for (size_t i = 0; i < index.size(); ++i)
+			lastV[i] = this->colBegin(i);
+
+		for (size_t i = 0; i < index.size(); ++i) {
+
+			Element* last =
+				this->rowBegin(i);
+
+			Element* el;
+
+			assert(index[i].size());
+
+			for (auto& j: index[i]) {
+
+				assert(j < index.size());
+
+				el = new Element(i, j);
+				el->up_ = lastV[j];
+				el->left_ = last;
+
+				lastV[j]->down_ = el;
+				lastV[j] = el;
+
+				last->right_ = el;
+				last = el;
+
+			}
+
+			last->right_ = this->rowEnd(i);
+			this->rows_[i].second = last; // last->right_->left_
+
+		}
+
+		this->size_ = index.size();
+
+		for (size_t i = 0; i < index.size(); ++i) {
+
+			lastV[i]->down_ = this->colEnd(i);
+			this->columns_[i].second = lastV[i]; // lastV[i]->down_->up_
+
+			assert(this->checkCol(i));
+			assert(this->checkRow(i));
+
+		}
+
+	}
+
+	size_t split(size_t index) {
+
+		assert(index < this->size_);
+
+		size_t newIndex = this->size_;
+
+		Element* el, * last;
+
+		// copy column
+
+		el = this->columns_[index].first;
+
+		assert(el);
+
+		last = this->colBegin(newIndex);
+
+		while (el != this->colEnd(index)) {
+
+			Element* tmp = this->allocator_();
+
+			last->down_ = tmp;
+			tmp->up_ = last;
+
+			assert(el->row_ < this->size_);
+
+			this->rows_[el->row_].second->right_ = tmp;
+			tmp->left_ = this->rows_[el->row_].second;
+			tmp->right_ = this->rowEnd(el->row_);
+			this->rows_[el->row_].second = tmp; // tmp->right_->left_
+			
+			tmp->col_ = newIndex;
+			tmp->row_ = el->row_;
+
+			last = tmp;
+
+			el = el->down_;
+
+		}
+
+		// put reflexivity
+
+		el = this->allocator_();
+
+		last->down_ = el;
+		el->up_ = last;
+		el->down_ = this->colEnd(newIndex);
+		this->columns_[newIndex].second = el; // el->down_->up_
+
+		el->right_ = this->rowEnd(newIndex);
+		el->col_ = newIndex;
+		el->row_ = newIndex;
+
+		// copy row
+
+		el = this->rows_[index].first;
+
+		assert(el);
+
+		last = this->rowBegin(newIndex);
+
+		// we have to skip the last one here
+		while (el != this->rows_[index].second) {
+
+			Element* tmp = this->allocator_();
+
+			last->right_ = tmp;
+			tmp->left_ = last;
+
+			assert(el->col_ < this->size_);
+
+			this->columns_[el->col_].second->down_ = tmp;
+			tmp->up_ = this->columns_[el->col_].second;
+			tmp->down_ = this->colEnd(el->col_);
+			this->columns_[el->col_].second = tmp; // tmp->down_->up_
+			
+			tmp->col_ = el->col_;
+			tmp->row_ = newIndex;
+
+			last = tmp;
+
+			el = el->right_;
+
+		}
+
+		// finish reflexivity
+		
+		last->right_ = this->columns_[newIndex].second;
+		this->columns_[newIndex].second->left_ = last;
+
+		this->rows_[newIndex].second = this->columns_[newIndex].second;
+
+		++this->size_;
+
+		assert(this->checkCol(newIndex));
+		assert(this->checkRow(newIndex));
+	
+		return newIndex;
+
+	}
+
+	Column column(size_t index) const {
+
+		assert(index < this->columns_.size());
+		assert(this->checkCol(index));
+
+		return Column(this->columns_[index].first, this->colEnd(index));
+
+	}
+
+	Row row(size_t index) const {
+
+		assert(index < this->rows_.size());
+		assert(this->checkRow(index));
+
+		return Row(this->rows_[index].first, this->rowEnd(index));
+
+	}
+
+	void erase(IteratorBase& iter) {
+
+		Element* el = iter.el_;
+
+		el->up_->down_ = el->down_;
+		el->down_->up_ = el->up_;
+		el->left_->right_ = el->right_;
+		el->right_->left_ = el->left_;
+
+		this->allocator_.reclaim(el);
+
+		assert(this->checkCol(el->col_));
+		assert(this->checkRow(el->row_));
+		
+	}
+
+	const size_t& size() const {
+
+		return this->size_;
 
 	}
 	
@@ -423,12 +841,14 @@ protected:
 
 			this->_partition.push_back(newBlock);
 
+			this->relation_.split(block->index_);
+
 		}
 
 	}
 
-	template <class T1, class T2>
-	void split(T1& removeList, const T2& remove) {
+	template <class T>
+	void split(std::vector<bool>& removeMask, const T& remove) {
 
 		std::vector<OLRTBlock*> modifiedBlocks;
 
@@ -442,7 +862,7 @@ protected:
 
 			if (!p.first) {
 
-				removeList.push_back(block);
+				removeMask[block->index_] = true;
 
 				continue;
 
@@ -456,7 +876,9 @@ protected:
 
 			this->_partition.push_back(newBlock);
 
-			removeList.push_back(newBlock);
+			this->relation_.split(block->index_);
+
+			removeMask[newBlock->index_] = true;
 
 			newBlock->counter().copyLabels(newBlock->inset(), block->counter());
 
@@ -516,11 +938,13 @@ protected:
 
 		assert(remove);
 
-		std::vector<OLRTBlock*> preList, removeList;
+		std::vector<OLRTBlock*> preList;
+
+		std::vector<bool> removeMask(this->_lts.states());
 
 		this->buildPre(preList, block->states(), label);
 
-		this->split(removeList, *remove);
+		this->split(removeMask, *remove);
 
 		remove->unsafeRelease(
 			[this](RemoveList* list){
@@ -531,34 +955,42 @@ protected:
 
 		for (auto& b1 : preList) {
 
-			for (auto& b2 : removeList) {
+			SplittingRelation::Row row = this->relation_.row(b1->index_);
 
-				assert(b1 != b2);
+			for (auto col = row.begin(); col != row.end(); ++col) {
 
-				if (!b1->eraseIfRelated(b2))
+				if (!removeMask[*col])
 					continue;
+
+				assert(b1->index_ != *col);
+
+				this->relation_.erase(col);
+
+				OLRTBlock* b2 = this->_partition[*col];
+
+				assert(b1->eraseIfRelated(b2));
 
 				for (auto a : b2->inset()) {
 
 					if (!b1->inset().contains(a))
 						continue;
 
-					StateListElem* elem2 = b2->states();
+					StateListElem* elem = b2->states();
 
 					do {
 
-						assert(elem2);
+						assert(elem);
 
-						for (auto& pre2 : this->_lts.pre(a)[elem2->index_]) {
+						for (auto& pre : this->_lts.pre(a)[elem->index_]) {
 
-							if (!b1->counter().decr(a, pre2))
-								this->enqueueToRemove(b1, a, pre2);
+							if (!b1->counter().decr(a, pre))
+								this->enqueueToRemove(b1, a, pre);
 
 						}
 
-						elem2 = elem2->next_;
+						elem = elem->next_;
 
-					} while (elem2 != b2->states());
+					} while (elem != b2->states());
 
 				}
 
@@ -621,6 +1053,8 @@ private:
 	RemoveAllocator removeAllocator_;
 
 	std::vector<OLRTBlock*> _partition;
+	SplittingRelation relation_;
+
 	std::vector<StateListElem> _index;
 	std::vector<std::pair<OLRTBlock*, size_t> > _queue;
 	std::vector<size_t> _key;
@@ -635,8 +1069,8 @@ private:
 public:
 
 	OLRTAlgorithm(const VATA::ExplicitLTS& lts) : _lts(lts), vectorAllocator_(),
-		removeAllocator_(SharedListInitF(vectorAllocator_)), _partition(), _index(lts.states()),
-		_queue(), _key(), _labelMap(), rowSize_() {
+		removeAllocator_(SharedListInitF(vectorAllocator_)), _partition(), relation_(lts.states()),
+		_index(lts.states()), _queue(), _key(), _labelMap(), rowSize_() {
 
 		assert(this->_index.size());
 
@@ -665,7 +1099,7 @@ public:
 
 		this->rowSize_ = std::sqrt(this->_lts.labels());
 
-		if (this->rowSize_< 16)
+		if (this->rowSize_ < 16)
 			this->rowSize_ = 16;
 
 		size_t x = 0;
@@ -704,15 +1138,21 @@ public:
 
 		}
 
+		this->relation_.init(index);
+
 		// make initial refinement
 
 		for (size_t a = 0; a < this->_lts.labels(); ++a)
 			this->fastSplit(delta1[a]);
 
+		assert(this->relation_.size() == this->_partition.size());
+
 		// prune relation
 
 		std::vector<std::vector<size_t>> pre(this->_partition.size());
-		std::vector<std::vector<OLRTBlock*>> noPre(this->_lts.labels());
+		std::vector<std::vector<bool>> noPreMask(
+			this->_lts.labels(), std::vector<bool>(this->_partition.size())
+		);
 
 		for (auto& block : this->_partition) {
 
@@ -723,8 +1163,8 @@ public:
 				for (size_t a = 0; a < this->_lts.labels(); ++a) {
 
 					delta1[a].contains(elem->index_)
-						? pre[block->_index].push_back(a)
-						: noPre[a].push_back(block);
+						? (pre[block->index_].push_back(a), true)
+						: (noPreMask[a][block->index_] = true);
 
 				}
 
@@ -736,13 +1176,23 @@ public:
 
 		for (auto& b1 : this->_partition) {
 
-			for (auto& a : pre[b1->_index]) {
+			for (auto& a : pre[b1->index_]) {
 
-				for (auto& b2 : noPre[a]) {
+				SplittingRelation::Row row = this->relation_.row(b1->index_);
 
-					assert(b1 != b2);
+				for (auto col = row.begin(); col != row.end(); ++col) {
 
-					b1->breakRelated(b2);
+					assert(a < noPreMask.size());
+					assert(*col < noPreMask[a].size());
+
+					if (!noPreMask[a][*col])
+						continue;
+
+					assert(b1->index_ != *col);
+				
+					b1->breakRelated(this->_partition[*col]);
+
+					this->relation_.erase(col);
 
 				}
 
@@ -756,27 +1206,42 @@ public:
 
 		SmartSet s;
 
-		for (std::vector<OLRTBlock*>::reverse_iterator i = this->_partition.rbegin(); i != this->_partition.rend(); ++i) {
+		for (auto& b1 : this->_partition) {
 
-			for (auto& a : (*i)->inset()) {
+			SplittingRelation::Row row = this->relation_.row(b1->index_);
+
+			std::vector<bool> relatedBlocks(this->_partition.size());
+
+			for (auto col = row.begin(); col != row.end(); ++col)
+				relatedBlocks[*col] = true;
+
+			for (auto& a : b1->inset()) {
 
 				for (auto q : delta1[a]) {
 
+					size_t count = 0;
+
 					for (auto r : this->_lts.post(a)[q]) {
 
-						if ((*i)->isRelated(this->_index[r].block_))
-							(*i)->counter().incr(a, q);
+						assert(b1->isRelated(this->_index[r].block_) == relatedBlocks[this->_index[r].block_->index_]);
+
+						if (relatedBlocks[this->_index[r].block_->index_])
+							++count;
 
 					}
+
+					if (count)
+						b1->counter().incr(a, q, count);
 
 				}
 
 				s.assignFlat(delta1[a]);
 
-				for (auto& b2 : this->_partition) {
+				for (auto col = row.begin(); col != row.end(); ++col) {
 
-					if (!(*i)->isRelated(b2))
-						continue;
+					OLRTBlock* b2 = this->_partition[*col];
+
+					assert(b1->isRelated(b2));
 
 					StateListElem* elem = b2->states();
 
@@ -794,15 +1259,15 @@ public:
 				if (s.empty())
 					continue;
 
-				(*i)->_remove[a] = new RemoveList(new std::vector<size_t>(s.begin(), s.end()));
+				b1->_remove[a] = new RemoveList(new std::vector<size_t>(s.begin(), s.end()));
 
-				this->_queue.push_back(std::make_pair(*i, a));
+				this->_queue.push_back(std::make_pair(b1, a));
 
-				assert(s.size() == (*i)->_remove[a]->subList()->size());
+				assert(s.size() == b1->_remove[a]->subList()->size());
 
 			}
 
-			(*i)->counter().releaseSingletons();
+			b1->counter().releaseSingletons();
 
 		}
 
@@ -828,11 +1293,15 @@ public:
 
 		for (size_t i = 0; i < size; ++i) {
 
-			auto& block = this->_index[i].block_;
+			SplittingRelation::Row row = this->relation_.row(this->_index[i].block_->index_);
+
+			std::vector<bool> relatedBlocks(this->_partition.size());
+
+			for (auto col = row.begin(); col != row.end(); ++col)
+				relatedBlocks[*col] = true;
 
 			for (size_t j = 0; j < size; ++j)
-
-				result.set(i, j, block->isRelated(this->_index[j].block_));
+				result.set(i, j, relatedBlocks[this->_index[j].block_->index_]);
 
 		}
 
