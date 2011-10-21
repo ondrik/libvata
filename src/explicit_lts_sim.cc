@@ -77,8 +77,6 @@ struct OLRTBlock {
 	SharedCounter _counter;
 	SmartSet _inset;
 	std::vector<StateListElem*> tmp_;
-	std::unordered_set<OLRTBlock*> bigger_;
-	std::unordered_set<OLRTBlock*> smaller_;
 
 protected:
 
@@ -92,8 +90,7 @@ public:
 		const SharedCounter::Key& key, const SharedCounter::LabelMap& labelMap,
 		const size_t& rowSize, SharedCounter::Allocator& allocator) : index_(index),
 		_states(states), size_(size), _remove(lts.labels()),
-		_counter(key, lts.states(), labelMap, rowSize, allocator), _inset(lts.labels()),
-		tmp_(), bigger_(), smaller_() {
+		_counter(key, lts.states(), labelMap, rowSize, allocator), _inset(lts.labels()), tmp_() {
 
 		do {
 
@@ -111,7 +108,7 @@ public:
 	
 	OLRTBlock(const VATA::ExplicitLTS& lts, OLRTBlock& parent, StateListElem* states, size_t size,
 		size_t index) : index_(index), _states(states), size_(size), _remove(lts.labels()),
-		_counter(parent._counter), _inset(lts.labels()), tmp_(), bigger_(), smaller_() {
+		_counter(parent._counter), _inset(lts.labels()), tmp_() {
 
 		do {
 
@@ -132,77 +129,6 @@ public:
 
 	}
 
-	bool isRelated(OLRTBlock* block) {
-
-		return this->bigger_.find(block) != this->bigger_.end();
-
-	} 
-
-	bool eraseIfRelated(OLRTBlock* block) {
-
-		auto iter = this->bigger_.find(block);
-		if (iter == this->bigger_.end())
-			return false;
-	
-		this->bigger_.erase(iter);
-		block->smaller_.erase(this);
-
-		return true;
-
-	} 
-
-	void makeRelated(OLRTBlock* block) {
-
-		this->bigger_.insert(block);
-
-	}
-
-	void breakRelated(OLRTBlock* block) {
-
-		this->bigger_.erase(block);
-
-	}
-
-	template <class T>
-	void initBigger(OLRTBlock* parent, const T& candidates) {
-
-		for (auto& block : candidates) {
-
-			if (block->isRelated(parent))
-				block->makeRelated(this);
-				
-		}
-
-		this->bigger_ = parent->bigger_;
-		this->makeRelated(this);
-
-	}
-
-	void initSmaller() {
-
-		for (auto& block : this->bigger_)
-			block->smaller_.insert(this);
-
-		this->smaller_.insert(this);
-
-	}
-
-	void initRelation(OLRTBlock* parent) {
-
-		this->bigger_ = parent->bigger_;
-		this->smaller_ = parent->smaller_;
-
-		for (auto& bigger : this->bigger_)
-			bigger->smaller_.insert(this);
-
-		for (auto& smaller : this->smaller_)
-			smaller->bigger_.insert(this);
-
-		this->bigger_.insert(this);
-		this->smaller_.insert(this);
-
-	}
-	
 	StateListElem* states() {
 		return this->_states;
 	}
@@ -506,10 +432,10 @@ public:
 
 	struct Column {
 
-		Element* begin_;
+		Element*& begin_;
 		Element* end_;
 
-		Column(Element* begin, Element* end) : begin_(begin), end_(end) {}
+		Column(Element*& begin, Element* end) : begin_(begin), end_(end) {}
 
 		ColIterator begin() const { return ColIterator(this->begin_); }
 		ColIterator end() const { return ColIterator(this->end_); }
@@ -518,10 +444,10 @@ public:
 
 	struct Row {
 
-		Element* begin_;
+		Element*& begin_;
 		Element* end_;
 
-		Row(Element* begin, Element* end) : begin_(begin), end_(end) {}
+		Row(Element*& begin, Element* end) : begin_(begin), end_(end) {}
 
 		RowIterator begin() const { return RowIterator(this->begin_); }
 		RowIterator end() const { return RowIterator(this->end_); }
@@ -707,7 +633,7 @@ public:
 		assert(index < this->columns_.size());
 		assert(this->checkCol(index));
 
-		return Column(this->columns_[index].first, this->colEnd(index));
+		return Column(*const_cast<Element**>(&this->columns_[index].first), this->colEnd(index));
 
 	}
 
@@ -716,7 +642,7 @@ public:
 		assert(index < this->rows_.size());
 		assert(this->checkRow(index));
 
-		return Row(this->rows_[index].first, this->rowEnd(index));
+		return Row(*const_cast<Element**>(&this->rows_[index].first), this->rowEnd(index));
 
 	}
 
@@ -837,8 +763,6 @@ protected:
 				this->_lts, *block, p.first, p.second, this->_partition.size()
 			);
 
-			newBlock->initBigger(block, this->_partition);
-
 			this->_partition.push_back(newBlock);
 
 			this->relation_.split(block->index_);
@@ -871,8 +795,6 @@ protected:
 			OLRTBlock* newBlock = new OLRTBlock(
 				this->_lts, *block, p.first, p.second, this->_partition.size()
 			);
-
-			newBlock->initRelation(block);
 
 			this->_partition.push_back(newBlock);
 
@@ -967,8 +889,6 @@ protected:
 				this->relation_.erase(col);
 
 				OLRTBlock* b2 = this->_partition[*col];
-
-				assert(b1->eraseIfRelated(b2));
 
 				for (auto a : b2->inset()) {
 
@@ -1124,20 +1044,6 @@ public:
 
 		relation.buildIndex(index);
 
-		for (size_t i = 0; i < this->_partition.size(); ++i) {
-
-			OLRTBlock*& block = this->_partition[i];
-
-			for (auto& bigger : index[i]) {
-
-				assert(bigger < this->_partition.size());
-
-				block->makeRelated(this->_partition[bigger]);
-
-			}
-
-		}
-
 		this->relation_.init(index);
 
 		// make initial refinement
@@ -1176,9 +1082,9 @@ public:
 
 		for (auto& b1 : this->_partition) {
 
-			for (auto& a : pre[b1->index_]) {
+			SplittingRelation::Row row = this->relation_.row(b1->index_);
 
-				SplittingRelation::Row row = this->relation_.row(b1->index_);
+			for (auto& a : pre[b1->index_]) {
 
 				for (auto col = row.begin(); col != row.end(); ++col) {
 
@@ -1190,15 +1096,11 @@ public:
 
 					assert(b1->index_ != *col);
 				
-					b1->breakRelated(this->_partition[*col]);
-
 					this->relation_.erase(col);
 
 				}
 
 			}
-
-			b1->initSmaller();
 
 		}
 
@@ -1223,8 +1125,6 @@ public:
 
 					for (auto r : this->_lts.post(a)[q]) {
 
-						assert(b1->isRelated(this->_index[r].block_) == relatedBlocks[this->_index[r].block_->index_]);
-
 						if (relatedBlocks[this->_index[r].block_->index_])
 							++count;
 
@@ -1240,8 +1140,6 @@ public:
 				for (auto col = row.begin(); col != row.end(); ++col) {
 
 					OLRTBlock* b2 = this->_partition[*col];
-
-					assert(b1->isRelated(b2));
 
 					StateListElem* elem = b2->states();
 
@@ -1316,11 +1214,17 @@ public:
 
 		for (size_t i = 0; i < alg._partition.size(); ++i) {
 
-			auto& block = alg._index[i].block_;
+			SplittingRelation::Row row = alg.relation_.row(alg._index[i].block_->index_);
+
+			std::vector<bool> relatedBlocks(alg._partition.size());
+
+			for (auto col = row.begin(); col != row.end(); ++col)
+				relatedBlocks[*col] = true;
 
 			for (size_t j = 0; j < alg._partition.size(); ++j)
+				os << relatedBlocks[j];
 
-				os << block->isRelated(alg._index[j].block_);
+			os << std::endl;
 
 		}
 
