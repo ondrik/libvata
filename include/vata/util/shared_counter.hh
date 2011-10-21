@@ -129,7 +129,7 @@ public:
 
 	}
 
-	void incr(size_t label, size_t state) {
+	void incr(size_t label, size_t state, size_t count = 1) {
 
 		assert(label*this->states_ + state < this->key_.size());
 
@@ -147,14 +147,14 @@ public:
 			assert(row.data_);
 			assert(this->rowSize_ < row.data_->size());
 
-			++row.master_;
-			++(*row.data_)[col];
+			row.master_ += count;
+			(*row.data_)[col] += count;
 
 			return;
 	
 		}
 
-		row.master_ = 1;
+		row.master_ = count;
 		row.data_ = this->allocator_();
 		row.data_->resize(this->rowSize_ + 1);
 		
@@ -162,7 +162,7 @@ public:
 
 		std::fill(row.data_->begin(), row.data_->end() - 1, 0);
 
-		(*row.data_)[col] = 1;
+		(*row.data_)[col] = count;
 
 	} 
 	
