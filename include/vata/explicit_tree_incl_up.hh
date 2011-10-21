@@ -20,10 +20,6 @@
 #include <vata/util/cached_binary_op.hh>
 #include <vata/util/antichain1c.hh>
 #include <vata/util/antichain2c_v2.hh>
-#include <vata/util/ordered_antichain2c.hh>
-
-//#include <vata/vata.hh>
-//#include <vata/util/convert.hh>
 
 namespace VATA {
 
@@ -64,17 +60,249 @@ class VATA::ExplicitUpwardInclusion {
 
 	}
 
+	class Transition {
+	
+		Explicit::TuplePtr children_;
+		size_t symbol_;
+		Explicit::StateType state_;
+	
+	public:
+	
+		Transition(const Explicit::TuplePtr& children, const size_t& symbol,
+			const Explicit::StateType& state) : children_(children), symbol_(symbol), state_(state) {}
+	
+		const Explicit::StateTuple& children() const { return *this->children_; }
+		const size_t& symbol() const { return this->symbol_; }
+		const Explicit::StateType& state() const { return this->state_; }
+	
+		bool operator==(const Transition& rhs) const {
+	
+			return this->children_.get() == rhs.children_.get() &&
+				this->symbol_ == rhs.symbol_ &&
+				this->state_ == rhs.state_;
+	
+		}
+	
+		friend std::ostream& operator<<(std::ostream& os, const Transition& t) {
+			return os << t.symbol_ << Util::Convert::ToString(*t.children_) << "->" << t.state_;
+		}
+	
+		friend size_t hash_value(const Transition& t) {
+	
+			size_t seed = 0;
+	
+			boost::hash_combine(seed, t.children_.get());
+			boost::hash_combine(seed, t.symbol_);
+			boost::hash_combine(seed, t.state_);
+	
+			return seed;
+	
+		}
+	
+	};
+
+	typedef std::shared_ptr<Transition> TransitionPtr;
+	typedef std::vector<TransitionPtr> TransitionList;
+	typedef std::vector<TransitionList> IndexedTransitionList;
+	typedef std::vector<IndexedTransitionList> DoubleIndexedTransitionList;
+	typedef std::vector<TransitionList> SymbolToTransitionListMap;
+	typedef std::vector<IndexedTransitionList> SymbolToIndexedTransitionListMap;
+	typedef std::vector<DoubleIndexedTransitionList> SymbolToDoubleIndexedTransitionListMap;
+	typedef std::vector<SymbolToIndexedTransitionListMap> IndexedSymbolToIndexedTransitionListMap;
+
+	template <class Aut, class SymbolIndex>
+	static void bottomUpIndex(const Aut& aut,
+		IndexedSymbolToIndexedTransitionListMap& bottomUpIndex,
+		SymbolToTransitionListMap& leaves, SymbolIndex& symbolIndex) {
+	
+		for (auto& stateClusterPair : *aut.transitions_) {
+	
+			assert(stateClusterPair.second);
+	
+			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
+	
+				assert(symbolTupleSetPair.second);
+				assert(symbolTupleSetPair.second->size());
+	
+				auto& symbol = symbolIndex[symbolTupleSetPair.first];
+	
+				auto& first = *symbolTupleSetPair.second->begin();
+	
+				assert(first);
+	
+				if (first->empty()) {
+	
+					if (leaves.size() <= symbol)
+						leaves.resize(symbol + 1);
+	
+					auto& transitionList = leaves[symbol];
+	
+					for (auto& tuple : *symbolTupleSetPair.second) {
+	
+						assert(tuple);
+						assert(tuple->empty());
+	
+						transitionList.push_back(
+							TransitionPtr(new Transition(tuple, symbol, stateClusterPair.first))
+						);
+	
+					}
+	
+					continue;
+	
+				}
+	
+				for (auto& tuple : *symbolTupleSetPair.second) {
+	
+					assert(tuple);
+					assert(tuple->size());
+	
+					TransitionPtr transition(
+						new Transition(tuple, symbol, stateClusterPair.first)
+					);
+	
+					size_t i = 0;
+	
+					for (auto& state : *tuple) {
+	
+						if (bottomUpIndex.size() <= state)
+							bottomUpIndex.resize(state + 1);
+	
+						auto& symbolIndexedTransitionList = bottomUpIndex[state];
+	
+						if (symbolIndexedTransitionList.size() <= symbol)
+							symbolIndexedTransitionList.resize(symbol + 1);
+	
+						auto& indexedTransitionList = symbolIndexedTransitionList[symbol];
+	
+						if (indexedTransitionList.size() <= i)
+							indexedTransitionList.resize(i + 1);
+	
+						indexedTransitionList[i].push_back(transition);
+	
+						++i;
+	
+					}
+	
+				}
+	
+			}
+	
+		}
+	
+	}
+	
+	template <class Aut, class SymbolIndex>
+	static void bottomUpIndex2(const Aut& aut,
+		SymbolToDoubleIndexedTransitionListMap& bottomUpIndex,
+		SymbolToTransitionListMap& leaves, SymbolIndex& symbolIndex) {
+	
+		for (auto& stateClusterPair : *aut.transitions_) {
+	
+			assert(stateClusterPair.second);
+	
+			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
+	
+				assert(symbolTupleSetPair.second);
+				assert(symbolTupleSetPair.second->size());
+	
+				auto& symbol = symbolIndex[symbolTupleSetPair.first];
+	
+				auto& first = *symbolTupleSetPair.second->begin();
+	
+				assert(first);
+	
+				if (first->empty()) {
+	
+					if (leaves.size() <= symbol)
+						leaves.resize(symbol + 1);
+	
+					auto& transitionList = leaves[symbol];
+	
+					for (auto& tuple : *symbolTupleSetPair.second) {
+	
+						assert(tuple);
+						assert(tuple->empty());
+	
+						transitionList.push_back(
+							TransitionPtr(new Transition(tuple, symbol, stateClusterPair.first))									
+						);
+	
+					}
+	
+					continue;
+	
+				}
+	
+				if (bottomUpIndex.size() <= symbol)
+					bottomUpIndex.resize(symbol + 1);
+	
+				auto& doubleIndexedTransitionList = bottomUpIndex[symbol];
+	
+				if (doubleIndexedTransitionList.size() < first->size())
+					doubleIndexedTransitionList.resize(first->size());
+	
+				for (auto& tuple : *symbolTupleSetPair.second) {
+	
+					assert(tuple);
+					assert(tuple->size());
+	
+					TransitionPtr transition(
+						new Transition(tuple, symbol, stateClusterPair.first)
+					);
+	
+					size_t i = 0;
+	
+					for (auto& state : *tuple) {
+	
+						assert(i < doubleIndexedTransitionList.size());
+	
+						if (doubleIndexedTransitionList[i].size() <= state)
+							doubleIndexedTransitionList[i].resize(state + 1);
+	
+						doubleIndexedTransitionList[i][state].push_back(transition);
+	
+						++i;
+	
+					}
+	
+				}
+	
+			}
+	
+		}
+	
+	}
+
 public:
 
 	template <class Aut, class Rel>
 	static bool Check(const Aut& smaller, const Aut& bigger, const Rel& preorder) {
 
+		IndexedSymbolToIndexedTransitionListMap smallerIndex;
+		SymbolToDoubleIndexedTransitionListMap biggerIndex;
+		SymbolToTransitionListMap smallerLeaves, biggerLeaves;
+
+		size_t symbolCnt = 0;
+		std::unordered_map<typename Aut::SymbolType, size_t> symbolMap;
+		Util::TranslatorWeak2<std::unordered_map<typename Aut::SymbolType, size_t>>
+			symbolTranslator(
+				symbolMap,
+				[&symbolCnt](const typename Aut::SymbolType&){ return symbolCnt++; }
+			);
+
+		ExplicitUpwardInclusion::bottomUpIndex(
+			smaller, smallerIndex, smallerLeaves, symbolTranslator
+		);
+
+		ExplicitUpwardInclusion::bottomUpIndex2(
+			bigger, biggerIndex, biggerLeaves, symbolTranslator
+		);
+
 		typedef Explicit::StateType SmallerType;
 		typedef std::vector<Explicit::StateType> StateSet;
 
-		typedef typename Aut::SymbolType SymbolType;
-		typedef typename Aut::Transition Transition;
-		typedef typename Aut::TransitionPtr TransitionPtr;
+		typedef size_t SymbolType;
 
 		typedef std::unordered_set<const Transition*> TransitionSet;
 		typedef typename std::shared_ptr<TransitionSet> TransitionSetPtr;
@@ -86,31 +314,38 @@ public:
 		typedef typename Util::Antichain1C<SmallerType> Antichain1C;
 		typedef typename Util::Antichain2Cv2<SmallerType, BiggerType> Antichain2C;
 
-		typedef std::pair<SmallerType, BiggerType> SmallerBiggerPair;
+		typedef std::pair<SmallerType, Antichain2C::TList::iterator> SmallerBiggerPair;
 
 		struct less {
 
 			bool operator()(const SmallerBiggerPair& p1, const SmallerBiggerPair& p2) const {
 
-				if (p1.second->size() < p2.second->size())
-					return true;
-
-				if (p1.second->size() > p2.second->size())
-					return false;
-
-				if (p1.first < p2.first)
-					return true;
-
-				if (p1.first > p2.first)
-					return false;
-
-				return p1.second.get() < p2.second.get();
+				if ((*p1.second)->size() < (*p2.second)->size()) return true;
+				if ((*p1.second)->size() > (*p2.second)->size()) return false;
+				if (p1.first < p2.first) return true;
+				if (p1.first > p2.first) return false;
+				return (*p1.second).get() < (*p2.second).get();
 
 			}
 
 		};
 
-		typedef typename Util::OrderedAntichain2C<Antichain2C, less> OrderedAntichain2C;
+		typedef std::set<SmallerBiggerPair, less> OrderedType;
+
+		struct Eraser {
+
+			OrderedType& data_;
+
+			Eraser(OrderedType& data) : data_(data) {}
+
+			void operator()(const SmallerType& q,
+				const typename Antichain2C::TList::iterator& Q) const {
+
+				this->data_.erase(std::make_pair(q, Q));
+				
+			}
+
+		};
 
 		GCC_DIAG_OFF(effc++)
 		struct Choice {
@@ -197,9 +432,15 @@ public:
 
 			}
 
-			const std::vector<Choice>& state() const {
+			const BiggerType& operator()(size_t index) const {
 
-				return this->state_;
+				return this->state_[index].get();
+
+			}
+
+			size_t size() const {
+
+				return this->state_.size();
 
 			}
 
@@ -238,13 +479,6 @@ public:
 		
 		auto gte = [&lte](const BiggerType& x, const BiggerType& y) { return lte(y, x); };
 
-		typename Aut::IndexedSymbolToIndexedTransitionListMap smallerIndex;
-		typename Aut::SymbolToDoubleIndexedTransitionListMap biggerIndex;
-		typename Aut::SymbolToTransitionListMap smallerLeaves, biggerLeaves;
-
-		smaller.bottomUpIndex(smallerIndex, smallerLeaves);
-		bigger.bottomUpIndex(biggerIndex, biggerLeaves);
-
 		auto noncachedEvalTransitions = [&biggerIndex](const std::pair<SymbolType, size_t>& key,
 			const StateSet* states) -> TransitionSetPtr {
 
@@ -252,14 +486,15 @@ public:
 
 			TransitionSetPtr result = TransitionSetPtr(new TransitionSet());
 
-			auto iter = biggerIndex.find(key.first);
-
-			if (iter == biggerIndex.end())
+			if (biggerIndex.size() <= key.first)
 				return result;
 
-			assert(key.second < iter->second.size());
+			auto& iter = biggerIndex[key.first];
 
-			auto& indexedTransitionList = iter->second[key.second];
+			if (iter.size() <= key.second)
+				return result;
+
+			auto& indexedTransitionList = iter[key.second];
 
 			for (auto& state: *states) {
 
@@ -302,23 +537,22 @@ public:
 		Antichain1C post;
 
 		Antichain2C temporary, processed;
-		OrderedAntichain2C next;
+
+		OrderedType next;
 
 		bool isAccepting;
 
 		// Post(\emptyset)
 
-		for (auto& smallerCluster : smallerLeaves) {
+		if (biggerLeaves.size() < smallerLeaves.size())
+			return false;
 
-			auto biggerClusterIter = biggerLeaves.find(smallerCluster.first);
-
-			if (biggerClusterIter == biggerLeaves.end())
-				return false;
+		for (size_t symbol = 0; symbol < smallerLeaves.size(); ++symbol) {
 
 			post.clear();
 			isAccepting = false;
 
-			for (auto& transition : biggerClusterIter->second) {
+			for (auto& transition : biggerLeaves[symbol]) {
 
 				assert(transition);
 				assert(transition->children().empty());
@@ -342,7 +576,7 @@ public:
 
 			auto ptr = biggerTypeCache.lookup(tmp);
 
-			for (auto& transition : smallerCluster.second) {
+			for (auto& transition : smallerLeaves[symbol]) {
 
 				assert(transition);
 
@@ -359,10 +593,11 @@ public:
 
 				assert(transition->state() < inv.size());
 					
-				processed.refine(inv[transition->state()], ptr, gte);
-				processed.insert(transition->state(), ptr);
+				processed.refine(inv[transition->state()], ptr, gte, Eraser(next));
 
-				next.insert(transition->state(), ptr);
+				Antichain2C::TList::iterator iter = processed.insert(transition->state(), ptr);
+
+				next.insert(std::make_pair(transition->state(), iter));
 
 			}
 
@@ -376,25 +611,30 @@ public:
 
 		ChoiceVector choiceVector(processed, fixedList);
 
-		while (next.get(q, Q)) {
+		while (!next.empty()) {
+
+			q = next.begin()->first;
+			Q = *next.begin()->second;
+
+			next.erase(next.begin());
 
 			assert(q < inv.size());
 
 			// Post(processed)
 
-			for (auto& symbolClusterPair : smallerIndex[q]) {
+			auto& smallerTransitionIndex = smallerIndex[q];
 
-				assert(symbolClusterPair.second.size() > 0);
+			for (size_t symbol = 0; symbol < smallerTransitionIndex.size(); ++symbol) {
 
-				size_t i = 0;
+				size_t j = 0;
 
-				for (auto& smallerTransitions : symbolClusterPair.second) {
+				for (auto& smallerTransitions : smallerTransitionIndex[symbol]) {
 
 					for (auto& smallerTransition : smallerTransitions) {
 	
 						assert(smallerTransition);
 	
-						if (!choiceVector.build(smallerTransition->children(), i))
+						if (!choiceVector.build(smallerTransition->children(), j))
 							continue;
 	
 						do {
@@ -402,11 +642,9 @@ public:
 							post.clear();
 							isAccepting = false;
 	
-							assert(choiceVector.state()[0].get());
+							assert(choiceVector(0));
 	
-							auto firstSet = evalTransitions(
-								symbolClusterPair.first, 0, choiceVector.state()[0].get().get()
-							);
+							auto firstSet = evalTransitions(symbol, 0, choiceVector(0).get());
 	
 							assert(firstSet);
 	
@@ -414,12 +652,12 @@ public:
 								firstSet->begin(), firstSet->end()
 							);
 	
-							for (size_t i = 1; i < choiceVector.state().size(); ++i) {
+							for (size_t k = 1; k < choiceVector.size(); ++k) {
 	
-								assert(choiceVector.state()[i].get());
+								assert(choiceVector(k));
 				
 								auto transitions = evalTransitions(
-									symbolClusterPair.first, i, choiceVector.state()[i].get().get()
+									symbol, k, choiceVector(k).get()
 								);
 	
 								assert(transitions);
@@ -484,10 +722,14 @@ public:
 				
 								assert(smallerBiggerListPair.first < inv.size());
 		
-								processed.refine(inv[smallerBiggerListPair.first], bigger, gte);
-								processed.insert(smallerBiggerListPair.first, bigger);
+								processed.refine(
+									inv[smallerBiggerListPair.first], bigger, gte, Eraser(next)
+								);
+
+								Antichain2C::TList::iterator iter =
+									processed.insert(smallerBiggerListPair.first, bigger);
 		
-								next.insert(smallerBiggerListPair.first, bigger);
+								next.insert(std::make_pair(smallerBiggerListPair.first, iter));
 								
 							}
 	
@@ -497,375 +739,10 @@ public:
 	
 					}
 
-					++i;
+					++j;
 
 				}
 	
-			}
-
-		}
-
-		return true;
-
-	}
-
-	template <class Aut, class Rel>
-	static bool CheckObsolete(const Aut& smaller, const Aut& bigger, const Rel& preorder) {
-
-		typedef Explicit::StateType SmallerType;
-		typedef std::vector<Explicit::StateType> StateSet;
-		typedef typename Aut::TransitionPtr TransitionPtr;
-
-		typedef typename Util::Cache<StateSet> BiggerTypeCache;
-
-		typedef typename BiggerTypeCache::TPtr BiggerType;
-
-		typedef typename Util::Antichain1C<SmallerType> Antichain1C;
-		typedef typename Util::Antichain2Cv2<SmallerType, BiggerType> Antichain2C;
-
-		typedef std::pair<SmallerType, BiggerType> SmallerBiggerPair;
-
-		struct less {
-
-			bool operator()(const SmallerBiggerPair& p1, const SmallerBiggerPair& p2) const {
-
-				if (p1.second->size() < p2.second->size())
-					return true;
-
-				if (p1.second->size() > p2.second->size())
-					return false;
-
-				if (p1.first < p2.first)
-					return true;
-
-				if (p1.first > p2.first)
-					return false;
-
-				return p1.second.get() < p2.second.get();
-
-			}
-
-		};
-
-		typedef typename Util::OrderedAntichain2C<Antichain2C, less> OrderedAntichain2C;
-
-		GCC_DIAG_OFF(effc++)
-		struct Choice {
-		GCC_DIAG_ON(effc++)
-
-			const Antichain2C::TList* biggerList_;
-			Antichain2C::TList::const_iterator current_;
-
-			bool init(const Antichain2C::TList* biggerList) {
-
-				if (!biggerList)
-					return false;
-
-				this->biggerList_ = biggerList;
-				this->current_ = biggerList->begin();
-
-				return true;
-
-			}
-
-			bool next() {
-
-				if (++this->current_ != this->biggerList_->end())
-					return true;
-
-				this->current_ = this->biggerList_->begin();
-				return false;
-
-			}
-			
-		};
-
-		struct ChoiceVector {
-
-			const Antichain2C& processed_;
-			const Antichain2C::TList& fixed_;
-			std::vector<Choice> state_;
-			
-		public:
-
-			ChoiceVector(const Antichain2C& processed,
-				const Antichain2C::TList& fixed)
-				: processed_(processed), fixed_(fixed), state_() {}
-		
-			bool build(const Explicit::StateTuple& children, size_t index) {
-
-				assert(index < children.size());
-
-				this->state_.resize(children.size());
-
-				for (size_t i = 0; i < index; ++i) {
-
-					if (!this->state_[i].init(this->processed_.lookup(children[i])))
-						return false;
-
-				}
-
-				this->state_[index].biggerList_ = &this->fixed_;
-				this->state_[index].current_ = this->fixed_.begin();
-
-				for (size_t i = index + 1; i < children.size(); ++i) {
-
-					if (!this->state_[i].init(this->processed_.lookup(children[i])))
-						return false;
-
-				}
-
-				return true;
-
-			}
-		
-			bool next() {
-
-				for (auto& choice : this->state_) {
-
-					if (choice.next())
-						return true;
-
-				}
-
-				return false;
-
-			}
-			
-			bool match(const Explicit::StateTuple& children) const {
-
-				for (size_t i = 0; i < children.size(); ++i) {
-
-					assert(i < this->state_.size());
-
-					auto& s = *this->state_[i].current_;
-
-					if (!std::binary_search(s->begin(), s->end(), children[i]))
-						return false;
-
-				}
-
-				return true;
-
-			}
-
-		};
-
-		typename Rel::IndexType ind, inv;
-
-		preorder.buildIndex(ind, inv);
-
-		auto noncachedLte = [&ind](const StateSet* x, const StateSet* y) -> bool {
-
-			assert(x); assert(y);
-
-			for (auto& s1 : *x) {
-
-				assert(s1 < ind.size());
-
-				if (!checkIntersection(ind[s1], *y))
-					return false;
-
-			}
-
-			return true;
-
-		};
-
-		Util::CachedBinaryOp<const StateSet*, const StateSet*, bool> lteCache;
-
-		auto lte = [&noncachedLte, &lteCache](const BiggerType& x, const BiggerType& y) -> bool {
-
-			assert(x); assert(y);
-
-			return (x.get() == y.get())?(true):(lteCache.lookup(x.get(), y.get(), noncachedLte));
-
-		};
-
-		auto gte = [&lte](const BiggerType& x, const BiggerType& y) { return lte(y, x); };
-
-		typename Aut::IndexedSymbolToIndexedTransitionListMap smallerIndex;
-		typename Aut::SymbolToTransitionListMap smallerLeaves, biggerIndex;
-
-		smaller.bottomUpIndex(smallerIndex, smallerLeaves);
-		bigger.bottomUpIndex(biggerIndex);
-
-		BiggerTypeCache biggerTypeCache(
-			[&lteCache](const StateSet* v) {
-					lteCache.invalidateFirst(v);
-					lteCache.invalidateSecond(v);
-			}
-		);
-
-		Antichain1C post;
-		Antichain2C processed;
-		OrderedAntichain2C next;
-
-		bool isAccepting;
-
-		// Post(\emptyset)
-
-		for (auto& smallerCluster : smallerLeaves) {
-
-			auto biggerClusterIter = biggerIndex.find(smallerCluster.first);
-
-			if (biggerClusterIter == biggerIndex.end())
-				return false;
-
-			post.clear();
-			isAccepting = false;
-
-			for (auto& transition : biggerClusterIter->second) {
-
-				assert(transition);
-				assert(transition->children().empty());
-				assert(transition->state() < ind.size());
-
-				if (post.contains(ind[transition->state()]))
-					continue;
-				
-				assert(transition->state() < inv.size());
-				
-				post.refine(inv[transition->state()]);
-				post.insert(transition->state());
-				
-				isAccepting = isAccepting || bigger.IsFinalState(transition->state());
-
-			}
-
-			StateSet tmp(post.data().begin(), post.data().end());
-
-			std::sort(tmp.begin(), tmp.end());
-
-			auto ptr = biggerTypeCache.lookup(tmp);
-
-			for (auto& transition : smallerCluster.second) {
-
-				assert(transition);
-
-				if (!isAccepting && smaller.IsFinalState(transition->state()))
-					return false;
-
-				assert(transition->state() < ind.size());
-
-				if (checkIntersection(ind[transition->state()], tmp))
-					continue;
-
-				if (next.contains(ind[transition->state()], ptr, lte))
-					continue;
-
-				assert(transition->state() < inv.size());
-					
-				next.refine(inv[transition->state()], ptr, gte);
-
-				next.insert(transition->state(), ptr);
-
-			}
-
-		}
-
-		SmallerType q;
-
-		Antichain2C::TList fixedList(1);
-
-		BiggerType& Q = fixedList.front();
-
-		ChoiceVector choiceVector(processed, fixedList);
-
-		while (next.get(q, Q)) {
-
-			assert(q < inv.size());
-
-			processed.refine(inv[q], Q, gte);
-			processed.insert(q, Q);
-
-			// Post(processed)
-
-			auto& smallerClusters = smallerIndex[q];
-
-			for (auto& symbolClusterPair : smallerClusters) {
-
-				assert(symbolClusterPair.second.size() > 0);
-
-				auto biggerClusterIter = biggerIndex.find(symbolClusterPair.first);
-
-				if (biggerClusterIter == biggerIndex.end())
-					return false;
-
-				size_t i = 0;
-
-				for (auto& smallerTransitions : symbolClusterPair.second) {
-
-					for (auto& smallerTransition : smallerTransitions) {
-
-						assert(smallerTransition);
-
-						if (!choiceVector.build(smallerTransition->children(), i))
-							continue;
-
-						do {
-
-							post.clear();
-							isAccepting = false;
-
-							for (auto& biggerTransition : biggerClusterIter->second) {
-
-								assert(biggerTransition);
-								assert(biggerTransition->state() < ind.size());
-								
-								if (post.contains(ind[biggerTransition->state()]))
-									continue;
-
-								if (!choiceVector.match(biggerTransition->children()))
-									continue;
-
-								assert(biggerTransition->state() < inv.size());
-								
-								post.refine(inv[biggerTransition->state()]);
-								post.insert(biggerTransition->state());
-								
-								isAccepting = isAccepting ||
-									bigger.IsFinalState(biggerTransition->state());
-
-							}
-							
-							if (post.data().empty())
-								return false;
-	
-							if (!isAccepting && smaller.IsFinalState(smallerTransition->state()))
-								return false;
-
-							assert(smallerTransition->state() < ind.size());
-	
-							StateSet tmp(post.data().begin(), post.data().end());
-
-							std::sort(tmp.begin(), tmp.end());
-	
-							if (checkIntersection(ind[smallerTransition->state()], tmp))
-								continue;
-	
-							auto ptr = biggerTypeCache.lookup(tmp);
-	
-							if (processed.contains(ind[smallerTransition->state()], ptr, lte))
-								continue;
-
-							if (next.contains(ind[smallerTransition->state()], ptr, lte))
-								continue;
-
-							assert(smallerTransition->state() < inv.size());
-	
-							next.refine(inv[smallerTransition->state()], ptr, gte);
-
-							next.insert(smallerTransition->state(), ptr);
-
-						} while (choiceVector.next());
-
-					}
-
-					++i;
-
-				}
-
 			}
 
 		}
