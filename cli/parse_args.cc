@@ -87,7 +87,7 @@ Arguments parseArguments(int argc, char* argv[])
 	// initialize the structure
 	Arguments args;
 	args.command              = COMMAND_HELP;
-	args.representation       = REPRESENTATION_BDD_TD;
+	args.representation       = REPRESENTATION_EXPLICIT;
 	args.inputFormat          = FORMAT_TIMBUK;
 	args.outputFormat         = FORMAT_TIMBUK;
 	args.operands             = 0;

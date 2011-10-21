@@ -44,7 +44,6 @@ project(libvata)
 include(CTest)
 
 # Necessary packages
-find_package(Log4CPP REQUIRED)
 find_package(FLEX REQUIRED)
 find_package(BISON REQUIRED)
 find_package(Doxygen REQUIRED)
@@ -69,5 +68,6 @@ endif()
 
 # Process subdirectories
 add_subdirectory(src)
+add_subdirectory(cli)
 add_subdirectory(unit_tests)
 add_subdirectory(tests)

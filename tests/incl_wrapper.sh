@@ -13,7 +13,7 @@ SCRIPT=`readlink -f $0`
 SCRIPTPATH=`dirname $SCRIPT`
 
 # VATA executable
-VATA="${SCRIPTPATH}/../build/src/vata"
+VATA="${SCRIPTPATH}/../build/cli/vata"
 
 # VATA executable
 OLDVATA="${SCRIPTPATH}/old-vata"
@@ -38,9 +38,6 @@ function die {
 if [ "$#" -ne 3 ]; then
   die "usage: $0 <method> <file1> <file2>"
 fi
-
-LHS=$(${TALIB} n < "${FILE_LHS}")
-RHS=$(${TALIB} n < "${FILE_RHS}")
 
 RETVAL="?"
 
@@ -112,42 +109,72 @@ case "${OPERATION}" in
     RETVAL="$?"
     ;;
   symdownX)
+    LHS=$(${TALIB} n < "${FILE_LHS}")
+    RHS=$(${TALIB} n < "${FILE_RHS}")
+
     ${SFTA} symsd <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
   symdown-simX)
+    LHS=$(${TALIB} n < "${FILE_LHS}")
+    RHS=$(${TALIB} n < "${FILE_RHS}")
+
     ${SFTA} symsdsb <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
   symdown-sim-nosimtimeX)
+    LHS=$(${TALIB} n < "${FILE_LHS}")
+    RHS=$(${TALIB} n < "${FILE_RHS}")
+
     ${SFTA} symsdsbw <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
   symupX)
+    LHS=$(${TALIB} n < "${FILE_LHS}")
+    RHS=$(${TALIB} n < "${FILE_RHS}")
+
     ${SFTA} symsu <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
   expldownT)
+    LHS=$(${TALIB} n < "${FILE_LHS}")
+    RHS=$(${TALIB} n < "${FILE_RHS}")
+
     ${TALIB} sdif <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
   expldown-simT)
+    LHS=$(${TALIB} n < "${FILE_LHS}")
+    RHS=$(${TALIB} n < "${FILE_RHS}")
+
     ${TALIB} sddf <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
   expldown-sim-nosimtimeT)
+    LHS=$(${TALIB} n < "${FILE_LHS}")
+    RHS=$(${TALIB} n < "${FILE_RHS}")
+
     ${TALIB} sdds <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
   explupT)
+    LHS=$(${TALIB} n < "${FILE_LHS}")
+    RHS=$(${TALIB} n < "${FILE_RHS}")
+
     ${TALIB} suif <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
   explup-simT)
+    LHS=$(${TALIB} n < "${FILE_LHS}")
+    RHS=$(${TALIB} n < "${FILE_RHS}")
+
     ${TALIB} suuf <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;
   explup-sim-nosimtimeT)
+    LHS=$(${TALIB} n < "${FILE_LHS}")
+    RHS=$(${TALIB} n < "${FILE_RHS}")
+
     ${TALIB} suus <<< $(echo "${LHS}" "${RHS}")
     RETVAL="$?"
     ;;

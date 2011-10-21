@@ -256,9 +256,13 @@ namespace VATA {
 	bool CheckUpwardInclusion(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger) {
 
-		return CheckUpwardInclusionWithPreorder(
-			smaller, bigger, Util::Identity(AutBase::SanitizeAutsForInclusion(smaller, bigger))
-		);
+		ExplicitTreeAut<SymbolType> newSmaller = smaller;
+		ExplicitTreeAut<SymbolType> newBigger = bigger;
+		typename AutBase::StateType states =
+			AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
+
+		return CheckUpwardInclusionWithPreorder(newSmaller, newBigger,
+			Util::Identity(states));
 
 	}
 
@@ -266,12 +270,15 @@ namespace VATA {
 	bool CheckDownwardInclusion(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger) {
 
-		auto size = AutBase::SanitizeAutsForInclusion(smaller, bigger);
+		ExplicitTreeAut<SymbolType> newSmaller = smaller;
+		ExplicitTreeAut<SymbolType> newBigger = bigger;
+		typename AutBase::StateType states =
+			AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
 
-		return CheckDownwardInclusionWithPreorder(
-			smaller, bigger, ComputeDownwardSimulation(UnionDisjunctStates(smaller, bigger), size)
-		);
-
+		return CheckDownwardInclusionWithPreorder(newSmaller, newBigger,
+			ComputeDownwardSimulation(
+				UnionDisjunctStates(newSmaller, newBigger), states)
+			);
 	}
 
 	template <class SymbolType>

@@ -85,6 +85,12 @@ namespace VATA
 
 		throw std::runtime_error("Unimplemented");
 	}
+
+	inline bool CheckInclusion(const BDDTopDownTreeAut& smaller,
+		const BDDTopDownTreeAut& bigger)
+	{
+		return CheckDownwardInclusion(smaller, bigger);
+	}
 }
 
 #endif

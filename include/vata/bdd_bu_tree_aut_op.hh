@@ -86,6 +86,12 @@ namespace VATA
 		return CheckUpwardTreeInclusion<BDDBottomUpTreeAut,
 			VATA::UpwardInclusionFunctor>(smaller, bigger, preorder);
 	}
+
+	inline bool CheckInclusion(const BDDBottomUpTreeAut& smaller,
+		const BDDBottomUpTreeAut& bigger)
+	{
+		return CheckUpwardInclusion(smaller, bigger);
+	}
 }
 
 #endif

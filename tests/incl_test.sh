@@ -33,16 +33,6 @@ METHODS=(
   "symdown-sim-optC"
   "symdown-sim-optC-nosimtime"
   "symup"
-  "symdownX"
-  "symdown-simX"
-  "symdown-sim-nosimtimeX"
-  "symupX"
-  "expldownT"
-  "expldown-simT"
-  "expldown-sim-nosimtimeT"
-  "explupT"
-  "explup-simT"
-  "explup-sim-nosimtimeT"
 )
 
 ################################# FUNCTIONS ##################################

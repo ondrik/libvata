@@ -18,6 +18,7 @@
 #include <vata/util/binary_relation.hh>
 #include <vata/util/two_way_dict.hh>
 #include <vata/util/transl_weak.hh>
+#include <vata/util/transl_strict.hh>
 
 
 namespace VATA
@@ -39,6 +40,8 @@ public:   // data types
 	typedef size_t StateType;
 
 	typedef VATA::Util::TwoWayDict<std::string, StateType> StringToStateDict;
+	typedef VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>
+		StateBackTranslatorStrict;
 
 	typedef std::unordered_map<StateType, StateType> StateToStateMap;
 	typedef VATA::Util::TranslatorWeak<StateToStateMap> StateToStateTranslator;

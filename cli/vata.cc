@@ -22,11 +22,6 @@
 #include <vata/util/transl_strict.hh>
 #include <vata/util/util.hh>
 
-// Log4cpp headers
-#include <log4cpp/Category.hh>
-#include <log4cpp/OstreamAppender.hh>
-#include <log4cpp/BasicLayout.hh>
-
 // standard library headers
 #include <cstdlib>
 #include <fstream>
@@ -101,10 +96,10 @@ const char VATA_USAGE_FLAGS[] =
 	"                            automata. The following representations are\n"
 	"                            supported:\n"
 	"                               'bdd-td'   : binary decision diagrams,\n"
-	"                                            top-down (default)\n"
+	"                                            top-down\n"
 	"                               'bdd-bu'   : binary decision diagrams,\n"
 	"                                            bottom-up\n"
-	"                               'expl'     : explicit\n"
+	"                               'expl'     : explicit (default)\n"
 	"\n"
 	"    (-I|-O|-F) <format>     Specify format for input (-I), output (-O), or\n"
 	"                            both (-F). The following formats are supported:\n"
@@ -153,7 +148,6 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 
 	VATA::AutBase::StringToStateDict stateDict1;
 	VATA::AutBase::StringToStateDict stateDict2;
-	typename Aut::StringToSymbolDict symbolDict;
 
 	VATA::AutBase::StateToStateMap translMap1;
 	VATA::AutBase::StateToStateMap translMap2;
@@ -327,27 +321,11 @@ int executeCommand(const Arguments& args)
 }
 
 
-void setUpLogging()
-{
-	// Create the appender
-	log4cpp::Appender* app1  = new log4cpp::OstreamAppender("ClogAppender", &std::clog);
-
-	std::string cat_name = "VATA";
-
-	log4cpp::Category::getInstance(cat_name).setAdditivity(false);
-	log4cpp::Category::getInstance(cat_name).addAppender(app1);
-	log4cpp::Category::getInstance(cat_name).setPriority(log4cpp::Priority::INFO);
-}
-
-
 int main(int argc, char* argv[])
 {
 	// Assertions
 	assert(argc > 0);
 	assert(argv != nullptr);
-
-	// start logging
-	setUpLogging();
 
 	if (argc == 1)
 	{	// in case no arguments were given

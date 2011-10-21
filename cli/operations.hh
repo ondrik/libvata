@@ -148,8 +148,7 @@ VATA::AutBase::StateBinaryRelation ComputeSimulation(Automaton aut,
 }
 
 template <class Automaton>
-Automaton ComputeReduction(Automaton aut,
-	const Arguments& args)
+Automaton ComputeReduction(Automaton aut, const Arguments& args)
 {
 	// insert default values
 	Options options = args.options;
