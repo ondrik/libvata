@@ -491,7 +491,8 @@ public:
 
 			auto& iter = biggerIndex[key.first];
 
-			assert(key.second < iter.size());
+			if (iter.size() <= key.second)
+				return result;
 
 			auto& indexedTransitionList = iter[key.second];
 
@@ -624,8 +625,6 @@ public:
 			auto& smallerTransitionIndex = smallerIndex[q];
 
 			for (size_t symbol = 0; symbol < smallerTransitionIndex.size(); ++symbol) {
-
-				assert(smallerTransitionIndex[symbol].size() > 0);
 
 				size_t j = 0;
 
