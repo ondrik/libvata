@@ -52,7 +52,7 @@ struct SharedListInitF {
 };
 
 struct StateListElem {
-	
+
 	size_t index_;
 	class OLRTBlock* block_;
 	StateListElem* next_;
@@ -107,7 +107,7 @@ public:
 		} while (states != this->_states);
 
 	}
-	
+
 	OLRTBlock(const VATA::ExplicitLTS& lts, OLRTBlock& parent, StateListElem* states, size_t size,
 		size_t index) : index_(index), _states(states), size_(size), _remove(lts.labels()),
 		_counter(parent._counter), _inset(lts.labels()), tmp_() {
@@ -137,7 +137,7 @@ public:
 
 	void moveToTmp(StateListElem* elem) {
 
-		this->tmp_.push_back(elem);	
+		this->tmp_.push_back(elem);
 
 	}
 
@@ -154,7 +154,7 @@ public:
 		}
 
 		return elem == first;
-		
+
 	}
 
 	std::pair<StateListElem*, size_t> trySplit() {
@@ -202,7 +202,7 @@ public:
 			StateListElem::link(elem, state);
 
 			elem = state;
-			
+
 		}
 
 		StateListElem::link(elem, last);
@@ -221,7 +221,7 @@ public:
 		return std::make_pair(last, size);;
 
 	}
-	
+
 	SharedCounter& counter() {
 		return this->_counter;
 	}
@@ -233,7 +233,7 @@ public:
 	size_t index() const {
 		return this->index_;
 	}
-	
+
 	friend std::ostream& operator<<(std::ostream& os, const OLRTBlock& block) {
 
 		assert(block._states);
@@ -253,7 +253,7 @@ public:
 		return os << " )";
 
 	}
-	
+
 };
 
 class OLRTAlgorithm {
@@ -507,20 +507,20 @@ protected:
 	}
 
 	static bool isPartition(const std::vector<std::vector<size_t>>& part, size_t states) {
-	
+
 		std::vector<bool> mask(states, false);
-	
+
 		for (auto& cls : part) {
-	
+
 			for (auto& q : cls) {
-	
+
 				if (mask[q])
 					return false;
-	
+
 				mask[q] = true;
-	
+
 			}
-	
+
 		}
 
 		for (auto b : mask) {
@@ -529,9 +529,9 @@ protected:
 				return false;
 
 		}
-	
+
 		return true;
-	
+
 	}
 
 	static bool isConsistent(const std::vector<std::vector<size_t>>& part,
@@ -681,7 +681,7 @@ public:
 						continue;
 
 					assert(b1->index_ != *col);
-				
+
 					this->relation_.erase(col);
 
 				}
@@ -770,22 +770,42 @@ public:
 		}
 
 	}
-	
+
 	void buildResult(BinaryRelation& result, size_t size) const {
 
 		result.resize(size);
 
-		for (size_t i = 0; i < size; ++i) {
+		std::vector<std::vector<size_t>> tmp(this->_partition.size());
 
-			SplittingRelation::Row row = this->relation_.row(this->_index[i].block_->index_);
+		for (size_t i = 0; i < this->_partition.size(); ++i) {
 
-			std::vector<bool> relatedBlocks(this->_partition.size());
+			StateListElem* elem = this->_partition[i]->_states;
 
-			for (auto col = row.begin(); col != row.end(); ++col)
-				relatedBlocks[*col] = true;
+			do {
 
-			for (size_t j = 0; j < size; ++j)
-				result.set(i, j, relatedBlocks[this->_index[j].block_->index_]);
+				assert(elem);
+
+				if (elem->index_ < size)
+					tmp[i].push_back(elem->index_);
+
+				elem = elem->next_;
+
+			} while (elem != this->_partition[i]->_states);
+
+		}
+
+		for (size_t i = 0; i < this->relation_.size(); ++i) {
+
+			for (auto j : this->relation_.row(i)) {
+
+				for (auto& r : tmp[i]) {
+
+					for (auto& s : tmp[j])
+						result.set(r, s, true);
+
+				}
+
+			}
 
 		}
 
