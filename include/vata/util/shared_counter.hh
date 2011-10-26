@@ -97,6 +97,8 @@ public:
 			if (row.data_[col] < row.master_)
 				continue;
 
+			assert(row.data_[col] == row.master_);
+
 			// everything is in master
 
 			if (!--(row.data_[this->rowSize_])) // refCount
@@ -154,7 +156,9 @@ public:
 		row.master_ = count;
 		row.data_ = this->allocator_(this->rowSize_ + 1);
 
-		std::memset(row.data_, this->rowSize_*sizeof(size_t), 0);
+		std::memset(row.data_, 0, this->rowSize_*sizeof(size_t));
+
+		assert(row.data_[col] == 0);
 
 		row.data_[this->rowSize_] = 1; // refCount
 		row.data_[col] = count;
@@ -202,6 +206,8 @@ public:
 			auto newData = this->allocator_(this->rowSize_ + 1);
 
 			std::memcpy(newData, row.data_, this->rowSize_*sizeof(size_t));
+
+			assert(newData[col] == row.data_[col]);
 
 			newData[this->rowSize_] = 1; // refCount
 
