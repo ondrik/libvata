@@ -600,12 +600,14 @@ public:
 		this->key_.resize(this->lts_.labels()*this->lts_.states(), static_cast<size_t>(-1));
 		this->labelMap_.resize(this->lts_.labels());
 
-		size_t treshold = std::sqrt(this->lts_.labels());
+		size_t treshold = std::sqrt(this->lts_.states());
 
-		this->rowSize_ = 16;
+		this->rowSize_ = 64;
 
 		while ((this->rowSize_ << 1) < treshold)
 			this->rowSize_ <<= 1;
+
+		--this->rowSize;
 
 		size_t x = 0;
 
