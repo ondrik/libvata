@@ -4,7 +4,7 @@
  *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
  *  Description:
- *    Source file for a explicit tree automaton.
+ *    Source file for an explicit tree automaton.
  *
  *****************************************************************************/
 
