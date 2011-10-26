@@ -11,8 +11,8 @@
 #ifndef _VATA_SHARED_COUNTER_HH_
 #define _VATA_SHARED_COUNTER_HH_
 
+#include <cstring>
 #include <vector>
-#include <algorithm>
 
 #include <vata/util/caching_allocator.hh>
 
@@ -26,20 +26,19 @@ class VATA::Util::SharedCounter {
 
 public:
 
-	typedef std::vector<size_t> RowData;
-	typedef CachingAllocator<RowData> Allocator;
+	typedef CachingArrayAllocator<size_t> Allocator;
 	typedef std::vector<size_t> Key;
 	typedef std::vector<std::pair<size_t, size_t>> LabelMap;
 
 private:
 
 	struct Row {
-		
+
 		size_t master_;
-		RowData* data_;
-	
+		size_t* data_;
+
 		Row() : master_(0), data_(nullptr) {}
-	
+
 	};
 
 	const Key& key_;
@@ -72,7 +71,7 @@ public:
 			if (!row.data_)
 				continue;
 
-			if (!--(*row.data_)[this->rowSize_]) // refCount
+			if (!--(row.data_[this->rowSize_])) // refCount
 				this->allocator_.reclaim(row.data_);
 
 		}
@@ -86,22 +85,24 @@ public:
 			if (!row.data_)
 				continue;
 
-			for (auto& counter : *row.data_) {
+			assert(row.data_[this->rowSize_]);
 
-				if (!counter)
-					continue;
+			size_t col = 0;
 
-				if (counter < row.master_)
-					break;
+			while (row.data_[col] == 0)
+				++col;
 
-				// everything is in master
+			assert(col < this->rowSize_);
 
-				if (!--(*row.data_)[this->rowSize_]) // refCount
-					this->allocator_.reclaim(row.data_);
+			if (row.data_[col] < row.master_)
+				continue;
 
-				row.data_ = nullptr;
+			// everything is in master
 
-			}
+			if (!--(row.data_[this->rowSize_])) // refCount
+				this->allocator_.reclaim(row.data_);
+
+			row.data_ = nullptr;
 
 		}
 
@@ -122,10 +123,7 @@ public:
 		if (!row.data_)
 			return row.master_;
 
-		assert(this->rowSize_ < row.data_->size());
-		assert(col < row.data_->size());
-
-		return (*row.data_)[col];
+		return row.data_[col];
 
 	}
 
@@ -145,27 +143,24 @@ public:
 		if (row.master_) {
 
 			assert(row.data_);
-			assert(this->rowSize_ < row.data_->size());
 
 			row.master_ += count;
-			(*row.data_)[col] += count;
+			row.data_[col] += count;
 
 			return;
-	
+
 		}
 
 		row.master_ = count;
-		row.data_ = this->allocator_();
-		row.data_->resize(this->rowSize_ + 1);
-		
-		(*row.data_)[this->rowSize_] = 1; // refCount
+		row.data_ = this->allocator_(this->rowSize_ + 1);
 
-		std::fill(row.data_->begin(), row.data_->end() - 1, 0);
+		std::memset(row.data_, this->rowSize_*sizeof(size_t), 0);
 
-		(*row.data_)[col] = count;
+		row.data_[this->rowSize_] = 1; // refCount
+		row.data_[col] = count;
 
-	} 
-	
+	}
+
 	size_t decr(size_t label, size_t state) {
 
 		assert(label*this->states_ + state < this->key_.size());
@@ -183,17 +178,15 @@ public:
 		if (!row.data_) // everything is in master
 			return --row.master_;
 
-		assert(this->rowSize_ < row.data_->size());
-
-		if ((row.master_ == (*row.data_)[col]) || (row.master_ == 2)) {
+		if ((row.master_ == row.data_[col]) || (row.master_ == 2)) {
 
 			// move everything to master
 
 			--row.master_;
-	
-			size_t result = ((*row.data_)[col] - 1);
 
-			if (!--(*row.data_)[this->rowSize_]) // refCount
+			size_t result = (row.data_[col] - 1);
+
+			if (!--(row.data_[this->rowSize_])) // refCount
 				this->allocator_.reclaim(row.data_);
 
 			row.data_ = nullptr;
@@ -202,27 +195,25 @@ public:
 
 		}
 
-		if ((*row.data_)[this->rowSize_] > 1) { // refCount
+		if (row.data_[this->rowSize_] > 1) { // refCount
 
-			--(*row.data_)[this->rowSize_]; // refCount
+			--(row.data_[this->rowSize_]); // refCount
 
-			auto newData = this->allocator_();
+			auto newData = this->allocator_(this->rowSize_ + 1);
 
-			newData->resize(this->rowSize_ + 1);
+			std::memcpy(newData, row.data_, this->rowSize_*sizeof(size_t));
 
-			(*newData)[this->rowSize_] = 1; // refCount
-
-			std::copy(row.data_->begin(), row.data_->end() - 1, newData->begin());
+			newData[this->rowSize_] = 1; // refCount
 
 			row.data_ = newData;
 
 		}
 
-		assert((*row.data_)[this->rowSize_] == 1);
+		assert(row.data_[this->rowSize_] == 1);
 
 		--row.master_;
 
-		return --(*row.data_)[col];
+		return --(row.data_[col]);
 
 	}
 
@@ -263,9 +254,7 @@ public:
 			if (!src.data_)
 				continue;
 
-			assert(this->rowSize_ < src.data_->size());
-
-			++(*src.data_)[this->rowSize_]; // refCount
+			++(src.data_[this->rowSize_]); // refCount
 
 			dst.data_ = src.data_;
 
@@ -278,12 +267,12 @@ public:
 		for (auto& row : cnt.data_) {
 
 			os << row.master_ << ':';
-			
+
 			if (row.data_) {
 
-				for (auto& col : *row.data_)
-					os << ' ' << col;
-	
+				for (size_t col = 0; col < cnt.rowSize_; ++col)
+					os << ' ' << row.data_[col];
+
 				os << std::endl;
 
 			}

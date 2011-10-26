@@ -553,7 +553,7 @@ private:
 
 	VectorAllocator vectorAllocator_;
 	RemoveAllocator removeAllocator_;
-	VectorAllocator counterAllocator_;
+	SharedCounter::Allocator counterAllocator_;
 
 	std::vector<Block*> partition_;
 	SplittingRelation relation_;
