@@ -607,7 +607,7 @@ public:
 		while ((this->rowSize_ << 1) < treshold)
 			this->rowSize_ <<= 1;
 
-		--this->rowSize;
+		--this->rowSize_;
 
 		size_t x = 0;
 
