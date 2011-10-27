@@ -226,7 +226,7 @@ public:
 	template <class T>
 	void copyLabels(const T& labels, SharedCounter& cnt) {
 
-		size_t sentinel = 0;
+		size_t start = cnt.data_.size(), sent = 0;
 
 		std::vector<bool> rowMask(cnt.data_.size(), false);
 
@@ -234,9 +234,9 @@ public:
 
 			assert(label < this->labelMap_.size());
 
-			sentinel = std::max(
-				sentinel, std::min(cnt.data_.size(), this->labelMap_[label].second)
-			);
+			start = std::min(start, this->labelMap_[label].first);
+
+			sent = std::max(sent, std::min(cnt.data_.size(), this->labelMap_[label].second));
 
 			for (size_t i = this->labelMap_[label].first;
 				i < std::min(cnt.data_.size(), this->labelMap_[label].second); ++i)
@@ -245,9 +245,9 @@ public:
 
 		}
 
-		this->data_.resize(sentinel);
+		this->data_.resize(sent);
 
-		for (size_t i = 0; i < sentinel; ++ i) {
+		for (size_t i = start; i < sent; ++ i) {
 
 			if (!rowMask[i])
 				continue;
