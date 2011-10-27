@@ -226,43 +226,53 @@ public:
 	template <class T>
 	void copyLabels(const T& labels, SharedCounter& cnt) {
 
-		size_t start = cnt.data_.size(), sent = 0;
+		size_t sent = 0;
 
-		std::vector<bool> rowMask(cnt.data_.size(), false);
+		std::vector<std::pair<size_t, size_t>> ranges;
 
 		for (auto& label : labels) {
 
 			assert(label < this->labelMap_.size());
 
-			start = std::min(start, this->labelMap_[label].first);
+			size_t end = std::min(cnt.data_.size(), this->labelMap_[label].second);
 
-			sent = std::max(sent, std::min(cnt.data_.size(), this->labelMap_[label].second));
+			if (end <= this->labelMap_[label].first)
+				continue;
 
-			for (size_t i = this->labelMap_[label].first;
-				i < std::min(cnt.data_.size(), this->labelMap_[label].second); ++i)
+			ranges.push_back(
+				std::make_pair(this->labelMap_[label].first, std::min(cnt.data_.size(), end))
+			);
 
-				rowMask[i] = true;
+			sent = std::max(sent, end);
 
 		}
 
 		this->data_.resize(sent);
 
-		for (size_t i = start; i < sent; ++ i) {
+		std::vector<bool> rowMask(sent, false);
 
-			if (!rowMask[i])
-				continue;
+		for (auto& range : ranges) {
 
-			auto& src = cnt.data_[i];
-			auto& dst = this->data_[i];
+			for (size_t i = range.first; i < range.second; ++i) {
 
-			dst.master_ = src.master_;
+				if (rowMask[i])
+					continue;
 
-			if (!src.data_)
-				continue;
+				rowMask[i] = true;
 
-			++(src.data_[this->rowSize_]); // refCount
+				auto& src = cnt.data_[i];
+				auto& dst = this->data_[i];
 
-			dst.data_ = src.data_;
+				dst.master_ = src.master_;
+
+				if (!src.data_)
+					continue;
+
+				++(src.data_[this->rowSize_]); // refCount
+
+				dst.data_ = src.data_;
+
+			}
 
 		}
 
