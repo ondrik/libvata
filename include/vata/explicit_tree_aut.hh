@@ -182,7 +182,8 @@ private:  // private data types
 protected:
 
 	template <class T>
-	static const typename T::mapped_type::element_type* genericLookup(const T& cont, const typename T::key_type& key) {
+	static const typename T::mapped_type::element_type* genericLookup(const T& cont,
+		const typename T::key_type& key) {
 
 		auto iter = cont.find(key);
 		if (iter == cont.end())
@@ -222,20 +223,57 @@ protected:
 
 public:
 
+	class Transition {
+
+		friend class ExplicitTreeAut;
+
+		const StateTuple& children_;
+		const SymbolType& symbol_;
+		const StateType& state_;
+
+		Transition(const StateTuple& children, const SymbolType& symbol, const StateType& state)
+			 : children_(children), symbol_(symbol), state_(state) {}
+
+	public:
+
+		const StateTuple& children() const { return this->children_; }
+		const SymbolType& symbol() const { return this->symbol_; }
+		const StateType& state() const { return this->state_; }
+
+	};
+
 	struct Iterator {
 
+		typedef std::input_iterator_tag iterator_category;
+		typedef size_t difference_type;
+		typedef Transition value_type;
+		typedef Transition* pointer;
+		typedef Transition& reference;
+
+		const ExplicitTreeAut& aut_;
 		typename StateToTransitionClusterMap::const_iterator stateClusterIterator_;
-		typename StateToTransitionClusterMap::const_iterator stateClusterIteratorEnd_;
 		typename TransitionCluster::const_iterator symbolSetIterator_;
 		TuplePtrSet::const_iterator tupleIterator_;
 
-		Iterator() : stateClusterIterator_(), stateClusterIteratorEnd_(), symbolSetIterator_(),
-			tupleIterator_() {}
+		Iterator(int, const ExplicitTreeAut& aut) : aut_(aut), stateClusterIterator_(),
+			symbolSetIterator_(), tupleIterator_() {}
 
-		Iterator(const ExplicitTreeAut& aut) : stateClusterIterator_(aut.transitions_->begin()),
-			stateClusterIteratorEnd_(aut.transitions_->end()),
-			symbolSetIterator_(stateClusterIterator_->second->begin()),
-			tupleIterator_(symbolSetIterator_->second->begin()) { }
+		Iterator(const ExplicitTreeAut& aut) : aut_(aut),
+			stateClusterIterator_(aut.transitions_->begin()), symbolSetIterator_(), tupleIterator_()
+		{
+
+			if (this->stateClusterIterator_ == aut.transitions_->end())
+				return;
+
+			this->symbolSetIterator_ = this->stateClusterIterator_->second->begin();
+
+			assert(this->symbolSetIterator_ != this->stateClusterIterator_->second->end());
+
+			this->tupleIterator_ = this->symbolSetIterator_->second->begin();
+
+			assert(this->tupleIterator_ != this->symbolSetIterator_->second->end());
+
+		}
 
 		Iterator& operator++() {
 
@@ -247,7 +285,7 @@ public:
 				return *this;
 			}
 
-			if (++this->stateClusterIterator_ != this->stateClusterIteratorEnd_) {
+			if (++this->stateClusterIterator_ != this->aut_.transitions_->end()) {
 				this->symbolSetIterator_ = this->stateClusterIterator_->second->begin();
 				this->tupleIterator_ = this->symbolSetIterator_->second->begin();
 				return *this;
@@ -277,16 +315,16 @@ public:
 
 		}
 
-		const StateTuple& children() const {
-			return **this->tupleIterator_;
-		}
+		Transition operator*() const {
 
-		const SymbolType& symbol() const {
-			return this->symbolSetIterator_->first;
-		}
+			assert(*this->tupleIterator_);
 
-		const StateType& state() const {
-			return this->stateClusterIterator_->first;
+			return Transition(
+				**this->tupleIterator_,
+				this->symbolSetIterator_->first,
+				this->stateClusterIterator_->first
+			);
+
 		}
 
 	};
@@ -294,8 +332,8 @@ public:
 	typedef Iterator iterator;
 	typedef Iterator const_iterator;
 
-	Iterator begin() { return Iterator(*this); }
-	Iterator end() { return Iterator(); }
+	Iterator begin() const { return Iterator(*this); }
+	Iterator end() const { return Iterator(0, *this); }
 
 public:
 
@@ -304,147 +342,69 @@ public:
 		const ExplicitTreeAut& aut_;
 
 		AcceptingTransitions(const ExplicitTreeAut& aut) : aut_(aut) {}
-/*
-		struct Iterator {
-
-			StateSet::const_iterator stateSetIterator_;
-			StateSet::const_iterator stateSetIteratorEnd_;
-			typename TransitionCluster::const_iterator symbolSetIterator_;
-			TuplePtrSet::const_iterator tupleIterator_;
-
-			typename StateToTransitionClusterMap::const_iterator stateClusterIterator_;
-			typename StateToTransitionClusterMap::const_iterator stateClusterIteratorEnd_;
-			typename TransitionCluster::const_iterator symbolSetIterator_;
-			TuplePtrSet::const_iterator tupleIterator_;
-	
-			Iterator(const ExplicitTreeAut& aut) : stateClusterIterator_(aut.transitions_->begin()),
-				stateClusterIteratorEnd_(aut.transitions_->end()),
-				symbolSetIterator_(stateClusterIterator_->second->begin()),
-				tupleIterator_(symbolSetIterator_->second->begin()) { }
-	
-			Iterator() : stateClusterIterator_(), stateClusterIteratorEnd_(), symbolSetIterator_(),
-				tupleIterator_() {}
-	
-			bool operator==(const Iterator& rhs) const {
-	
-				return this->tupleIterator_ == rhs.tupleIterator_;
-	
-			}
-	
-			bool operator!=(const Iterator& rhs) const {
-	
-				return this->tupleIterator_ != rhs.tupleIterator_;
-	
-			}
-	
-			Iterator& operator++() {
-	
-				if (++this->tupleIterator_ != this->symbolSetIterator_->second->end())
-					return *this;
-	
-				if (++this->symbolSetIterator_ != this->stateClusterIterator_->second->end()) {
-					this->tupleIterator_ = this->symbolSetIterator_->second->begin();
-					return *this;
-				}
-	
-				if (++this->stateClusterIterator_ != this->stateClusterIteratorEnd_) {
-					this->symbolSetIterator_ = this->stateClusterIterator_->second->begin();
-					this->tupleIterator_ = this->symbolSetIterator_->second->begin();
-					return *this;
-				}
-	
-				this->tupleIterator_ = TuplePtrSet::const_iterator();
-	
-				return *this;
-	
-			}
-	
-			Iterator operator++(int) {
-	
-				return ++Iterator(iter);
-	
-			}
-	
-			const StateTuple& children() const {
-				return **this->tupleIterator_;
-			}
-	
-			const SymbolType& symbol() const {
-				return this->symbolSetIterator_->first;
-			}
-	
-			const StateType& state() const {
-				return this->stateClusterIterator_->first;
-			}
-	
-		};
 
 		struct Iterator {
+
+			typedef std::input_iterator_tag iterator_category;
+			typedef size_t difference_type;
+			typedef Transition value_type;
+			typedef Transition* pointer;
+			typedef Transition& reference;
 
 			const ExplicitTreeAut& aut_;
 
 			StateSet::const_iterator stateSetIterator_;
+			typename StateToTransitionClusterMap::const_iterator stateClusterIterator_;
 			typename TransitionCluster::const_iterator symbolSetIterator_;
 			TuplePtrSet::const_iterator tupleIterator_;
 
+			Iterator(int, const ExplicitTreeAut& aut) : aut_(aut), stateSetIterator_(),
+				stateClusterIterator_(), symbolSetIterator_(), tupleIterator_() {}
+
+			Iterator(const ExplicitTreeAut& aut) : aut_(aut),
+				stateSetIterator_(aut.finalStates_.begin()), stateClusterIterator_(),
+				symbolSetIterator_(), tupleIterator_() {
+
+				this->_init();
+
+			}
+
 			void _init() {
 
-				typename StateToTransitionClusterMap::const_iterator iter;
+				for (; this->stateSetIterator_ != this->aut.finalStates_->end();
+					++this->stateSetIterator_) {
 
-				while (1) {
-					if (this->stateSetIterator_ == this->aut.finalStates_->end())
-						return;
-					iter = this->aut_.transitions_.find(*this->stateSetIterator_);
-					if (iter != this->aut_.transitions_.end())
+					this->stateClusterIterator_ =
+						this->aut_.transitions_.find(*this->stateSetIterator_);
+
+					if (this->stateClusterIterator_ != this->aut_.transitions_.end())
 						break;
-					++this->stateSetIterator_;
+
 				}
 
-				this->symbolSetIterator_ = iter->second->begin();
+				if (this->stateSetIterator_ == this->aut.finalStates_->end()) {
+					this->tupleIterator_ = TuplePtrSet::const_iterator();
+					return;
+				}
+
+				this->symbolSetIterator_ = this->stateClusterIterator_->second->begin();
 				this->tupleIterator_ = this->symbolSetIterator_->second->begin();
-
-			}
-
-			void _increment() {
-
-				++this->tupleIterator_;
-				if (this->tupleIterator_ != this->symbolSetIterator_->second->end())
-					return;
-
-				++this->symbolSetIterator_;
-				if (this->symbolSetIterator_ != this->stateClusterIterator_->second->end()) {
-					this->tupleIterator_ = this->symbolSetIterator_->second->begin();
-					return;
-				}
-
-				++this->stateSetIterator_;
-				this->_init();
-
-			}
-
-			Iterator(const ExplicitTreeAut& aut, StateSet::const_iterator pos)
-				: aut_(aut), stateSetIterator_(pos) {
-
-				this->_init();
-
-			}
-
-			bool operator==(const Iterator& rhs) const {
-
-				if (this->stateSetIterator_ != rhs.stateSetIterator_)
-					return false;
-
-				if (this->stateSetIterator_ == this->aut.finalStates_->end())
-					return true;
-
-				return (this->symbolSetIterator_ == rhs.symbolSetIterator_) &&
-					(this->tupleIterator_ == rhs.tupleIterator_);
 
 			}
 
 			Iterator& operator++() {
 
-				this->_increment();
+				if (++this->tupleIterator_ != this->symbolSetIterator_->second->end())
+					return *this;
+
+				if (++this->symbolSetIterator_ != this->stateClusterIterator_->second->end()) {
+					this->tupleIterator_ = this->symbolSetIterator_->second->begin();
+					return *this;
+				}
+
+				++this->stateSetIterator_;
+
+				this->_init();
 
 				return *this;
 
@@ -452,24 +412,32 @@ public:
 
 			Iterator operator++(int) {
 
-				Iterator iter = *this;
-
-				iter._increment();
-
-				return iter;
+				return ++Iterator(*this);
 
 			}
 
-			const StateTuple& children() const {
-				return **this->tupleIterator_;
+			bool operator==(const Iterator& rhs) const {
+
+				return this->tupleIterator_ == rhs.tupleIterator_;
+
 			}
 
-			const SymbolType& symbol() const {
-				return this->symbolSetIterator_->first;
+			bool operator!=(const Iterator& rhs) const {
+
+				return this->tupleIterator_ != rhs.tupleIterator_;
+
 			}
 
-			const StateType& state() const {
-				return *this->stateIterator_;
+			Transition operator*() const {
+
+				assert(*this->tupleIterator_);
+
+				return Transition(
+					**this->tupleIterator_,
+					this->symbolSetIterator_->first,
+					this->stateClusterIterator_->first
+				);
+
 			}
 
 		};
@@ -477,12 +445,110 @@ public:
 		typedef Iterator iterator;
 		typedef Iterator const_iterator;
 
-		Iterator begin() { return Iterator(this->aut_); }
-		Iterator end() { return Iterator(); }
-*/
+		Iterator begin() const { return Iterator(this->aut_); }
+		Iterator end() const { return Iterator(0, this->aut_); }
+
 	};
 
 	AcceptingTransitions accepting;
+
+public:
+
+	struct ClusterAccessor {
+
+		const size_t& state_;
+		const TransitionCluster* cluster_;
+
+		ClusterAccessor(const size_t& state, const TransitionCluster* cluster) : state_(state),
+			cluster_(cluster) {}
+
+		struct Iterator {
+
+			typedef std::input_iterator_tag iterator_category;
+			typedef size_t difference_type;
+			typedef Transition value_type;
+			typedef Transition* pointer;
+			typedef Transition& reference;
+
+			const ClusterAccessor& accessor_;
+
+			typename TransitionCluster::const_iterator symbolSetIterator_;
+			TuplePtrSet::const_iterator tupleIterator_;
+
+			Iterator(int, ClusterAccessor& accessor) : accessor_(accessor), symbolSetIterator_(),
+				tupleIterator_() {}
+
+			Iterator(ClusterAccessor& accessor) : accessor_(accessor), symbolSetIterator_(),
+				tupleIterator_() {
+
+				if (!accessor.cluster_)
+					return;
+
+				this->symbolSetIterator_ = accessor.cluster_->begin();
+
+				assert(this->symbolSetIterator_ != this->stateClusterIterator_->second->end());
+
+				this->tupleIterator_ = this->symbolSetIterator_->second->begin();
+
+				assert(this->tupleIterator_ != this->symbolSetIterator_->second->end());
+
+			}
+
+			Iterator& operator++() {
+
+				if (++this->tupleIterator_ != this->symbolSetIterator_->second->end())
+					return *this;
+
+				if (++this->symbolSetIterator_ != this->stateClusterIterator_->second->end()) {
+					this->tupleIterator_ = this->symbolSetIterator_->second->begin();
+					return *this;
+				}
+
+				this->tupleIterator_ = TuplePtrSet::const_iterator();
+
+				return *this;
+
+			}
+
+			Iterator operator++(int) {
+
+				return ++Iterator(*this);
+
+			}
+
+			bool operator==(const Iterator& rhs) const {
+
+				return this->tupleIterator_ == rhs.tupleIterator_;
+
+			}
+
+			bool operator!=(const Iterator& rhs) const {
+
+				return this->tupleIterator_ != rhs.tupleIterator_;
+
+			}
+
+			Transition operator*() const {
+
+				assert(*this->tupleIterator_);
+
+				return Transition(
+					**this->tupleIterator_, this->symbolSetIterator_->first, this->accessor.state_
+				);
+
+			}
+
+		};
+
+		typedef Iterator iterator;
+		typedef Iterator const_iterator;
+
+		Iterator begin() const { return Iterator(this->aut_); }
+		Iterator end() const { return Iterator(0, this->aut_); }
+
+		bool empty() const { return this->cluster != nullptr; }
+
+	};
 
 private:  // data members
 
@@ -496,51 +562,6 @@ private:  // data members
 	static SymbolType* pNextSymbol_;
 
 public:   // public methods
-
-	class Transition {
-
-		TuplePtr children_;
-		SymbolType symbol_;
-		StateType state_;
-
-	public:
-	
-		Transition(const TuplePtr& children, const SymbolType& symbol, const StateType& state)
-			 : children_(children), symbol_(symbol), state_(state) {}
-
-		const StateTuple& children() const { return *this->children_; }
-		const SymbolType& symbol() const { return this->symbol_; }
-		const StateType& state() const { return this->state_; }
-
-		bool operator==(const Transition& rhs) const {
-
-			return this->children_.get() == rhs.children_.get() &&
-				this->symbol_ == rhs.symbol_ &&
-				this->state_ == rhs.state_;
-
-		}
-
-		friend std::ostream& operator<<(std::ostream& os, const Transition& t) {
-			return os << t.symbol_ << Util::Convert::ToString(*t.children_) << "->" << t.state_;
-		}
-
-		friend size_t hash_value(const Transition& t) {
-
-			size_t seed = 0;
-
-			boost::hash_combine(seed, t.children_.get());
-			boost::hash_combine(seed, t.symbol_);
-			boost::hash_combine(seed, t.state_);
-
-			return seed;
-
-		}
-
-	};
-
-	typedef std::shared_ptr<Transition> TransitionPtr;
-
-public:
 
 	ExplicitTreeAut(Explicit::TupleCache& tupleCache = Explicit::tupleCache) :
 		accepting(*this),
@@ -653,34 +674,18 @@ public:
 		for (auto& s : this->finalStates_)
 			desc.finalStates.insert(statePrinter(s));
 
-		for (auto& stateClusterPair : *this->transitions_) {
+		for (auto t : *this) {
 
-			assert(stateClusterPair.second);
+			std::vector<std::string> tupleStr;
 
-			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
+			for (auto& s : t.children())
+				tupleStr.push_back(statePrinter(s));
 
-				assert(symbolTupleSetPair.second);
-
-				for (auto& tuple : *symbolTupleSetPair.second) {
-
-					std::vector<std::string> tupleStr;
-
-					assert(tuple);
-
-					for (auto& s : *tuple)
-						tupleStr.push_back(statePrinter(s));
-
-					desc.transitions.insert(
-						AutDescription::Transition(
-							tupleStr,
-							symbolPrinter(symbolTupleSetPair.first),
-							statePrinter(stateClusterPair.first)
-						)
-					);
-
-				}
-
-			}
+			desc.transitions.insert(
+				AutDescription::Transition(
+					tupleStr, symbolPrinter(t.symbol()), statePrinter(t.state())
+				)
+			);
 
 		}
 
@@ -704,6 +709,24 @@ public:
 		const StateType& state) {
 
 		this->internalAddTransition(this->tupleLookup(children), symbol, state);
+
+	}
+
+	inline static void CopyTransitions(ExplicitTreeAut& dst, const ExplicitTreeAut& src) {
+
+		dst.transitions_ = src.transitions_;
+
+	}
+
+	inline ClusterAccessor GetCluster(const StateType& state) const {
+
+		return ClusterAccessor(state, ExplicitTreeAut::genericLookup(this->transitions_, state));
+
+	}
+
+	inline ClusterAccessor operator[](const StateType& state) const {
+
+		return this->GetCluster(state);
 
 	}
 
@@ -794,7 +817,7 @@ public:
 		std::vector<const TransitionCluster*> rightClusters;
 
 		for (auto& rhsState : rhsSet) {
-	
+
 			auto rightCluster = ExplicitTreeAut::genericLookup(*rhs.transitions_, rhsState);
 
 			if (rightCluster)
@@ -807,20 +830,20 @@ public:
 			TuplePtrSet rightTuples;
 
 			for (auto& rightCluster : rightClusters) {
-	
+
 				auto rightTupleSet = ExplicitTreeAut::genericLookup(
 					*rightCluster, leftSymbolTupleSetPair.first
 				);
-	
+
 				if (!rightTupleSet)
 					continue;
-	
+
 				rightTuples.insert(rightTupleSet->begin(), rightTupleSet->end());
-	
+
 			}
-			
+
 			auto AccessElementF = [](const TuplePtr& tuplePtr){return *tuplePtr;};
-	
+
 			assert(leftSymbolTupleSetPair.second);
 
 			opFunc(
