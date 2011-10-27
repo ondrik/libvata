@@ -239,9 +239,7 @@ public:
 			if (end <= this->labelMap_[label].first)
 				continue;
 
-			ranges.push_back(
-				std::make_pair(this->labelMap_[label].first, std::min(cnt.data_.size(), end))
-			);
+			ranges.push_back(std::make_pair(this->labelMap_[label].first, end));
 
 			sent = std::max(sent, end);
 
