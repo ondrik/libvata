@@ -118,6 +118,9 @@ public:
 
 			ptr = reinterpret_cast<T*>(std::malloc(count*sizeof(T)));
 
+			if (!ptr)
+				throw std::bad_alloc();
+
 		}
 
 		this->initializer_(ptr);
