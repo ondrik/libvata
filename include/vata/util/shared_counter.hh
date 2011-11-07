@@ -57,8 +57,8 @@ protected:
 public:
 
 	SharedCounter(const Key& key, const size_t& states, const LabelMap& labelMap,
-		const size_t& rowSize, Allocator& allocator) : key_(key), states_(states),
-		labelMap_(labelMap), rowSize_(rowSize), allocator_(allocator), data_() {}
+		const size_t& rowSize, Allocator& allocator) : key_(key),
+		states_(states), labelMap_(labelMap), rowSize_(rowSize), allocator_(allocator), data_() {}
 
 	SharedCounter(SharedCounter& counter) : key_(counter.key_), states_(counter.states_),
 		labelMap_(counter.labelMap_), rowSize_(counter.rowSize_), allocator_(counter.allocator_),
@@ -78,31 +78,18 @@ public:
 
 	}
 
-	void releaseSingletons() {
+	void init() {
 
 		for (auto& row : this->data_) {
 
 			if (!row.data_)
 				continue;
 
-			assert(row.data_[this->rowSize_]);
-
-			size_t col = 0;
-
-			while (row.data_[col] == 0)
-				++col;
-
-			assert(col < this->rowSize_);
-
-			if (row.data_[col] < row.master_)
+			if (row.data_[this->rowSize_] == 1)
 				continue;
 
-			assert(row.data_[col] == row.master_);
-
 			// everything is in master
-
-			if (!--(row.data_[this->rowSize_])) // refCount
-				this->allocator_.reclaim(row.data_);
+			this->allocator_.reclaim(row.data_);
 
 			row.data_ = nullptr;
 
@@ -115,39 +102,41 @@ public:
 		assert(label*this->states_ + state < this->key_.size());
 
 		size_t index = this->key_[label*this->states_ + state];
-		size_t bucket = index / this->rowSize_;
-		size_t col = index % this->rowSize_;
+		size_t rowIndex = index / this->rowSize_;
+		size_t colIndex = index % this->rowSize_;
 
-		assert(bucket < this->data_.size());
+		assert(rowIndex < this->data_.size());
 
-		auto& row = this->data_[bucket];
+		auto& row = this->data_[rowIndex];
 
 		if (!row.data_)
 			return row.master_;
 
-		return row.data_[col];
+		return row.data_[colIndex];
 
 	}
 
-	void incr(size_t label, size_t state, size_t count = 1) {
+	void set(size_t label, size_t state, size_t count) {
 
+		assert(count);
 		assert(label*this->states_ + state < this->key_.size());
 
 		size_t index = this->key_[label*this->states_ + state];
-		size_t bucket = index / this->rowSize_;
-		size_t col = index % this->rowSize_;
+		size_t rowIndex = index / this->rowSize_;
+		size_t colIndex = index % this->rowSize_;
 
-		if (bucket >= this->data_.size())
-			this->data_.resize(bucket + 1);
+		assert(rowIndex < this->data_.size());
 
-		auto& row = this->data_[bucket];
+		auto& row = this->data_[rowIndex];
 
 		if (row.master_) {
 
 			assert(row.data_);
+			assert((row.data_[this->rowSize_] == 0) || (row.data_[this->rowSize_] == 1));
 
 			row.master_ += count;
-			row.data_[col] += count;
+			row.data_[colIndex] = count;
+			row.data_[this->rowSize_] = 1; // refCount
 
 			return;
 
@@ -156,12 +145,12 @@ public:
 		row.master_ = count;
 		row.data_ = this->allocator_(this->rowSize_ + 1);
 
-		std::memset(row.data_, 0, this->rowSize_*sizeof(size_t));
+//		std::memset(row.data_, 0, this->rowSize_*sizeof(size_t));
 
-		assert(row.data_[col] == 0);
+//		assert(row.data_[colIndex] == 0);
 
-		row.data_[this->rowSize_] = 1; // refCount
-		row.data_[col] = count;
+		row.data_[this->rowSize_] = 0; // exploit refCount
+		row.data_[colIndex] = count;
 
 	}
 
@@ -170,25 +159,25 @@ public:
 		assert(label*this->states_ + state < this->key_.size());
 
 		size_t index = this->key_[label*this->states_ + state];
-		size_t bucket = index / this->rowSize_;
-		size_t col = index % this->rowSize_;
+		size_t rowIndex = index / this->rowSize_;
+		size_t colIndex = index % this->rowSize_;
 
-		assert(bucket < this->data_.size());
+		assert(rowIndex < this->data_.size());
 
-		auto& row = this->data_[bucket];
+		auto& row = this->data_[rowIndex];
 
 		assert(row.master_);
 
 		if (!row.data_) // everything is in master
 			return --row.master_;
 
-		if ((row.master_ == row.data_[col]) || (row.master_ == 2)) {
+		if ((row.master_ == row.data_[colIndex]) || (row.master_ == 2)) {
 
 			// move everything to master
 
 			--row.master_;
 
-			size_t result = (row.data_[col] - 1);
+			size_t result = (row.data_[colIndex] - 1);
 
 			if (!--(row.data_[this->rowSize_])) // refCount
 				this->allocator_.reclaim(row.data_);
@@ -207,7 +196,7 @@ public:
 
 			std::memcpy(newData, row.data_, this->rowSize_*sizeof(size_t));
 
-			assert(newData[col] == row.data_[col]);
+			assert(newData[colIndex] == row.data_[colIndex]);
 
 			newData[this->rowSize_] = 1; // refCount
 
@@ -219,7 +208,13 @@ public:
 
 		--row.master_;
 
-		return --(row.data_[col]);
+		return --(row.data_[colIndex]);
+
+	}
+
+	void resize(size_t rowCount) {
+
+		this->data_.resize(rowCount);
 
 	}
 
