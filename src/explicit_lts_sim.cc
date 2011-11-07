@@ -602,11 +602,14 @@ public:
 
 		size_t treshold = std::sqrt(this->lts_.states());
 
-		this->rowSize_ = 64;
+		this->rowSize_ = 32;
 
-		while ((this->rowSize_ << 1) < treshold)
+		while (this->rowSize_ < treshold)
 			this->rowSize_ <<= 1;
 
+		this->rowSize_ >>= 1;
+
+		// make room for reference counter
 		--this->rowSize_;
 
 		size_t x = 0;
@@ -704,6 +707,13 @@ public:
 			for (auto col = row.begin(); col != row.end(); ++col)
 				relatedBlocks[*col] = true;
 
+			size_t size = 0;
+
+			for (auto& a : b1->inset())
+				size = std::max(size, this->labelMap_[a].second);
+
+			b1->counter_.resize(size);
+
 			for (auto& a : b1->inset()) {
 
 				for (auto q : delta1[a]) {
@@ -718,7 +728,7 @@ public:
 					}
 
 					if (count)
-						b1->counter_.incr(a, q, count);
+						b1->counter_.set(a, q, count);
 
 				}
 
@@ -752,7 +762,7 @@ public:
 
 			}
 
-			b1->counter_.releaseSingletons();
+			b1->counter_.init();
 
 		}
 

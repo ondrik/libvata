@@ -112,6 +112,7 @@ public:
 		if (!this->store_.empty()) {
 
 			ptr = this->store_.back();
+
 			this->store_.pop_back();
 
 		} else {
