@@ -101,7 +101,7 @@ public:
 	~CachingArrayAllocator() {
 
 		for (auto& element : this->store_)
-			std::free(element);
+			::operator delete(element);
 
 	}
 
@@ -117,10 +117,7 @@ public:
 
 		} else {
 
-			ptr = reinterpret_cast<T*>(std::malloc(count*sizeof(T)));
-
-			if (!ptr)
-				throw std::bad_alloc();
+			ptr = reinterpret_cast<T*>(::operator new(count*sizeof(T)));
 
 		}
 
