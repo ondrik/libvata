@@ -90,13 +90,17 @@ public:
 private:
 
 	std::vector<T*> store_;
+	size_t size_;
+	size_t byteSize_;
 	Initializer initializer_;
 
 public:
 
-	CachingArrayAllocator() : store_(), initializer_([](T*){}) {}
+	CachingArrayAllocator(size_t size) : store_(), size_(size), byteSize_(size*sizeof(T)),
+		initializer_([](T*){}) {}
 
-	CachingArrayAllocator(Initializer initializer) : store_(), initializer_(initializer) {}
+	CachingArrayAllocator(size_t size, Initializer initializer) : store_(), size_(size),
+		byteSize_(size*sizeof(T)), initializer_(initializer) {}
 
 	~CachingArrayAllocator() {
 
@@ -105,7 +109,7 @@ public:
 
 	}
 
-	Ptr operator()(size_t count) {
+	Ptr operator()() {
 
 		Ptr ptr;
 
@@ -117,7 +121,7 @@ public:
 
 		} else {
 
-			ptr = reinterpret_cast<T*>(::operator new(count*sizeof(T)));
+			ptr = reinterpret_cast<T*>(::operator new(this->byteSize_));
 
 		}
 
@@ -130,6 +134,12 @@ public:
 	void reclaim(Ptr ptr) {
 
 		this->store_.push_back(ptr);
+
+	}
+
+	const size_t& size() const {
+
+		return this->size_;
 
 	}
 

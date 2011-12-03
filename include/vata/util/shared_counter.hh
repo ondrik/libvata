@@ -49,7 +49,6 @@ private:
 
 	std::vector<Row> data_;
 
-
 protected:
 
 	SharedCounter& operator=(const SharedCounter& rhs);
@@ -57,8 +56,8 @@ protected:
 public:
 
 	SharedCounter(const Key& key, const size_t& states, const LabelMap& labelMap,
-		const size_t& rowSize, Allocator& allocator) : key_(key),
-		states_(states), labelMap_(labelMap), rowSize_(rowSize), allocator_(allocator), data_() {}
+		const size_t& rowSize, Allocator& allocator) : key_(key), states_(states),
+		labelMap_(labelMap), rowSize_(rowSize), allocator_(allocator), data_() {}
 
 	SharedCounter(SharedCounter& counter) : key_(counter.key_), states_(counter.states_),
 		labelMap_(counter.labelMap_), rowSize_(counter.rowSize_), allocator_(counter.allocator_),
@@ -143,7 +142,7 @@ public:
 		}
 
 		row.master_ = count;
-		row.data_ = this->allocator_(this->rowSize_ + 1);
+		row.data_ = this->allocator_();
 
 //		std::memset(row.data_, 0, this->rowSize_*sizeof(size_t));
 
@@ -192,7 +191,7 @@ public:
 
 			--(row.data_[this->rowSize_]); // refCount
 
-			auto newData = this->allocator_(this->rowSize_ + 1);
+			auto newData = this->allocator_();
 
 			std::memcpy(newData, row.data_, this->rowSize_*sizeof(size_t));
 

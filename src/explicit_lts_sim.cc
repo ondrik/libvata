@@ -551,6 +551,8 @@ private:
 
 	const VATA::ExplicitLTS& lts_;
 
+	size_t rowSize_;
+
 	VectorAllocator vectorAllocator_;
 	RemoveAllocator removeAllocator_;
 	SharedCounter::Allocator counterAllocator_;
@@ -563,17 +565,30 @@ private:
 	std::vector<size_t> key_;
 	std::vector<std::pair<size_t, size_t>> labelMap_;
 
-	size_t rowSize_;
-
 	SimulationEngine(const SimulationEngine&);
 
 	SimulationEngine& operator=(const SimulationEngine&);
 
+	static size_t getRowSize(size_t states) {
+
+		size_t treshold = static_cast<size_t>(std::sqrt(states)) >> 1;
+
+		size_t rowSize_ = 32;
+
+		while (rowSize_ <= treshold)
+			rowSize_ <<= 1;
+
+		// make room for reference counter
+		return rowSize_ - 1;
+
+	}
+
 public:
 
-	SimulationEngine(const VATA::ExplicitLTS& lts) : lts_(lts), vectorAllocator_(),
-		removeAllocator_(SharedListInitF(vectorAllocator_)), counterAllocator_(), partition_(),
-		relation_(lts.states()), index_(lts.states()), queue_(), key_(), labelMap_(), rowSize_() {
+	SimulationEngine(const VATA::ExplicitLTS& lts) : lts_(lts),
+		rowSize_(SimulationEngine::getRowSize(lts.states())), vectorAllocator_(),
+		removeAllocator_(SharedListInitF(vectorAllocator_)), counterAllocator_(rowSize_ + 1),
+		partition_(), relation_(lts.states()), index_(lts.states()), queue_(), key_(), labelMap_() {
 
 		assert(this->index_.size());
 
@@ -599,18 +614,6 @@ public:
 
 		this->key_.resize(this->lts_.labels()*this->lts_.states(), static_cast<size_t>(-1));
 		this->labelMap_.resize(this->lts_.labels());
-
-		size_t treshold = std::sqrt(this->lts_.states());
-
-		this->rowSize_ = 32;
-
-		while (this->rowSize_ < treshold)
-			this->rowSize_ <<= 1;
-
-		this->rowSize_ >>= 1;
-
-		// make room for reference counter
-		--this->rowSize_;
 
 		size_t x = 0;
 
