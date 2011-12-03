@@ -38,13 +38,9 @@ private:
 
 	};
 
-	struct Iterator {
-
-		typedef std::input_iterator_tag iterator_category;
-		typedef size_t difference_type;
-		typedef Key value_type;
-		typedef Key* pointer;
-		typedef Key& reference;
+	GCC_DIAG_OFF(effc++)
+	struct Iterator : public std::iterator<std::input_iterator_tag, Key> {
+	GCC_DIAG_ON(effc++)
 
 		const Element* element_;
 
@@ -107,7 +103,7 @@ protected:
 		assert(key < this->index_.size());
 
 		auto& prev = this->index_[key];
-		
+
 		if (!prev) {
 
 			prev = this->last_;
@@ -144,17 +140,17 @@ protected:
 			this->index_[prev->next_->key_] = prev;
 
 		}
-			
+
 		delete el;
 
 		prev = nullptr;
-	
+
 	}
 
 public:
 
 	SmartSet(size_t range = 0) : head_(Key(), 0), last_(&head_), size_(0), index_(range, nullptr) {}
-	
+
 	SmartSet(const SmartSet& s) : head_(Key(), 0), last_(&head_), size_(s.size_),
 		index_(s.index_.size(), nullptr) {
 
@@ -167,7 +163,7 @@ public:
 		}
 
 	}
-	
+
 	SmartSet& operator=(const SmartSet& s) {
 
 		std::fill(this->index_.begin(), this->index_.end(), nullptr);
@@ -226,7 +222,7 @@ public:
 		return true;
 
 	}
-	
+
 	size_t count(const Key& key) const {
 
 		assert(key < this->index_.size());
@@ -343,7 +339,7 @@ public:
 
 		for (auto el = s.head_.next_; el; el = el->next_)
 			os << ' ' << el->key_ << ':' << el->count_;
-	
+
 		return os << " }";
 
 	}

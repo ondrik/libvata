@@ -143,7 +143,7 @@ public:
 
 	static bool checkList(StateListElem* elem, size_t size) {
 
-		StateListElem* first = elem;
+		auto first = elem;
 
 		while (size--) {
 
@@ -171,7 +171,7 @@ public:
 
 		}
 
-		StateListElem* last = this->tmp_.back();
+		auto last = this->tmp_.back();
 
 		this->tmp_.pop_back();
 
@@ -192,7 +192,7 @@ public:
 
 		}
 
-		StateListElem* elem = last;
+		auto elem = last;
 
 		for (auto& state : this->tmp_) {
 
@@ -207,7 +207,7 @@ public:
 
 		StateListElem::link(elem, last);
 
-		size_t size = this->tmp_.size() + 1;
+		auto size = this->tmp_.size() + 1;
 
 		this->tmp_.clear();
 
@@ -236,7 +236,7 @@ public:
 
 		os << block.index_ << " (";
 
-		const StateListElem* elem = block.states_;
+		auto elem = block.states_;
 
 		do {
 
@@ -261,7 +261,7 @@ protected:
 
 		assert(states.size() > 0);
 
-		StateListElem* list = &this->index_[states.back()];
+		auto list = &this->index_[states.back()];
 
 		for (auto& q : states) {
 
@@ -299,7 +299,7 @@ protected:
 
 		std::vector<bool> blockMask(this->partition_.size(), false);
 
-		StateListElem* elem = states;
+		auto elem = states;
 
 		do {
 
@@ -307,7 +307,7 @@ protected:
 
 			for (auto& q : this->lts_.pre(label)[elem->index_]) {
 
-				Block* block = this->index_[q].block_;
+				auto& block = this->index_[q].block_;
 
 				assert(block);
 
@@ -335,13 +335,13 @@ protected:
 
 			assert(q < this->index_.size());
 
-			StateListElem* elem = &this->index_[q];
+			auto& elem = this->index_[q];
 
-			Block* block = elem->block_;
+			auto block = elem.block_;
 
 			assert(block);
 
-			block->moveToTmp(elem);
+			block->moveToTmp(&elem);
 
 			assert(block->index() < this->partition_.size());
 
@@ -405,7 +405,7 @@ protected:
 
 			}
 
-			Block* newBlock = new Block(
+			auto newBlock = new Block(
 				this->lts_, *block, p.first, p.second, this->partition_.size()
 			);
 
@@ -436,7 +436,7 @@ protected:
 
 		assert(block);
 
-		RemoveList* remove = block->remove_[label];
+		auto remove = block->remove_[label];
 
 		block->remove_[label] = nullptr;
 
@@ -470,14 +470,14 @@ protected:
 
 				this->relation_.erase(col);
 
-				Block* b2 = this->partition_[*col];
+				auto b2 = this->partition_[*col];
 
 				for (auto a : b2->inset_) {
 
 					if (!b1->inset_.contains(a))
 						continue;
 
-					StateListElem* elem = b2->states_;
+					auto elem = b2->states_;
 
 					do {
 
@@ -655,7 +655,7 @@ public:
 
 		for (auto& block : this->partition_) {
 
-			StateListElem* elem = block->states_;
+			auto elem = block->states_;
 
 			do {
 
@@ -675,7 +675,7 @@ public:
 
 		for (auto& b1 : this->partition_) {
 
-			SplittingRelation::Row row = this->relation_.row(b1->index_);
+			auto row = this->relation_.row(b1->index_);
 
 			for (auto& a : pre[b1->index_]) {
 
@@ -703,12 +703,12 @@ public:
 
 		for (auto& b1 : this->partition_) {
 
-			SplittingRelation::Row row = this->relation_.row(b1->index_);
+			auto row = this->relation_.row(b1->index_);
 
 			std::vector<bool> relatedBlocks(this->partition_.size());
 
-			for (auto col = row.begin(); col != row.end(); ++col)
-				relatedBlocks[*col] = true;
+			for (auto& col : row)
+				relatedBlocks[col] = true;
 
 			size_t size = 0;
 
@@ -737,11 +737,11 @@ public:
 
 				s.assignFlat(delta1[a]);
 
-				for (auto col = row.begin(); col != row.end(); ++col) {
+				for (auto& col : row) {
 
-					Block* b2 = this->partition_[*col];
+					auto b2 = this->partition_[col];
 
-					StateListElem* elem = b2->states_;
+					auto elem = b2->states_;
 
 					do {
 
@@ -793,7 +793,7 @@ public:
 
 		for (size_t i = 0; i < this->partition_.size(); ++i) {
 
-			StateListElem* elem = this->partition_[i]->states_;
+			auto elem = this->partition_[i]->states_;
 
 			do {
 
@@ -810,7 +810,7 @@ public:
 
 		for (size_t i = 0; i < this->relation_.size(); ++i) {
 
-			for (auto j : this->relation_.row(i)) {
+			for (auto j : const_cast<SplittingRelation*>(&this->relation_)->row(i)) {
 
 				for (auto& r : tmp[i]) {
 

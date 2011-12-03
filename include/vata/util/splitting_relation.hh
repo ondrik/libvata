@@ -48,35 +48,27 @@ class VATA::Util::SplittingRelation {
 
 	CachingAllocator<Element> allocator_;
 
-	Element* colBegin(size_t col) const {
-		return const_cast<Element*>(
-			reinterpret_cast<const Element*>(
-				reinterpret_cast<const char*>(&this->columns_[col].first) - offsetof(Element, down_)
-			)
+	Element* colBegin(size_t col) {
+		return reinterpret_cast<Element*>(
+			reinterpret_cast<char*>(&this->columns_[col].first) - offsetof(Element, down_)
 		);
 	}
 
-	Element* colEnd(size_t col) const {
-		return const_cast<Element*>(
-			reinterpret_cast<const Element*>(
-				reinterpret_cast<const char*>(&this->columns_[col].second) - offsetof(Element, up_)
-			)
+	Element* colEnd(size_t col) {
+		return reinterpret_cast<Element*>(
+			reinterpret_cast<char*>(&this->columns_[col].second) - offsetof(Element, up_)
 		);
 	}
 
-	Element* rowBegin(size_t row) const {
-		return const_cast<Element*>(
-			reinterpret_cast<const Element*>(
-				reinterpret_cast<const char*>(&this->rows_[row].first) - offsetof(Element, right_)
-			)
+	Element* rowBegin(size_t row) {
+		return reinterpret_cast<Element*>(
+			reinterpret_cast<char*>(&this->rows_[row].first) - offsetof(Element, right_)
 		);
 	}
 
-	Element* rowEnd(size_t row) const {
-		return const_cast<Element*>(
-			reinterpret_cast<const Element*>(
-				reinterpret_cast<const char*>(&this->rows_[row].second) - offsetof(Element, left_)
-			)
+	Element* rowEnd(size_t row) {
+		return reinterpret_cast<Element*>(
+			reinterpret_cast<char*>(&this->rows_[row].second) - offsetof(Element, left_)
 		);
 	}
 
@@ -84,7 +76,7 @@ class VATA::Util::SplittingRelation {
 
 		assert(i < this->size_);
 
-		Element* tmp = this->columns_[i].first;
+		auto tmp = this->columns_[i].first;
 
 		while (tmp != this->columns_[i].second->down_) {
 
@@ -111,7 +103,7 @@ class VATA::Util::SplittingRelation {
 
 		assert(i < this->size_);
 
-		Element* tmp = this->rows_[i].first;
+		auto tmp = this->rows_[i].first;
 
 		while (tmp != this->rows_[i].second->right_) {
 
@@ -137,14 +129,8 @@ class VATA::Util::SplittingRelation {
 public:
 
 	GCC_DIAG_OFF(effc++)
-	struct IteratorBase {
+	struct IteratorBase : public std::iterator<std::input_iterator_tag, size_t> {
 	GCC_DIAG_ON(effc++)
-
-		typedef std::input_iterator_tag iterator_category;
-		typedef size_t difference_type;
-		typedef size_t value_type;
-		typedef size_t* pointer;
-		typedef size_t& reference;
 
 		Element* el_;
 
@@ -234,7 +220,7 @@ public:
 
 		for (size_t i = 0; i < this->size_; ++i) {
 
-			Element* tmp = this->rows_[i].first;
+			auto tmp = this->rows_[i].first;
 
 			while (tmp != this->rows_[i].second->right_) {
 
@@ -243,7 +229,7 @@ public:
 				tmp = tmp->right_;
 
 			}
-			
+
 		}
 
 	}
@@ -258,8 +244,7 @@ public:
 
 		for (size_t i = 0; i < index.size(); ++i) {
 
-			Element* last =
-				this->rowBegin(i);
+			auto last = this->rowBegin(i);
 
 			Element* el;
 
@@ -306,19 +291,17 @@ public:
 
 		size_t newIndex = this->size_;
 
-		Element* el, * last;
-
 		// copy column
 
-		el = this->columns_[index].first;
+		auto el = this->columns_[index].first;
 
 		assert(el);
 
-		last = this->colBegin(newIndex);
+		auto last = this->colBegin(newIndex);
 
 		while (el != this->colEnd(index)) {
 
-			Element* tmp = this->allocator_();
+			auto tmp = this->allocator_();
 
 			last->down_ = tmp;
 			tmp->up_ = last;
@@ -329,7 +312,7 @@ public:
 			tmp->left_ = this->rows_[el->row_].second;
 			tmp->right_ = this->rowEnd(el->row_);
 			this->rows_[el->row_].second = tmp; // tmp->right_->left_
-			
+
 			tmp->col_ = newIndex;
 			tmp->row_ = el->row_;
 
@@ -363,7 +346,7 @@ public:
 		// we have to skip the last one here
 		while (el != this->rows_[index].second) {
 
-			Element* tmp = this->allocator_();
+			auto tmp = this->allocator_();
 
 			last->right_ = tmp;
 			tmp->left_ = last;
@@ -374,7 +357,7 @@ public:
 			tmp->up_ = this->columns_[el->col_].second;
 			tmp->down_ = this->colEnd(el->col_);
 			this->columns_[el->col_].second = tmp; // tmp->down_->up_
-			
+
 			tmp->col_ = el->col_;
 			tmp->row_ = newIndex;
 
@@ -385,7 +368,7 @@ public:
 		}
 
 		// finish reflexivity
-		
+
 		last->right_ = this->columns_[newIndex].second;
 		this->columns_[newIndex].second->left_ = last;
 
@@ -395,32 +378,32 @@ public:
 
 		assert(this->checkCol(newIndex));
 		assert(this->checkRow(newIndex));
-	
+
 		return newIndex;
 
 	}
 
-	Column column(size_t index) const {
+	Column column(size_t index) {
 
 		assert(index < this->columns_.size());
 		assert(this->checkCol(index));
 
-		return Column(*const_cast<Element**>(&this->columns_[index].first), this->colEnd(index));
+		return Column(this->columns_[index].first, this->colEnd(index));
 
 	}
 
-	Row row(size_t index) const {
+	Row row(size_t index) {
 
 		assert(index < this->rows_.size());
 		assert(this->checkRow(index));
 
-		return Row(*const_cast<Element**>(&this->rows_[index].first), this->rowEnd(index));
+		return Row(this->rows_[index].first, this->rowEnd(index));
 
 	}
 
 	void erase(IteratorBase& iter) {
 
-		Element* el = iter.el_;
+		auto& el = iter.el_;
 
 		el->up_->down_ = el->down_;
 		el->down_->up_ = el->up_;
@@ -431,7 +414,7 @@ public:
 
 		assert(this->checkCol(el->col_));
 		assert(this->checkRow(el->row_));
-		
+
 	}
 
 	const size_t& size() const {
@@ -439,7 +422,7 @@ public:
 		return this->size_;
 
 	}
-	
+
 };
 
 #endif
