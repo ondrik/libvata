@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  Vojnar's Army Tree Automata Library
+ *  VATA Tree Automata Library
  *
  *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
