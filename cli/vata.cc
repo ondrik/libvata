@@ -1,5 +1,5 @@
 /*****************************************************************************
- *  Vojnar's Army Tree Automata Library
+ *  VATA Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
@@ -51,7 +51,7 @@ typedef VATA::Util::TranslatorWeak<BDDTopDownTreeAut::StringToSymbolDict>
 	SymbolTranslatorWeak;
 
 const char VATA_USAGE_STRING[] =
-	"VATA: Vojnar's Army Tree Automata library interface\n"
+	"VATA: VATA Tree Automata library interface\n"
 	"usage: vata [-r <representation>] [(-I|-O|-F) <format>] [-h|--help] [-t] [-n]\n"
 	"            [(-p|-s)] [-o <options>] <command> [<args>]\n"
 	;
