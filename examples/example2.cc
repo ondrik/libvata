@@ -60,7 +60,8 @@ typedef VATA::ExplicitTreeAut<unsigned> Automaton;
 int main()
 {
 	// create the parser for the Timbuk format
-	VATA::Parsing::AbstrParser* parser = new VATA::Parsing::TimbukParser();
+	std::unique_ptr<VATA::Parsing::AbstrParser> parser(
+		new VATA::Parsing::TimbukParser());
 
 	// create the dictionary translating symbol names to internal symbols ...
 	Automaton::StringToSymbolDict symbolDict;
