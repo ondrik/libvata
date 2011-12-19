@@ -311,6 +311,20 @@ public:   // public methods
 	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
 		StringToStateDict& stateDict)
 	{
+		LoadFromAutDesc(parser.ParseString(str), stateDict);
+	}
+
+	template <class StateTransFunc, class SymbolTransFunc>
+	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
+		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator,
+		const std::string& params = "")
+	{
+		LoadFromAutDesc(parser.ParseString(str), stateTranslator,
+				symbolTranslator, params);
+	}
+
+	void LoadFromAutDesc(const AutDescription& desc, StringToStateDict& stateDict)
+	{
 		typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
 			StateTranslator;
 		typedef VATA::Util::TranslatorWeak<StringToSymbolDict>
@@ -318,7 +332,7 @@ public:   // public methods
 
 		StateType stateCnt = 0;
 
-		LoadFromString(parser, str,
+		LoadFromAutDesc(desc,
 			StateTranslator(stateDict,
 				[&stateCnt](const std::string&){return stateCnt++;}),
 			SymbolTranslator(GetSymbolDict(),
@@ -338,19 +352,17 @@ public:   // public methods
 	}
 
 	template <class StateTransFunc, class SymbolTransFunc>
-	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
+	void LoadFromAutDesc(const AutDescription& desc,
 		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator,
 		const std::string& params = "")
 	{
 		if (params == "symbolic")
 		{
-			loadFromAutDescSymbolic(parser.ParseString(str), stateTranslator,
-				symbolTranslator);
+			loadFromAutDescSymbolic(desc, stateTranslator, symbolTranslator);
 		}
 		else
 		{
-			loadFromAutDescExplicit(parser.ParseString(str), stateTranslator,
-				symbolTranslator);
+			loadFromAutDescExplicit(desc, stateTranslator, symbolTranslator);
 		}
 	}
 
