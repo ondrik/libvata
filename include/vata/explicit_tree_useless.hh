@@ -74,6 +74,8 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUselessStates(
 
 	assert(aut.transitions_);
 
+	size_t remaining = 0;
+
 	for (auto& stateClusterPair : *aut.transitions_) {
 
 		assert(stateClusterPair.second);
@@ -106,7 +108,9 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUselessStates(
 					stateMap.insert(
 						std::make_pair(s, std::vector<TransitionInfoPtr>())
 					).first->second.push_back(transitionInfoPtr);
-				
+
+					++remaining;
+
 				}
 
 			}
@@ -133,6 +137,8 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUselessStates(
 
 			reachableTransitions.push_back(info);
 
+			--remaining;
+
 			if (reachableStates.insert(info->state_).second)
 				newStates.push_back(info->state_);
 
@@ -156,7 +162,7 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUselessStates(
 
 	}
 
-	if (reachableStates.size() == aut.transitions_->size()) {
+	if (!remaining) {
 
 		result.transitions_ = aut.transitions_;
 

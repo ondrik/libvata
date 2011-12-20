@@ -23,6 +23,7 @@
 #include <vata/util/caching_allocator.hh>
 #include <vata/util/shared_list.hh>
 #include <vata/util/shared_counter.hh>
+#include <vata/util/convert.hh>
 #include <vata/explicit_lts.hh>
 
 using VATA::Util::BinaryRelation;
@@ -31,6 +32,7 @@ using VATA::Util::SmartSet;
 using VATA::Util::CachingAllocator;
 using VATA::Util::SharedList;
 using VATA::Util::SharedCounter;
+using VATA::Util::Convert;
 
 typedef CachingAllocator<std::vector<size_t>> VectorAllocator;
 
@@ -510,8 +512,13 @@ protected:
 
 			for (auto& q : cls) {
 
-				if (mask[q])
+				if (mask[q]) {
+
+					VATA_LOGGER_INFO("state " + Convert::ToString(q) + " appears in more than one block");
+
 					return false;
+
+				}
 
 				mask[q] = true;
 
@@ -519,10 +526,15 @@ protected:
 
 		}
 
-		for (auto b : mask) {
+		for (size_t i = 0; i < mask.size(); ++i) {
 
-			if (!b)
+			if (!mask[i]) {
+
+				VATA_LOGGER_INFO("state " + Convert::ToString(i) + " does not appear anywhere");
+
 				return false;
+
+			}
 
 		}
 
@@ -533,13 +545,23 @@ protected:
 	static bool isConsistent(const std::vector<std::vector<size_t>>& part,
 		const BinaryRelation& rel) {
 
-		if (part.size() != rel.size())
+		if (part.size() != rel.size()) {
+
+			VATA_LOGGER_INFO("partition and relation sizes differ");
+
 			return false;
+
+		}
 
 		for (size_t i = 0; i < rel.size(); ++i) {
 
-			if (!rel.get(i, i))
+			if (!rel.get(i, i)) {
+
+				VATA_LOGGER_INFO("relation is not reflexive");
+
 				return false;
+
+			}
 
 		}
 
