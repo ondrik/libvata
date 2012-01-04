@@ -41,7 +41,8 @@ int main()
 
 	// create and load the automaton
 	Automaton aut;
-	aut.LoadFromString(*parser, autStr, stateDict);
+	VATA::Util::AutDescription desc = parser->ParseString(autStr);
+	aut.LoadFromAutDesc(desc, stateDict);
 
 	// create the serializer for the Timbuk format
 	VATA::Serialization::AbstrSerializer* serializer =

@@ -606,6 +606,11 @@ public:   // public methods
 	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
 		StringToStateDict& stateDict)
 	{
+		LoadFromAutDesc(parser.ParseString(str), stateDict);
+	}
+
+	void LoadFromAutDesc(const AutDescription& desc, StringToStateDict& stateDict)
+	{
 		typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
 			StateTranslator;
 		typedef VATA::Util::TranslatorWeak<StringToSymbolDict>
@@ -613,7 +618,7 @@ public:   // public methods
 
 		StateType stateCnt = 0;
 
-		LoadFromString(parser, str,
+		LoadFromAutDesc(desc,
 			StateTranslator(stateDict,
 				[&stateCnt](const std::string&){return stateCnt++;}),
 			SymbolTranslator(GetSymbolDict(),
@@ -623,9 +628,15 @@ public:   // public methods
 	template <class StateTransFunc, class SymbolTransFunc>
 	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
 		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator,
-		const std::string& /* params */ = "") {
+		const std::string& params = "") {
 
-		AutDescription desc = parser.ParseString(str);
+		LoadFromAutDesc(parser.ParseString(str), stateTranslator, symbolTranslator, params);
+	}
+
+	template <class StateTransFunc, class SymbolTransFunc>
+	void LoadFromAutDesc(const AutDescription& desc,
+		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator,
+		const std::string& /* params */ = "") {
 
 		for (auto s : desc.finalStates)
 			this->finalStates_.insert(stateTranslator(s));
@@ -645,9 +656,7 @@ public:   // public methods
 			}
 
 			this->AddTransition(children, symbolTranslator(symbolStr), stateTranslator(parentStr));
-
 		}
-
 	}
 
 	template <class SymbolTransFunc>
