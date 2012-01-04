@@ -91,7 +91,10 @@ VATA::ExplicitTreeAut<SymbolType> VATA::Intersection(
 			if (!rightTupleSet)
 				continue;
 
-			typename ExplicitTreeAut<SymbolType>::TuplePtrSetPtr tuplePtrSet(nullptr);
+			if (!cluster)
+				cluster = transitions->uniqueCluster(p->second);
+
+			auto tuplePtrSet = cluster->uniqueTuplePtrSet(leftSymbolStateTupleSetPtr.first);
 
 			for (auto& leftTuplePtr : *leftSymbolStateTupleSetPtr.second) {
 
@@ -114,15 +117,6 @@ VATA::ExplicitTreeAut<SymbolType> VATA::Intersection(
 							stack.push_back(&*u.first);
 
 						children.push_back(u.first->second);
-
-					}
-
-					if (!tuplePtrSet) {
-
-						if (!cluster)
-							cluster = transitions->uniqueCluster(p->second);
-
-						tuplePtrSet = cluster->uniqueTuplePtrSet(leftSymbolStateTupleSetPtr.first);
 
 					}
 
