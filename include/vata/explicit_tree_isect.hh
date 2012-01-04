@@ -61,7 +61,7 @@ VATA::ExplicitTreeAut<SymbolType> VATA::Intersection(
 
 	}
 
-	auto resClusterMap = res.uniqueClusterMap();
+	auto transitions = res.transitions_;
 
 	while (!stack.empty()) {
 
@@ -81,7 +81,7 @@ VATA::ExplicitTreeAut<SymbolType> VATA::Intersection(
 
 		assert(leftCluster);
 
-		auto resCluster = resClusterMap->uniqueCluster(p->second);
+		typename ExplicitTreeAut<SymbolType>::TransitionClusterPtr cluster(nullptr);
 
 		for (auto& leftSymbolStateTupleSetPtr : *leftCluster) {
 
@@ -91,7 +91,7 @@ VATA::ExplicitTreeAut<SymbolType> VATA::Intersection(
 			if (!rightTupleSet)
 				continue;
 
-			auto resTuplePtrSet = resCluster->uniqueTuplePtrSet(leftSymbolStateTupleSetPtr.first);
+			typename ExplicitTreeAut<SymbolType>::TuplePtrSetPtr tuplePtrSet(nullptr);
 
 			for (auto& leftTuplePtr : *leftSymbolStateTupleSetPtr.second) {
 
@@ -117,8 +117,17 @@ VATA::ExplicitTreeAut<SymbolType> VATA::Intersection(
 
 					}
 
+					if (!tuplePtrSet) {
+
+						if (!cluster)
+							cluster = transitions->uniqueCluster(p->second);
+
+						tuplePtrSet = cluster->uniqueTuplePtrSet(leftSymbolStateTupleSetPtr.first);
+
+					}
+
 //					res.AddTransition(children, leftSymbolStateTupleSetPtr.first, p->second);
-					resTuplePtrSet->insert(res.tupleLookup(children));
+					tuplePtrSet->insert(res.tupleLookup(children));
 
 				}
 
