@@ -18,6 +18,7 @@
 #include <vata/util/cached_binary_op.hh>
 #include <vata/util/antichain1c.hh>
 #include <vata/util/antichain2c_v2.hh>
+#include <vata/util/caching_allocator.hh>
 
 #include <vata/explicit_tree_incl_down.hh>
 
@@ -70,6 +71,7 @@ typedef std::pair<SmallerType, Antichain2C::TList::iterator> SmallerBiggerPairAC
 typedef VATA::Explicit::StateTuple StateTuple;
 
 typedef VATA::ExplicitDownwardInclusion::DoubleIndexedTupleList DoubleIndexedTupleList;
+
 struct less {
 
 	bool operator()(const SmallerBiggerPair& p1, const SmallerBiggerPair& p2) const {
@@ -86,19 +88,130 @@ struct less {
 
 typedef std::set<SmallerBiggerPair, less> OrderedType;
 
+class ChoiceFunction {
+
+	std::vector<size_t> data_;
+	size_t arity_;
+
+public:
+
+	ChoiceFunction() : data_(), arity_() {}
+
+	void init(size_t size, size_t arity) {
+
+		this->data_ = std::vector<size_t>(size, 0);
+		this->arity_ = arity;
+
+	}
+
+	bool next() {
+
+		// move to the next choice function
+		size_t index = 0;
+
+		while (++this->data_[index] == this->arity_) {
+
+			this->data_[index] = 0; // reset this counter
+
+			++index;                // move to the next counter
+
+			if (index == this->data_.size()) {
+
+				// if we drop out from the n-tuple
+				return false;
+
+			}
+
+		}
+
+		return true;
+
+	}
+
+	const size_t& operator[](size_t index) {
+
+		assert(index < this->data_.size());
+
+		return this->data_[index];
+
+	}
+
+	size_t size() const {
+
+		return this->data_.size();
+
+	}
+
+	const size_t& arity() const {
+
+		return this->arity_;
+
+	}
+
+};
+
 struct ExpandStackFrame {
 
+	ExpandStackFrame* parent;
 	SmallerType p_S;
 	BiggerType P_B;
 	size_t a;
 	std::vector<const StateTuple*> W;
 	std::vector<const StateTuple*>::const_iterator tupleSetIter;
 	size_t i;
-	std::vector<size_t> choiceFunction;
+	ChoiceFunction choiceFunction;
 	Antichain2C::TList::iterator worksetIter;
 
-	ExpandStackFrame(const SmallerType& p_S, const BiggerType& P_B, const Antichain2C::TList::iterator& worksetIter)
-		: p_S(p_S), P_B(P_B), a(), W(), tupleSetIter(), i(), choiceFunction(), worksetIter(worksetIter) {}
+	ExpandStackFrame() : parent(), p_S(), P_B(), a(), W(), tupleSetIter(), i(), choiceFunction(),
+		worksetIter() {}
+
+private:
+
+	ExpandStackFrame(const ExpandStackFrame&);
+	ExpandStackFrame& operator=(const ExpandStackFrame&);
+
+};
+
+class ExpandCallEmulator {
+
+	VATA::Util::CachingAllocator<ExpandStackFrame> allocator_;
+	Antichain2C workset_;
+	ExpandStackFrame*& framePtr_;
+
+public:
+
+	ExpandCallEmulator(ExpandStackFrame*& framePtr) : allocator_(), workset_(), framePtr_(framePtr) {
+
+		this->framePtr_ = nullptr;
+
+	}
+
+	void call(const SmallerType& p_S, const BiggerType& P_B) {
+
+		ExpandStackFrame* newFrame = this->allocator_();
+
+		newFrame->parent = this->framePtr_;
+		newFrame->p_S = p_S;
+		newFrame->P_B = P_B;
+		newFrame->worksetIter = this->workset_.insert(p_S, P_B);
+
+		this->framePtr_ = newFrame;
+
+	}
+
+	void ret() {
+
+		this->workset_.remove(this->framePtr_->p_S, this->framePtr_->worksetIter);
+		this->allocator_.reclaim(this->framePtr_);
+		this->framePtr_ = this->framePtr_->parent;
+
+	}
+
+	const Antichain2C& workset() const {
+
+		return this->workset_;
+
+	}
 
 };
 
@@ -143,13 +256,9 @@ inline bool expand(BiggerTypeCache& biggerTypeCache,
 	if (nonincluded.contains(inv[p_S], P_B, gte) || P_B->empty())
 		return false;
 
-	std::vector<ExpandStackFrame> stack;
+	ExpandStackFrame* frame;
 
-	Antichain2C workset;
-
-	stack.push_back(ExpandStackFrame(p_S, P_B, workset.insert(p_S, P_B)));
-
-	ExpandStackFrame* frame = &stack.back();
+	ExpandCallEmulator callEmulator(frame);
 
 	const std::vector<const StateTuple*>* smallerTupleSet;
 
@@ -157,10 +266,13 @@ inline bool expand(BiggerTypeCache& biggerTypeCache,
 
 	std::vector<size_t> v;
 
-	size_t r_i;
+	SmallerType r_i;
+
 	BiggerType S;
 
 	bool found; // return value of simulated calls
+
+	callEmulator.call(p_S, P_B);
 _call:
 	assert(frame->p_S < smallerIndex.size());
 
@@ -186,7 +298,7 @@ _call:
 
 				found = false;
 
-				if (stack.size() == 1) goto _end; else goto _ret;
+				if (frame->parent == nullptr) goto _end; else goto _ret;
 
 			}
 
@@ -224,28 +336,29 @@ _call:
 
 			found = false;
 
-			if (stack.size() == 1) goto _end; else goto _ret;
+			if (frame->parent == nullptr) goto _end; else goto _ret;
 
 		}
 
 		for (frame->tupleSetIter = smallerTupleSet->begin(); frame->tupleSetIter != smallerTupleSet->end(); ++frame->tupleSetIter) {
 
-			frame->choiceFunction = std::vector<size_t>(frame->W.size(), 0);
+			frame->choiceFunction.init(frame->W.size(), /* arity */ smallerTupleSet->front()->size());
 
-			while (1) {
+			do {
 				// we loop for each choice function
 				found = false;
 
-				for (frame->i = 0; frame->i < /* arity */ smallerTupleSet->front()->size(); ++frame->i) {
+				for (frame->i = 0; frame->i < frame->choiceFunction.arity(); ++frame->i) {
 					// for each position of the n-tuple
-
 					v.clear();
 
 					for (size_t j = 0; j < frame->choiceFunction.size(); ++j) {
 
 						if (frame->choiceFunction[j] == frame->i) {
+
 							// in case the choice function for given vector is i
 							v.push_back((*frame->W[j])[frame->i]);
+
 						}
 
 					}
@@ -257,9 +370,10 @@ _call:
 
 					v.erase(std::unique(v.begin(), v.end()), v.end());
 
-					assert((*frame->tupleSetIter)->size() == smallerTupleSet->front()->size());
+					assert((*frame->tupleSetIter)->size() == frame->choiceFunction.arity());
 
 					r_i = (**frame->tupleSetIter)[frame->i];
+
 					S = biggerTypeCache.lookup(v);
 
 					if (checkIntersection(ind[r_i], *S)) {
@@ -267,7 +381,7 @@ _call:
 						break;
 					}
 
-					if (workset.contains(ind[r_i], S, lte)) {
+					if (callEmulator.workset().contains(ind[r_i], S, lte)) {
 						found = true;
 						break;
 					}
@@ -275,20 +389,15 @@ _call:
 					if (nonincluded.contains(inv[r_i], S, gte))
 						continue;
 
-					stack.push_back(ExpandStackFrame(r_i, S, workset.insert(r_i, S)));
-
-					frame = &stack.back();
+					callEmulator.call(r_i, S);
 
 					goto _call;
 _ret:
 					r_i = frame->p_S;
+
 					S = frame->P_B;
 
-					workset.remove(r_i, frame->worksetIter);
-
-					stack.pop_back();
-
-					frame = &stack.back();
+					callEmulator.ret();
 
 					if (found)
 						break;
@@ -304,38 +413,29 @@ _ret:
 
 				if (!found) {
 
-					if (stack.size() == 1) goto _end; else goto _ret;
+					if (frame->parent == nullptr) goto _end; else goto _ret;
 
 				}
+
+				assert(frame->p_S < smallerIndex.size());
+				assert(frame->a < smallerIndex[frame->p_S].size());
 
 				smallerTupleSet = &smallerIndex[frame->p_S][frame->a];
 
-				// move to the next choice function
-				size_t index = 0;
+			} while (frame->choiceFunction.next());
 
-				while (++frame->choiceFunction[index] == /* arity */ smallerTupleSet->front()->size()) {
-
-					frame->choiceFunction[index] = 0; // reset this counter
-
-					++index;                   // move to the next counter
-
-					if (index == frame->choiceFunction.size()) {
-						// if we drop out from the n-tuple
-						goto _cf_end;
-					}
-
-				}
-
-			}
-_cf_end:;
 		}
 
 	}
 
 	found = true;
 
-	if (stack.size() > 1) goto _ret;
+	if (frame->parent != nullptr) goto _ret;
 _end:
+	callEmulator.ret();
+
+	assert(frame == nullptr);
+
 	return found;
 
 }
