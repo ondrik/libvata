@@ -1,7 +1,7 @@
 /*****************************************************************************
  *  VATA Tree Automata Library
  *
- *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
+ *  Copyright (c) 2012  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
  *  Description:
  *    Source file for an explicit downward inclusion.
@@ -153,17 +153,19 @@ public:
 struct ExpandStackFrame {
 
 	ExpandStackFrame* parent;
+	size_t retAddr;
 	SmallerType p_S;
 	BiggerType P_B;
 	size_t a;
 	std::vector<const StateTuple*> W;
 	std::vector<const StateTuple*>::const_iterator tupleSetIter;
 	size_t i;
+	std::vector<size_t>::const_iterator sIter;
 	ChoiceFunction choiceFunction;
 	Antichain2C::TList::iterator worksetIter;
 
-	ExpandStackFrame() : parent(), p_S(), P_B(), a(), W(), tupleSetIter(), i(), choiceFunction(),
-		worksetIter() {}
+	ExpandStackFrame() : parent(), retAddr(), p_S(), P_B(), a(), W(), tupleSetIter(), i(), sIter(),
+		choiceFunction(), worksetIter() {}
 
 private:
 
@@ -186,22 +188,39 @@ public:
 
 	}
 
-	void call(const SmallerType& p_S, const BiggerType& P_B) {
+	void call(size_t retAddr, const SmallerType& p_S, const BiggerType& P_B) {
 
 		ExpandStackFrame* newFrame = this->allocator_();
 
 		newFrame->parent = this->framePtr_;
+		newFrame->retAddr = retAddr;
 		newFrame->p_S = p_S;
 		newFrame->P_B = P_B;
-		newFrame->worksetIter = this->workset_.insert(p_S, P_B);
+		newFrame->worksetIter = Antichain2C::TList::iterator();
 
 		this->framePtr_ = newFrame;
 
 	}
 
+	void addToWorkset() {
+
+		this->framePtr_->worksetIter = this->workset_.insert(
+			this->framePtr_->p_S, this->framePtr_->P_B
+		);
+
+	}
+
+	size_t retAddr() const {
+
+		return this->framePtr_->retAddr;
+
+	}
+
 	void ret() {
 
-		this->workset_.remove(this->framePtr_->p_S, this->framePtr_->worksetIter);
+		if (this->framePtr_->worksetIter != Antichain2C::TList::iterator())
+			this->workset_.remove(this->framePtr_->p_S, this->framePtr_->worksetIter);
+
 		this->allocator_.reclaim(this->framePtr_);
 		this->framePtr_ = this->framePtr_->parent;
 
@@ -214,6 +233,13 @@ public:
 	}
 
 };
+
+#define EXPAND_RETURN\
+	switch (callEmulator.retAddr()) {\
+		case 0: callEmulator.ret(); goto _end;\
+		case 1: r_i = frame->p_S; S = frame->P_B; callEmulator.ret(); goto _stdret;\
+		case 2: callEmulator.ret(); goto _simret;\
+	}
 
 inline bool expand(BiggerTypeCache& biggerTypeCache,
 	VATA::Util::CachedBinaryOp<const StateSet*, const StateSet*, bool>& lteCache,
@@ -250,12 +276,6 @@ inline bool expand(BiggerTypeCache& biggerTypeCache,
 
 	auto gte = [&lte](const BiggerType& x, const BiggerType& y) { return lte(y, x); };
 
-	if ((smallerIndex.size() <= p_S) || checkIntersection(ind[p_S], *P_B))
-		return true;
-
-	if (nonincluded.contains(inv[p_S], P_B, gte) || P_B->empty())
-		return false;
-
 	ExpandStackFrame* frame;
 
 	ExpandCallEmulator callEmulator(frame);
@@ -272,8 +292,60 @@ inline bool expand(BiggerTypeCache& biggerTypeCache,
 
 	bool found; // return value of simulated calls
 
-	callEmulator.call(p_S, P_B);
+	callEmulator.call(0, p_S, P_B);
 _call:
+	if (smallerIndex.size() <= frame->p_S) {
+
+		found = true;
+
+		EXPAND_RETURN
+
+	}
+
+	if (checkIntersection(ind[frame->p_S], *frame->P_B)) {
+
+		found = true;
+
+		EXPAND_RETURN;
+
+	}
+
+	if (callEmulator.workset().contains(ind[frame->p_S], frame->P_B, lte)) {
+
+		found = true;
+
+		EXPAND_RETURN;
+
+	}
+
+	if (nonincluded.contains(inv[frame->p_S], frame->P_B, gte)) {
+
+		found = false;
+
+		EXPAND_RETURN;
+
+	}
+
+	callEmulator.addToWorkset();
+
+	if (frame->P_B->size() > 1) {
+
+		for (frame->sIter = frame->P_B->begin(); frame->sIter != frame->P_B->end(); ++frame->sIter) {
+
+			callEmulator.call(2, frame->p_S, biggerTypeCache.lookup({ *frame->sIter }));
+
+			goto _call;
+_simret:
+			if (found) {
+
+				EXPAND_RETURN;
+
+			}
+
+		}
+
+	}
+
 	assert(frame->p_S < smallerIndex.size());
 
 	for (frame->a = 0; frame->a < smallerIndex[frame->p_S].size(); ++frame->a) {
@@ -298,7 +370,7 @@ _call:
 
 				found = false;
 
-				if (frame->parent == nullptr) goto _end; else goto _ret;
+				EXPAND_RETURN
 
 			}
 
@@ -336,7 +408,7 @@ _call:
 
 			found = false;
 
-			if (frame->parent == nullptr) goto _end; else goto _ret;
+			EXPAND_RETURN
 
 		}
 
@@ -376,29 +448,10 @@ _call:
 
 					S = biggerTypeCache.lookup(v);
 
-					if (checkIntersection(ind[r_i], *S)) {
-						found = true;
-						break;
-					}
-
-					if (callEmulator.workset().contains(ind[r_i], S, lte)) {
-						found = true;
-						break;
-					}
-
-					if (nonincluded.contains(inv[r_i], S, gte))
-						continue;
-
-					callEmulator.call(r_i, S);
+					callEmulator.call(1, r_i, S);
 
 					goto _call;
-_ret:
-					r_i = frame->p_S;
-
-					S = frame->P_B;
-
-					callEmulator.ret();
-
+_stdret:
 					if (found)
 						break;
 
@@ -413,7 +466,7 @@ _ret:
 
 				if (!found) {
 
-					if (frame->parent == nullptr) goto _end; else goto _ret;
+					EXPAND_RETURN
 
 				}
 
@@ -430,10 +483,8 @@ _ret:
 
 	found = true;
 
-	if (frame->parent != nullptr) goto _ret;
+	EXPAND_RETURN;
 _end:
-	callEmulator.ret();
-
 	assert(frame == nullptr);
 
 	return found;
