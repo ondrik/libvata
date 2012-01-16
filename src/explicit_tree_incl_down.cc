@@ -289,7 +289,9 @@ inline bool expand(BiggerTypeCache& biggerTypeCache,
 
 	std::unordered_set<const StateTuple*> tupleSet;
 
-	std::vector<size_t> v;
+	Antichain1C post;
+
+	StateSet tmp;
 
 	SmallerType r_i;
 
@@ -315,6 +317,8 @@ _call:
 
 	}
 
+	assert(frame->p_S < ind.size());
+
 	if (callEmulator.workset().contains(ind[frame->p_S], frame->P_B, lte)) {
 
 		found = true;
@@ -322,6 +326,8 @@ _call:
 		EXPAND_RETURN(1)
 
 	}
+
+	assert(frame->p_S < inv.size());
 
 	if (nonincluded.contains(inv[frame->p_S], frame->P_B, gte)) {
 
@@ -429,31 +435,38 @@ _simret:
 
 				for (frame->i = 0; frame->i < frame->choiceFunction.arity(); ++frame->i) {
 					// for each position of the n-tuple
-					v.clear();
+					post.clear();
 
 					for (size_t j = 0; j < frame->choiceFunction.size(); ++j) {
 
-						if (frame->choiceFunction[j] == frame->i) {
+						if (frame->choiceFunction[j] != frame->i)
+							continue;
 
-							// in case the choice function for given vector is i
-							v.push_back((*frame->W[j])[frame->i]);
+						// in case the choice function for given vector is i
+						assert((*frame->W[j])[frame->i] < ind.size());
 
-						}
+						if (post.contains(ind[(*frame->W[j])[frame->i]]))
+							continue;
+
+						assert((*frame->W[j])[frame->i] < inv.size());
+
+						post.refine(inv[(*frame->W[j])[frame->i]]);
+						post.insert((*frame->W[j])[frame->i]);
 
 					}
 
-					if (v.empty())
+					if (post.data().empty())
 						continue;
 
-					std::sort(v.begin(), v.end());
+					tmp = StateSet(post.data().begin(), post.data().end());
 
-					v.erase(std::unique(v.begin(), v.end()), v.end());
+					std::sort(tmp.begin(), tmp.end());
 
 					assert((*frame->tupleSetIter)->size() == frame->choiceFunction.arity());
 
 					r_i = (**frame->tupleSetIter)[frame->i];
 
-					S = biggerTypeCache.lookup(v);
+					S = biggerTypeCache.lookup(tmp);
 
 					if (frame->childrenCache.contains(ind[r_i], S, lte))
 						goto _nextchoice;
