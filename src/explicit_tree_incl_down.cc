@@ -347,7 +347,7 @@ _call:
 _simret:
 			if (found) {
 
-				EXPAND_RETURN(2)
+				EXPAND_RETURN(1)
 
 			}
 
