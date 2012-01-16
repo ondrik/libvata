@@ -163,9 +163,10 @@ struct ExpandStackFrame {
 	std::vector<size_t>::const_iterator sIter;
 	ChoiceFunction choiceFunction;
 	Antichain2C::TList::iterator worksetIter;
+	Antichain2C childrenCache;
 
 	ExpandStackFrame() : parent(), retAddr(), p_S(), P_B(), a(), W(), tupleSetIter(), i(), sIter(),
-		choiceFunction(), worksetIter() {}
+		choiceFunction(), worksetIter(), childrenCache() {}
 
 private:
 
@@ -196,7 +197,6 @@ public:
 		newFrame->retAddr = retAddr;
 		newFrame->p_S = p_S;
 		newFrame->P_B = P_B;
-		newFrame->worksetIter = Antichain2C::TList::iterator();
 
 		this->framePtr_ = newFrame;
 
@@ -216,11 +216,16 @@ public:
 
 	}
 
-	void ret() {
+	void ret1() {
 
-		if (this->framePtr_->worksetIter != Antichain2C::TList::iterator())
-			this->workset_.remove(this->framePtr_->p_S, this->framePtr_->worksetIter);
+		this->allocator_.reclaim(this->framePtr_);
+		this->framePtr_ = this->framePtr_->parent;
 
+	}
+
+	void ret2() {
+
+		this->workset_.remove(this->framePtr_->p_S, this->framePtr_->worksetIter);
 		this->allocator_.reclaim(this->framePtr_);
 		this->framePtr_ = this->framePtr_->parent;
 
@@ -234,11 +239,11 @@ public:
 
 };
 
-#define EXPAND_RETURN\
+#define EXPAND_RETURN(x)\
 	switch (callEmulator.retAddr()) {\
-		case 0: callEmulator.ret(); goto _end;\
-		case 1: r_i = frame->p_S; S = frame->P_B; callEmulator.ret(); goto _stdret;\
-		case 2: callEmulator.ret(); goto _simret;\
+		case 0: callEmulator.ret##x(); goto _end;\
+		case 1: r_i = frame->p_S; S = frame->P_B; callEmulator.ret##x(); goto _stdret;\
+		case 2: callEmulator.ret##x(); goto _simret;\
 	}
 
 inline bool expand(BiggerTypeCache& biggerTypeCache,
@@ -298,7 +303,7 @@ _call:
 
 		found = true;
 
-		EXPAND_RETURN
+		EXPAND_RETURN(1)
 
 	}
 
@@ -306,7 +311,7 @@ _call:
 
 		found = true;
 
-		EXPAND_RETURN;
+		EXPAND_RETURN(1)
 
 	}
 
@@ -314,7 +319,7 @@ _call:
 
 		found = true;
 
-		EXPAND_RETURN;
+		EXPAND_RETURN(1)
 
 	}
 
@@ -322,7 +327,7 @@ _call:
 
 		found = false;
 
-		EXPAND_RETURN;
+		EXPAND_RETURN(1)
 
 	}
 
@@ -338,7 +343,7 @@ _call:
 _simret:
 			if (found) {
 
-				EXPAND_RETURN;
+				EXPAND_RETURN(2)
 
 			}
 
@@ -347,6 +352,8 @@ _simret:
 	}
 
 	assert(frame->p_S < smallerIndex.size());
+
+	frame->childrenCache.clear();
 
 	for (frame->a = 0; frame->a < smallerIndex[frame->p_S].size(); ++frame->a) {
 
@@ -370,7 +377,7 @@ _simret:
 
 				found = false;
 
-				EXPAND_RETURN
+				EXPAND_RETURN(2)
 
 			}
 
@@ -408,7 +415,7 @@ _simret:
 
 			found = false;
 
-			EXPAND_RETURN
+			EXPAND_RETURN(2)
 
 		}
 
@@ -448,12 +455,21 @@ _simret:
 
 					S = biggerTypeCache.lookup(v);
 
+					if (frame->childrenCache.contains(ind[r_i], S, lte))
+						goto _nextchoice;
+
 					callEmulator.call(1, r_i, S);
 
 					goto _call;
 _stdret:
-					if (found)
-						break;
+					if (found) {
+
+						frame->childrenCache.refine(inv[r_i], S, gte);
+						frame->childrenCache.insert(r_i, S);
+
+						goto _nextchoice;
+
+					}
 
 					if (!nonincluded.contains(inv[r_i], S, gte)) {
 
@@ -464,18 +480,14 @@ _stdret:
 
 				}
 
-				if (!found) {
-
-					EXPAND_RETURN
-
-				}
-
-				assert(frame->p_S < smallerIndex.size());
-				assert(frame->a < smallerIndex[frame->p_S].size());
-
-				smallerTupleSet = &smallerIndex[frame->p_S][frame->a];
-
+				EXPAND_RETURN(2)
+_nextchoice:;
 			} while (frame->choiceFunction.next());
+
+			assert(frame->p_S < smallerIndex.size());
+			assert(frame->a < smallerIndex[frame->p_S].size());
+
+			smallerTupleSet = &smallerIndex[frame->p_S][frame->a];
 
 		}
 
@@ -483,7 +495,7 @@ _stdret:
 
 	found = true;
 
-	EXPAND_RETURN;
+	EXPAND_RETURN(2)
 _end:
 	assert(frame == nullptr);
 
