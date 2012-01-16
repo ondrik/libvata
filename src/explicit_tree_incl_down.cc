@@ -337,8 +337,6 @@ _call:
 
 	}
 
-	callEmulator.addToWorkset();
-
 	if (frame->P_B->size() > 1) {
 
 		for (frame->sIter = frame->P_B->begin(); frame->sIter != frame->P_B->end(); ++frame->sIter) {
@@ -356,6 +354,8 @@ _simret:
 		}
 
 	}
+
+	callEmulator.addToWorkset();
 
 	assert(frame->p_S < smallerIndex.size());
 
