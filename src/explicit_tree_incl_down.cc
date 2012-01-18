@@ -385,9 +385,6 @@ _call:
 
 			auto& biggerCluster = biggerIndex[state];
 
-			if (biggerCluster.empty())
-				continue;
-
 			if (biggerCluster.size() <= frame->a)
 				continue;
 
@@ -425,7 +422,7 @@ _simret:
 
 				}
 
-				if (frame->i == (*frame->tupleSetIter)->size())
+				if (found)
 					goto _nexttuple;
 
 			}
