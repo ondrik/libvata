@@ -159,14 +159,15 @@ struct ExpandStackFrame {
 	size_t a;
 	std::vector<const StateTuple*> W;
 	std::vector<const StateTuple*>::const_iterator tupleSetIter;
+	std::vector<const StateTuple*>::const_iterator tupleSetIter2;
 	size_t i;
 	std::vector<size_t>::const_iterator sIter;
 	ChoiceFunction choiceFunction;
 	Antichain2C::TList::iterator worksetIter;
 	Antichain2C childrenCache;
 
-	ExpandStackFrame() : parent(), retAddr(), p_S(), P_B(), a(), W(), tupleSetIter(), i(), sIter(),
-		choiceFunction(), worksetIter(), childrenCache() {}
+	ExpandStackFrame() : parent(), retAddr(), p_S(), P_B(), a(), W(), tupleSetIter(),
+		tupleSetIter2(), i(), sIter(), choiceFunction(), worksetIter(), childrenCache() {}
 
 private:
 
@@ -285,7 +286,7 @@ inline bool expand(BiggerTypeCache& biggerTypeCache,
 
 	ExpandCallEmulator callEmulator(frame);
 
-	const std::vector<const StateTuple*>* smallerTupleSet;
+	const std::vector<const StateTuple*>* smallerTupleSet = nullptr;
 
 	std::unordered_set<const StateTuple*> tupleSet;
 
@@ -334,24 +335,6 @@ _call:
 		found = false;
 
 		EXPAND_RETURN(1)
-
-	}
-
-	if (frame->P_B->size() > 1) {
-
-		for (frame->sIter = frame->P_B->begin(); frame->sIter != frame->P_B->end(); ++frame->sIter) {
-
-			callEmulator.call(2, frame->p_S, biggerTypeCache.lookup({ *frame->sIter }));
-
-			goto _call;
-_simret:
-			if (found) {
-
-				EXPAND_RETURN(1)
-
-			}
-
-		}
 
 	}
 
@@ -427,6 +410,26 @@ _simret:
 
 		for (frame->tupleSetIter = smallerTupleSet->begin(); frame->tupleSetIter != smallerTupleSet->end(); ++frame->tupleSetIter) {
 
+			for (frame->tupleSetIter2 = frame->W.begin(); frame->tupleSetIter2 != frame->W.end(); ++frame->tupleSetIter2) {
+
+				assert((*frame->tupleSetIter)->size() == (*frame->tupleSetIter2)->size());
+
+				for (frame->i = 0; frame->i < (*frame->tupleSetIter)->size(); ++frame->i) {
+
+					callEmulator.call(2, (**frame->tupleSetIter)[frame->i], biggerTypeCache.lookup({ (**frame->tupleSetIter2)[frame->i] }));
+
+					goto _call;
+_simret:
+					if (!found)
+						break;
+
+				}
+
+				if (frame->i == (*frame->tupleSetIter)->size())
+					goto _nexttuple;
+
+			}
+
 			frame->choiceFunction.init(frame->W.size(), /* arity */ smallerTupleSet->front()->size());
 
 			do {
@@ -496,7 +499,7 @@ _stdret:
 				EXPAND_RETURN(2)
 _nextchoice:;
 			} while (frame->choiceFunction.next());
-
+_nexttuple:
 			assert(frame->p_S < smallerIndex.size());
 			assert(frame->a < smallerIndex[frame->p_S].size());
 
