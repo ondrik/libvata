@@ -97,6 +97,13 @@ public:
 
 	ChoiceFunction() : data_(), arity_() {}
 
+	void swap(ChoiceFunction& rhs) {
+
+		std::swap(this->data_, rhs.data_);
+		std::swap(this->arity_, rhs.arity_);
+
+	}
+
 	void init(size_t size, size_t arity) {
 
 		this->data_ = std::vector<size_t>(size, 0);
@@ -157,17 +164,17 @@ struct ExpandStackFrame {
 	SmallerType p_S;
 	BiggerType P_B;
 	size_t a;
-	std::vector<const StateTuple*> W;
 	std::vector<const StateTuple*>::const_iterator tupleSetIter;
 	std::vector<const StateTuple*>::const_iterator tupleSetIter2;
 	size_t i;
 	std::vector<size_t>::const_iterator sIter;
-	ChoiceFunction choiceFunction;
 	Antichain2C::TList::iterator worksetIter;
+	std::vector<const StateTuple*> W;
+	ChoiceFunction choiceFunction;
 	Antichain2C childrenCache;
 
-	ExpandStackFrame() : parent(), retAddr(), p_S(), P_B(), a(), W(), tupleSetIter(),
-		tupleSetIter2(), i(), sIter(), choiceFunction(), worksetIter(), childrenCache() {}
+	ExpandStackFrame() : parent(), retAddr(), p_S(), P_B(), a(), tupleSetIter(), tupleSetIter2(),
+		i(), sIter(), worksetIter(), W(), choiceFunction(), childrenCache() {}
 
 private:
 
@@ -179,73 +186,94 @@ private:
 class ExpandCallEmulator {
 
 	VATA::Util::CachingAllocator<ExpandStackFrame> allocator_;
-	Antichain2C workset_;
-	ExpandStackFrame*& framePtr_;
+	ExpandStackFrame* ptr_;
 
 public:
 
-	ExpandCallEmulator(ExpandStackFrame*& framePtr) : allocator_(), workset_(), framePtr_(framePtr) {
+	ExpandCallEmulator() : allocator_(), ptr_() {}
 
-		this->framePtr_ = nullptr;
-
-	}
-
-	void call(size_t retAddr, const SmallerType& p_S, const BiggerType& P_B) {
+	void push(ExpandStackFrame& top) {
 
 		ExpandStackFrame* newFrame = this->allocator_();
 
-		newFrame->parent = this->framePtr_;
-		newFrame->retAddr = retAddr;
-		newFrame->p_S = p_S;
-		newFrame->P_B = P_B;
+		newFrame->parent = this->ptr_;
+		newFrame->retAddr = top.retAddr;
+		newFrame->p_S = top.p_S;
+		newFrame->P_B = top.P_B;
+		newFrame->a = top.a;
+		newFrame->tupleSetIter = top.tupleSetIter;
+		newFrame->tupleSetIter2 = top.tupleSetIter2;
+		newFrame->i = top.i;
+		newFrame->sIter = top.sIter;
+		newFrame->worksetIter = top.worksetIter;
 
-		this->framePtr_ = newFrame;
+		std::swap(newFrame->W, top.W);
+		std::swap(newFrame->choiceFunction, top.choiceFunction);
+		std::swap(newFrame->childrenCache, top.childrenCache);
 
-	}
-
-	void addToWorkset() {
-
-		this->framePtr_->worksetIter = this->workset_.insert(
-			this->framePtr_->p_S, this->framePtr_->P_B
-		);
-
-	}
-
-	size_t retAddr() const {
-
-		return this->framePtr_->retAddr;
+		this->ptr_ = newFrame;
 
 	}
 
-	void ret1() {
+	void pop(ExpandStackFrame& top) {
 
-		this->allocator_.reclaim(this->framePtr_);
-		this->framePtr_ = this->framePtr_->parent;
+		top.retAddr = this->ptr_->retAddr;
+		top.p_S = this->ptr_->p_S;
+		top.P_B = this->ptr_->P_B;
+		top.a = this->ptr_->a;
+		top.tupleSetIter = this->ptr_->tupleSetIter;
+		top.tupleSetIter2 = this->ptr_->tupleSetIter2;
+		top.i = this->ptr_->i;
+		top.sIter = this->ptr_->sIter;
+		top.worksetIter = this->ptr_->worksetIter;
+
+		std::swap(top.W, this->ptr_->W);
+		std::swap(top.choiceFunction, this->ptr_->choiceFunction);
+		std::swap(top.childrenCache, this->ptr_->childrenCache);
+
+		this->allocator_.reclaim(this->ptr_);
+		this->ptr_ = this->ptr_->parent;
 
 	}
 
-	void ret2() {
+	bool empty() const {
 
-		this->workset_.remove(this->framePtr_->p_S, this->framePtr_->worksetIter);
-		this->allocator_.reclaim(this->framePtr_);
-		this->framePtr_ = this->framePtr_->parent;
+		return this->ptr_ == nullptr;
 
 	}
 
-	const Antichain2C& workset() const {
+private:
 
-		return this->workset_;
-
-	}
+	ExpandCallEmulator(const ExpandCallEmulator&);
+	ExpandCallEmulator& operator=(const ExpandCallEmulator&);
 
 };
 
-#define EXPAND_RETURN(x)\
-	switch (callEmulator.retAddr()) {\
-		case 0: callEmulator.ret##x(); goto _end;\
-		case 1: r_i = frame->p_S; S = frame->P_B; callEmulator.ret##x(); goto _stdret;\
-		case 2: callEmulator.ret##x(); goto _simret;\
+#define EXPAND_CALL(ret)\
+	retAddr = ret;\
+	goto _call;
+
+#define EXPAND_PUSH\
+	callEmulator.push(top);\
+	top.p_S = r_i;\
+	top.P_B = S;\
+	top.retAddr = retAddr;\
+	top.worksetIter = workset.insert(r_i, S);
+
+#define EXPAND_RETURN\
+	switch (retAddr) {\
+		case 0: goto _end;\
+		case 1: goto _stdret;\
+		case 2: goto _simret;\
 	}
+
+#define EXPAND_POP_RETURN\
+	workset.remove(top.p_S, top.worksetIter);\
+	retAddr = top.retAddr;\
+	S = top.P_B;\
+	r_i = top.p_S;\
+	callEmulator.pop(top);\
+	EXPAND_RETURN
 
 inline bool expand(BiggerTypeCache& biggerTypeCache,
 	VATA::Util::CachedBinaryOp<const StateSet*, const StateSet*, bool>& lteCache,
@@ -282,9 +310,11 @@ inline bool expand(BiggerTypeCache& biggerTypeCache,
 
 	auto gte = [&lte](const BiggerType& x, const BiggerType& y) { return lte(y, x); };
 
-	ExpandStackFrame* frame;
+	Antichain2C workset;
 
-	ExpandCallEmulator callEmulator(frame);
+	ExpandStackFrame top;
+
+	ExpandCallEmulator callEmulator;
 
 	const std::vector<const StateTuple*>* smallerTupleSet = nullptr;
 
@@ -294,59 +324,59 @@ inline bool expand(BiggerTypeCache& biggerTypeCache,
 
 	StateSet tmp;
 
-	SmallerType r_i;
+	SmallerType r_i = p_S;
 
-	BiggerType S;
+	BiggerType S = P_B;
 
-	bool found; // return value of simulated calls
+	size_t retAddr = 0;
 
-	callEmulator.call(0, p_S, P_B);
+	bool found = false; // return value of simulated calls
 _call:
-	if (smallerIndex.size() <= frame->p_S) {
+	if (smallerIndex.size() <= r_i) {
 
 		found = true;
 
-		EXPAND_RETURN(1)
+		EXPAND_RETURN
 
 	}
 
-	if (checkIntersection(ind[frame->p_S], *frame->P_B)) {
+	if (checkIntersection(ind[r_i], *S)) {
 
 		found = true;
 
-		EXPAND_RETURN(1)
+		EXPAND_RETURN
 
 	}
 
-	assert(frame->p_S < ind.size());
+	assert(r_i < ind.size());
 
-	if (callEmulator.workset().contains(ind[frame->p_S], frame->P_B, lte)) {
+	if (workset.contains(ind[r_i], S, lte)) {
 
 		found = true;
 
-		EXPAND_RETURN(1)
+		EXPAND_RETURN
 
 	}
 
-	assert(frame->p_S < inv.size());
+	assert(r_i < inv.size());
 
-	if (nonincluded.contains(inv[frame->p_S], frame->P_B, gte)) {
+	if (nonincluded.contains(inv[r_i], S, gte)) {
 
 		found = false;
 
-		EXPAND_RETURN(1)
+		EXPAND_RETURN
 
 	}
 
-	callEmulator.addToWorkset();
+	EXPAND_PUSH
 
-	assert(frame->p_S < smallerIndex.size());
+	assert(r_i < smallerIndex.size());
 
-	frame->childrenCache.clear();
+	top.childrenCache.clear();
 
-	for (frame->a = 0; frame->a < smallerIndex[frame->p_S].size(); ++frame->a) {
+	for (top.a = 0; top.a < smallerIndex[top.p_S].size(); ++top.a) {
 
-		smallerTupleSet = &smallerIndex[frame->p_S][frame->a];
+		smallerTupleSet = &smallerIndex[top.p_S][top.a];
 
 		if (smallerTupleSet->empty())
 			continue;
@@ -355,18 +385,18 @@ _call:
 
 			StateSet::const_iterator i;
 
-			for (i = frame->P_B->begin(); i != frame->P_B->end(); ++i) {
+			for (i = top.P_B->begin(); i != top.P_B->end(); ++i) {
 
 				if (*i < biggerIndex.size() && biggerIndex[*i].size())
 					break;
 
 			}
 
-			if (i == frame->P_B->end()) {
+			if (i == top.P_B->end()) {
 
 				found = false;
 
-				EXPAND_RETURN(2)
+				EXPAND_POP_RETURN
 
 			}
 
@@ -374,48 +404,50 @@ _call:
 
 		}
 
-		frame->W.clear();
+		top.W.clear();
 
 		tupleSet.clear();
 
-		for (auto& state : *frame->P_B) {
+		for (auto& state : *top.P_B) {
 
 			if (biggerIndex.size() <= state)
 				continue;
 
 			auto& biggerCluster = biggerIndex[state];
 
-			if (biggerCluster.size() <= frame->a)
+			if (biggerCluster.size() <= top.a)
 				continue;
 
-			for (auto& tuple : biggerCluster[frame->a]) {
+			for (auto& tuple : biggerCluster[top.a]) {
 
 				if (tupleSet.insert(tuple).second)
-					frame->W.push_back(tuple);
+					top.W.push_back(tuple);
 
 			}
 
 		}
 
-		if (frame->W.empty()) {
+		if (top.W.empty()) {
 
 			found = false;
 
-			EXPAND_RETURN(2)
+			EXPAND_POP_RETURN
 
 		}
 
-		for (frame->tupleSetIter = smallerTupleSet->begin(); frame->tupleSetIter != smallerTupleSet->end(); ++frame->tupleSetIter) {
+		for (top.tupleSetIter = smallerTupleSet->begin(); top.tupleSetIter != smallerTupleSet->end(); ++top.tupleSetIter) {
 
-			for (frame->tupleSetIter2 = frame->W.begin(); frame->tupleSetIter2 != frame->W.end(); ++frame->tupleSetIter2) {
+			for (top.tupleSetIter2 = top.W.begin(); top.tupleSetIter2 != top.W.end(); ++top.tupleSetIter2) {
 
-				assert((*frame->tupleSetIter)->size() == (*frame->tupleSetIter2)->size());
+				assert((**top.tupleSetIter).size() == (**top.tupleSetIter2).size());
 
-				for (frame->i = 0; frame->i < (*frame->tupleSetIter)->size(); ++frame->i) {
+				for (top.i = 0; top.i < (**top.tupleSetIter).size(); ++top.i) {
 
-					callEmulator.call(2, (**frame->tupleSetIter)[frame->i], biggerTypeCache.lookup({ (**frame->tupleSetIter2)[frame->i] }));
+					r_i = (**top.tupleSetIter)[top.i];
 
-					goto _call;
+					S = biggerTypeCache.lookup({ (**top.tupleSetIter2)[top.i] });
+
+					EXPAND_CALL(2)
 _simret:
 					if (!found)
 						break;
@@ -427,31 +459,33 @@ _simret:
 
 			}
 
-			frame->choiceFunction.init(frame->W.size(), /* arity */ smallerTupleSet->front()->size());
+			top.choiceFunction.init(top.W.size(), /* arity */ (**top.tupleSetIter).size());
 
 			do {
 				// we loop for each choice function
 				found = false;
 
-				for (frame->i = 0; frame->i < frame->choiceFunction.arity(); ++frame->i) {
+				for (top.i = 0; top.i < top.choiceFunction.arity(); ++top.i) {
 					// for each position of the n-tuple
 					post.clear();
 
-					for (size_t j = 0; j < frame->choiceFunction.size(); ++j) {
+					for (size_t j = 0; j < top.choiceFunction.size(); ++j) {
 
-						if (frame->choiceFunction[j] != frame->i)
+						if (top.choiceFunction[j] != top.i)
 							continue;
 
 						// in case the choice function for given vector is i
-						assert((*frame->W[j])[frame->i] < ind.size());
+						r_i = (*top.W[j])[top.i];
 
-						if (post.contains(ind[(*frame->W[j])[frame->i]]))
+						assert(r_i < ind.size());
+
+						if (post.contains(ind[r_i]))
 							continue;
 
-						assert((*frame->W[j])[frame->i] < inv.size());
+						assert(r_i < inv.size());
 
-						post.refine(inv[(*frame->W[j])[frame->i]]);
-						post.insert((*frame->W[j])[frame->i]);
+						post.refine(inv[r_i]);
+						post.insert(r_i);
 
 					}
 
@@ -462,23 +496,21 @@ _simret:
 
 					std::sort(tmp.begin(), tmp.end());
 
-					assert((*frame->tupleSetIter)->size() == frame->choiceFunction.arity());
+					assert((**top.tupleSetIter).size() == top.choiceFunction.arity());
 
-					r_i = (**frame->tupleSetIter)[frame->i];
+					r_i = (**top.tupleSetIter)[top.i];
 
 					S = biggerTypeCache.lookup(tmp);
 
-					if (frame->childrenCache.contains(ind[r_i], S, lte))
+					if (top.childrenCache.contains(ind[r_i], S, lte))
 						goto _nextchoice;
 
-					callEmulator.call(1, r_i, S);
-
-					goto _call;
+					EXPAND_CALL(1)
 _stdret:
 					if (found) {
 
-						frame->childrenCache.refine(inv[r_i], S, gte);
-						frame->childrenCache.insert(r_i, S);
+						top.childrenCache.refine(inv[r_i], S, gte);
+						top.childrenCache.insert(r_i, S);
 
 						goto _nextchoice;
 
@@ -493,14 +525,14 @@ _stdret:
 
 				}
 
-				EXPAND_RETURN(2)
+				EXPAND_POP_RETURN
 _nextchoice:;
-			} while (frame->choiceFunction.next());
+			} while (top.choiceFunction.next());
 _nexttuple:
-			assert(frame->p_S < smallerIndex.size());
-			assert(frame->a < smallerIndex[frame->p_S].size());
+			assert(top.p_S < smallerIndex.size());
+			assert(top.a < smallerIndex[top.p_S].size());
 
-			smallerTupleSet = &smallerIndex[frame->p_S][frame->a];
+			smallerTupleSet = &smallerIndex[top.p_S][top.a];
 
 		}
 
@@ -508,9 +540,9 @@ _nexttuple:
 
 	found = true;
 
-	EXPAND_RETURN(2)
+	EXPAND_POP_RETURN
 _end:
-	assert(frame == nullptr);
+	assert(callEmulator.empty());
 
 	return found;
 
