@@ -33,6 +33,13 @@ namespace VATA
 }
 
 
+/**
+ * @brief  Base class for automata
+ *
+ * This is the base class for automata. Contains  mostly static definitions, no
+ * virtual methods are present (so that the overhead of virtual method table
+ * would not propagate.
+ */
 class VATA::AutBase
 {
 public:   // data types

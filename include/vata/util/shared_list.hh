@@ -18,6 +18,11 @@ namespace VATA {
 	}
 }
 
+/**
+ * @brief  A shared list
+ *
+ * A shared list with a reference counter
+ */
 template <class T>
 class VATA::Util::SharedList {
 

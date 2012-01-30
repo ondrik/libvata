@@ -26,13 +26,24 @@ namespace VATA
 }
 
 
+/**
+ * @brief  Class for a parser of automata in the Timbuk format
+ *
+ * This class is a parser for automata in the Timbuk format.
+ */
 class VATA::Parsing::TimbukParser :
 	public VATA::Parsing::AbstrParser
 {
 public:   // methods
 
+	/**
+	 * @copydoc  VATA::Parsing::AbstrParser::ParseString
+	 */
 	virtual AutDescription ParseString(const std::string& str);
 
+	/**
+	 * @copydoc  VATA::Parsing::AbstrParser::~AbstrParser
+	 */
 	virtual ~TimbukParser()
 	{ }
 };

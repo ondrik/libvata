@@ -23,6 +23,11 @@ namespace VATA
 	}
 }
 
+/**
+ * @brief  Class for a serializer of automata into the Timbuk format
+ *
+ * This class is a serializer of automata into the Timbuk format.
+ */
 class VATA::Serialization::TimbukSerializer :
 	public VATA::Serialization::AbstrSerializer
 {
