@@ -26,10 +26,9 @@ namespace VATA {
 template <class T>
 class VATA::Util::SharedList {
 
-public:
+private:
 
 	struct Iterator {
-
 		typedef std::input_iterator_tag iterator_category;
 		typedef size_t value_type;
 		typedef size_t* pointer;
@@ -39,63 +38,41 @@ public:
 		typename T::const_iterator iter_;
 
 		Iterator() : pos_(nullptr), iter_() {}
-
 		Iterator(const SharedList* pos) : pos_(pos), iter_(pos->subList_->begin()) {}
 
-		Iterator& operator++() {
+		Iterator& operator++()
+		{
+			// Assertions
+			assert(pos_);
+			assert(pos_->subList_);
 
-			assert(this->pos_);
-			assert(this->pos_->subList_);
-
-			if (++this->iter_ != this->pos_->subList_->end())
+			if (++iter_ != pos_->subList_->end())
 				return *this;
 
-			if ((this->pos_ = this->pos_->next_) != nullptr) {
-				
-				assert(this->pos_->subList_);
+			if ((pos_ = pos_->next_) != nullptr) {
+				// Assertions
+				assert(pos_->subList_);
 
-				this->iter_ = this->pos_->subList_->begin();
-
+				iter_ = pos_->subList_->begin();
 			} else {
-
-				this->iter_ = typename T::const_iterator();
-
+				iter_ = typename T::const_iterator();
 			}
 
 			return *this;
-
 		}
 
-		Iterator operator++(int) const {
+		Iterator operator++(int) const {return ++Iterator(pos_);}
+		bool operator==(const Iterator& rhs) const {return iter_ == rhs.iter_;}
+		bool operator!=(const Iterator& rhs) const {return iter_ != rhs.iter_;}
+		const size_t& operator*() const {return *iter_;}
+	}; // struct Iterator
 
-			return ++Iterator(this->pos_);
-
-		}
-
-		bool operator==(const Iterator& rhs) const {
-
-			return this->iter_ == rhs.iter_;
-
-		}
-
-		bool operator!=(const Iterator& rhs) const {
-
-			return this->iter_ != rhs.iter_;
-
-		}
-
-		const size_t& operator*() const {
-
-			return *this->iter_;
-			
-		}
-
-	};
-
-	Iterator begin() const { return Iterator(this); }
-	Iterator end() const { return Iterator(); }
+public:
 
 	typedef Iterator const_iterator;
+
+	const_iterator begin() const {return const_iterator(this);}
+	const_iterator end() const {return const_iterator();}
 
 private:
 
@@ -105,25 +82,23 @@ private:
 
 public:
 
-	SharedList(T* subList = nullptr) : next_(nullptr), subList_(subList), refCount_(1) {}
+	SharedList(T* subList = nullptr) :
+		next_(nullptr), subList_(subList), refCount_(1)
+	{ }
 
-	void init(T* subList) {
-
+	void init(T* subList)
+	{
+		// Assertions
 		assert(subList);
 
-		this->subList_ = subList;
-
+		subList_ = subList;
 	}
 
-	T* subList() {
-
-		return this->subList_;
-
-	}
+	T* subList() {return subList_;}
 
 	template <class Deleter>
-	void release(const Deleter& deleter) {
-
+	void release(const Deleter& deleter)
+	{
 		SharedList* elem = this, * tmp;
 
 		while (elem && elem->refCount_ == 1) {
@@ -134,12 +109,11 @@ public:
 
 		if (elem)
 			--elem->counter_;
-
 	}
 
 	template <class Deleter>
-	void unsafeRelease(const Deleter& deleter) {
-
+	void unsafeRelease(const Deleter& deleter)
+	{
 		SharedList* elem = this;
 
 		while (elem && elem->refCount_ == 1) {
@@ -149,56 +123,37 @@ public:
 
 		if (elem)
 			--elem->refCount_;
-
 	}
 
-	SharedList* copy() {
-
-		++this->refCount_;
+	SharedList* copy()
+	{
+		++refCount_;
 
 		return this;
-
 	}
 
 	template <class Allocator>
 	static bool append(SharedList*& list, const typename T::value_type& v,
-		Allocator& allocator) {
-
+		Allocator& allocator)
+	{
 		if (!list) {
-
 			list = allocator();
 			list->next_ = nullptr;
 			list->subList_->push_back(v);
 
 			return true;
-
 		}
 
 		if (list->refCount_ > 1) {
-
 			SharedList* tmp = allocator();
 			tmp->next_ = list;
 			list = tmp;
-
 		}
 
 		list->subList_->push_back(v);
 
 		return false;
-
 	}
-/*
-	friend std::ostream& operator<<(std::ostream& os, const SharedList& list) {
-
-		os << '(';
-
-		for (auto& v : list)
-			os << ' ' << v;
-
-		return os << " )";
-
-	}
-*/
 };
 
 #endif
