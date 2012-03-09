@@ -30,6 +30,13 @@ namespace VATA
 	{
 		throw std::runtime_error("Unimplemented.");
 	}
+
+	template <class Automaton>
+	Automaton GetCandidateTree(const Automaton&)
+	{
+		throw std::runtime_error("Unimplemented.");
+	}
+
 }
 
 

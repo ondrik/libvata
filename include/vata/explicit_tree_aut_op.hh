@@ -18,6 +18,7 @@
 #include <vata/explicit_tree_isect.hh>
 #include <vata/explicit_tree_useless.hh>
 #include <vata/explicit_tree_unreach.hh>
+#include <vata/explicit_tree_candidate.hh>
 #include <vata/explicit_tree_transl.hh>
 #include <vata/explicit_tree_incl_up.hh>
 #include <vata/down_tree_incl_fctor.hh>
@@ -88,6 +89,9 @@ namespace VATA {
 		const ExplicitTreeAut<SymbolType>& rhs,
 		AutBase::ProductTranslMap* pTranslMap = nullptr
 	);
+
+	template <class SymbolType>
+	ExplicitTreeAut<SymbolType> GetCandidateTree(const ExplicitTreeAut<SymbolType>& aut);
 
 	template <class SymbolType>
 	ExplicitTreeAut<SymbolType> RemoveUselessStates(

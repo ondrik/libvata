@@ -70,6 +70,9 @@ GCC_DIAG_ON(effc++)
 		AutBase::ProductTranslMap*);
 
 	template <class SymbolType>
+	friend ExplicitTreeAut<SymbolType> GetCandidateTree(const ExplicitTreeAut<SymbolType>& aut);
+
+	template <class SymbolType>
 	friend ExplicitTreeAut<SymbolType> RemoveUselessStates(
 		const ExplicitTreeAut<SymbolType>&, AutBase::StateToStateMap*);
 
