@@ -60,6 +60,7 @@ const char VATA_USAGE_COMMANDS[] =
 	"\nThe following commands are supported:\n"
 	"    help                    Display this message\n"
 	"    load <file>             Load automaton from <file>\n"
+	"    witness <file>          Get a witness for automaton in <file>\n"
 	"    union <file1> <file2>   Compute union of automata from <file1> and <file2>\n"
 	"    isect <file1> <file2>   Compute intersection of automata from <file1> and\n"
 	"                            <file2>\n"
@@ -208,6 +209,10 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	{
 		autResult = autInput1;
 	}
+	else if (args.command == COMMAND_WITNESS)
+	{
+		autResult = GetCandidateTree(autInput1);
+	}
 	else if (args.command == COMMAND_UNION)
 	{
 		autResult = Union(autInput1, autInput2, &opTranslMap1, &opTranslMap2);
@@ -249,6 +254,7 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	if (!args.dontOutputResult)
 	{	// in case output is not forbidden
 		if ((args.command == COMMAND_LOAD) ||
+			(args.command == COMMAND_WITNESS) ||
 			(args.command == COMMAND_RED))
 		{
 			std::cout << autResult.DumpToString(serializer,

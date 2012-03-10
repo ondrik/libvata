@@ -318,6 +318,13 @@ Arguments parseArguments(int argc, char* argv[])
 
 					parserState = PARSING_LOAD_FILE;
 				}
+				else if (currentArg == "witness")
+				{
+					args.command   = COMMAND_WITNESS;
+					args.operands  = 1;
+
+					parserState = PARSING_LOAD_FILE;
+				}
 				else if (currentArg == "union")
 				{
 					args.command   = COMMAND_UNION;
