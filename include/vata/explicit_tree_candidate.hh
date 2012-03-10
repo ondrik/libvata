@@ -139,7 +139,7 @@ VATA::ExplicitTreeAut<SymbolType> VATA::GetCandidateTree(
 
 				newStates.push_back(info->state_);
 
-				if (aut.IsFinalState(info->state))
+				if (aut.IsFinalState(info->state_))
 					goto found_;
 
 			}
