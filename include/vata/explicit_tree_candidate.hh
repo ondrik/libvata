@@ -66,7 +66,7 @@ VATA::ExplicitTreeAut<SymbolType> VATA::GetCandidateTree(
 	std::unordered_map<StateType, std::vector<TransitionInfoPtr>> stateMap;
 	std::unordered_set<StateType> reachableStates;
 	std::vector<TransitionInfoPtr> reachableTransitions;
-	std::vector<StateType> newStates;
+	std::list<StateType> newStates;
 
 	assert(aut.transitions_);
 
@@ -117,9 +117,9 @@ VATA::ExplicitTreeAut<SymbolType> VATA::GetCandidateTree(
 
 	while (!newStates.empty()) {
 
-		auto i = stateMap.find(newStates.back());
+		auto i = stateMap.find(newStates.front());
 
-		newStates.pop_back();
+		newStates.pop_front();
 
 		if (i == stateMap.end())
 			continue;
