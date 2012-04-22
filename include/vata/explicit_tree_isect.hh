@@ -61,6 +61,8 @@ VATA::ExplicitTreeAut<SymbolType> VATA::Intersection(
 
 	}
 
+	auto transitions = res.transitions_;
+
 	while (!stack.empty()) {
 
 		auto p = stack.back();
@@ -79,6 +81,8 @@ VATA::ExplicitTreeAut<SymbolType> VATA::Intersection(
 
 		assert(leftCluster);
 
+		typename ExplicitTreeAut<SymbolType>::TransitionClusterPtr cluster(nullptr);
+
 		for (auto& leftSymbolStateTupleSetPtr : *leftCluster) {
 
 			auto rightTupleSet =
@@ -86,6 +90,11 @@ VATA::ExplicitTreeAut<SymbolType> VATA::Intersection(
 
 			if (!rightTupleSet)
 				continue;
+
+			if (!cluster)
+				cluster = transitions->uniqueCluster(p->second);
+
+			auto tuplePtrSet = cluster->uniqueTuplePtrSet(leftSymbolStateTupleSetPtr.first);
 
 			for (auto& leftTuplePtr : *leftSymbolStateTupleSetPtr.second) {
 
@@ -111,7 +120,8 @@ VATA::ExplicitTreeAut<SymbolType> VATA::Intersection(
 
 					}
 
-					res.AddTransition(children, leftSymbolStateTupleSetPtr.first, p->second);
+//					res.AddTransition(children, leftSymbolStateTupleSetPtr.first, p->second);
+					tuplePtrSet->insert(res.tupleLookup(children));
 
 				}
 

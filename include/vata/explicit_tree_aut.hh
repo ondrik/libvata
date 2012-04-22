@@ -138,11 +138,13 @@ private:  // private data types
 				std::make_pair(symbol, TuplePtrSetPtr(nullptr))
 			).first->second;
 
-			if (!tupleSet || !tupleSet.unique()) {
+			if (!tupleSet) {
 
-				tupleSet = TuplePtrSetPtr(
-					tupleSet ? (new TuplePtrSet(*tupleSet)) : (new TuplePtrSet())
-				);
+				tupleSet = TuplePtrSetPtr(new TuplePtrSet());
+
+			} else if (!tupleSet.unique()) {
+
+				tupleSet = TuplePtrSetPtr(new TuplePtrSet(*tupleSet));
 
 			}
 
@@ -166,11 +168,13 @@ private:  // private data types
 				std::make_pair(state, TransitionClusterPtr(nullptr))
 			).first->second;
 
-			if (!cluster || !cluster.unique()) {
+			if (!cluster) {
 
-				cluster = TransitionClusterPtr(
-					cluster ? (new TransitionCluster(*cluster)) : (new TransitionCluster())
-				);
+				cluster = TransitionClusterPtr(new TransitionCluster());
+
+			} else if (!cluster.unique()) {
+
+				cluster = TransitionClusterPtr(new TransitionCluster(*cluster));
 
 			}
 
