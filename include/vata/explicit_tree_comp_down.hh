@@ -11,10 +11,13 @@
 #ifndef _VATA_EXPLICIT_TREE_COMP_DOWN_HH_
 #define _VATA_EXPLICIT_TREE_COMP_DOWN_HH_
 
+#include <vector>
+#include <unordered_set>
+#include <unordered_map>
+
 #include <vata/explicit_tree_aut.hh>
-#include <vata/util/cache.hh>
 #include <vata/util/antichain1c.hh>
-#include <vata/util/caching_allocator.hh>
+#include <vata/util/transl_strict.hh>
 
 namespace VATA {
 
@@ -27,17 +30,6 @@ class VATA::ExplicitDownwardComplementation {
 	typedef std::vector<const Explicit::StateTuple*> TupleList;
 	typedef std::vector<TupleList> IndexedTupleList;
 	typedef std::vector<IndexedTupleList> DoubleIndexedTupleList;
-
-	typedef VATA::Explicit::StateType SmallerType;
-	typedef std::vector<VATA::Explicit::StateType> StateSet;
-
-	typedef typename VATA::Util::Cache<StateSet> BiggerTypeCache;
-
-	typedef typename BiggerTypeCache::TPtr BiggerType;
-
-	typedef typename VATA::Util::Antichain1C<SmallerType> Antichain1C;
-
-	typedef VATA::Explicit::StateTuple StateTuple;
 
 private:
 
@@ -58,6 +50,8 @@ private:
 		}
 
 		void init(size_t size, size_t arity) {
+
+			assert(size);
 
 			this->data_ = std::vector<size_t>(size, 0);
 			this->arity_ = arity;
@@ -154,6 +148,12 @@ public:
 	template <class Aut, class Dict, class Rel>
 	static void Compute(Aut& dst, const Aut& src, const Dict& alphabet, const Rel& preorder) {
 
+		typedef std::vector<VATA::Explicit::StateType> StateSet;
+		typedef typename VATA::Util::Antichain1C<VATA::Explicit::StateType> Antichain1C;
+		typedef VATA::Explicit::StateTuple StateTuple;
+		typedef std::unordered_map<StateSet, size_t> StateCache;
+		typedef const StateCache::value_type* StateCachePtr;
+
 		DoubleIndexedTupleList transitionIndex;
 
 		std::unordered_map<typename Aut::SymbolType, size_t> symbolMap;
@@ -175,7 +175,9 @@ public:
 
 		}
 
-		Util::TranslatorStrict<Dictionary> symbolTranslator(symbolMap);
+		Util::TranslatorStrict<
+			std::unordered_map<typename Aut::SymbolType, size_t>
+		> symbolTranslator(symbolMap);
 
 		ExplicitDownwardComplementation::topDownIndex(transitionIndex, symbolTranslator, src);
 
@@ -209,13 +211,12 @@ public:
 
 		std::sort(tmp.begin(), tmp.end());
 
-		BiggerTypeCache biggerTypeCache;
+		StateCache stateCache;
 
-		std::pair<BiggerType, size_t> P = std::make_pair(biggerTypeCache.lookup(tmp), 0);
+		auto P = &*stateCache.insert(std::make_pair(tmp, 0)).first;
 
-		std::unordered_map<BiggerType, size_t> stateMap, todo;
+		std::unordered_set<StateCachePtr> todo;
 
-		stateMap.insert(P);
 		todo.insert(P);
 
 		ChoiceFunction choiceFunction;
@@ -234,7 +235,7 @@ public:
 
 				W.clear();
 
-				for (auto& state : *P.first) {
+				for (auto& state : P->first) {
 
 					if (transitionIndex.size() <= state)
 						continue;
@@ -255,6 +256,34 @@ public:
 
 				assert(symbolIndexPair.second < ranks.size());
 
+				if (W.empty()) {
+
+					if (ranks[symbolIndexPair.second] == 0) {
+
+						dst.AddTransition(StateTuple(), symbolIndexPair.first, P->second);
+
+						continue;
+
+					}
+
+					auto p = stateCache.insert(std::make_pair(StateSet(), stateCache.size()));
+
+					if (p.second)
+						todo.insert(&*p.first);
+
+					dst.AddTransition(
+						StateTuple(ranks[symbolIndexPair.second], p.first->second),
+						symbolIndexPair.first,
+						P->second
+					);
+
+					continue;
+
+				}
+
+				if (ranks[symbolIndexPair.second] == 0)
+					continue;
+
 				choiceFunction.init(W.size(), /* arity */ ranks[symbolIndexPair.second]);
 
 				do {
@@ -264,9 +293,9 @@ public:
 
 						auto choice = choiceFunction[i];
 
-						assert(choice < W[i].size());
+						assert(choice < W[i]->size());
 
-						auto state = W[i][choice];
+						auto state = (*W[i])[choice];
 
 						assert(state < ind.size());
 
@@ -290,20 +319,18 @@ public:
 
 						std::sort(tmp.begin(), tmp.end());
 
-						auto p = stateMap.insert(
-							std::make_pair(biggerTypeCache.lookup(tmp), stateMap.size())
-						);
+						auto p = stateCache.insert(std::make_pair(tmp, stateCache.size()));
 
 						if (p.second)
-							todo.insert(*p.first);
+							todo.insert(&*p.first);
 
 						stateTuple[i] = p.first->second;
 
 					}
 
-					dst.AddTransition(stateTuple, symbolIndexPair.first, P.second);
+					dst.AddTransition(stateTuple, symbolIndexPair.first, P->second);
 
-				} while (top.choiceFunction.next());
+				} while (choiceFunction.next());
 
 			}
 
