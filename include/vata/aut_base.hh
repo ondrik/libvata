@@ -37,6 +37,12 @@ namespace VATA
 		throw std::runtime_error("Unimplemented.");
 	}
 
+	template <class Automaton, class Dict>
+	Automaton Complement(const Automaton& aut, const Dict& alphabet)
+	{
+		throw std::runtime_error("Unimplemented.");
+	}
+
 }
 
 

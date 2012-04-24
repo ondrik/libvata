@@ -19,6 +19,7 @@
 #include <vata/explicit_tree_useless.hh>
 #include <vata/explicit_tree_unreach.hh>
 #include <vata/explicit_tree_candidate.hh>
+#include <vata/explicit_tree_comp_down.hh>
 #include <vata/explicit_tree_transl.hh>
 #include <vata/explicit_tree_incl_up.hh>
 #include <vata/down_tree_incl_fctor.hh>
@@ -226,6 +227,44 @@ namespace VATA {
 			),
 			sim,
 			Util::TranslatorStrict<StateDict>(stateDict)
+		);
+
+	}
+
+	template <class SymbolType, class Dict, class Rel>
+	ExplicitTreeAut<SymbolType> ComplementWithPreorder(const ExplicitTreeAut<SymbolType>& aut,
+		const Dict& alphabet, const Rel& preorder) {
+
+		ExplicitTreeAut<SymbolType> res;
+
+		ExplicitDownwardComplementation::Compute(res, aut, alphabet, preorder);
+
+		return RemoveUselessStates(aut);
+
+	}
+
+	template <class SymbolType, class Dict>
+	ExplicitTreeAut<SymbolType> Complement(const ExplicitTreeAut<SymbolType>& aut,
+		const Dict& alphabet) {
+
+		typedef AutBase::StateType StateType;
+		typedef std::unordered_map<StateType, StateType> StateDict;
+
+		StateDict stateDict;
+
+		size_t stateCnt = 0;
+		Util::TranslatorWeak<StateDict> stateTranslator(
+			stateDict, [&stateCnt](const StateType&){ return stateCnt++; }
+		);
+
+		aut.BuildStateIndex(stateTranslator);
+
+		return ComplementWithPreorder(
+			aut,
+			alphabet,
+			ComputeDownwardSimulation(
+				aut, stateDict.size(), Util::TranslatorStrict<StateDict>(stateDict)
+			)
 		);
 
 	}
