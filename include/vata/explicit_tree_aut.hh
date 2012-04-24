@@ -96,6 +96,7 @@ GCC_DIAG_ON(effc++)
 		const Rel&, const Index&);
 
 	friend class ExplicitUpwardInclusion;
+	friend class ExplicitDownwardComplementation;
 
 public:   // public data types
 

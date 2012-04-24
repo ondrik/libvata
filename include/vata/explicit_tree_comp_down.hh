@@ -1,0 +1,316 @@
+/*****************************************************************************
+ *  VATA Tree Automata Library
+ *
+ *  Copyright (c) 2012  Jiri Simacek <isimacek@fit.vutbr.cz>
+ *
+ *  Description:
+ *    Downward complementation for explicitly represented tree automata.
+ *
+ *****************************************************************************/
+
+#ifndef _VATA_EXPLICIT_TREE_COMP_DOWN_HH_
+#define _VATA_EXPLICIT_TREE_COMP_DOWN_HH_
+
+#include <vata/explicit_tree_aut.hh>
+#include <vata/util/cache.hh>
+#include <vata/util/antichain1c.hh>
+#include <vata/util/caching_allocator.hh>
+
+namespace VATA {
+
+	class ExplicitDownwardComplementation;
+
+}
+
+class VATA::ExplicitDownwardComplementation {
+
+	typedef std::vector<const Explicit::StateTuple*> TupleList;
+	typedef std::vector<TupleList> IndexedTupleList;
+	typedef std::vector<IndexedTupleList> DoubleIndexedTupleList;
+
+	typedef VATA::Explicit::StateType SmallerType;
+	typedef std::vector<VATA::Explicit::StateType> StateSet;
+
+	typedef typename VATA::Util::Cache<StateSet> BiggerTypeCache;
+
+	typedef typename BiggerTypeCache::TPtr BiggerType;
+
+	typedef typename VATA::Util::Antichain1C<SmallerType> Antichain1C;
+
+	typedef VATA::Explicit::StateTuple StateTuple;
+
+private:
+
+	class ChoiceFunction {
+
+		std::vector<size_t> data_;
+		size_t arity_;
+
+	public:
+
+		ChoiceFunction() : data_(), arity_() {}
+
+		void swap(ChoiceFunction& rhs) {
+
+			std::swap(this->data_, rhs.data_);
+			std::swap(this->arity_, rhs.arity_);
+
+		}
+
+		void init(size_t size, size_t arity) {
+
+			this->data_ = std::vector<size_t>(size, 0);
+			this->arity_ = arity;
+
+		}
+
+		bool next() {
+
+			// move to the next choice function
+			size_t index = 0;
+
+			while (++this->data_[index] == this->arity_) {
+
+				this->data_[index] = 0; // reset this counter
+
+				++index;                // move to the next counter
+
+				if (index == this->data_.size()) {
+
+					// if we drop out from the n-tuple
+					return false;
+
+				}
+
+			}
+
+			return true;
+
+		}
+
+		const size_t& operator[](size_t index) {
+
+			assert(index < this->data_.size());
+
+			return this->data_[index];
+
+		}
+
+		size_t size() const {
+
+			return this->data_.size();
+
+		}
+
+		const size_t& arity() const {
+
+			return this->arity_;
+
+		}
+
+	};
+
+	template <class Aut, class SymbolIndex>
+	static void topDownIndex(DoubleIndexedTupleList& topDownIndex, SymbolIndex& symbolIndex,
+		const Aut& aut) {
+
+		for (auto& stateClusterPair : *aut.transitions_) {
+
+			assert(stateClusterPair.second);
+
+			if (stateClusterPair.first >= topDownIndex.size())
+				topDownIndex.resize(stateClusterPair.first + 1);
+
+			auto& indexedTupleList = topDownIndex[stateClusterPair.first];
+
+			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
+
+				assert(symbolTupleSetPair.second);
+				assert(symbolTupleSetPair.second->size());
+
+				auto& symbol = symbolIndex[symbolTupleSetPair.first];
+
+				if (symbol >= indexedTupleList.size())
+					indexedTupleList.resize(symbol + 1);
+
+				auto& tupleList = indexedTupleList[symbol];
+
+				for (auto& tuple : *symbolTupleSetPair.second) {
+
+					assert(tuple);
+
+					tupleList.push_back(tuple.get());
+
+				}
+
+			}
+
+		}
+
+	}
+
+public:
+
+	template <class Aut, class Dict, class Rel>
+	static void Compute(Aut& dst, const Aut& src, const Dict& alphabet, const Rel& preorder) {
+
+		DoubleIndexedTupleList transitionIndex;
+
+		std::unordered_map<typename Aut::SymbolType, size_t> symbolMap;
+
+		std::vector<size_t> ranks;
+
+		size_t maxRank = 0;
+
+		for (auto& symbolRankPair : alphabet) {
+
+			assert(symbolMap.find(symbolRankPair.first) = symbolMap.end());
+
+			symbolMap.insert(std::make_pair(symbolRankPair.first, ranks.size()));
+
+			ranks.push_back(symbolRankPair.second);
+
+			if (maxRank < symbolRankPair.second)
+				maxRank = symbolRankPair.second;
+
+		}
+
+		Util::TranslatorStrict<Dictionary> symbolTranslator(symbolMap);
+
+		ExplicitDownwardComplementation::topDownIndex(transitionIndex, symbolTranslator, src);
+
+		std::vector<std::vector<size_t>> ind, inv;
+
+		preorder.buildIndex(ind, inv);
+
+		std::unordered_set<const StateTuple*> tupleSet;
+
+		std::vector<const StateTuple*> W;
+
+		std::vector<Antichain1C> post(maxRank);
+
+		for (auto state : src.finalStates_) {
+
+			assert(state < ind.size());
+
+			if (post[0].contains(ind[state]))
+				continue;
+
+			assert(state < inv.size());
+
+			post[0].refine(inv[state]);
+			post[0].insert(state);
+
+		}
+
+		StateSet tmp = StateSet(post[0].data().begin(), post[0].data().end());
+
+		post[0].clear();
+
+		std::sort(tmp.begin(), tmp.end());
+
+		BiggerTypeCache biggerTypeCache;
+
+		std::pair<BiggerType, size_t> P = std::make_pair(biggerTypeCache.lookup(tmp), 0);
+
+		std::unordered_map<BiggerType, size_t> stateMap, todo;
+
+		stateMap.insert(P);
+		todo.insert(P);
+
+		ChoiceFunction choiceFunction;
+
+		dst.addFinalState(0);
+
+		while (todo.size()) {
+
+			P = *todo.begin();
+
+			todo.erase(todo.begin());
+
+			for (auto symbolIndexPair : alphabet) {
+
+				tupleSet.clear();
+
+				W.clear();
+
+				for (auto& state : *P.first) {
+
+					if (transitionIndex.size() <= state)
+						continue;
+
+					auto& biggerCluster = transitionIndex[state];
+
+					if (biggerCluster.size() <= symbolIndexPair.second)
+						continue;
+
+					for (auto& tuple : biggerCluster[symbolIndexPair.second]) {
+
+						if (tupleSet.insert(tuple).second)
+							W.push_back(tuple);
+
+					}
+
+				}
+
+				assert(symbolIndexPair.second < ranks.size());
+
+				choiceFunction.init(W.size(), /* arity */ ranks[symbolIndexPair.second]);
+
+				do {
+
+					// we loop for each choice function
+					for (auto i = 0; i < choiceFunction.size(); ++i) {
+
+						auto choice = choiceFunction[i];
+
+						assert(choice < W[i].size());
+
+						auto state = W[i][choice];
+
+						assert(state < ind.size());
+
+						if (post[choice].contains(ind[state]))
+							continue;
+
+						assert(state < inv.size());
+
+						post[choice].refine(inv[state]);
+						post[choice].insert(state);
+
+					}
+
+					StateTuple stateTuple(choiceFunction.arity());
+
+					for (auto i = 0; i < choiceFunction.arity(); ++i) {
+
+						tmp = StateSet(post[i].data().begin(), post[0].data().end());
+
+						post[i].clear();
+
+						std::sort(tmp.begin(), tmp.end());
+
+						auto p = stateMap.insert(
+							std::make_pair(biggerTypeCache.lookup(tmp), stateMap.size())
+						);
+
+						if (p.second)
+							todo.insert(*p.first);
+
+						stateTuple[i] = p.first->second;
+
+					}
+
+					dst.AddTransition(stateTuple, symbolIndexPair.first, P.second);
+
+				} while (top.choiceFunction.next());
+
+			}
+
+		}
+
+	}
+
+};
+
+#endif
