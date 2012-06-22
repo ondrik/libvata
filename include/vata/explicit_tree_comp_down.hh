@@ -313,7 +313,7 @@ public:
 
 					for (auto i = 0; i < choiceFunction.arity(); ++i) {
 
-						tmp = StateSet(post[i].data().begin(), post[0].data().end());
+						tmp = StateSet(post[i].data().begin(), post[i].data().end());
 
 						post[i].clear();
 
