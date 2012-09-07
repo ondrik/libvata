@@ -214,6 +214,17 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	{
 		autResult = GetCandidateTree(autInput1);
 	}
+	else if (args.command == COMMAND_COMPLEMENT)
+	{
+		std::vector<std::pair<typename Aut::SymbolType, size_t>> alphabet;
+
+		for (auto stringNumberPair : autInput1.GetSymbolDict())
+		{
+			alphabet.push_back(std::make_pair(stringNumberPair.second, 0));
+		}
+
+		autResult = Complement(autInput1, alphabet);
+	}
 	else if (args.command == COMMAND_UNION)
 	{
 		autResult = Union(autInput1, autInput2, &opTranslMap1, &opTranslMap2);
