@@ -40,6 +40,9 @@ namespace VATA
 	template <class Automaton, class Dict>
 	Automaton Complement(const Automaton& aut, const Dict& alphabet)
 	{
+		if ((nullptr == &aut) && (nullptr == &alphabet))
+		{ }
+
 		throw std::runtime_error("Unimplemented.");
 	}
 

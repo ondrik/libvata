@@ -91,6 +91,12 @@ namespace VATA
 	{
 		return CheckDownwardInclusion(smaller, bigger);
 	}
+
+	template <class SymbolType, class Dict>
+	BDDTopDownTreeAut Complement(const BDDTopDownTreeAut& aut,
+		const Dict& alphabet) {
+		throw std::runtime_error("Unimplemented");
+	}
 }
 
 #endif
