@@ -71,6 +71,9 @@ public:   // data types
 
 	typedef VATA::MTBDDPkg::OndriksMTBDD<StateTupleSet> TransMTBDD;
 
+	// FIXME: only stub
+	typedef std::vector<SymbolType> AlphabetType;
+
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class UnionApplyFunctor :
 		public VATA::MTBDDPkg::Apply2Functor<UnionApplyFunctor, StateTupleSet,
@@ -585,6 +588,12 @@ public:   // public methods
 	{
 		return lhs.transTable_ == rhs.transTable_;
 	}
+
+	static inline AlphabetType GetAlphabet()
+	{
+		throw std::runtime_error("unimplemented");
+	}
+
 };
 
 #endif

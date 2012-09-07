@@ -57,6 +57,9 @@ public:   // data types
 	typedef VATA::Util::TranslatorStrict<typename StringToSymbolDict::MapBwdType>
 		SymbolBackTranslatorStrict;
 
+	// FIXME: only stub
+	typedef std::vector<SymbolType> AlphabetType;
+
 private:  // data types
 
 	typedef size_t MTBDDHandle;
@@ -756,6 +759,11 @@ public:   // methods
 		const BDDBottomUpTreeAut& rhs)
 	{
 		return lhs.transTable_.GetTable() == rhs.transTable_.GetTable();
+	}
+
+	static inline AlphabetType GetAlphabet()
+	{
+		throw std::runtime_error("unimplemented");
 	}
 };
 

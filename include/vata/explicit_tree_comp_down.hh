@@ -31,6 +31,8 @@ class VATA::ExplicitDownwardComplementation {
 	typedef std::vector<TupleList> IndexedTupleList;
 	typedef std::vector<IndexedTupleList> DoubleIndexedTupleList;
 
+	typedef VATA::Util::Convert Convert;
+
 private:
 
 	class ChoiceFunction {
@@ -146,8 +148,12 @@ private:
 public:
 
 	template <class Aut, class Dict, class Rel>
-	static void Compute(Aut& dst, const Aut& src, const Dict& alphabet, const Rel& preorder) {
-
+	static void Compute(
+		Aut&                     dst,
+		const Aut&               src,
+		const Dict&              alphabet,
+		const Rel&               preorder)
+	{
 		typedef std::vector<VATA::Explicit::StateType> StateSet;
 		typedef typename VATA::Util::Antichain1C<VATA::Explicit::StateType> Antichain1C;
 		typedef VATA::Explicit::StateTuple StateTuple;
@@ -162,8 +168,9 @@ public:
 
 		size_t maxRank = 0;
 
-		for (auto& symbolRankPair : alphabet) {
-
+		for (auto& symbolRankPair : alphabet)
+		{
+			// assert the symbol has not been processed
 			assert(symbolMap.end() == symbolMap.find(symbolRankPair.first));
 
 			symbolMap.insert(std::make_pair(symbolRankPair.first, ranks.size()));
@@ -172,7 +179,6 @@ public:
 
 			if (maxRank < symbolRankPair.second)
 				maxRank = symbolRankPair.second;
-
 		}
 
 		Util::TranslatorStrict<
@@ -331,13 +337,9 @@ public:
 					dst.AddTransition(stateTuple, symbolIndexPair.first, P->second);
 
 				} while (choiceFunction.next());
-
 			}
-
 		}
-
 	}
-
 };
 
 #endif

@@ -113,7 +113,26 @@ public:   // public data types
 
 	typedef Symbol SymbolType;
 
-	typedef VATA::Util::TwoWayDict<std::string, SymbolType> StringToSymbolDict;
+	struct StringRank
+	{
+		std::string symbolStr;
+		size_t rank;
+
+		StringRank(const std::string& symbolStr, size_t rank) :
+			symbolStr(symbolStr),
+			rank(rank)
+		{ }
+
+		bool operator<(const StringRank& rhs) const
+		{
+			return ((rank < rhs.rank) ||
+				((rank == rhs.rank) && (symbolStr < rhs.symbolStr)));
+		}
+	};
+
+	typedef std::vector<std::pair<SymbolType, size_t>> AlphabetType;
+
+	typedef VATA::Util::TwoWayDict<StringRank, SymbolType> StringToSymbolDict;
 
 	typedef VATA::Util::TranslatorStrict<StringToSymbolDict> SymbolTranslatorStrict;
 	typedef VATA::Util::TranslatorStrict<typename StringToSymbolDict::MapBwdType>
@@ -615,6 +634,7 @@ public:   // public methods
 
 	void LoadFromAutDesc(const AutDescription& desc, StringToStateDict& stateDict)
 	{
+
 		typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
 			StateTranslator;
 		typedef VATA::Util::TranslatorWeak<StringToSymbolDict>
@@ -626,7 +646,7 @@ public:   // public methods
 			StateTranslator(stateDict,
 				[&stateCnt](const std::string&){return stateCnt++;}),
 			SymbolTranslator(GetSymbolDict(),
-				[this](const std::string&){return this->AddSymbol();}));
+				[this](const StringRank&){return this->AddSymbol();}));
 	}
 
 	template <class StateTransFunc, class SymbolTransFunc>
@@ -638,9 +658,14 @@ public:   // public methods
 	}
 
 	template <class StateTransFunc, class SymbolTransFunc>
-	void LoadFromAutDesc(const AutDescription& desc,
-		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator,
-		const std::string& /* params */ = "") {
+	void LoadFromAutDesc(
+		const AutDescription&          desc,
+		StateTransFunc                 stateTranslator,
+		SymbolTransFunc                symbolTranslator,
+		const std::string&             /* params */ = "")
+	{
+		for (auto symbolRankPair : desc.symbols)
+			symbolTranslator(StringRank(symbolRankPair.first, symbolRankPair.second));
 
 		for (auto s : desc.finalStates)
 			this->finalStates_.insert(stateTranslator(s));
@@ -659,7 +684,10 @@ public:   // public methods
 				children.push_back(stateTranslator(c));
 			}
 
-			this->AddTransition(children, symbolTranslator(symbolStr), stateTranslator(parentStr));
+			this->AddTransition(
+				children,
+				symbolTranslator(StringRank(symbolStr, children.size())),
+				stateTranslator(parentStr));
 		}
 	}
 
@@ -676,38 +704,75 @@ public:   // public methods
 	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
 		const StringToStateDict& stateDict) const
 	{
+		struct SymbolTranslatorPrinter
+		{
+			const SymbolBackTranslatorStrict* translator;
+
+			const std::string& operator()(const SymbolType& sym) const
+			{
+				throw std::runtime_error("unimplemented");
+			}
+		};
+
+		SymbolTranslatorPrinter printer;
+		printer.translator = SymbolBackTranslatorStrict(GetSymbolDict().GetReverseMap());
+
 		return DumpToString(serializer,
 			StateBackTranslatorStrict(stateDict.GetReverseMap()),
-			SymbolBackTranslatorStrict(GetSymbolDict().GetReverseMap()));
+			printer);
 	}
 
 	template <class StatePrintFunc, class SymbolPrintFunc>
-	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
-		StatePrintFunc statePrinter, SymbolPrintFunc symbolPrinter,
-		const std::string& /* params */ = "") const {
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&     serializer,
+		StatePrintFunc                            statePrinter,
+		SymbolPrintFunc                           symbolPrinter,
+		const std::string&                        /* params */ = "") const
+	{
+		struct SymbolTranslatorPrinter
+		{
+			const SymbolPrintFunc& printFunc;
+
+			SymbolTranslatorPrinter(const SymbolPrintFunc& printFunc) :
+				printFunc(printFunc)
+			{ }
+
+			std::string operator()(const SymbolType& sym) const
+			{
+				if (nullptr == &sym)
+				{ }
+
+				return printFunc(sym).symbolStr;
+			}
+		};
+
+		SymbolTranslatorPrinter printer(symbolPrinter);
 
 		AutDescription desc;
 
 		for (auto& s : this->finalStates_)
+		{
 			desc.finalStates.insert(statePrinter(s));
+		}
 
-		for (auto t : *this) {
-
+		for (auto t : *this)
+		{
 			std::vector<std::string> tupleStr;
 
 			for (auto& s : t.children())
+			{
 				tupleStr.push_back(statePrinter(s));
+			}
 
-			desc.transitions.insert(
-				AutDescription::Transition(
-					tupleStr, symbolPrinter(t.symbol()), statePrinter(t.state())
-				)
-			);
+			AutDescription::Transition trans(
+				tupleStr,
+				printer(t.symbol()),
+				statePrinter(t.state()));
 
+			desc.transitions.insert(trans);
 		}
 
 		return serializer.Serialize(desc);
-
 	}
 
 	inline const StateSet& GetFinalStates() const {
@@ -919,6 +984,20 @@ public:
 	{
 		return DownInclStateTupleVector(tupleSet.begin(), tupleSet.end());
 	}
+
+	static AlphabetType GetAlphabet()
+	{
+		AlphabetType alphabet;
+		for (auto stringRankAndSymbolPair : GetSymbolDict())
+		{
+			alphabet.push_back(std::make_pair(
+				stringRankAndSymbolPair.second,
+				stringRankAndSymbolPair.first.rank));
+		}
+
+		return alphabet;
+	}
+
 };
 
 template <class Symbol>

@@ -216,14 +216,7 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	}
 	else if (args.command == COMMAND_COMPLEMENT)
 	{
-		std::vector<std::pair<typename Aut::SymbolType, size_t>> alphabet;
-
-		for (auto stringNumberPair : autInput1.GetSymbolDict())
-		{
-			alphabet.push_back(std::make_pair(stringNumberPair.second, 0));
-		}
-
-		autResult = Complement(autInput1, alphabet);
+		autResult = Complement(autInput1, autInput1.GetAlphabet());
 	}
 	else if (args.command == COMMAND_UNION)
 	{
