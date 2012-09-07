@@ -261,10 +261,10 @@ namespace VATA {
 
 		return ComplementWithPreorder(
 			aut,
-			alphabet,
-			ComputeDownwardSimulation(
+			alphabet, Util::Identity(stateCnt)
+			/* ComputeDownwardSimulation(
 				aut, stateDict.size(), Util::TranslatorStrict<StateDict>(stateDict)
-			)
+			)*/
 		);
 
 	}

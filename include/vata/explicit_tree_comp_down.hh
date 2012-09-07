@@ -122,7 +122,7 @@ private:
 				assert(symbolTupleSetPair.second);
 				assert(symbolTupleSetPair.second->size());
 
-				auto& symbol = symbolIndex[symbolTupleSetPair.first];
+				const auto& symbol = symbolIndex[symbolTupleSetPair.first];
 
 				if (symbol >= indexedTupleList.size())
 					indexedTupleList.resize(symbol + 1);
@@ -151,7 +151,7 @@ public:
 		typedef std::vector<VATA::Explicit::StateType> StateSet;
 		typedef typename VATA::Util::Antichain1C<VATA::Explicit::StateType> Antichain1C;
 		typedef VATA::Explicit::StateTuple StateTuple;
-		typedef std::unordered_map<StateSet, size_t> StateCache;
+		typedef std::unordered_map<StateSet, size_t, boost::hash<StateSet>> StateCache;
 		typedef const StateCache::value_type* StateCachePtr;
 
 		DoubleIndexedTupleList transitionIndex;
@@ -164,7 +164,7 @@ public:
 
 		for (auto& symbolRankPair : alphabet) {
 
-			assert(symbolMap.find(symbolRankPair.first) = symbolMap.end());
+			assert(symbolMap.end() == symbolMap.find(symbolRankPair.first));
 
 			symbolMap.insert(std::make_pair(symbolRankPair.first, ranks.size()));
 
@@ -189,7 +189,7 @@ public:
 
 		std::vector<const StateTuple*> W;
 
-		std::vector<Antichain1C> post(maxRank);
+		std::vector<Antichain1C> post((maxRank == 0)? 1 : maxRank);
 
 		for (auto state : src.finalStates_) {
 
@@ -213,23 +213,23 @@ public:
 
 		StateCache stateCache;
 
-		auto P = &*stateCache.insert(std::make_pair(tmp, 0)).first;
+		auto R = &*stateCache.insert(std::make_pair(tmp, 0)).first;
 
 		std::unordered_set<StateCachePtr> todo;
 
-		todo.insert(P);
+		todo.insert(R);
 
 		ChoiceFunction choiceFunction;
 
-		dst.addFinalState(0);
+		dst.SetStateFinal(0);
 
 		while (todo.size()) {
 
-			P = *todo.begin();
+			const auto P = *todo.begin();
 
 			todo.erase(todo.begin());
 
-			for (auto symbolIndexPair : alphabet) {
+			for (auto symbolIndexPair : symbolMap) {
 
 				tupleSet.clear();
 
@@ -289,7 +289,7 @@ public:
 				do {
 
 					// we loop for each choice function
-					for (auto i = 0; i < choiceFunction.size(); ++i) {
+					for (size_t i = 0; i < choiceFunction.size(); ++i) {
 
 						auto choice = choiceFunction[i];
 
@@ -311,7 +311,7 @@ public:
 
 					StateTuple stateTuple(choiceFunction.arity());
 
-					for (auto i = 0; i < choiceFunction.arity(); ++i) {
+					for (size_t i = 0; i < choiceFunction.arity(); ++i) {
 
 						tmp = StateSet(post[i].data().begin(), post[i].data().end());
 
