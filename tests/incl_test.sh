@@ -18,20 +18,27 @@ SCRIPTPATH=`dirname $SCRIPT`
 
 METHODS=( 
   "expldown"
-  "expldown-sim"
-  "expldown-sim-nosimtime"
   "expldown-optC"
+  "expldown-nonrec"
+
+  "expldown-sim"
   "expldown-sim-optC"
+  "expldown-sim-nonrec"
+
+  "expldown-sim-nosimtime"
   "expldown-sim-optC-nosimtime"
+  "expldown-sim-nonrec-nosimtime"
+
+  "explup"
+  "explup-sim"
+  "explup-sim-nosimtime"
+
  # "old-expldown"
  # "old-expldown-sim"
  # "old-expldown-sim-nosimtime"
  # "old-expldown-optC"
  # "old-expldown-sim-optC"
  # "old-expldown-sim-optC-nosimtime"
-  "explup"
-  "explup-sim"
-  "explup-sim-nosimtime"
  # "symdown"
  # "symdown-sim"
  # "symdown-sim-nosimtime"
