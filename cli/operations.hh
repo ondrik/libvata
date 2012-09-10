@@ -31,6 +31,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	options.insert(std::make_pair("dir", "up"));
 	options.insert(std::make_pair("optC", "no"));
 	options.insert(std::make_pair("timeS", "yes"));
+	options.insert(std::make_pair("rec", "yes"));
 
 	std::runtime_error optErrorEx("Invalid options for inclusion: " +
 			Convert::ToString(options));
@@ -50,7 +51,18 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 		{
 			if (options["optC"] == "no")
 			{
-				return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, ident);
+				if (options["rec"] == "yes")
+				{
+					return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, ident);
+				}
+				else if (options["rec"] == "no")
+				{
+					return VATA::CheckDownwardInclusionNonRecWithPreorder(smaller, bigger, ident);
+				}
+				else
+				{
+					throw optErrorEx;
+				}
 			}
 			else if (options["optC"] == "yes")
 			{
@@ -103,7 +115,18 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 				throw optErrorEx;
 			}
 
-			return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, sim);
+			if (options["rec"] == "yes")
+			{
+				return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, sim);
+			}
+			else if (options["rec"] == "no")
+			{
+				return VATA::CheckDownwardInclusionNonRecWithPreorder(smaller, bigger, sim);
+			}
+			else
+			{
+				throw optErrorEx;
+			}
 		}
 		else
 		{
