@@ -23,6 +23,9 @@
 	#define DEBUG 0
 #endif
 
+// forces explicit automata to behave deterministically (default 0)
+#define VATA_EXPLICIT_ORDERED_TUPLES	0
+
 #define VATA_LOGGER_PREFIX (std::string(__FILE__ ":" + VATA::Util::Convert::ToString(__LINE__) + ": "))
 
 #define VATA_LOGGER_LOG_MESSAGE(severity, msg) (std::clog << (VATA_LOGGER_PREFIX) + (msg) + std::string("\n"))

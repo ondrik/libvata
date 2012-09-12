@@ -102,8 +102,6 @@ public:   // public data types
 	typedef Explicit::StateTuple StateTuple;
 	typedef Explicit::TuplePtr TuplePtr;
 	typedef std::vector<TuplePtr> StateTupleSet;
-	typedef std::set<TuplePtr> DownInclStateTupleSet;
-	typedef std::vector<TuplePtr> DownInclStateTupleVector;
 
 	typedef Explicit::StateSet StateSet;
 	typedef Explicit::TupleCache TupleCache;
@@ -119,10 +117,37 @@ public:   // public data types
 private:  // private data types
 
 	typedef VATA::Util::AutDescription AutDescription;
+
+#if VATA_EXPLICIT_ORDERED_TUPLES
+
+	struct TupleCmp {
+
+		bool operator()(const TuplePtr& lhs, const TuplePtr& rhs) {
+
+			return *lhs < *rhs;
+
+		}
+
+	};
+
+	typedef std::set<TuplePtr, TupleCmp> TuplePtrSet;
+
+#else
+
 	typedef std::set<TuplePtr> TuplePtrSet;
+
+#endif
+
 	typedef std::shared_ptr<TuplePtrSet> TuplePtrSetPtr;
 
 	typedef VATA::Util::Convert Convert;
+
+public:
+
+	typedef TuplePtrSet DownInclStateTupleSet;
+	typedef std::vector<TuplePtr> DownInclStateTupleVector;
+
+private:
 
 	GCC_DIAG_OFF(effc++)
 	class TransitionCluster : public std::unordered_map<SymbolType, TuplePtrSetPtr> {
@@ -258,7 +283,7 @@ public:
 		const ExplicitTreeAut& aut_;
 		typename StateToTransitionClusterMap::const_iterator stateClusterIterator_;
 		typename TransitionCluster::const_iterator symbolSetIterator_;
-		TuplePtrSet::const_iterator tupleIterator_;
+		typename TuplePtrSet::const_iterator tupleIterator_;
 
 		Iterator(int, const ExplicitTreeAut& aut) : aut_(aut), stateClusterIterator_(),
 			symbolSetIterator_(), tupleIterator_() {}
@@ -296,7 +321,7 @@ public:
 				return *this;
 			}
 
-			this->tupleIterator_ = TuplePtrSet::const_iterator();
+			this->tupleIterator_ = typename TuplePtrSet::const_iterator();
 
 			return *this;
 
@@ -361,7 +386,7 @@ public:
 			StateSet::const_iterator stateSetIterator_;
 			typename StateToTransitionClusterMap::const_iterator stateClusterIterator_;
 			typename TransitionCluster::const_iterator symbolSetIterator_;
-			TuplePtrSet::const_iterator tupleIterator_;
+			typename TuplePtrSet::const_iterator tupleIterator_;
 
 			Iterator(int, const ExplicitTreeAut& aut) : aut_(aut), stateSetIterator_(),
 				stateClusterIterator_(), symbolSetIterator_(), tupleIterator_() {}
@@ -478,7 +503,7 @@ public:
 			const ClusterAccessor& accessor_;
 
 			typename TransitionCluster::const_iterator symbolSetIterator_;
-			TuplePtrSet::const_iterator tupleIterator_;
+			typename TuplePtrSet::const_iterator tupleIterator_;
 
 			Iterator(int, ClusterAccessor& accessor) : accessor_(accessor), symbolSetIterator_(),
 				tupleIterator_() {}
