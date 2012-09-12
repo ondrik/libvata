@@ -61,7 +61,7 @@ const char VATA_USAGE_COMMANDS[] =
 	"    help                    Display this message\n"
 	"    load    <file>          Load automaton from <file>\n"
 	"    witness <file>          Get a witness for automaton in <file>\n"
-	"    cmpl    <file>          Complement automaton from <file>\n"
+	"    cmpl    <file>          Complement automaton from <file> [experimental]\n"
 	"    union <file1> <file2>   Compute union of automata from <file1> and <file2>\n"
 	"    isect <file1> <file2>   Compute intersection of automata from <file1> and\n"
 	"                            <file2>\n"

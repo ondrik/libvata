@@ -239,7 +239,7 @@ namespace VATA {
 
 		ExplicitDownwardComplementation::Compute(res, aut, alphabet, preorder);
 
-		return RemoveUselessStates(aut);
+		return RemoveUselessStates(res);
 
 	}
 
