@@ -231,7 +231,8 @@ namespace VATA {
 	bool CheckUpwardInclusionWithPreorder(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
 
-		return ExplicitUpwardInclusion::Check(smaller, bigger, preorder);
+		return ExplicitUpwardInclusion::Check(smaller, smaller.GetFinalStates(), bigger,
+			bigger.GetFinalStates(), preorder);
 
 	}
 
@@ -241,7 +242,8 @@ namespace VATA {
 		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
 
 		return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
-			VATA::OptDownwardInclusionFunctor>(smaller, bigger, preorder);
+			VATA::OptDownwardInclusionFunctor>(smaller, smaller.GetFinalStates(), bigger,
+			bigger.GetFinalStates(), preorder);
 	}
 
 	template <class SymbolType, class Rel>
@@ -249,7 +251,8 @@ namespace VATA {
 		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
 
 		return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
-			VATA::DownwardInclusionFunctor>(smaller, bigger, preorder);
+			VATA::DownwardInclusionFunctor>(smaller, smaller.GetFinalStates(), bigger,
+			bigger.GetFinalStates(), preorder);
 
 	}
 
@@ -257,7 +260,8 @@ namespace VATA {
 	bool CheckDownwardInclusionNonRecWithPreorder(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
 
-		return ExplicitDownwardInclusion::Check(smaller, bigger, preorder);
+		return ExplicitDownwardInclusion::Check(smaller, smaller.GetFinalStates(), bigger,
+			bigger.GetFinalStates(), preorder);
 
 	}
 

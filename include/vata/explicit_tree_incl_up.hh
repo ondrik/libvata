@@ -220,12 +220,13 @@ class VATA::ExplicitUpwardInclusion {
 
 public:
 
-	template <class Aut, class Rel>
-	static bool Check(const Aut& smaller, const Aut& bigger, const Rel& preorder) {
+	template <class Aut, class States, class Rel>
+	static bool Check(const Aut& smaller, const States& sStates, const Aut& bigger,
+		const States& bStates, const Rel& preorder) {
 
-		IndexedSymbolToIndexedTransitionListMap smallerIndex;
-		SymbolToDoubleIndexedTransitionListMap biggerIndex;
-		SymbolToTransitionListMap smallerLeaves, biggerLeaves;
+		IndexedSymbolToIndexedTransitionListMap sIndex;
+		SymbolToDoubleIndexedTransitionListMap bIndex;
+		SymbolToTransitionListMap sLeaves, bLeaves;
 
 		size_t symbolCnt = 0;
 		std::unordered_map<typename Aut::SymbolType, size_t> symbolMap;
@@ -236,11 +237,11 @@ public:
 			);
 
 		ExplicitUpwardInclusion::bottomUpIndex(
-			smaller, smallerIndex, smallerLeaves, symbolTranslator
+			smaller, sIndex, sLeaves, symbolTranslator
 		);
 
 		ExplicitUpwardInclusion::bottomUpIndex2(
-			bigger, biggerIndex, biggerLeaves, symbolTranslator
+			bigger, bIndex, bLeaves, symbolTranslator
 		);
 
 		std::vector<std::vector<size_t>> ind, inv;
@@ -248,14 +249,7 @@ public:
 		preorder.buildIndex(ind, inv);
 
 		return ExplicitUpwardInclusion::checkInternal(
-			smallerLeaves,
-			smallerIndex,
-			smaller.GetFinalStates(),
-			biggerLeaves,
-			biggerIndex,
-			bigger.GetFinalStates(),
-			ind,
-			inv
+			sLeaves, sIndex, sStates, bLeaves, bIndex, bStates, ind, inv
 		);
 
 	}

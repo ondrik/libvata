@@ -63,7 +63,8 @@ namespace VATA
 		const Rel& preorder)
 	{
 		return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
-			DownwardInclusionFunctor>(smaller, bigger, preorder);
+			DownwardInclusionFunctor>(smaller, smaller.GetFinalStates(), bigger,
+			bigger.GetFinalStates(), preorder);
 	}
 
 	template <class Rel>
@@ -83,7 +84,8 @@ namespace VATA
 		const Rel& preorder)
 	{
 		return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
-			OptDownwardInclusionFunctor>(smaller, bigger, preorder);
+			OptDownwardInclusionFunctor>(smaller, smaller.GetFinalStates(), bigger,
+			bigger.GetFinalStates(), preorder);
 	}
 
 	template <class Rel>

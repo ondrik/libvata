@@ -21,10 +21,11 @@ namespace VATA
 	<
 		class Aut,
 		template <class, class> class DownwardInclFctor,
+		class States,
 		class Rel
 	>
-	bool CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger,
-		const Rel& preorder);
+	bool CheckDownwardTreeInclusion(const Aut& smaller, const States& smallerStates,
+		const Aut& bigger, const States& biggerStates, const Rel& preorder);
 }
 
 /**
@@ -39,10 +40,11 @@ template
 <
 	class Aut,
 	template <class, class> class DownwardInclFctor,
+	class States,
 	class Rel
 >
-bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger,
-	const Rel& preorder)
+bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const States& smallerStates,
+	const Aut& bigger, const States& biggerStates, const Rel& preorder)
 {
 	typedef DownwardInclFctor<Aut, Rel> InclFctor;
 
@@ -82,10 +84,9 @@ bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger,
 		preorder, preorderSmaller, preorderBigger, compSmaller, compBigger,
 		antecedent, consequent);
 
-	StateSet finalStatesBigger(bigger.GetFinalStates().begin(),
-		bigger.GetFinalStates().end());
+	StateSet finalStatesBigger(biggerStates.begin(), biggerStates.end());
 
-	for (const StateType& smSt : smaller.GetFinalStates())
+	for (const StateType& smSt : smallerStates)
 	{	// for each final state of the smaller automaton
 		if (downFctor.IsImpliedByPreorder(
 			std::make_pair(smSt,biggerTypeCache.lookup(finalStatesBigger))))

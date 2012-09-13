@@ -70,8 +70,9 @@ private:
 
 public:
 
-	template <class Aut, class Rel>
-	static bool Check(const Aut& smaller, const Aut& bigger, const Rel& preorder) {
+	template <class Aut, class States, class Rel>
+	static bool Check(const Aut& smaller, const States& smallerStates, const Aut& bigger,
+		const States& biggerStates, const Rel& preorder) {
 
 		DoubleIndexedTupleList smallerIndex, biggerIndex;
 
@@ -91,10 +92,11 @@ public:
 		preorder.buildIndex(ind, inv);
 
 		return ExplicitDownwardInclusion::checkInternal(
-			smallerIndex, smaller.GetFinalStates(), biggerIndex, bigger.GetFinalStates(), ind, inv
+			smallerIndex, smallerStates, biggerIndex, biggerStates, ind, inv
 		);
 
 	}
+
 /*
 	template <class Aut, class Rel>
 	static bool CheckOpt(const Aut& smaller, const Aut& bigger, const Rel& preorder) {
