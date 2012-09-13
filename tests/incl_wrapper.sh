@@ -68,6 +68,42 @@ case "${OPERATION}" in
     ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=yes,timeS=no "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
+  expldown-nonrec)
+    ${VATA} -r expl -t incl -o dir=down,sim=no,optC=no,rec=no "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  expldown-sim-nonrec)
+    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=no,timeS=yes,rec=no "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  expldown-sim-nonrec-nosimtime)
+    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=no,timeS=no,rec=no "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  old-expldown)
+    ${OLDVATA} -r expl -t incl -o dir=down,sim=no,optC=no "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  old-expldown-sim)
+    ${OLDVATA} -r expl -t incl -o dir=down,sim=yes,optC=no,timeS=yes "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  old-expldown-sim-nosimtime)
+    ${OLDVATA} -r expl -t incl -o dir=down,sim=yes,optC=no,timeS=no "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  old-expldown-optC)
+    ${OLDVATA} -r expl -t incl -o dir=down,sim=no,optC=yes "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  old-expldown-sim-optC)
+    ${OLDVATA} -r expl -t incl -o dir=down,sim=yes,optC=yes,timeS=yes "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  old-expldown-sim-optC-nosimtime)
+    ${OLDVATA} -r expl -t incl -o dir=down,sim=yes,optC=yes,timeS=no "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
   explup)
     ${VATA} -r expl -t incl -o dir=up,sim=no "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"

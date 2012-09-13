@@ -65,6 +65,12 @@ public:
 
 	Antichain2Cv2() : data_() {}
 
+	void swap(Antichain2Cv2& rhs) {
+
+		std::swap(this->data_, rhs.data_);
+
+	}
+
 	const TList* lookup(const Key& key) const {
 
 		auto i = this->data_.find(key);

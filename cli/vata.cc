@@ -87,6 +87,8 @@ const char VATA_USAGE_COMMANDS[] =
 	"          'sim=no'   : do not use simulation (default)\n"
 	"          'optC=yes' : use optimised cache for downward direction\n"
 	"          'optC=no'  : without optimised cache (default)\n"
+	"          'rec=yes'  : recursive version of downward direction (default)\n"
+	"          'rec=no'   : non-recursive version (only for '-r expl' and 'optC=no')\n"
 	"          'timeS=yes': include time of simulation computation (default)\n"
 	"          'timeS=no' : do not include time of simulation computation\n"
 	;

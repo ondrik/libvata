@@ -97,6 +97,7 @@ GCC_DIAG_ON(effc++)
 
 	friend class ExplicitUpwardInclusion;
 	friend class ExplicitDownwardComplementation;
+	friend class ExplicitDownwardInclusion;
 
 public:   // public data types
 
