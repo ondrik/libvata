@@ -57,6 +57,36 @@ private:  // data members
 
 private:  // methods
 
+	/**
+	 * @brief  Less than or equal comparer of StateSets
+	 *
+	 * Returns @p true if @p lhs is a subset of @p rhs, @p false otherwise.
+	 *
+	 * @param[in]  lhs  The left-hand side
+	 * @param[in]  rhs  The right-hand side
+	 *
+	 * @returns  @p true if @p lhs is a subset of @p rhs, @p false otherwise
+	 */
+	static bool lteComparer(const StateSet& lhs, const StateSet& rhs)
+	{
+		return lhs.IsSubsetOf(rhs);
+	}
+
+	/**
+	 * @brief  Greater than or equal comparer of StateSets
+	 *
+	 * Returns @p true if @p lhs is a superset of @p rhs, @p false otherwise.
+	 *
+	 * @param[in]  lhs  The left-hand side
+	 * @param[in]  rhs  The right-hand side
+	 *
+	 * @returns  @p true if @p lhs is a superset of @p rhs, @p false otherwise
+	 */
+	static bool gteComparer(const StateSet& lhs, const StateSet& rhs)
+	{
+		return rhs.IsSubsetOf(lhs);
+	}
+
 	inline void failProcessing()
 	{
 		inclusionHolds_ = false;
@@ -66,20 +96,17 @@ private:  // methods
 	bool isImplied(const StateType& smallerState, const StateSet& biggerSet) const
 	{
 		std::vector<StateType> tmpList = {smallerState};
-		return antichain_.contains(tmpList, biggerSet,
-			[](const StateSet& lhs, const StateSet& rhs){return lhs.IsSubsetOf(rhs);});
+		return antichain_.contains(tmpList, biggerSet, lteComparer);
 	}
 
 	inline void cachePair(const StateType& smallerState,
 		const StateSet& biggerSet) const
 	{
 		std::vector<StateType> tmpList = {smallerState};
-		auto comparer = [](const StateSet& lhs, const StateSet& rhs)
-			{return lhs.IsSubsetOf(rhs);};
 
-		if (!antichain_.contains(tmpList, biggerSet, comparer))
+		if (!antichain_.contains(tmpList, biggerSet, lteComparer))
 		{	// if the element is not implied by the antichain
-			antichain_.refine(tmpList, biggerSet, comparer);
+			antichain_.refine(tmpList, biggerSet, gteComparer);
 			antichain_.insert(smallerState, biggerSet);
 			addToWorkset(smallerState, biggerSet);
 		}
@@ -89,12 +116,10 @@ private:  // methods
 		const StateSet& biggerSet) const
 	{
 		std::vector<StateType> tmpList = {smallerState};
-		auto comparer = [](const StateSet& lhs, const StateSet& rhs)
-			{return lhs.IsSubsetOf(rhs);};
 
-		if (!workset_.contains(tmpList, biggerSet, comparer))
+		if (!workset_.contains(tmpList, biggerSet, lteComparer))
 		{	// if the element is not implied by the antichain
-			workset_.refine(tmpList, biggerSet, comparer);
+			workset_.refine(tmpList, biggerSet, gteComparer);
 			workset_.insert(smallerState, biggerSet);
 		}
 	}
