@@ -26,7 +26,6 @@ BDDBottomUpTreeAut VATA::Intersection(const BDDBottomUpTreeAut& lhs,
 	typedef std::map<StateType, StatePair> WorkSetType;
 	typedef AutBase::ProductTranslMap IntersectionTranslMap;
 	typedef BDDBottomUpTreeAut::TransMTBDD MTBDD;
-	typedef BDDBottomUpTreeAut::MTBDDHandle MTBDDHandle;
 	typedef VATA::Util::TranslatorWeak<IntersectionTranslMap> StateTranslator;
 
 	GCC_DIAG_OFF(effc++)

@@ -44,8 +44,6 @@ bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger,
 
 	typedef typename InclFctor::AntichainType AntichainType;
 
-	typedef VATA::Util::Convert Convert;
-
 	class ChoiceFunctionGenerator
 	{
 	private:  // data types

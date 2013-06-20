@@ -46,6 +46,8 @@ private:  // data types
 	typedef Leaf LeafType;
 	typedef VATA::MTBDDPkg::OndriksMTBDD<LeafType> MTBDD;
 
+public:   // data types
+
 	typedef std::unordered_map<StateType, MTBDD> StateMap;
 
 private:  // data members

@@ -25,7 +25,6 @@ BDDBottomUpTreeAut VATA::Union(const BDDBottomUpTreeAut& lhs,
 {
 	typedef BDDBottomUpTreeAut::StateType StateType;
 	typedef BDDBottomUpTreeAut::StateTuple StateTuple;
-	typedef BDDBottomUpTreeAut::StateSet StateSet;
 	typedef BDDBottomUpTreeAut::TransMTBDD TransMTBDD;
 	typedef VATA::AutBase::StateToStateMap StateToStateMap;
 	typedef BDDBottomUpTreeAut::StateToStateTranslator StateToStateTranslator;

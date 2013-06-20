@@ -21,9 +21,6 @@ BDDTopDownTreeAut VATA::UnionDisjunctStates(const BDDTopDownTreeAut& lhs,
 	const BDDTopDownTreeAut& rhs)
 {
 	typedef BDDTopDownTreeAut::StateType StateType;
-	typedef BDDTopDownTreeAut::StateTuple StateTuple;
-	typedef BDDTopDownTreeAut::TransMTBDD TransMTBDD;
-
 
 	BDDTopDownTreeAut::UnionApplyFunctor unionFunc;
 

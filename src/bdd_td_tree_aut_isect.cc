@@ -23,7 +23,6 @@ BDDTopDownTreeAut VATA::Intersection(
 	AutBase::ProductTranslMap* pTranslMap)
 {
 	typedef BDDTopDownTreeAut::StateType StateType;
-	typedef BDDTopDownTreeAut::StateSet StateSet;
 	typedef BDDTopDownTreeAut::StateTuple StateTuple;
 	typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
 	typedef std::pair<StateType, StateType> StatePair;

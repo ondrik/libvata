@@ -185,9 +185,7 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUnreachableStates(
 
 	Util::SequentialAntichain1C<TuplePtr> tuples;
 
-	auto newTransitions = StateToTransitionClusterMapPtr(
-		new typename ExplicitTA::StateToTransitionClusterMap()
-	);
+	auto newTransitions = StateToTransitionClusterMapPtr(new StateToTransitionClusterMap());
 
 	bool transitionsModified = false;
 

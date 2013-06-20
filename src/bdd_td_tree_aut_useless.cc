@@ -28,8 +28,6 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut)
 	typedef AutBase::StateType StateType;
 	typedef BDDTopDownTreeAut::StateTuple StateTuple;
 	typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
-	typedef AutBase::StateToStateMap StateToStateMap;
-	typedef AutBase::StateToStateTranslator StateTranslator;
 
 	typedef Graph::NodeType NodeType;
 
@@ -47,10 +45,6 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut)
 	typedef std::unordered_set<Graph::NodeType> NodeSet;
 
 	typedef std::unordered_set<StateType> StateHT;
-	typedef std::stack<StateType, std::list<StateType>> StateStack;
-
-	typedef std::pair<StateType, StateType> StatePair;
-	typedef std::stack<StatePair, std::list<StatePair>> StatePairStack;
 
 	typedef BDDTopDownTreeAut::TransMTBDD TransMTBDD;
 

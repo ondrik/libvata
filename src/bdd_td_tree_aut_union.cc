@@ -25,7 +25,6 @@ BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
 	AutBase::StateToStateMap* pTranslMapRhs)
 {
 	typedef BDDTopDownTreeAut::StateType StateType;
-	typedef BDDTopDownTreeAut::StateSet StateSet;
 	typedef BDDTopDownTreeAut::StateTuple StateTuple;
 	typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
 	typedef AutBase::StateToStateMap StateToStateMap;

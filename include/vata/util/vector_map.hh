@@ -861,7 +861,6 @@ public:   // Public methods
 	IndexValueArray GetItemsWith(const KeyElementType& elem,
 		const TSet& elemDomain) const
 	{
-		typedef TSet DomainSetType;
 		// start with arrays for nullary, unary and binary vectors
 		IndexValueArray result(3);
 

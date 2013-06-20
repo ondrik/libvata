@@ -26,10 +26,8 @@ using VATA::Util::Convert;
 BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut)
 {
 	typedef BDDTopDownTreeAut::StateType StateType;
-	typedef BDDTopDownTreeAut::StateSet StateSet;
 	typedef BDDTopDownTreeAut::StateTuple StateTuple;
 	typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
-	typedef AutBase::StateToStateMap StateToStateMap;
 	typedef std::stack<StateType, std::list<StateType>> WorkSetType;
 	typedef BDDTopDownTreeAut::StateSet StateHT;
 
