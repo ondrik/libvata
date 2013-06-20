@@ -8,8 +8,7 @@
  *
  *****************************************************************************/
 
-%{
-
+%code requires {
 // VATA headers
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/util/aut_description.hh>
@@ -20,7 +19,7 @@
 
 GCC_DIAG_OFF(write-strings)
 
-#define YYDEBUG 1
+//#define YYDEBUG 1
 
 int yylex();
 extern int yylineno;
@@ -28,14 +27,14 @@ extern int yylineno;
 using VATA::Util::Convert;
 using VATA::Util::AutDescription;
 
-void yyerror(AutDescription&, const char* msg)
+inline void yyerror(AutDescription&, const char* msg)
 {
-	throw std::runtime_error("Parser error at line " +
-		Convert::ToString(yylineno) + ": " + std::string(msg));
+  throw std::runtime_error("Parser error at line " +
+    Convert::ToString(yylineno) + ": " + std::string(msg));
 }
 
-AutDescription::StateTuple global_tuple;
-%}
+static AutDescription::StateTuple global_tuple;
+}
 
 %locations
 %error-verbose
