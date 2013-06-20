@@ -8,6 +8,9 @@ set(REQUIRED_GCC_VERSION 4.6.0)
 
 set(GCC_ALTERNATIVES g++ g++-4.6)
 
+# Uncomment to avoid dynamic linking of libraries
+#set(MAKE_STATIC_VATA ON)
+
 # check minimum GCC version
 execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
 	OUTPUT_VARIABLE GCC_VERSION)
