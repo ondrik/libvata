@@ -32,14 +32,15 @@
 #include <vata/util/util.hh>
 //#include <vata/util/convert.hh>
 
-namespace VATA {
-
+namespace VATA
+{
 	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> Union(const ExplicitTreeAut<SymbolType>& lhs,
-		const ExplicitTreeAut<SymbolType>& rhs,
-		AutBase::StateToStateMap* pTranslMapLhs = nullptr,
-		AutBase::StateToStateMap* pTranslMapRhs = nullptr) {
-
+	ExplicitTreeAut<SymbolType> Union(
+		const ExplicitTreeAut<SymbolType>&    lhs,
+		const ExplicitTreeAut<SymbolType>&    rhs,
+		AutBase::StateToStateMap*             pTranslMapLhs = nullptr,
+		AutBase::StateToStateMap*             pTranslMapRhs = nullptr)
+	{
 		typedef AutBase::StateType StateType;
 		typedef AutBase::StateToStateTranslator StateToStateTranslator;
 
@@ -47,10 +48,14 @@ namespace VATA {
 		AutBase::StateToStateMap translMapRhs;
 
 		if (!pTranslMapLhs)
+		{
 			pTranslMapLhs = &translMapLhs;
+		}
 
 		if (!pTranslMapRhs)
+		{
 			pTranslMapRhs = &translMapRhs;
+		}
 
 		StateType stateCnt = 0;
 		auto translFunc = [&stateCnt](const StateType&){return stateCnt++;};
@@ -64,13 +69,14 @@ namespace VATA {
 		rhs.ReindexStates(res, stateTransRhs);
 
 		return res;
-
 	}
 
-	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> UnionDisjunctStates(const ExplicitTreeAut<SymbolType>& lhs,
-		const ExplicitTreeAut<SymbolType>& rhs) {
 
+	template <class SymbolType>
+	ExplicitTreeAut<SymbolType> UnionDisjunctStates(
+		const ExplicitTreeAut<SymbolType>&     lhs,
+		const ExplicitTreeAut<SymbolType>&     rhs)
+	{
 		ExplicitTreeAut<SymbolType> res(lhs);
 
 		assert(rhs.transitions_);
@@ -82,45 +88,53 @@ namespace VATA {
 		assert(lhs.finalStates_.size() + rhs.finalStates_.size() == res.finalStates_.size());
 
 		return res;
-
 	}
+
 
 	template <class SymbolType>
 	ExplicitTreeAut<SymbolType> Intersection(
-		const ExplicitTreeAut<SymbolType>& lhs,
-		const ExplicitTreeAut<SymbolType>& rhs,
-		AutBase::ProductTranslMap* pTranslMap = nullptr
+		const ExplicitTreeAut<SymbolType>&     lhs,
+		const ExplicitTreeAut<SymbolType>&     rhs,
+		AutBase::ProductTranslMap*             pTranslMap = nullptr
 	);
 
+
 	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> GetCandidateTree(const ExplicitTreeAut<SymbolType>& aut);
+	ExplicitTreeAut<SymbolType> GetCandidateTree(
+		const ExplicitTreeAut<SymbolType>&     aut);
+
 
 	template <class SymbolType>
 	ExplicitTreeAut<SymbolType> RemoveUselessStates(
-		const ExplicitTreeAut<SymbolType>& aut,
-		AutBase::StateToStateMap* pTranslMap = nullptr);
+		const ExplicitTreeAut<SymbolType>&     aut,
+		AutBase::StateToStateMap*              pTranslMap = nullptr);
+
 
 	template <class SymbolType>
 	ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
-		const ExplicitTreeAut<SymbolType>& aut,
-		AutBase::StateToStateMap* pTranslMap = nullptr);
+		const ExplicitTreeAut<SymbolType>&     aut,
+		AutBase::StateToStateMap*              pTranslMap = nullptr);
+
 
 	template <
 		class SymbolType,
 		class Rel,
-		class Index = Util::IdentityTranslator<AutBase::StateType>
-	>
-	ExplicitTreeAut<SymbolType> RemoveUnreachableStates(const ExplicitTreeAut<SymbolType>& aut,
-		const Rel& rel, const Index& index = Index());
+		class Index = Util::IdentityTranslator<AutBase::StateType>>
+	ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
+		const ExplicitTreeAut<SymbolType>&     aut,
+		const Rel&                             rel,
+		const Index&                           index = Index());
+
 
 	template <
 		class SymbolType,
 		class Rel,
-		class Index = Util::IdentityTranslator<AutBase::StateType>
-	>
-	ExplicitTreeAut<SymbolType> CollapseStates(const ExplicitTreeAut<SymbolType>& aut,
-		const Rel& rel, const Index& bwIndex = Index()) {
-
+		class Index = Util::IdentityTranslator<AutBase::StateType>>
+	ExplicitTreeAut<SymbolType> CollapseStates(
+		const ExplicitTreeAut<SymbolType>&     aut,
+		const Rel&                             rel,
+		const Index&                           bwIndex = Index())
+	{
 		std::vector<size_t> representatives;
 
 		rel.buildClasses(representatives);
@@ -134,37 +148,42 @@ namespace VATA {
 		aut.ReindexStates(res, transl);
 
 		return res;
-
 	}
+
 
 	template <class SymbolType, class Index>
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut, const size_t& size, const Index& index) {
-
+		const ExplicitTreeAut<SymbolType>&     aut,
+		const size_t&                          size,
+		const Index&                           index)
+	{
 		return TranslateDownward(aut, index).computeSimulation(size);
-
 	}
+
 
 	template <class SymbolType>
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut, const size_t& size) {
-
+		const ExplicitTreeAut<SymbolType>&    aut,
+		const size_t&                         size)
+	{
 		return TranslateDownward(aut).computeSimulation(size);
-
 	}
+
 
 	template <class SymbolType>
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut) {
-
+		const ExplicitTreeAut<SymbolType>& aut)
+	{
 		return ComputeDownwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
-
 	}
+
 
 	template <class SymbolType, class Index>
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut, const size_t& size, const Index& index) {
-
+		const ExplicitTreeAut<SymbolType>&    aut,
+		const size_t&                         size,
+		const Index&                          index)
+	{
 		std::vector<std::vector<size_t>> partition;
 
 		AutBase::StateBinaryRelation relation;
@@ -172,13 +191,14 @@ namespace VATA {
 		return TranslateUpward(
 			aut, partition, relation, Util::Identity(size), index
 		).computeSimulation(partition, relation, size);
-
 	}
+
 
 	template <class SymbolType>
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut, const size_t& size) {
-
+		const ExplicitTreeAut<SymbolType>&    aut,
+		const size_t&                         size)
+	{
 		std::vector<std::vector<size_t>> partition;
 
 		AutBase::StateBinaryRelation relation;
@@ -186,20 +206,21 @@ namespace VATA {
 		return TranslateUpward(
 			aut, partition, relation, Util::Identity(size)
 		).computeSimulation(partition, relation, size);
-
 	}
+
 
 	template <class SymbolType>
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut) {
-
+		const ExplicitTreeAut<SymbolType>& aut)
+	{
 		return ComputeUpwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
-
 	}
 
-	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> Reduce(const ExplicitTreeAut<SymbolType>& aut) {
 
+	template <class SymbolType>
+	ExplicitTreeAut<SymbolType> Reduce(
+		const ExplicitTreeAut<SymbolType>& aut)
+	{
 		typedef AutBase::StateType StateType;
 
 		typedef Util::TwoWayDict<
@@ -229,25 +250,27 @@ namespace VATA {
 			sim,
 			Util::TranslatorStrict<StateDict>(stateDict)
 		);
-
 	}
 
-	template <class SymbolType, class Dict, class Rel>
-	ExplicitTreeAut<SymbolType> ComplementWithPreorder(const ExplicitTreeAut<SymbolType>& aut,
-		const Dict& alphabet, const Rel& preorder) {
 
+	template <class SymbolType, class Dict, class Rel>
+	ExplicitTreeAut<SymbolType> ComplementWithPreorder(
+		const ExplicitTreeAut<SymbolType>&     aut,
+		const Dict&                            alphabet,
+		const Rel&                             preorder)
+	{
 		ExplicitTreeAut<SymbolType> res;
 
 		ExplicitDownwardComplementation::Compute(res, aut, alphabet, preorder);
 
 		return RemoveUselessStates(res);
-
 	}
 
 	template <class SymbolType, class Dict>
-	ExplicitTreeAut<SymbolType> Complement(const ExplicitTreeAut<SymbolType>& aut,
-		const Dict& alphabet) {
-
+	ExplicitTreeAut<SymbolType> Complement(
+		const ExplicitTreeAut<SymbolType>&    aut,
+		const Dict&                           alphabet)
+	{
 		typedef AutBase::StateType StateType;
 		typedef std::unordered_map<StateType, StateType> StateDict;
 
@@ -270,44 +293,54 @@ namespace VATA {
 
 	}
 
+
 	template <class SymbolType, class Rel>
-	bool CheckUpwardInclusionWithPreorder(const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
-
+	bool CheckUpwardInclusionWithPreorder(
+		const ExplicitTreeAut<SymbolType>&     smaller,
+		const ExplicitTreeAut<SymbolType>&     bigger,
+		const Rel&                             preorder)
+	{
 		return ExplicitUpwardInclusion::Check(smaller, bigger, preorder);
-
 	}
+
 
 	template <class SymbolType, class Rel>
 	bool CheckOptDownwardInclusionWithPreorder(
-		const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
-
+		const ExplicitTreeAut<SymbolType>&     smaller,
+		const ExplicitTreeAut<SymbolType>&     bigger,
+		const Rel&                             preorder)
+	{
 		return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
 			VATA::OptDownwardInclusionFunctor>(smaller, bigger, preorder);
 	}
 
-	template <class SymbolType, class Rel>
-	bool CheckDownwardInclusionWithPreorder(const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
 
+	template <class SymbolType, class Rel>
+	bool CheckDownwardInclusionWithPreorder(
+		const ExplicitTreeAut<SymbolType>&     smaller,
+		const ExplicitTreeAut<SymbolType>&     bigger,
+		const Rel&                             preorder)
+	{
 		return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
 			VATA::DownwardInclusionFunctor>(smaller, bigger, preorder);
-
 	}
+
 
 	template <class SymbolType, class Rel>
-	bool CheckDownwardInclusionNonRecWithPreorder(const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
-
+	bool CheckDownwardInclusionNonRecWithPreorder(
+		const ExplicitTreeAut<SymbolType>&     smaller,
+		const ExplicitTreeAut<SymbolType>&     bigger,
+		const Rel&                             preorder)
+	{
 		return ExplicitDownwardInclusion::Check(smaller, bigger, preorder);
-
 	}
 
-	template <class SymbolType>
-	bool CheckUpwardInclusion(const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger) {
 
+	template <class SymbolType>
+	bool CheckUpwardInclusion(
+		const ExplicitTreeAut<SymbolType>&     smaller,
+		const ExplicitTreeAut<SymbolType>&     bigger)
+	{
 		ExplicitTreeAut<SymbolType> newSmaller = smaller;
 		ExplicitTreeAut<SymbolType> newBigger = bigger;
 		typename AutBase::StateType states =
@@ -315,13 +348,14 @@ namespace VATA {
 
 		return CheckUpwardInclusionWithPreorder(newSmaller, newBigger,
 			Util::Identity(states));
-
 	}
 
-	template <class SymbolType>
-	bool CheckDownwardInclusion(const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger) {
 
+	template <class SymbolType>
+	bool CheckDownwardInclusion(
+		const ExplicitTreeAut<SymbolType>&     smaller,
+		const ExplicitTreeAut<SymbolType>&     bigger)
+	{
 		ExplicitTreeAut<SymbolType> newSmaller = smaller;
 		ExplicitTreeAut<SymbolType> newBigger = bigger;
 		typename AutBase::StateType states =
@@ -333,14 +367,14 @@ namespace VATA {
 			);
 	}
 
+
 	template <class SymbolType>
-	bool CheckInclusion(const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger) {
-
+	bool CheckInclusion(
+		const ExplicitTreeAut<SymbolType>&     smaller,
+		const ExplicitTreeAut<SymbolType>&     bigger)
+	{
 		return CheckUpwardInclusion(smaller, bigger);
-
 	}
-
 }
 
 #endif
