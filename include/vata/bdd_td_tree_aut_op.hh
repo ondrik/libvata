@@ -97,6 +97,24 @@ namespace VATA
 		throw std::runtime_error("Unimplemented");
 	}
 
+  // added due to FA extension
+  template <class Rel>
+	bool CheckUpwardInclusionWithSim(
+		const BDDTopDownTreeAut& smaller, const BDDTopDownTreeAut& bigger,
+		const Rel& preorder)
+	{
+		if ((&smaller == nullptr) || (&bigger == nullptr) ||
+			(&preorder == nullptr)) { }
+
+		throw std::runtime_error("Unimplemented");
+	}
+  template <class Rel>
+  bool CheckInclusionWithCongr(
+		const BDDTopDownTreeAut& smaller, const BDDTopDownTreeAut& bigger,
+    const Rel& preorder) {
+		throw std::runtime_error("Unimplemented");
+  }
+
 	inline bool CheckInclusion(const BDDTopDownTreeAut& smaller,
 		const BDDTopDownTreeAut& bigger)
 	{
