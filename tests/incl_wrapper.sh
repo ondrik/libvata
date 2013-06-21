@@ -44,6 +44,18 @@ RETVAL="?"
 ulimit -s 1000000
 
 case "${OPERATION}" in
+  explfa)
+    ${VATA} -r expl_fa -t incl -o congr=yes "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  explfa-congr)
+    ${VATA} -r expl_fa -t incl -o congr=yes "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  explfa-sim)
+    ${VATA} -r expl_fa -t incl -o sim=yes,timeS=yes "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
   expldown)
     ${VATA} -r expl -t incl -o dir=down,sim=no,optC=no "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
