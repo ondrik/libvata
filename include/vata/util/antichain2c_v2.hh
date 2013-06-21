@@ -280,7 +280,7 @@ public:
 	{
 		if (data_.empty())
 		{	// stop immediately in the case the antichain is empty
-			assert(data_.cbegin() != data_.cend());
+			assert(data_.cbegin() == data_.cend());
 			return false;
 		}
 
