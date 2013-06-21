@@ -21,6 +21,8 @@
 #include <vata/util/convert.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/util.hh>
+#include <vata/finite_aut/explicit_finite_aut.hh>
+#include <vata/finite_aut/explicit_finite_aut_op.hh>
 
 // standard library headers
 #include <cstdlib>
@@ -40,7 +42,9 @@ using VATA::Serialization::AbstrSerializer;
 using VATA::Serialization::TimbukSerializer;
 using VATA::Util::Convert;
 
+
 typedef VATA::ExplicitTreeAut<size_t> ExplicitTreeAut;
+typedef VATA::ExplicitFiniteAut<size_t> ExplicitFiniteAut;
 
 typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
 	StateTranslatorWeak;
@@ -85,6 +89,8 @@ const char VATA_USAGE_COMMANDS[] =
 	"          'dir=up'   : upward inclusion checking (default)\n"
 	"          'sim=yes'  : use corresponding simulation\n"
 	"          'sim=no'   : do not use simulation (default)\n"
+	"          'congr=no' : do not use congruence closure computation (default)\n"
+	"          'congr=yes': use congruence closure computation\n"
 	"          'optC=yes' : use optimised cache for downward direction\n"
 	"          'optC=no'  : without optimised cache (default)\n"
 	"          'rec=yes'  : recursive version of downward direction (default)\n"
@@ -104,6 +110,7 @@ const char VATA_USAGE_FLAGS[] =
 	"                               'bdd-bu'   : binary decision diagrams,\n"
 	"                                            bottom-up\n"
 	"                               'expl'     : explicit (default)\n"
+	"                               'expl_fa'  : explicit finite automata\n"
 	"\n"
 	"    (-I|-O|-F) <format>     Specify format for input (-I), output (-O), or\n"
 	"                            both (-F). The following formats are supported:\n"
@@ -269,12 +276,18 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
 		}
 
-		if (args.command == COMMAND_COMPLEMENT)
+		if (args.command == COMMAND_COMPLEMENT && args.representation != REPRESENTATION_EXPLICIT_FA)
 		{
 			std::cout << autResult.DumpToString(serializer,
 				[](const AutBase::StateType& state){ return "q" + Convert::ToString(state); },
 				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
 		}
+    else if (args.command == COMMAND_COMPLEMENT) {
+      std::cout << autResult.DumpToString(serializer,
+				StateBackTranslatorStrict(stateDict1.GetReverseMap()),
+				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
+
+    }
 
 		if (args.command == COMMAND_UNION)
 		{
@@ -295,7 +308,6 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 				StateBackTranslatorStrict(stateDict1.GetReverseMap()),
 				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
 		}
-
 		if ((args.command == COMMAND_INCLUSION))
 		{
 			std::cout << boolResult << "\n";
@@ -398,6 +410,22 @@ int main(int argc, char* argv[])
 	AutBase::StateType nextState(0);
 	ExplicitTreeAut::SetNextStatePtr(&nextState);
 
+	// create the symbol directory for finite automata
+	ExplicitFiniteAut::StringToSymbolDict explFASymbolDict;
+	ExplicitFiniteAut::SetSymbolDictPtr(&explFASymbolDict);
+	
+	// create the ``next symbol`` variable for the explicit finite automaton
+	ExplicitFiniteAut::SymbolType explFANextSymbol(0);
+	ExplicitFiniteAut::SetNextSymbolPtr(&explFANextSymbol);
+
+	// create the ``next state`` variable
+	AutBase::StateType explFANextState(0);
+	ExplicitFiniteAut::SetNextStatePtr(&explFANextState);
+
+	VATA::AutBase::StringToStateDict stateDict;
+	
+	typedef typename ExplicitFiniteAut::SymbolBackTranslatorStrict SymbolBackTranslatorStrict;
+
 	try
 	{
 		if (args.representation == REPRESENTATION_BDD_TD)
@@ -411,6 +439,10 @@ int main(int argc, char* argv[])
 		else if (args.representation == REPRESENTATION_EXPLICIT)
 		{
 			return executeCommand<ExplicitTreeAut>(args);
+		}
+		else if (args.representation == REPRESENTATION_EXPLICIT_FA)
+		{
+			return executeCommand<ExplicitFiniteAut>(args);
 		}
 		else
 		{
