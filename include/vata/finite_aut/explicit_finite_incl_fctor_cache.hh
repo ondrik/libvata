@@ -184,7 +184,7 @@ private: // private functions
    */
   void AddNewPairToAntichain(StateType state, StateSet &set) {
     //lss is subset of rss -> return TRUE
-    auto lte = [this,&subsetMap_,&subsetNotMap_](const StateSet* lss, 
+    auto lte = [this](const StateSet* lss, 
         const StateSet* rss) -> bool {
       bool res;
 
@@ -210,7 +210,7 @@ private: // private functions
     };
 
     // lss is greater then rss -> return TRUE
-    auto gte = [this,&subsetMap_,&subsetNotMap_](const StateSet* lss, const StateSet* rss) -> bool {
+    auto gte = [this](const StateSet* lss, const StateSet* rss) -> bool {
       bool res;
  
       if (subsetMap_.contains(lss,rss)) {
@@ -261,7 +261,7 @@ private: // private functions
    */
   void AddToNext(StateType state, StateSet& set) {
     //lss is subset of rss -> return TRUE
-    auto lte = [this,&subsetMap_,&subsetNotMap_](const StateSet* lss, 
+    auto lte = [this](const StateSet* lss, 
         const StateSet* rss) -> bool {
       bool res;
 
@@ -287,7 +287,7 @@ private: // private functions
     };
 
     // lss is greater then rss -> return TRUE
-    auto gte = [this,&subsetMap_,&subsetNotMap_](const StateSet* lss, const StateSet* rss) -> bool {
+    auto gte = [this](const StateSet* lss, const StateSet* rss) -> bool {
       bool res;
  
       if (subsetMap_.contains(lss,rss)) {
