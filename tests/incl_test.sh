@@ -147,7 +147,7 @@ done;
 
 echo "reading files ..."
 cnt=0;
-for x in $1/*; do
+for x in ${AUT_DIR}/*; do
   key[$cnt]=`basename $x`;
   val[$cnt]="${x}";
   #[ "$?" == "0" ] || die "unable to preprocess $x";
