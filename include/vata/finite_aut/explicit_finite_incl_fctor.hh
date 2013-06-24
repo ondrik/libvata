@@ -192,12 +192,12 @@ private: // private functions
    */
   void AddNewPairToAntichain(StateType state, StateSet &set) {
     //lss is subset of rss -> return TRUE
-    auto lte = [&comparator_](const StateSet& lss, const StateSet& rss) {
-      return comparator_.lte(lss,rss);
+    auto lte = [this](const StateSet& lss, const StateSet& rss) {
+      return this->comparator_.lte(lss,rss);
     };
 
-    auto gte = [&comparator_](const StateSet& lss, const StateSet& rss) {
-      return comparator_.gte(lss,rss);
+    auto gte = [this](const StateSet& lss, const StateSet& rss) {
+      return this->comparator_.gte(lss,rss);
     };
 
     // Get candidates for given state
@@ -234,12 +234,12 @@ private: // private functions
    */
   void AddToNext(StateType state, StateSet& set) {
     //lss is subset of rss -> return TRUE
-    auto lte = [&comparator_](const StateSet& lss, const StateSet& rss) {
-      return comparator_.lte(lss,rss);
+    auto lte = [this](const StateSet& lss, const StateSet& rss) {
+      return this->comparator_.lte(lss,rss);
     };
 
-    auto gte = [&comparator_](const StateSet& lss, const StateSet& rss) {
-      return comparator_.gte(lss,rss);
+    auto gte = [this](const StateSet& lss, const StateSet& rss) {
+      return this->comparator_.gte(lss,rss);
     };    
     std::vector<StateType> tempStateSet = {state};
     if (!next_.contains(tempStateSet,set,lte)) {

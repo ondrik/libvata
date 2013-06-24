@@ -184,7 +184,7 @@ private: // private functions
    */
   void AddNewPairToAntichain(StateType state, StateSet &set) {
     //lss is subset of rss -> return TRUE
-    auto lte = [&comparator_,&subsetMap_,&subsetNotMap_](const StateSet* lss, 
+    auto lte = [this,&subsetMap_,&subsetNotMap_](const StateSet* lss, 
         const StateSet* rss) -> bool {
       bool res;
 
@@ -196,7 +196,7 @@ private: // private functions
         res = false;
       }
       else { // product state has not been already processed
-        res = comparator_.lte(*lss,*rss);
+        res = this->comparator_.lte(*lss,*rss);
         if (res) {
           subsetMap_.add(lss,rss);
           subsetNotMap_.add(rss,lss);
@@ -210,7 +210,7 @@ private: // private functions
     };
 
     // lss is greater then rss -> return TRUE
-    auto gte = [&comparator_,&subsetMap_,&subsetNotMap_](const StateSet* lss, const StateSet* rss) -> bool {
+    auto gte = [this,&subsetMap_,&subsetNotMap_](const StateSet* lss, const StateSet* rss) -> bool {
       bool res;
  
       if (subsetMap_.contains(lss,rss)) {
@@ -220,7 +220,7 @@ private: // private functions
         res = true;
       }
       else {
-        res = comparator_.gte(*lss,*rss);
+        res = this->comparator_.gte(*lss,*rss);
         if (res) {
           subsetMap_.add(rss,lss);
           subsetNotMap_.add(lss,rss);
@@ -261,7 +261,7 @@ private: // private functions
    */
   void AddToNext(StateType state, StateSet& set) {
     //lss is subset of rss -> return TRUE
-    auto lte = [&comparator_,&subsetMap_,&subsetNotMap_](const StateSet* lss, 
+    auto lte = [this,&subsetMap_,&subsetNotMap_](const StateSet* lss, 
         const StateSet* rss) -> bool {
       bool res;
 
@@ -273,7 +273,7 @@ private: // private functions
         res = false;
       }
       else {
-        res = comparator_.lte(*lss,*rss);
+        res = this->comparator_.lte(*lss,*rss);
         if (res) {
           subsetMap_.add(lss,rss);
           subsetNotMap_.add(rss,lss);
@@ -287,7 +287,7 @@ private: // private functions
     };
 
     // lss is greater then rss -> return TRUE
-    auto gte = [&comparator_,&subsetMap_,&subsetNotMap_](const StateSet* lss, const StateSet* rss) -> bool {
+    auto gte = [this,&subsetMap_,&subsetNotMap_](const StateSet* lss, const StateSet* rss) -> bool {
       bool res;
  
       if (subsetMap_.contains(lss,rss)) {
@@ -297,7 +297,7 @@ private: // private functions
         res = true;
       }
       else {
-        res = comparator_.gte(*lss,*rss);
+        res = this->comparator_.gte(*lss,*rss);
         if (res) {
           subsetMap_.add(rss,lss);
           subsetNotMap_.add(lss,rss);
