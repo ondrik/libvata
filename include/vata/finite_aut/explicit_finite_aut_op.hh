@@ -21,29 +21,29 @@
 #include <vata/util/transl_weak.hh>
 #include <vata/explicit_lts.hh>
 
-#include "explicit_finite_aut.hh"
-#include "explicit_finite_isect.hh"
-#include "explicit_finite_unreach.hh"
-#include "explicit_finite_useless.hh"
-#include "explicit_finite_reverse.hh"
-#include "explicit_finite_compl.hh"
-#include "explicit_finite_candidate.hh"
-#include "explicit_finite_transl.hh"
+#include <vata/finite_aut/explicit_finite_aut.hh>
+#include <vata/finite_aut/explicit_finite_isect.hh>
+#include <vata/finite_aut/explicit_finite_unreach.hh>
+#include <vata/finite_aut/explicit_finite_useless.hh>
+#include <vata/finite_aut/explicit_finite_reverse.hh>
+#include <vata/finite_aut/explicit_finite_compl.hh>
+#include <vata/finite_aut/explicit_finite_candidate.hh>
+#include <vata/finite_aut/explicit_finite_transl.hh>
 
-#include "explicit_finite_incl.hh"
+#include <vata/finite_aut/explicit_finite_incl.hh>
 
-#include "explicit_finite_incl_fctor.hh"
-#include "explicit_finite_incl_fctor_opt.hh"
-#include "explicit_finite_incl_fctor_cache.hh"
-#include "util/comparators.hh"
+#include <vata/finite_aut/explicit_finite_incl_fctor.hh>
+#include <vata/finite_aut/explicit_finite_incl_fctor_opt.hh>
+#include <vata/finite_aut/explicit_finite_incl_fctor_cache.hh>
+#include <vata/finite_aut/util/comparators.hh>
 
-#include "explicit_finite_congr_fctor.hh"
-#include "explicit_finite_congr_fctor_opt.hh"
-#include "explicit_finite_congr_fctor_cache.hh"
-#include "explicit_finite_congr_fctor_cache_opt.hh"
+#include <vata/finite_aut/explicit_finite_congr_fctor.hh>
+#include <vata/finite_aut/explicit_finite_congr_fctor_opt.hh>
+#include <vata/finite_aut/explicit_finite_congr_fctor_cache.hh>
+#include <vata/finite_aut/explicit_finite_congr_fctor_cache_opt.hh>
 
-#include "util/map_to_list.hh"
-#include "util/macrostate_cache.hh"
+#include <vata/finite_aut/util/map_to_list.hh>
+#include <vata/finite_aut/util/macrostate_cache.hh>
 
 namespace VATA {
 
@@ -328,50 +328,52 @@ namespace VATA {
 
 
   /****************************************************************
-   * Compability to other formats
+   * Compatibility to other formats
    */
 
-GCC_DIAG_OFF(effc++) // unused parameters supp
-	template <class SymbolType, class Rel>
+template <class SymbolType, class Rel>
 	bool CheckOptDownwardInclusionWithPreorder(
 		const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger, const Rel& preorder) {
-GCC_DIAG_ON(effc++)
+		if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
+		{ }
+
 		throw std::runtime_error("Unimplemented");
 	}
 
-GCC_DIAG_OFF(effc++) // unused parameters supp
 	template <class SymbolType, class Rel>
 	bool CheckDownwardInclusionWithPreorder(const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger, const Rel& preorder) {
-GCC_DIAG_ON(effc++)
+		if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
+		{ }
 
 		throw std::runtime_error("Unimplemented");
 	}
 
-GCC_DIAG_OFF(effc++) // unused parameters supp
 	template <class SymbolType, class Rel>
 	bool CheckDownwardInclusionNonRecWithPreorder(const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger, const Rel& preorder) {
-GCC_DIAG_ON(effc++)
+		if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
+		{ }
 
 		throw std::runtime_error("Unimplemented");
 	}
 
-GCC_DIAG_OFF(effc++) // unused parameters supp
 	template <class SymbolType>
 	bool CheckUpwardInclusion(const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger) {
-GCC_DIAG_ON(effc++)
+		if ((nullptr != &smaller) || (nullptr != &bigger))
+		{ }
 
 		throw std::runtime_error("Unimplemented");
 	}
 
-GCC_DIAG_OFF(effc++) // unused parameters supp
 	template <class SymbolType>
 	bool CheckDownwardInclusion(const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger) {
-GCC_DIAG_ON(effc++)
+		if ((nullptr != &smaller) || (nullptr != &bigger))
+		{ }
+
 		throw std::runtime_error("Unimplemented");
 	}
 }

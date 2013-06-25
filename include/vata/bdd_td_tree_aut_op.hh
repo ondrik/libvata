@@ -112,6 +112,9 @@ namespace VATA
   bool CheckInclusionWithCongr(
 		const BDDTopDownTreeAut& smaller, const BDDTopDownTreeAut& bigger,
     const Rel& preorder) {
+		if ((&smaller == nullptr) || (&bigger == nullptr) ||
+			(&preorder == nullptr)) { }
+
 		throw std::runtime_error("Unimplemented");
   }
 

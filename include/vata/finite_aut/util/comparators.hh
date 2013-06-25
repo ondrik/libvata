@@ -15,19 +15,22 @@
 // std headers
 #include <vector>
 
-// vata headers
+// VATA headers
 #include <vata/vata.hh>
 #include <vata/util/antichain1c.hh>
-#include "../explicit_finite_aut.hh"
+#include <vata/finite_aut/explicit_finite_aut.hh>
 
 namespace VATA {
   template <class SymbolType,class Rel> class ExplicitFAStateSetComparatorIdentity;
   template <class SymbolType,class Rel> class ExplicitFAStateSetComparatorSimulation;
 }
 
-/*
+/**
  * Class for comparing P <= Q during inclusion checking for
  * antichain algorithm
+ *
+ * @note  is it necessary to reference to VATA::ExplicitFA?
+ *
  */
 template<class SymbolType, class Rel>
 class VATA::ExplicitFAStateSetComparatorIdentity {
@@ -76,7 +79,7 @@ public: // public methods
    * Get candidates for p <= q
    */
   inline void getCandidate(std::vector<StateType>& candidates, StateType state,
-      Antichain1Type& antichain) {
+      Antichain1Type& /*antichain*/) {
     candidates.push_back(state);
   }
 };

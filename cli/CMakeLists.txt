@@ -39,6 +39,10 @@ add_executable(vata
   parse_args.cc
 )
 
+if (MAKE_STATIC_VATA)
+  SET(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -static")
+endif()
+
 get_target_property(vata_sources vata SOURCES)
 
 foreach(src ${vata_sources})

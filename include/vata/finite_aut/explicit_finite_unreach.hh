@@ -11,8 +11,9 @@
 #ifndef _VATA_EXPLICIT_FINITE_UNREACH_HH_
 #define _VATA_EXPLICIT_FINITE_UNREACH_HH_
 
+// VATA headers
 #include <vata/vata.hh>
-#include "explicit_finite_aut.hh"
+#include <vata/finite_aut/explicit_finite_aut.hh>
 #include <vata/util/transl_strict.hh>
 
 // Standard library headers

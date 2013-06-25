@@ -13,9 +13,9 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include "explicit_finite_aut.hh"
-#include "explicit_finite_reverse.hh"
-#include "explicit_finite_unreach.hh"
+#include <vata/finite_aut/explicit_finite_aut.hh>
+#include <vata/finite_aut/explicit_finite_reverse.hh>
+#include <vata/finite_aut/explicit_finite_unreach.hh>
 
 namespace VATA {
   template <class SymbolType>
@@ -29,8 +29,6 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::RemoveUselessStates(
     const VATA::ExplicitFiniteAut<SymbolType> &aut,
     VATA::AutBase::StateToStateMap* pTranslMap = nullptr) {
  
-  typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
-
   // remove useless states by applying following operations
   return Reverse(
      RemoveUnreachableStates(

@@ -13,7 +13,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include "explicit_finite_aut.hh"
+#include <vata/finite_aut/explicit_finite_aut.hh>
 
 #include <vata/explicit_lts.hh>
 #include <vata/util/transl_weak.hh>
@@ -39,10 +39,6 @@ VATA::ExplicitLTS VATA::Translate(
   const Index& stateIndex) {
 
   VATA::ExplicitLTS res;
-
-  typedef ExplicitFiniteAut<SymbolType> ExplicitFA;
-  typedef typename ExplicitFA::StateType StateType;
-  typedef typename ExplicitFA::StateSet StateSet;
 
 	std::unordered_map<SymbolType, size_t> symbolMap;
 

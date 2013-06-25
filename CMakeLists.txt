@@ -40,6 +40,9 @@ if (NOT(GCC_VERSION VERSION_GREATER ${REQUIRED_GCC_VERSION}
   endif()
 endif()
 
+# You can force the GCC version here
+#set(CMAKE_C_COMPILER "gcc-4.6")
+#set(CMAKE_CXX_COMPILER "g++-4.6")
 
 project(libvata)
 

@@ -17,10 +17,11 @@
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/explicit_tree_aut.hh>
 #include <vata/serialization/abstr_serializer.hh>
-#include <unordered_set>
-#include <iostream>
 #include <vata/util/transl_weak.hh>
 #include <vata/explicit_lts.hh>
+
+// Standard library headers
+#include <unordered_set>
 
 namespace VATA {
 	template <class Symbol>	class ExplicitFiniteAut;

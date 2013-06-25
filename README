@@ -3,7 +3,7 @@
 *                               libvata README                              *
 *                                                                           *
 *  libvata: a C++ library for efficient manipulation with                   *
-*  non-deterministic finite tree automata                                   *
+*  non-deterministic finite (tree) automata                                 *
 *                                                                           *
 *****************************************************************************
 
@@ -202,6 +202,7 @@ Contact
 
 If you have further questions, do not hesitate to contact the authors:
 
-  * Ondrej Lengal  <ilengal@fit.vutbr.cz>
+  * Ondrej Lengal  <ilengal@fit.vutbr.cz> (corresponding author)
   * Jiri Simacek   <isimacek@fit.vutbr.cz>
   * Tomas Vojnar   <vojnar@fit.vutbr.cz>
+  * Martin Hruska  <xhrusk16@stud.fit.vutbr.cz>

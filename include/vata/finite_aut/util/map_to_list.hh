@@ -12,8 +12,10 @@
 #ifndef UTIL_MAP_TO_LIST_
 #define UTIL_MAP_TO_LIST_
 
+// Standard library headers
 #include <unordered_map>
 
+// VATA headers
 #include <vata/vata.hh>
 
 namespace VATA {

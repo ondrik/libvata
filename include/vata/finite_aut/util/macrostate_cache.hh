@@ -12,8 +12,10 @@
 #ifndef UTIL_MACROSTATE_CACHE_
 #define UTIL_MACROSTATE_CACHE_
 
+// VATA headers
 #include <vata/vata.hh>
 
+// Standard library headers
 #include <unordered_map>
 
 namespace VATA {
@@ -60,7 +62,7 @@ public:
       return list.back();
     }
     else {
-      for (auto& set : iter->second) { // set already cashed
+      for (auto& set : iter->second) { // set already cached
         if (areEqual(set,value)) {
           return set;
         }

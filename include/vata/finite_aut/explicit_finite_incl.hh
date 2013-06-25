@@ -12,10 +12,11 @@
 #ifndef EXPLICIT_FINITE_AUT_INCL_HH_
 #define EXPLICIT_FINITE_AUT_INCL_HH_
 
+// VATA headers
 #include <vata/vata.hh>
 #include <vata/util/antichain2c_v2.hh>
-#include "explicit_finite_aut.hh"
-#include "explicit_finite_incl_fctor.hh"
+#include <vata/finite_aut/explicit_finite_aut.hh>
+#include <vata/finite_aut/explicit_finite_incl_fctor.hh>
 
 namespace VATA {
 
@@ -36,7 +37,6 @@ bool VATA::CheckFiniteAutInclusion(
   const Rel& preorder) {
  
   typedef Functor InclFunc;
-  typedef typename InclFunc::ExplicitFA ExplicitFA;
 
   typedef typename InclFunc::SmallerElementType SmallerElementType;
   typedef typename InclFunc::BiggerElementType BiggerElementType;

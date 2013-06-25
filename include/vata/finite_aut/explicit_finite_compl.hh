@@ -15,7 +15,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include "explicit_finite_aut.hh"
+#include <vata/finite_aut/explicit_finite_aut.hh>
 
 namespace VATA {
   template <class SymbolType, class Dict>
@@ -24,14 +24,22 @@ namespace VATA {
       const Dict &alphabet);
 }
 
-  /*
-   * Creates complements of NFA
+  /**
+   * @brief  Creates a complement of an NFA.
+	 *
    * Now works only for DFA.
+	 *
+	 * @note  This works only for fully-specified deterministic FA! Use at your
+	 * own risk.
+	 *
+	 * @todo  Finish? Add check for determinism?
    */
  template <class SymbolType, class Dict>
  VATA::ExplicitFiniteAut<SymbolType> VATA::Complement(
       const VATA::ExplicitFiniteAut<SymbolType> &aut,
-      const Dict &alphabet) {
+      const Dict &/*alphabet*/) {
+
+	 VATA_LOGGER_WARN("Calling " + std::string(__func__));
 
   typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
 
