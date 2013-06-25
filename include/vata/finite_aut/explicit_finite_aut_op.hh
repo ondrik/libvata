@@ -331,47 +331,49 @@ namespace VATA {
    * Compability to other formats
    */
 
-GCC_DIAG_OFF(effc++) // unused parameters supp
-	template <class SymbolType, class Rel>
+template <class SymbolType, class Rel>
 	bool CheckOptDownwardInclusionWithPreorder(
 		const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger, const Rel& preorder) {
-GCC_DIAG_ON(effc++)
+		if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
+		{ }
+
 		throw std::runtime_error("Unimplemented");
 	}
 
-GCC_DIAG_OFF(effc++) // unused parameters supp
 	template <class SymbolType, class Rel>
 	bool CheckDownwardInclusionWithPreorder(const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger, const Rel& preorder) {
-GCC_DIAG_ON(effc++)
+		if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
+		{ }
 
 		throw std::runtime_error("Unimplemented");
 	}
 
-GCC_DIAG_OFF(effc++) // unused parameters supp
 	template <class SymbolType, class Rel>
 	bool CheckDownwardInclusionNonRecWithPreorder(const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger, const Rel& preorder) {
-GCC_DIAG_ON(effc++)
+		if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
+		{ }
 
 		throw std::runtime_error("Unimplemented");
 	}
 
-GCC_DIAG_OFF(effc++) // unused parameters supp
 	template <class SymbolType>
 	bool CheckUpwardInclusion(const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger) {
-GCC_DIAG_ON(effc++)
+		if ((nullptr != &smaller) || (nullptr != &bigger))
+		{ }
 
 		throw std::runtime_error("Unimplemented");
 	}
 
-GCC_DIAG_OFF(effc++) // unused parameters supp
 	template <class SymbolType>
 	bool CheckDownwardInclusion(const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger) {
-GCC_DIAG_ON(effc++)
+		if ((nullptr != &smaller) || (nullptr != &bigger))
+		{ }
+
 		throw std::runtime_error("Unimplemented");
 	}
 }

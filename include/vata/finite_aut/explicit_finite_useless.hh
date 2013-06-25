@@ -29,8 +29,6 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::RemoveUselessStates(
     const VATA::ExplicitFiniteAut<SymbolType> &aut,
     VATA::AutBase::StateToStateMap* pTranslMap = nullptr) {
  
-  typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
-
   // remove useless states by applying following operations
   return Reverse(
      RemoveUnreachableStates(

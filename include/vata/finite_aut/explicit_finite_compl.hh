@@ -31,7 +31,7 @@ namespace VATA {
  template <class SymbolType, class Dict>
  VATA::ExplicitFiniteAut<SymbolType> VATA::Complement(
       const VATA::ExplicitFiniteAut<SymbolType> &aut,
-      const Dict &alphabet) {
+      const Dict &/*alphabet*/) {
 
   typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
 

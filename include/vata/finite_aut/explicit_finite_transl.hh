@@ -40,10 +40,6 @@ VATA::ExplicitLTS VATA::Translate(
 
   VATA::ExplicitLTS res;
 
-  typedef ExplicitFiniteAut<SymbolType> ExplicitFA;
-  typedef typename ExplicitFA::StateType StateType;
-  typedef typename ExplicitFA::StateSet StateSet;
-
 	std::unordered_map<SymbolType, size_t> symbolMap;
 
 	size_t symbolCnt = 0;

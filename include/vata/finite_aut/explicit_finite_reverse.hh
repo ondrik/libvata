@@ -13,7 +13,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include "explicit_finite_aut.hh"
+#include <vata/finite_aut/explicit_finite_aut.hh>
 
 namespace VATA {
 template <class SymbolType>
@@ -25,7 +25,7 @@ template <class SymbolType>
 template <class SymbolType>
 VATA::ExplicitFiniteAut<SymbolType> VATA::Reverse(
   const VATA::ExplicitFiniteAut<SymbolType> &aut,
-  AutBase::ProductTranslMap* pTranslMap = nullptr) {
+  AutBase::ProductTranslMap* /*pTranslMap*/) {
 
   typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
 

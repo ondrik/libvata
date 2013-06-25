@@ -424,8 +424,6 @@ int main(int argc, char* argv[])
 
 	VATA::AutBase::StringToStateDict stateDict;
 	
-	typedef typename ExplicitFiniteAut::SymbolBackTranslatorStrict SymbolBackTranslatorStrict;
-
 	try
 	{
 		if (args.representation == REPRESENTATION_BDD_TD)

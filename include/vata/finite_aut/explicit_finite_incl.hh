@@ -36,7 +36,6 @@ bool VATA::CheckFiniteAutInclusion(
   const Rel& preorder) {
  
   typedef Functor InclFunc;
-  typedef typename InclFunc::ExplicitFA ExplicitFA;
 
   typedef typename InclFunc::SmallerElementType SmallerElementType;
   typedef typename InclFunc::BiggerElementType BiggerElementType;

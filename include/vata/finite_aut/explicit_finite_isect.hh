@@ -13,8 +13,8 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include "explicit_finite_aut.hh"
-#include "explicit_finite_useless.hh"
+#include <vata/finite_aut/explicit_finite_aut.hh>
+#include <vata/finite_aut/explicit_finite_useless.hh>
 
 // Standard library headers
 #include <vector>

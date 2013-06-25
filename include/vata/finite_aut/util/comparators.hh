@@ -76,7 +76,7 @@ public: // public methods
    * Get candidates for p <= q
    */
   inline void getCandidate(std::vector<StateType>& candidates, StateType state,
-      Antichain1Type& antichain) {
+      Antichain1Type& /*antichain*/) {
     candidates.push_back(state);
   }
 };
