@@ -4,7 +4,7 @@
  *	Copyright (c) 2013	Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
  *
  *	Description:
- *	Functor for checking inclusion using antichain algorithm for explicitly 
+ *	Functor for checking inclusion using antichain algorithm for explicitly
  *	represented finite.
  *
  *****************************************************************************/
@@ -31,7 +31,7 @@ namespace VATA {
 GCC_DIAG_OFF(effc++) // non virtual destructors warnings supress
 template<class SymbolType, class Rel>
 class VATA::ExplicitFAStateSetComparator {
-GCC_DIAG_ON(effc++) 
+GCC_DIAG_ON(effc++)
 
 public:
 	typedef ExplicitFiniteAut<SymbolType> ExplicitFA;
@@ -75,7 +75,7 @@ public: // public methods
 };
 
 template <class SymbolType, class Rel>
-class VATA::ExplicitFAInclusionFunctor : 
+class VATA::ExplicitFAInclusionFunctor :
 	public ExplicitFAAbstractFunctor <SymbolType,Rel> {
 
 public : // data types
@@ -90,7 +90,7 @@ public : // data types
 	typedef StateType SmallerElementType;
 	typedef StateSet BiggerElementType;
 
-	typedef VATA::Util::Antichain2Cv2<SmallerElementType,BiggerElementType> 
+	typedef VATA::Util::Antichain2Cv2<SmallerElementType,BiggerElementType>
 		AntichainType;
 
 	typedef AntichainType ProductStateSetType;
@@ -118,7 +118,7 @@ private: // data memebers
 public: // constructor
 	ExplicitFAInclusionFunctor(AntichainType& antichain, AntichainType& next,
 			Antichain1Type& singleAntichain,
-			const ExplicitFA& smaller, 
+			const ExplicitFA& smaller,
 			const ExplicitFA& bigger,
 			IndexType& index,
 			IndexType& inv,
@@ -139,7 +139,7 @@ public: // public functions
 	// Initialize the antichain from init states of given automata
 	void Init() {
 		bool macroFinal=false;
-		StateSet procMacroState; 
+		StateSet procMacroState;
 
 		// Create macro state of initial states
 		for (StateType startState : bigger_.startStates_) {
@@ -173,8 +173,8 @@ public: // public functions
 						newMacroState,procMacroState,smallerSymbolToState.first,
 						bigger_);
 
-				this->inclNotHold_ |= smaller_.IsStateFinal(newSmallerState) && 
-					!IsMacroAccepting; 
+				this->inclNotHold_ |= smaller_.IsStateFinal(newSmallerState) &&
+					!IsMacroAccepting;
 
 				if (this->inclNotHold_) {
 					return;
@@ -208,7 +208,7 @@ private: // private functions
 			}
 		}
 
-		// Check whether the antichain does not already 
+		// Check whether the antichain does not already
 		// contains given product state
 		std::vector<StateType> tempStateSet = {state};
 		if (!antichain_.contains(tempStateSet,set,lte)) {
@@ -240,7 +240,7 @@ private: // private functions
 
 		auto gte = [this](const StateSet& lss, const StateSet& rss) {
 			return this->comparator_.gte(lss,rss);
-		};		
+		};
 		std::vector<StateType> tempStateSet = {state};
 		if (!next_.contains(tempStateSet,set,lte)) {
 			next_.refine(tempStateSet,set,gte);
@@ -251,7 +251,7 @@ private: // private functions
 
 private: // Private inline functions
 	/*
-	 * Copy one set to another 
+	 * Copy one set to another
 	 */
 	inline void CopySet(StateSet& fullset, StateSet& emptyset) {
 		emptyset.insert(fullset.begin(),fullset.end());

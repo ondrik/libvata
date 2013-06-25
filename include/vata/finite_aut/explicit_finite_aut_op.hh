@@ -79,7 +79,7 @@ namespace VATA {
 		}
 
 		// New translation function
-		StateType stateCnt = 0; 
+		StateType stateCnt = 0;
 		auto translFunc = [&stateCnt](const StateType&){return stateCnt++;};
 
 		StateToStateTranslator stateTransLhs(*pTranslMapLhs, translFunc);
@@ -107,7 +107,7 @@ namespace VATA {
 		res.uniqueClusterMap()->insert(rhs.transitions_->begin(),
 			rhs.transitions_->end());
 		assert(lhs.transitions_->size() + rhs.transitions_->size() == res.transitions_->size());
-		
+
 		res.startStates_.insert(rhs.startStates_.begin(),
 			rhs.startStates_.end());
 
@@ -119,7 +119,7 @@ namespace VATA {
 		return res;
 	}
 
-	template <class SymbolType, 
+	template <class SymbolType,
 		class Rel,
 		class Index = Util::IdentityTranslator<AutBase::StateType>>
 	ExplicitFiniteAut<SymbolType> CollapseStates(
@@ -129,7 +129,7 @@ namespace VATA {
 
 		std::vector<size_t> representatives;
 
-		// Creates vector, which contains equivalences classes of states of 
+		// Creates vector, which contains equivalences classes of states of
 		// aut automaton
 		// If relation is identity, newly created automaton will be same
 		rel.buildClasses(representatives);
@@ -250,19 +250,19 @@ namespace VATA {
 
 	template<class SymbolType, class Rel, class Functor>
 	bool CheckFiniteAutInclusion (
-		const ExplicitFiniteAut<SymbolType>& smaller, 
-		const ExplicitFiniteAut<SymbolType>& bigger, 
-		const Rel& preorder); 
+		const ExplicitFiniteAut<SymbolType>& smaller,
+		const ExplicitFiniteAut<SymbolType>& bigger,
+		const Rel& preorder);
 
 	template <class SymbolType, class Rel>
 	bool CheckUpwardInclusionWithPreorder(
-		const ExplicitFiniteAut<SymbolType>& smaller, 
+		const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger,
 		const Rel& preorder) {
 
 		typedef ExplicitFAStateSetComparatorIdentity<SymbolType,Rel> Comparator;
 		// There is possible to set macro to use one of the optimization
-#ifdef OPT_AC 
+#ifdef OPT_AC
 		typedef ExplicitFAInclusionFunctorOpt<SymbolType,Rel,Comparator> FunctorType;
 #elif CACHE_AC
 		typedef ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
@@ -275,12 +275,12 @@ namespace VATA {
 	// Special for simulation
 	template <class SymbolType, class Rel>
 	bool CheckUpwardInclusionWithSim(
-		const ExplicitFiniteAut<SymbolType>& smaller, 
+		const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger,
 		const Rel& preorder) {
 
 		typedef ExplicitFAStateSetComparatorSimulation<SymbolType,Rel> Comparator;
-#ifdef OPT_AC 
+#ifdef OPT_AC
 		typedef ExplicitFAInclusionFunctorOpt<SymbolType,Rel,Comparator> FunctorType;
 #elif CACHE_AC
 		typedef ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
@@ -296,12 +296,12 @@ namespace VATA {
 	 */
 	template <class SymbolType, class Rel>
 	bool CheckInclusionWithCongr(
-		const ExplicitFiniteAut<SymbolType>& smaller, 
+		const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger,
 		const Rel& preorder) {
 #ifdef CACHE_OPT_CONGR
 		typedef ExplicitFACongrFunctorCacheOpt<SymbolType,Rel> FunctorType;
-#elif OPT_CONGR 
+#elif OPT_CONGR
 		typedef ExplicitFACongrFunctorOpt<SymbolType,Rel> FunctorType;
 #elif CACHE_CONGR
 		typedef ExplicitFACongrFunctorCache<SymbolType,Rel> FunctorType;
@@ -318,7 +318,7 @@ namespace VATA {
 	template <class SymbolType>
 	bool CheckInclusion(const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger) {
-		AutBase::StateType states = 
+		AutBase::StateType states =
 			AutBase::SanitizeAutsForInclusion(smaller, bigger);
 		VATA::Util::Identity ident(states);
 		return CheckUpwardInclusion(smaller, bigger,states);

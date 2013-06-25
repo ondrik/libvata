@@ -58,11 +58,11 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::Intersection(
 		}
 	}
 
-	typename ExplicitFA::StateToTransitionClusterMapPtr transitions 
+	typename ExplicitFA::StateToTransitionClusterMapPtr transitions
 		= res.transitions_;
 
 	while (!stack.empty()) {
-		auto actState = stack.back(); 
+		auto actState = stack.back();
 		stack.pop_back();
 
 		// Checks whether it is final state
@@ -72,14 +72,14 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::Intersection(
 		}
 
 		// Get transition clusters for given state
-		auto lcluster = ExplicitFA::genericLookup 
+		auto lcluster = ExplicitFA::genericLookup
 			(*lhs.transitions_,actState->first.first);
 
 	 if (!lcluster) {
 			continue;
 		}
 
-		//ExplicitFA::TransitionClusterPtr 
+		//ExplicitFA::TransitionClusterPtr
 		auto rcluster = ExplicitFA::genericLookup
 			(*rhs.transitions_,actState->first.second);
 
@@ -93,7 +93,7 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::Intersection(
 		// Go through transitions of the given state
 		for (auto lsymbolToPtrPointer : *lcluster) {
 			auto lsymbol = lsymbolToPtrPointer.first;
-			
+
 			auto tempIter = rcluster->find(lsymbol);
 
 			if (tempIter == rcluster->end()) {
@@ -119,19 +119,19 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::Intersection(
 			}
 
 			// Insert a new symbol
-			auto& stateSet = clusterptr->uniqueRStateSet(lsymbol); 
+			auto& stateSet = clusterptr->uniqueRStateSet(lsymbol);
 			st = stateSet;
 
 			for (auto lstate : lsymbolToPtrPointer.second) {
 				for (auto rstate : rstateSet) {
 					// Translate to intersection state
 					auto istate = pTranslMap->insert
-						(std::make_pair(std::make_pair(lstate,rstate), 
-														pTranslMap->size())); 
+						(std::make_pair(std::make_pair(lstate,rstate),
+														pTranslMap->size()));
 
 					// Insert state from right side of transition
 					stateSet.insert(istate.first->second);
-			
+
 					if (istate.second) { // New states added to stack
 					 stack.push_back(&*istate.first);
 					}

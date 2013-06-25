@@ -4,7 +4,7 @@
  *	Copyright (c) 2013	Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
  *
  *	Description:
- *	Functor for checking inclusion using antichain algorithm for explicitly 
+ *	Functor for checking inclusion using antichain algorithm for explicitly
  *	represented finite automata and uses some optimization.
  *
  *****************************************************************************/
@@ -30,7 +30,7 @@ namespace VATA {
 
 GCC_DIAG_OFF(effc++)
 template <class SymbolType, class Rel, class Comparator>
-class VATA::ExplicitFAInclusionFunctorOpt : 
+class VATA::ExplicitFAInclusionFunctorOpt :
 	public ExplicitFAAbstractFunctor <SymbolType,Rel> {
 GCC_DIAG_ON(effc++)
 
@@ -46,7 +46,7 @@ public : // data types
 	typedef StateType SmallerElementType;
 	typedef StateSet BiggerElementType;
 
-	typedef VATA::Util::Antichain2Cv2<SmallerElementType,BiggerElementType> 
+	typedef VATA::Util::Antichain2Cv2<SmallerElementType,BiggerElementType>
 		AntichainType;
 
 	typedef AntichainType ProductStateSetType;
@@ -72,7 +72,7 @@ private: // data memebers
 public: // constructor
 	ExplicitFAInclusionFunctorOpt(AntichainType& antichain, AntichainType& next,
 			Antichain1Type& singleAntichain,
-			const ExplicitFA& smaller, 
+			const ExplicitFA& smaller,
 			const ExplicitFA& bigger,
 			IndexType& index,
 			IndexType& inv,
@@ -93,7 +93,7 @@ public: // public functions
 	// Initialize the antichain from init states of given automata
 	void Init() {
 		bool macroFinal=false;
-		StateSet procMacroState; 
+		StateSet procMacroState;
 
 		// Create macro state of initial states
 		for (StateType startState : bigger_.startStates_) {
@@ -128,8 +128,8 @@ public: // public functions
 						newMacroState,procMacroState,smallerSymbolToState.first,
 						bigger_);
 
-				this->inclNotHold_ |= smaller_.IsStateFinal(newSmallerState) && 
-					!IsMacroAccepting; 
+				this->inclNotHold_ |= smaller_.IsStateFinal(newSmallerState) &&
+					!IsMacroAccepting;
 
 				if (this->inclNotHold_) {
 					return;
@@ -155,9 +155,9 @@ private: // private functions
 			return this->comparator_.gte(lss,rss);
 		};
 
-		
 
-		// Check whether the antichain does not already 
+
+		// Check whether the antichain does not already
 		// contains given product state
 		std::vector<StateType> candidates;
 		// Get candidates for given state
@@ -201,7 +201,7 @@ private: // private functions
 
 private: // Private inline functions
 	/*
-	 * Copy one set to another 
+	 * Copy one set to another
 	 */
 	inline void CopySet(StateSet& fullset, StateSet& emptyset) {
 		emptyset.insert(fullset.begin(),fullset.end());

@@ -35,7 +35,7 @@ namespace VATA {
 
 GCC_DIAG_OFF(effc++)
 template <class SymbolType, class Rel, class Comparator>
-class VATA::ExplicitFAInclusionFunctorCache : 
+class VATA::ExplicitFAInclusionFunctorCache :
 	public ExplicitFAAbstractFunctor <SymbolType,Rel> {
 GCC_DIAG_ON(effc++)
 
@@ -71,9 +71,9 @@ public : // data types
 
 	typedef typename AbstractFunctor::IndexType IndexType;
 	typedef typename VATA::MacroStateCache<ExplicitFA> MacroStateCache;
-	
+
 	// Key is subset of all values
-	typedef typename VATA::MapToList<const StateSet*,const StateSet*> SubSetMap; 
+	typedef typename VATA::MapToList<const StateSet*,const StateSet*> SubSetMap;
 
 private: // data memebers
 	AntichainType& antichain_;
@@ -96,7 +96,7 @@ private: // data memebers
 public: // constructor
 	ExplicitFAInclusionFunctorCache(AntichainType& antichain, AntichainNext& next,
 			Antichain1Type& singleAntichain,
-			const ExplicitFA& smaller, 
+			const ExplicitFA& smaller,
 			const ExplicitFA& bigger,
 			IndexType& index,
 			IndexType& inv,
@@ -120,7 +120,7 @@ public: // public functions
 	// Initialize the antichain from init states of given automata
 	void Init() {
 		bool macroFinal=false;
-		StateSet procMacroState; 
+		StateSet procMacroState;
 
 		int sum = 0;
 
@@ -145,7 +145,7 @@ public: // public functions
 	 * add states to the antichain
 	 */
 	void MakePost(StateType procState, BiggerElementType& procMacroState) {
-		 
+
 
 		auto sum = [](StateSet& set, size_t& sum) {for (auto& state : set) sum+=state;};
 
@@ -161,14 +161,14 @@ public: // public functions
 				bool IsMacroAccepting = this->CreatePostOfMacroState(
 						newMacroState,*procMacroState,smallerSymbolToState.first,
 						bigger_);
-		
+
 				size_t macroSum = 0;
 				sum(newMacroState,macroSum);
 				// insert macrostate to cache
 				StateSet& newCachedMacro = cache_.insert(macroSum,newMacroState);
 
-				this->inclNotHold_ |= smaller_.IsStateFinal(newSmallerState) && 
-					!IsMacroAccepting; 
+				this->inclNotHold_ |= smaller_.IsStateFinal(newSmallerState) &&
+					!IsMacroAccepting;
 
 				if (this->inclNotHold_) {
 					return;
@@ -185,7 +185,7 @@ private: // private functions
 	 */
 	void AddNewPairToAntichain(StateType state, StateSet &set) {
 		//lss is subset of rss -> return TRUE
-		auto lte = [this](const StateSet* lss, 
+		auto lte = [this](const StateSet* lss,
 				const StateSet* rss) -> bool {
 			bool res;
 
@@ -213,7 +213,7 @@ private: // private functions
 		// lss is greater then rss -> return TRUE
 		auto gte = [this](const StateSet* lss, const StateSet* rss) -> bool {
 			bool res;
- 
+
 			if (subsetMap_.contains(lss,rss)) {
 				res = false;
 			}
@@ -234,7 +234,7 @@ private: // private functions
 			return res;
 		};
 
-		// Check whether the antichain does not already 
+		// Check whether the antichain does not already
 		// contains given product state
 		std::vector<StateType> candidates;
 		// Get candidates for given state
@@ -262,7 +262,7 @@ private: // private functions
 	 */
 	void AddToNext(StateType state, StateSet& set) {
 		//lss is subset of rss -> return TRUE
-		auto lte = [this](const StateSet* lss, 
+		auto lte = [this](const StateSet* lss,
 				const StateSet* rss) -> bool {
 			bool res;
 
@@ -290,7 +290,7 @@ private: // private functions
 		// lss is greater then rss -> return TRUE
 		auto gte = [this](const StateSet* lss, const StateSet* rss) -> bool {
 			bool res;
- 
+
 			if (subsetMap_.contains(lss,rss)) {
 				res = false;
 			}
@@ -320,7 +320,7 @@ private: // private functions
 
 private: // Private inline functions
 	/*
-	 * Copy one set to another 
+	 * Copy one set to another
 	 */
 	inline void CopySet(StateSet& fullset, StateSet& emptyset) {
 		emptyset.insert(fullset.begin(),fullset.end());

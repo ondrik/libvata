@@ -32,7 +32,7 @@ namespace VATA {
 template <class SymbolType>
 VATA::ExplicitFiniteAut<SymbolType> VATA::GetCandidateTree(
 		const VATA::ExplicitFiniteAut<SymbolType> &aut) {
- 
+
 	typedef ExplicitFiniteAut<SymbolType> ExplicitFA;
 	typedef typename ExplicitFA::StateType StateType;
 
@@ -56,7 +56,7 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::GetCandidateTree(
 		StateType actState = newStates.front();
 		// Find transitions for state s
 		auto transitionsCluster = transitions_->find(actState);
-		
+
 		newStates.pop_front();
 
 		if (transitionsCluster == transitions_->end()) {
@@ -66,7 +66,7 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::GetCandidateTree(
 		for (auto symbolToState : *transitionsCluster->second) {
 			// All states which are reachable from actState are added to result automaton
 			for (auto stateInSet : symbolToState.second){
-			 
+
 				if (reachableStates.insert(stateInSet).second) {
 					newStates.push_back(stateInSet);
 				}

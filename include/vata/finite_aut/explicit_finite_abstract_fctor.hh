@@ -4,7 +4,7 @@
  *	Copyright (c) 2013	Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
  *
  *	Description:
- *	Header file for abstract functor for inlcusion checking 
+ *	Header file for abstract functor for inlcusion checking
  *	which contains functions shared by functors for antichains and
  *	congruence algorithm.
  *
@@ -32,7 +32,7 @@ public: // data types
 	typedef typename ExplicitFA::StateSet StateSet;
 
 	// Define single antichain
-	typedef VATA::Util::Antichain1C<StateType> Antichain1Type; 
+	typedef VATA::Util::Antichain1C<StateType> Antichain1Type;
 
 	typedef typename Rel::IndexType IndexType;
 
@@ -45,21 +45,21 @@ public:
 protected:
 
 	/*
-	 * Create a new post macrostate of the given 
-	 * macrostate (procMacroState) for given symbol (symbol) in FA in parameter macroFA. 
+	 * Create a new post macrostate of the given
+	 * macrostate (procMacroState) for given symbol (symbol) in FA in parameter macroFA.
 	 * New macrostate is stored to the given StateSet newMacroState.
 	 * @Return True if created macrostates is final in bigger NFA
 	 */
 	bool CreatePostOfMacroState(StateSet& newMacroState,
-			const StateSet& procMacroState, const SymbolType& symbol, 
+			const StateSet& procMacroState, const SymbolType& symbol,
 			const ExplicitFA& macroFA) {
 
 		bool res = false;
 		// Create new macro state from current macro state for given symbol
 		for (const StateType& stateInMacro : procMacroState) {
-			
+
 			// Find transition for given state
-			auto iteratorTransForState = macroFA.transitions_->find(stateInMacro); 
+			auto iteratorTransForState = macroFA.transitions_->find(stateInMacro);
 			if (iteratorTransForState == macroFA.transitions_->end()) {
 				continue;
 			}
@@ -86,15 +86,15 @@ protected:
 	 * count the sum of all states of the new macrostate
 	 */
 	bool CreatePostOfMacroStateWithSum(StateSet& newMacroState,
-			const StateSet& procMacroState, const SymbolType& symbol, 
+			const StateSet& procMacroState, const SymbolType& symbol,
 			const ExplicitFA& macroFA, size_t& sum) {
 
 		bool res = false;
 		// Create new macro state from current macro state for given symbol
 		for (const StateType& stateInMacro : procMacroState) {
-			
+
 			// Find transition for given state
-			auto iteratorTransForState = macroFA.transitions_->find(stateInMacro); 
+			auto iteratorTransForState = macroFA.transitions_->find(stateInMacro);
 			if (iteratorTransForState == macroFA.transitions_->end()) {
 				continue;
 			}

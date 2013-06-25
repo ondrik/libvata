@@ -35,7 +35,7 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::RemoveUnreachableStates(
 	VATA::AutBase::StateToStateMap* pTranslMap = nullptr) {
 
 	typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
-	typedef typename ExplicitFA::StateToTransitionClusterMapPtr 
+	typedef typename ExplicitFA::StateToTransitionClusterMapPtr
 		StateToTransitionClusterMapPtr;
 
 	// start from start states
@@ -43,7 +43,7 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::RemoveUnreachableStates(
 	std::vector<AutBase::StateType> newStates(reachableStates.begin(),reachableStates.end());
 
 	// Find all reachable states
-	while (!newStates.empty()) { // while there are new reacheable states 
+	while (!newStates.empty()) { // while there are new reacheable states
 		auto actState = newStates.back();
 
 		newStates.pop_back();
@@ -74,7 +74,7 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::RemoveUnreachableStates(
 	//initialize the result automaton
 	res.startStates_ = aut.startStates_;
 	res.startStateToSymbols_ = aut.startStateToSymbols_;
-	
+
 	res.transitions_ = StateToTransitionClusterMapPtr(
 			new typename ExplicitFA::StateToTransitionClusterMap()
 			);

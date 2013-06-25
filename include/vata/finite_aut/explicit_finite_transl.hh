@@ -49,7 +49,7 @@ VATA::ExplicitLTS VATA::Translate(
 
 
 	// checks whether are all states final
-	auto areAllStatesFinal = [&aut]() -> bool { 
+	auto areAllStatesFinal = [&aut]() -> bool {
 		for (auto fs : aut.finalStates_) {
 			if (!aut.IsStateStart(fs)) {
 				return false;
@@ -69,9 +69,9 @@ VATA::ExplicitLTS VATA::Translate(
 
 	partition.clear();
 	partition.resize(base);
-	
+
 	// Add all final states to the first parition
-	for (auto& finalState : aut.finalStates_) { 
+	for (auto& finalState : aut.finalStates_) {
 		partition[0].push_back(stateIndex[finalState]);
 	}
 

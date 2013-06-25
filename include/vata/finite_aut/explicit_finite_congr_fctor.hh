@@ -4,7 +4,7 @@
  *	Copyright (c) 2013	Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
  *
  *	Description:
- *	Functor for checking inclusion using congruence algorithm for explicitly 
+ *	Functor for checking inclusion using congruence algorithm for explicitly
  *	represented finite automata.
  *
  *****************************************************************************/
@@ -26,12 +26,12 @@ namespace VATA {
 
 GCC_DIAG_OFF(effc++) // non virtual destructors warnings supress
 template <class SymbolType, class Rel>
-class VATA::ExplicitFACongrFunctor : 
+class VATA::ExplicitFACongrFunctor :
 	public ExplicitFAAbstractFunctor <SymbolType,Rel> {
-GCC_DIAG_ON(effc++) 
+GCC_DIAG_ON(effc++)
 
 public : // data types
-	typedef typename VATA::ExplicitFAAbstractFunctor<SymbolType,Rel> 
+	typedef typename VATA::ExplicitFAAbstractFunctor<SymbolType,Rel>
 		AbstractFunctor;
 	typedef typename AbstractFunctor::ExplicitFA ExplicitFA;
 
@@ -88,7 +88,7 @@ public:
 	// Constructor
 	ExplicitFACongrFunctor(ProductStateSetType& relation, ProductStateSetType& next,
 			Antichain1Type& singleAntichain,
-			const ExplicitFA& smaller, 
+			const ExplicitFA& smaller,
 			const ExplicitFA& bigger,
 			IndexType& index,
 			IndexType& inv,
@@ -106,7 +106,7 @@ public:
 public: // public functions
 
 	/*
-	 * The first product state of built automaton is 
+	 * The first product state of built automaton is
 	 * pair of macrostates containing the initial states
 	 * of both input NFA.
 	 */
@@ -165,7 +165,7 @@ public: // public functions
 		// Congruence closure of macrostate of smaller NFA
 		StateSet congrBigger(bigger);
 		GetCongrClosure(congrBigger);
-	
+
 		/*
 		 * Checks whether product state is not in congruence
 		 * closure of NFA
@@ -232,7 +232,7 @@ private:
 				 continue;
 			 }
 
-			 if (matchPair(set, next_[i].first) ||	
+			 if (matchPair(set, next_[i].first) ||
 						 matchPair(set, next_[i].second)) { // Rule is possible to apply
 				 addSubSet(set,next_[i].first);
 				 addSubSet(set,next_[i].second);
@@ -249,7 +249,7 @@ private:
 					 continue;
 				 }
 
-				 if (matchPair(set, relation_[i].first) || 
+				 if (matchPair(set, relation_[i].first) ||
 							 matchPair(set, relation_[i].second)) { // appliable rules
 					addSubSet(set,relation_[i].first);
 					addSubSet(set,relation_[i].second);
@@ -273,7 +273,7 @@ private:
 			if (transIter == aut.transitions_->end()) {
 				continue;
 			}
-			
+
 			// For all symbols accesible by the state
 			for (auto& symbolToSet : *transIter->second) {
 				if (usedSymbols.count(symbolToSet.first)) {
@@ -285,7 +285,7 @@ private:
 				BiggerElementType newBigger;
 
 				// all states accesible under given symbol for in smaller nfa
-				bool newSmallerAccept =	 
+				bool newSmallerAccept =
 					this->CreatePostOfMacroState(
 							newSmaller,smaller,symbolToSet.first,smaller_);
 				// all states accesible under given symbol for in bigger nfa

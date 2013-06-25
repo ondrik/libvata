@@ -4,7 +4,7 @@
  *	Copyright (c) 2013	Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
  *
  *	Description:
- *	Functor for checking inclusion using congruence algorithm for explicitly 
+ *	Functor for checking inclusion using congruence algorithm for explicitly
  *	represented finite automata. Functor works with cache and some other
  *	optimization.
  *
@@ -26,12 +26,12 @@ namespace VATA {
 
 GCC_DIAG_OFF(effc++)
 template <class SymbolType, class Rel>
-class VATA::ExplicitFACongrFunctorCacheOpt : 
+class VATA::ExplicitFACongrFunctorCacheOpt :
 	public ExplicitFAAbstractFunctor <SymbolType,Rel> {
 GCC_DIAG_ON(effc++)
 
 public : // data types
-	typedef typename VATA::ExplicitFAAbstractFunctor<SymbolType,Rel> 
+	typedef typename VATA::ExplicitFAAbstractFunctor<SymbolType,Rel>
 		AbstractFunctor;
 	typedef typename AbstractFunctor::ExplicitFA ExplicitFA;
 
@@ -74,7 +74,7 @@ GCC_DIAG_ON(effc++)
 
 	// todo set is the same as the processed set of product states
 	typedef ProductStateSetType ProductNextType;
-	
+
 	typedef typename VATA::MacroStateCache<ExplicitFA> MacroStateCache;
 	typedef typename VATA::MapToList<StateSet*,StateSet*> MacroStatePtrPair;
 
@@ -100,7 +100,7 @@ private: // Private data members
 public:
 	ExplicitFACongrFunctorCacheOpt(ProductStateSetType& relation, ProductStateSetType& next,
 			Antichain1Type& singleAntichain,
-			const ExplicitFA& smaller, 
+			const ExplicitFA& smaller,
 			const ExplicitFA& bigger,
 			IndexType& index,
 			IndexType& inv,
@@ -121,7 +121,7 @@ public:
 public: // public functions
 
 	/*
-	 * The first product state of built automaton is 
+	 * The first product state of built automaton is
 	 * pair of macrostates containing the initial states
 	 * of both input NFA.
 	 */
@@ -136,7 +136,7 @@ public: // public functions
 		// Created macrostate of smaller automaton
 		size_t smallerHashNum = 0;
 		for (auto state : smaller_.startStates_) {
-			smallerHashNum += state; 
+			smallerHashNum += state;
 			smallerInit.insert(state);
 			smallerInitFinal |= smaller_.IsStateFinal(state);
 		}
@@ -144,7 +144,7 @@ public: // public functions
 		// Created macrostate of bigger automaton
 		size_t biggerHashNum = 0;
 		for (auto state : bigger_.startStates_) {
-			biggerHashNum += state; 
+			biggerHashNum += state;
 			biggerInit.insert(state);
 			biggerInitFinal |= bigger_.IsStateFinal(state);
 		}
@@ -186,11 +186,11 @@ public: // public functions
 		sum(bigger,biggerHashNum);
 		SmallerElementType& s = cache_.insert(smallerHashNum,smaller);
 		BiggerElementType& b = cache_.insert(biggerHashNum,bigger);
-	 
 
-		// Comapring given set with the sets 
+
+		// Comapring given set with the sets
 		// which has been computed in steps of computation of congr closure
-		auto isCongrClosureSet = [&s,&isSubSet](StateSet& bigger) -> 
+		auto isCongrClosureSet = [&s,&isSubSet](StateSet& bigger) ->
 			bool {
 				return !isSubSet(s,bigger);
 		};
@@ -199,7 +199,7 @@ public: // public functions
 		StateSet congrBigger(bigger);
 
 		// Checks whether smaller macrostate is subset of congr. clusure of bigger
-		if (GetCongrClosure(b,congrBigger,isCongrClosureSet) || 
+		if (GetCongrClosure(b,congrBigger,isCongrClosureSet) ||
 			isSubSet(s,congrBigger)) {
 			smaller.clear();
 			bigger.clear();
@@ -212,7 +212,7 @@ public: // public functions
 			return;
 		}
 		MakePostForAut(bigger_,usedSymbols,smaller,bigger,bigger);
-		
+
 		relation_.push_back(std::make_pair(&s,&b));
 
 		smaller.clear();
@@ -240,7 +240,7 @@ private:
 
 	/*
 	 * Apply all possible rules for given relation
-	 * when the congruence closure of the given macrostate 
+	 * when the congruence closure of the given macrostate
 	 * has not been computed.
 	 * @param origSet set for which is congr. closure computed
 	 * @param set Set where congr closure is stored
@@ -250,7 +250,7 @@ private:
 	 * @param relation Relation of processed states
 	 */
 	template<class CongrMapManipulator>
-	bool ApplyRulesForRelation(StateSet& origSet, StateSet& set, 
+	bool ApplyRulesForRelation(StateSet& origSet, StateSet& set,
 		ProductStateSetType& relation, CongrMapManipulator& congrMapManipulator,
 		std::unordered_set<int>& usedRulesNumbers,
 		bool& appliedRule) {
@@ -275,7 +275,7 @@ private:
 
 	/*
 	 * Apply all possible rules for given relation
-	 * when the congruence closure of the given macrostate 
+	 * when the congruence closure of the given macrostate
 	 * has been computed.
 	 * @param origSet set for which is congr. closure computed
 	 * @param set Set where congr closure is stored
@@ -285,7 +285,7 @@ private:
 	 * @param relation Relation of processed states
 	 */
 	template<class CongrMapManipulator>
-	bool ApplyRulesForRelationVisited(StateSet& origSet, StateSet& set, 
+	bool ApplyRulesForRelationVisited(StateSet& origSet, StateSet& set,
 		ProductStateSetType& relation, CongrMapManipulator& congrMapManipulator,
 		std::unordered_set<int>& usedRulesNumbers,
 		bool& appliedRule) {
@@ -328,7 +328,7 @@ private:
 		if (!visited) { // congr. closure for the macrostate has been computed
 			while (appliedRule) { // Apply all possible rules
 				appliedRule = false;
-		
+
 				if (ApplyRulesForRelation( //apply rules for next relation
 					origSet,set,next_,congrMapManipulator,
 					usedRulesNumbersN,appliedRule)) {
@@ -344,8 +344,8 @@ private:
 		else { // congr. closure computed first time
 			while (appliedRule) { // Macrostate allready visited
 				appliedRule = false;
-		
-				if (ApplyRulesForRelationVisited( 
+
+				if (ApplyRulesForRelationVisited(
 					origSet,set,next_,congrMapManipulator,usedRulesNumbersN,appliedRule)){
 					return true;
 				}
@@ -373,7 +373,7 @@ private:
 			if (transIter == aut.transitions_->end()) {
 				continue;
 			}
-			
+
 			// For all symbols accesible by the state
 			for (auto& symbolToSet : *transIter->second) {
 				if (usedSymbols.count(symbolToSet.first)) { // symbol already explored
@@ -385,7 +385,7 @@ private:
 				BiggerElementType newBigger;
 
 				// all states accesible under given symbol for in smaller nfa
-				bool newSmallerAccept =	 
+				bool newSmallerAccept =
 					this->CreatePostOfMacroState(
 							newSmaller,smaller,symbolToSet.first,smaller_);
 
@@ -411,7 +411,7 @@ private:
 					sum(newBigger,biggerHashNum);
 					StateSet& insertSmaller = cache_.insert(smallerHashNum,newSmaller);
 					StateSet& insertBigger = cache_.insert(biggerHashNum,newBigger);
-					if (!visitedPairs_.contains(&insertSmaller,&insertBigger)){ 
+					if (!visitedPairs_.contains(&insertSmaller,&insertBigger)){
 						visitedPairs_.add(&insertSmaller,&insertBigger);
 						next_.push_back(std::make_pair(&insertSmaller,&insertBigger));
 						//next_.insert(next_.begin(),std::make_pair(&insertSmaller,&insertBigger));

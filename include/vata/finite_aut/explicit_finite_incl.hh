@@ -22,8 +22,8 @@ namespace VATA {
 
 	template<class SymbolType, class Rel, class Functor>
 	bool CheckFiniteAutInclusion(
-		const ExplicitFiniteAut<SymbolType>& smaller, 
-		const ExplicitFiniteAut<SymbolType>& bigger, 
+		const ExplicitFiniteAut<SymbolType>& smaller,
+		const ExplicitFiniteAut<SymbolType>& bigger,
 		const Rel& preorder);
 }
 
@@ -32,10 +32,10 @@ namespace VATA {
  */
 template<class SymbolType, class Rel, class Functor>
 bool VATA::CheckFiniteAutInclusion(
-	const VATA::ExplicitFiniteAut<SymbolType>& smaller, 
-	const VATA::ExplicitFiniteAut<SymbolType>& bigger, 
+	const VATA::ExplicitFiniteAut<SymbolType>& smaller,
+	const VATA::ExplicitFiniteAut<SymbolType>& bigger,
 	const Rel& preorder) {
- 
+
 	typedef Functor InclFunc;
 
 	typedef typename InclFunc::SmallerElementType SmallerElementType;
@@ -43,7 +43,7 @@ bool VATA::CheckFiniteAutInclusion(
 
 	typedef typename InclFunc::ProductStateSetType ProductStateSetType;
 	typedef typename InclFunc::ProductNextType ProductNextType;
-	typedef typename InclFunc::Antichain1Type Antichain1Type; 
+	typedef typename InclFunc::Antichain1Type Antichain1Type;
 
 	typedef typename InclFunc::IndexType IndexType;
 
@@ -67,7 +67,7 @@ bool VATA::CheckFiniteAutInclusion(
 	}
 
 	// actually processed macro state
-	BiggerElementType procMacroState; 
+	BiggerElementType procMacroState;
 	SmallerElementType procState;
 
 	while(inclFunc.DoesInclusionHold() && next.get(procState,procMacroState)) {

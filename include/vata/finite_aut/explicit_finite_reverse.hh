@@ -19,7 +19,7 @@ namespace VATA {
 template <class SymbolType>
 	ExplicitFiniteAut<SymbolType> Reverse(
 		const ExplicitFiniteAut<SymbolType> &aut,
-		AutBase::ProductTranslMap* pTranslMap = nullptr); 
+		AutBase::ProductTranslMap* pTranslMap = nullptr);
 }
 
 template <class SymbolType>

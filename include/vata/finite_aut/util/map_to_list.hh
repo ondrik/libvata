@@ -31,7 +31,7 @@ class VATA::MapToList {
 public:
 	typedef std::unordered_set<ListValue> VList;
 	typedef typename std::unordered_map<Key,VList> ListMap;
-	
+
 	ListMap map;
 
 	MapToList() : map() {}
