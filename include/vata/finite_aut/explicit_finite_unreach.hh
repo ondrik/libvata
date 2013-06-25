@@ -1,10 +1,10 @@
 /*****************************************************************************
- *  VATA Finite Automata Library
+ *	VATA Finite Automata Library
  *
- *  Copyright (c) 2013  Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
+ *	Copyright (c) 2013	Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
  *
- *  Description:
- *  Removing unreachable states for explicitly represented finite automata.
+ *	Description:
+ *	Removing unreachable states for explicitly represented finite automata.
  *
  *****************************************************************************/
 
@@ -22,78 +22,78 @@
 #include <utility>
 
 namespace VATA {
-  template <class SymbolType>
-  ExplicitFiniteAut<SymbolType> RemoveUnreachableStates(
-      const ExplicitFiniteAut<SymbolType> &aut,
-      VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
+	template <class SymbolType>
+	ExplicitFiniteAut<SymbolType> RemoveUnreachableStates(
+			const ExplicitFiniteAut<SymbolType> &aut,
+			VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
 }
 
 
 template <class SymbolType>
 VATA::ExplicitFiniteAut<SymbolType> VATA::RemoveUnreachableStates(
-  const VATA::ExplicitFiniteAut<SymbolType> &aut,
-  VATA::AutBase::StateToStateMap* pTranslMap = nullptr) {
+	const VATA::ExplicitFiniteAut<SymbolType> &aut,
+	VATA::AutBase::StateToStateMap* pTranslMap = nullptr) {
 
-  typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
-  typedef typename ExplicitFA::StateToTransitionClusterMapPtr 
-    StateToTransitionClusterMapPtr;
+	typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
+	typedef typename ExplicitFA::StateToTransitionClusterMapPtr 
+		StateToTransitionClusterMapPtr;
 
-  // start from start states
-  std::unordered_set<AutBase::StateType> reachableStates(aut.GetStartStates());
-  std::vector<AutBase::StateType> newStates(reachableStates.begin(),reachableStates.end());
+	// start from start states
+	std::unordered_set<AutBase::StateType> reachableStates(aut.GetStartStates());
+	std::vector<AutBase::StateType> newStates(reachableStates.begin(),reachableStates.end());
 
-  // Find all reachable states
-  while (!newStates.empty()) { // while there are new reacheable states 
-    auto actState = newStates.back();
+	// Find all reachable states
+	while (!newStates.empty()) { // while there are new reacheable states 
+		auto actState = newStates.back();
 
-    newStates.pop_back();
+		newStates.pop_back();
 
-    auto cluster = ExplicitFA::genericLookup(*aut.transitions_,actState);
+		auto cluster = ExplicitFA::genericLookup(*aut.transitions_,actState);
 
-     if (!cluster) {
-       continue;
-     }
+		if (!cluster) {
+			continue;
+		}
 
-     // Add all reachable states to reachable state set
-     for (auto &symbolsToStateSet : *cluster) {
-       for (auto &state : symbolsToStateSet.second) {
-         if (reachableStates.insert(state).second) {
-           newStates.push_back(state);
-         }
-        }
-      }
-    }
+		 // Add all reachable states to reachable state set
+		for (auto &symbolsToStateSet : *cluster) {
+			for (auto &state : symbolsToStateSet.second) {
+				if (reachableStates.insert(state).second) {
+					newStates.push_back(state);
+				}
+			}
+		}
+	}
 
-  	if (pTranslMap) {
-	  	for (auto& state : reachableStates) {
-		  	pTranslMap->insert(std::make_pair(state, state));
-      }
-	  }
+	if (pTranslMap) {
+		for (auto& state : reachableStates) {
+			pTranslMap->insert(std::make_pair(state, state));
+		}
+	}
 
-    ExplicitFA res;
-    //initialize the result automaton
-    res.startStates_ = aut.startStates_;
-    res.startStateToSymbols_ = aut.startStateToSymbols_;
-    
-    res.transitions_ = StateToTransitionClusterMapPtr(
-        new typename ExplicitFA::StateToTransitionClusterMap()
-        );
+	ExplicitFA res;
+	//initialize the result automaton
+	res.startStates_ = aut.startStates_;
+	res.startStateToSymbols_ = aut.startStateToSymbols_;
+	
+	res.transitions_ = StateToTransitionClusterMapPtr(
+			new typename ExplicitFA::StateToTransitionClusterMap()
+			);
 
-    // Add all reachables states and its transitions to result nfa
-    for (auto& state : reachableStates) {
+	// Add all reachables states and its transitions to result nfa
+	for (auto& state : reachableStates) {
 
-      if (aut.IsStateFinal(state)) {
-        res.SetStateFinal(state);
-      }
+		if (aut.IsStateFinal(state)) {
+			res.SetStateFinal(state);
+		}
 
-      auto stateToClusterIterator = aut.transitions_->find(state);
-      if (stateToClusterIterator == aut.transitions_->end()) {
-        continue;
-      }
+		auto stateToClusterIterator = aut.transitions_->find(state);
+		if (stateToClusterIterator == aut.transitions_->end()) {
+			continue;
+		}
 
-      res.transitions_->insert(std::make_pair(state,stateToClusterIterator->second));
-    }
+		res.transitions_->insert(std::make_pair(state,stateToClusterIterator->second));
+	}
 
-    return res;
-  }
+	return res;
+}
 #endif

@@ -1,10 +1,10 @@
 /*****************************************************************************
- *  VATA Finite Automata Library
+ *	VATA Finite Automata Library
  *
- *  Copyright (c) 2013  Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
+ *	Copyright (c) 2013	Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
  *
- *  Description:
- *  Reversion for explicitly represented finite automata.
+ *	Description:
+ *	Reversion for explicitly represented finite automata.
  *
  *****************************************************************************/
 
@@ -17,36 +17,36 @@
 
 namespace VATA {
 template <class SymbolType>
-  ExplicitFiniteAut<SymbolType> Reverse(
-    const ExplicitFiniteAut<SymbolType> &aut,
-    AutBase::ProductTranslMap* pTranslMap = nullptr); 
+	ExplicitFiniteAut<SymbolType> Reverse(
+		const ExplicitFiniteAut<SymbolType> &aut,
+		AutBase::ProductTranslMap* pTranslMap = nullptr); 
 }
 
 template <class SymbolType>
 VATA::ExplicitFiniteAut<SymbolType> VATA::Reverse(
-  const VATA::ExplicitFiniteAut<SymbolType> &aut,
-  AutBase::ProductTranslMap* /*pTranslMap*/) {
+	const VATA::ExplicitFiniteAut<SymbolType> &aut,
+	AutBase::ProductTranslMap* /*pTranslMap*/) {
 
-  typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
+	typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
 
-  auto transitions_ = aut.transitions_;
+	auto transitions_ = aut.transitions_;
 
-  ExplicitFA res;
+	ExplicitFA res;
 
-  res.finalStates_ = aut.startStates_; // set final states
-  res.startStates_ = aut.finalStates_; // set start states
-  res.startStateToSymbols_ = aut.startStateToSymbols_; // start symbols
+	res.finalStates_ = aut.startStates_; // set final states
+	res.startStates_ = aut.finalStates_; // set start states
+	res.startStateToSymbols_ = aut.startStateToSymbols_; // start symbols
 
-  // Changing the order of left and right in each transition
-  for (auto stateToCluster : *transitions_) {
-    for (auto symbolToSet : *stateToCluster.second) {
-      for (auto stateInSet : symbolToSet.second) {
-        res.AddTransition(stateInSet,symbolToSet.first,
-          stateToCluster.first);
-      }
-    }
-  }
+	// Changing the order of left and right in each transition
+	for (auto stateToCluster : *transitions_) {
+		for (auto symbolToSet : *stateToCluster.second) {
+			for (auto stateInSet : symbolToSet.second) {
+				res.AddTransition(stateInSet,symbolToSet.first,
+					stateToCluster.first);
+			}
+		}
+	}
 
-  return res;
+	return res;
 }
 #endif

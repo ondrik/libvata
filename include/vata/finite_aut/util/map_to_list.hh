@@ -1,10 +1,10 @@
 /*****************************************************************************
- *  VATA Finite Automata Library
+ *	VATA Finite Automata Library
  *
- *  Copyright (c) 2013  Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
+ *	Copyright (c) 2013	Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
  *
- *  Description:
- *  Header file for mapping key to list of values.
+ *	Description:
+ *	Header file for mapping key to list of values.
  *
  *****************************************************************************/
 
@@ -19,7 +19,7 @@
 #include <vata/vata.hh>
 
 namespace VATA {
-  template <class Key,class ListValue> class MapToList;
+	template <class Key,class ListValue> class MapToList;
 }
 
 /*
@@ -29,55 +29,55 @@ namespace VATA {
 template <class Key, class ListValue>
 class VATA::MapToList {
 public:
-  typedef std::unordered_set<ListValue> VList;
-  typedef typename std::unordered_map<Key,VList> ListMap;
-  
-  ListMap map;
+	typedef std::unordered_set<ListValue> VList;
+	typedef typename std::unordered_map<Key,VList> ListMap;
+	
+	ListMap map;
 
-  MapToList() : map() {}
+	MapToList() : map() {}
 
-  /*
-   * Function adds value v to list mapped by key k.
-   */
-  inline void add(Key k, ListValue v) {
-    auto iter = map.find(k);
-    if (iter == map.end()) {
-      map.insert(std::make_pair(k,VList())).first->second.insert(v);
-    }
-    else {
-      iter->second.insert(v);
-    }
-  }
+	/*
+	 * Function adds value v to list mapped by key k.
+	 */
+	inline void add(Key k, ListValue v) {
+		auto iter = map.find(k);
+		if (iter == map.end()) {
+			map.insert(std::make_pair(k,VList())).first->second.insert(v);
+		}
+		else {
+			iter->second.insert(v);
+		}
+	}
 
 
-  /*
-   * Checks whether for the given key k exists
-   * value v in its list of pointers.
-   */
-  inline bool contains(Key k, ListValue v) {
-    auto iter = map.find(k);
-    if (iter == map.end()) {
-      return false;
-    }
-    else {
-      return iter->second.count(v);
-    }
-  }
+	/*
+	 * Checks whether for the given key k exists
+	 * value v in its list of pointers.
+	 */
+	inline bool contains(Key k, ListValue v) {
+		auto iter = map.find(k);
+		if (iter == map.end()) {
+			return false;
+		}
+		else {
+			return iter->second.count(v);
+		}
+	}
 
-  // Checke whether map contains key k
-  inline bool containsKey(Key k) {
-    return map.find(k) != map.end();
-  }
+	// Checke whether map contains key k
+	inline bool containsKey(Key k) {
+		return map.find(k) != map.end();
+	}
 
-  // Get list to which is key k mapped
-  inline VList* getList(Key k) {
-    if (containsKey(k)) {
-      return &map.find(k)->second;
-    }
-    else {
-      return NULL;
-    }
-  }
+	// Get list to which is key k mapped
+	inline VList* getList(Key k) {
+		if (containsKey(k)) {
+			return &map.find(k)->second;
+		}
+		else {
+			return NULL;
+		}
+	}
 };
 
 #endif

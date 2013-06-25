@@ -1,10 +1,10 @@
 /*****************************************************************************
- *  VATA Finite Automata Library
+ *	VATA Finite Automata Library
  *
- *  Copyright (c) 2013  Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
+ *	Copyright (c) 2013	Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
  *
- *  Description:
- *  Header file for operations on finite automata.
+ *	Description:
+ *	Header file for operations on finite automata.
  *
  *****************************************************************************/
 
@@ -47,12 +47,12 @@
 
 namespace VATA {
 
-  /*
-   * Creates union of two automata. It just reindexs
-   * existing states of both automata to a new one.
-   * Reindexing of states is not done in this function, this
-   * function just prepares translators.
-   */
+	/*
+	 * Creates union of two automata. It just reindexs
+	 * existing states of both automata to a new one.
+	 * Reindexing of states is not done in this function, this
+	 * function just prepares translators.
+	 */
 	template <class SymbolType>
 	ExplicitFiniteAut<SymbolType> Union(const ExplicitFiniteAut<SymbolType>& lhs,
 		const ExplicitFiniteAut<SymbolType>& rhs,
@@ -63,10 +63,10 @@ namespace VATA {
 		typedef AutBase::StateType StateType;
 		typedef AutBase::StateToStateTranslator StateToStateTranslator;
 
-    /*
-     * If the maps are not given
-     * it creates own new maps
-     */
+		/*
+		 * If the maps are not given
+		 * it creates own new maps
+		 */
 		AutBase::StateToStateMap translMapLhs;
 		AutBase::StateToStateMap translMapRhs;
 
@@ -78,7 +78,7 @@ namespace VATA {
 			pTranslMapRhs = &translMapRhs;
 		}
 
-    // New translation function
+		// New translation function
 		StateType stateCnt = 0; 
 		auto translFunc = [&stateCnt](const StateType&){return stateCnt++;};
 
@@ -87,119 +87,117 @@ namespace VATA {
 
 		ExplicitFiniteAut<SymbolType> res;
 
-    lhs.ReindexStates(res, stateTransLhs);
+		lhs.ReindexStates(res, stateTransLhs);
 		rhs.ReindexStates(res, stateTransRhs);
 
 
 		return res;
 	}
 
-  template <class SymbolType>
-  ExplicitFiniteAut<SymbolType> UnionDisjunctStates(
-      const ExplicitFiniteAut<SymbolType> &lhs,
-      const ExplicitFiniteAut<SymbolType> &rhs) {
+	template <class SymbolType>
+	ExplicitFiniteAut<SymbolType> UnionDisjunctStates(
+			const ExplicitFiniteAut<SymbolType> &lhs,
+			const ExplicitFiniteAut<SymbolType> &rhs) {
 
-        ExplicitFiniteAut<SymbolType> res(lhs);
+		ExplicitFiniteAut<SymbolType> res(lhs);
 
-        // Use uniqueCluster function, not explicitly transitions_,
-        // because of the possibility of the need of creating the
-        // new clusterMap
-        res.uniqueClusterMap()->insert(rhs.transitions_->begin(),
-          rhs.transitions_->end());
+		// Use uniqueCluster function, not explicitly transitions_,
+		// because of the possibility of the need of creating the
+		// new clusterMap
+		res.uniqueClusterMap()->insert(rhs.transitions_->begin(),
+			rhs.transitions_->end());
 		assert(lhs.transitions_->size() + rhs.transitions_->size() == res.transitions_->size());
-        
-        res.startStates_.insert(rhs.startStates_.begin(),
-          rhs.startStates_.end());
+		
+		res.startStates_.insert(rhs.startStates_.begin(),
+			rhs.startStates_.end());
 
-        res.startStateToSymbols_.insert(rhs.startStateToSymbols_.begin(),
-          rhs.startStateToSymbols_.end());
+		res.startStateToSymbols_.insert(rhs.startStateToSymbols_.begin(),
+			rhs.startStateToSymbols_.end());
 
-        res.finalStates_.insert(rhs.finalStates_.begin(),
-          rhs.finalStates_.end());
-        return res;
-      }
+		res.finalStates_.insert(rhs.finalStates_.begin(),
+			rhs.finalStates_.end());
+		return res;
+	}
 
-  template <class SymbolType, 
-    class Rel,
+	template <class SymbolType, 
+		class Rel,
 		class Index = Util::IdentityTranslator<AutBase::StateType>>
-  ExplicitFiniteAut<SymbolType> CollapseStates(
-      const ExplicitFiniteAut<SymbolType> &aut,
-      const Rel & rel,
-      const Index &index = Index()) {
+	ExplicitFiniteAut<SymbolType> CollapseStates(
+			const ExplicitFiniteAut<SymbolType> &aut,
+			const Rel & rel,
+			const Index &index = Index()) {
 
-      std::vector<size_t> representatives;
+		std::vector<size_t> representatives;
 
-      // Creates vector, which contains equivalences classes of states of 
-      // aut automaton
-      // If relation is identity, newly created automaton will be same
-      rel.buildClasses(representatives);
+		// Creates vector, which contains equivalences classes of states of 
+		// aut automaton
+		// If relation is identity, newly created automaton will be same
+		rel.buildClasses(representatives);
 
-   		std::vector<AutBase::StateType> rebinded(representatives.size());
+		std::vector<AutBase::StateType> rebinded(representatives.size());
 
-      // Transl will contain new numbers (indexes) for input states
-  		Util::RebindMap2(rebinded, representatives, index);
+		// Transl will contain new numbers (indexes) for input states
+		Util::RebindMap2(rebinded, representatives, index);
+		ExplicitFiniteAut<SymbolType> res;
+		aut.ReindexStates(res, rebinded);
 
-	  	ExplicitFiniteAut<SymbolType> res;
+		return res;
+	}
 
-		  aut.ReindexStates(res, rebinded);
-
-		  return res;
-  }
-
-  /******************************************************
-   * Functions prototypes
-   */
+	/******************************************************
+	 * Functions prototypes
+	 */
  template <class SymbolType>
  ExplicitFiniteAut<SymbolType> Intersection(
-      const ExplicitFiniteAut<SymbolType> &lhs,
-      const ExplicitFiniteAut<SymbolType> &rhs,
-      AutBase::ProductTranslMap* pTranslMap = nullptr);
+			const ExplicitFiniteAut<SymbolType> &lhs,
+			const ExplicitFiniteAut<SymbolType> &rhs,
+			AutBase::ProductTranslMap* pTranslMap = nullptr);
 
-  template <class SymbolType>
-  ExplicitFiniteAut<SymbolType> RemoveUnreachableStates(
-      const ExplicitFiniteAut<SymbolType> &aut,
-      VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
-
-
-  template <class SymbolType>
-  ExplicitFiniteAut<SymbolType> RemoveUselessStates(
-      const ExplicitFiniteAut<SymbolType> &aut,
-      VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
-
-  template <class SymbolType>
-  ExplicitFiniteAut<SymbolType> Reverse(
-    const ExplicitFiniteAut<SymbolType> &aut,
-    AutBase::ProductTranslMap* pTranslMap = nullptr);
+	template <class SymbolType>
+	ExplicitFiniteAut<SymbolType> RemoveUnreachableStates(
+			const ExplicitFiniteAut<SymbolType> &aut,
+			VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
 
 
-   template <class SymbolType, class Dict>
-   ExplicitFiniteAut<SymbolType> Complement(
-      const ExplicitFiniteAut<SymbolType> &aut,
-      const Dict &alphabet);
+	template <class SymbolType>
+	ExplicitFiniteAut<SymbolType> RemoveUselessStates(
+			const ExplicitFiniteAut<SymbolType> &aut,
+			VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
+
+	template <class SymbolType>
+	ExplicitFiniteAut<SymbolType> Reverse(
+		const ExplicitFiniteAut<SymbolType> &aut,
+		AutBase::ProductTranslMap* pTranslMap = nullptr);
+
+
+	 template <class SymbolType, class Dict>
+	 ExplicitFiniteAut<SymbolType> Complement(
+			const ExplicitFiniteAut<SymbolType> &aut,
+			const Dict &alphabet);
 
 
 	template <class SymbolType>
 	ExplicitFiniteAut<SymbolType> GetCandidateTree(
-      const ExplicitFiniteAut<SymbolType>& aut);
+			const ExplicitFiniteAut<SymbolType>& aut);
 
 
-  // Translator for simulation
-  template <class SymbolType, class Index>
+	// Translator for simulation
+	template <class SymbolType, class Index>
 	ExplicitLTS Translate(const ExplicitFiniteAut<SymbolType>& aut,
-    std::vector<std::vector<size_t>>& partition,
-    Util::BinaryRelation& relation,
+		std::vector<std::vector<size_t>>& partition,
+		Util::BinaryRelation& relation,
 		const Index& stateIndex);
 
 
-  /***************************************************
-   * Simulation functions
-   */
+	/***************************************************
+	 * Simulation functions
+	 */
 	template <class SymbolType, class Index>
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		const ExplicitFiniteAut<SymbolType>& aut, const size_t& size, const Index& index) {
 
 		AutBase::StateBinaryRelation relation;
-    std::vector<std::vector<size_t>> partition(1);
+		std::vector<std::vector<size_t>> partition(1);
 		return Translate(aut, partition, relation, index).computeSimulation(size);
 
 	}
@@ -208,34 +206,34 @@ namespace VATA {
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		const ExplicitFiniteAut<SymbolType>& aut, const size_t& size) {
 
-    AutBase::StateBinaryRelation relation;
-    std::vector<std::vector<size_t>> partition(1);
+		AutBase::StateBinaryRelation relation;
+		std::vector<std::vector<size_t>> partition(1);
 		return Translate(aut, partition, relation).computeSimulation(partition,relation,size);
 	}
 
-  // Automaton has not been sanitized
-  template <class SymbolType>
+	// Automaton has not been sanitized
+	template <class SymbolType>
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		const ExplicitFiniteAut<SymbolType>& aut) {
 
 		return ComputeDownwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
 	}
 
-  /*****************************************************************
-   * Upward simulation just for compability
-   */
-  template <class SymbolType, class Index>
+	/*****************************************************************
+	 * Upward simulation just for compability
+	 */
+	template <class SymbolType, class Index>
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
 		const ExplicitFiniteAut<SymbolType>& aut, const size_t& size, const Index& index) {
 
-	  return ComputeDownwardSimulation(aut, size);
+		return ComputeDownwardSimulation(aut, size);
 	}
 
 	template <class SymbolType>
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
 		const ExplicitFiniteAut<SymbolType>& aut, const size_t& size) {
 
-	 return ComputeDownwardSimulation(aut, size);
+		return ComputeDownwardSimulation(aut, size);
 	}
 
 	template <class SymbolType>
@@ -246,90 +244,90 @@ namespace VATA {
 
 	}
 
-  /***************************************************************
-   * Inclusion checking functions
-   */
+	/***************************************************************
+	 * Inclusion checking functions
+	 */
 
-  template<class SymbolType, class Rel, class Functor>
-  bool CheckFiniteAutInclusion (
-    const ExplicitFiniteAut<SymbolType>& smaller, 
-    const ExplicitFiniteAut<SymbolType>& bigger, 
-    const Rel& preorder); 
+	template<class SymbolType, class Rel, class Functor>
+	bool CheckFiniteAutInclusion (
+		const ExplicitFiniteAut<SymbolType>& smaller, 
+		const ExplicitFiniteAut<SymbolType>& bigger, 
+		const Rel& preorder); 
 
-  template <class SymbolType, class Rel>
+	template <class SymbolType, class Rel>
 	bool CheckUpwardInclusionWithPreorder(
 		const ExplicitFiniteAut<SymbolType>& smaller, 
-    const ExplicitFiniteAut<SymbolType>& bigger,
+		const ExplicitFiniteAut<SymbolType>& bigger,
 		const Rel& preorder) {
 
-    typedef ExplicitFAStateSetComparatorIdentity<SymbolType,Rel> Comparator;
-    // There is possible to set macro to use one of the optimization
+		typedef ExplicitFAStateSetComparatorIdentity<SymbolType,Rel> Comparator;
+		// There is possible to set macro to use one of the optimization
 #ifdef OPT_AC 
-    typedef ExplicitFAInclusionFunctorOpt<SymbolType,Rel,Comparator> FunctorType;
+		typedef ExplicitFAInclusionFunctorOpt<SymbolType,Rel,Comparator> FunctorType;
 #elif CACHE_AC
-    typedef ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
+		typedef ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
 #else
-    typedef ExplicitFAInclusionFunctor<SymbolType,Rel> FunctorType;
+		typedef ExplicitFAInclusionFunctor<SymbolType,Rel> FunctorType;
 #endif
 		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
 	}
 
-  // Special for simulation
-  template <class SymbolType, class Rel>
+	// Special for simulation
+	template <class SymbolType, class Rel>
 	bool CheckUpwardInclusionWithSim(
 		const ExplicitFiniteAut<SymbolType>& smaller, 
-    const ExplicitFiniteAut<SymbolType>& bigger,
+		const ExplicitFiniteAut<SymbolType>& bigger,
 		const Rel& preorder) {
 
-    typedef ExplicitFAStateSetComparatorSimulation<SymbolType,Rel> Comparator;
+		typedef ExplicitFAStateSetComparatorSimulation<SymbolType,Rel> Comparator;
 #ifdef OPT_AC 
-    typedef ExplicitFAInclusionFunctorOpt<SymbolType,Rel,Comparator> FunctorType;
+		typedef ExplicitFAInclusionFunctorOpt<SymbolType,Rel,Comparator> FunctorType;
 #elif CACHE_AC
-    typedef ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
+		typedef ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
 #else
-    typedef ExplicitFAInclusionFunctor<SymbolType,Rel> FunctorType;
+		typedef ExplicitFAInclusionFunctor<SymbolType,Rel> FunctorType;
 #endif
 		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
 	}
 
-  /*
-   * Congruence function
-   * preorder not used yet, but one time will be
-   */
-  template <class SymbolType, class Rel>
-  bool CheckInclusionWithCongr(
+	/*
+	 * Congruence function
+	 * preorder not used yet, but one time will be
+	 */
+	template <class SymbolType, class Rel>
+	bool CheckInclusionWithCongr(
 		const ExplicitFiniteAut<SymbolType>& smaller, 
-    const ExplicitFiniteAut<SymbolType>& bigger,
+		const ExplicitFiniteAut<SymbolType>& bigger,
 		const Rel& preorder) {
 #ifdef CACHE_OPT_CONGR
-    typedef ExplicitFACongrFunctorCacheOpt<SymbolType,Rel> FunctorType;
+		typedef ExplicitFACongrFunctorCacheOpt<SymbolType,Rel> FunctorType;
 #elif OPT_CONGR 
-    typedef ExplicitFACongrFunctorOpt<SymbolType,Rel> FunctorType;
+		typedef ExplicitFACongrFunctorOpt<SymbolType,Rel> FunctorType;
 #elif CACHE_CONGR
-    typedef ExplicitFACongrFunctorCache<SymbolType,Rel> FunctorType;
+		typedef ExplicitFACongrFunctorCache<SymbolType,Rel> FunctorType;
 #else
-    typedef ExplicitFACongrFunctor<SymbolType,Rel> FunctorType;
+		typedef ExplicitFACongrFunctor<SymbolType,Rel> FunctorType;
 #endif
 		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
-  }
+	}
 
-  /*
-   * Get just two automata, first sanitization is
-   * made then the inclusion check is called
-   */
-  template <class SymbolType>
-  bool CheckInclusion(const ExplicitFiniteAut<SymbolType>& smaller,
+	/*
+	 * Get just two automata, first sanitization is
+	 * made then the inclusion check is called
+	 */
+	template <class SymbolType>
+	bool CheckInclusion(const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger) {
-	  AutBase::StateType states = 
-      AutBase::SanitizeAutsForInclusion(smaller, bigger);
+		AutBase::StateType states = 
+			AutBase::SanitizeAutsForInclusion(smaller, bigger);
 		VATA::Util::Identity ident(states);
 		return CheckUpwardInclusion(smaller, bigger,states);
 	}
 
 
-  /****************************************************************
-   * Compatibility to other formats
-   */
+	/****************************************************************
+	 * Compatibility to other formats
+	 */
 
 template <class SymbolType, class Rel>
 	bool CheckOptDownwardInclusionWithPreorder(

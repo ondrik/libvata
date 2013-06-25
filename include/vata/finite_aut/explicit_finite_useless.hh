@@ -1,10 +1,10 @@
 /*****************************************************************************
- *  VATA Finite Automata Library
+ *	VATA Finite Automata Library
  *
- *  Copyright (c) 2013  Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
+ *	Copyright (c) 2013	Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
  *
- *  Description:
- *  Removing useless states for explicitly represented finite automata.
+ *	Description:
+ *	Removing useless states for explicitly represented finite automata.
  *
  *****************************************************************************/
 
@@ -18,25 +18,25 @@
 #include <vata/finite_aut/explicit_finite_unreach.hh>
 
 namespace VATA {
-  template <class SymbolType>
-  ExplicitFiniteAut<SymbolType> RemoveUselessStates(
-      const ExplicitFiniteAut<SymbolType> &aut,
-      VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
+	template <class SymbolType>
+	ExplicitFiniteAut<SymbolType> RemoveUselessStates(
+			const ExplicitFiniteAut<SymbolType> &aut,
+			VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
 }
 
 template <class SymbolType>
 VATA::ExplicitFiniteAut<SymbolType> VATA::RemoveUselessStates(
-    const VATA::ExplicitFiniteAut<SymbolType> &aut,
-    VATA::AutBase::StateToStateMap* pTranslMap = nullptr) {
+		const VATA::ExplicitFiniteAut<SymbolType> &aut,
+		VATA::AutBase::StateToStateMap* pTranslMap = nullptr) {
  
-  // remove useless states by applying following operations
-  return Reverse(
-     RemoveUnreachableStates(
-      Reverse(
-        RemoveUnreachableStates(aut,pTranslMap)
-      ),pTranslMap
-     )
-    );
+	// remove useless states by applying following operations
+	return Reverse(
+		RemoveUnreachableStates(
+			Reverse(
+				RemoveUnreachableStates(aut,pTranslMap)
+			),pTranslMap
+		 )
+		);
 }
 
 #endif
