@@ -109,7 +109,7 @@ GCC_DIAG_ON(effc++)
    * Functors for inclusion checking functions
    */
   template<class SymbolType, class Rel>
-  friend class ExplicitFAAbstractFunctor;
+  friend class ExplicitFAAbstractFunctor;    
 
   template<class SymbolType, class Rel>
   friend class ExplicitFAInclusionFunctor;
