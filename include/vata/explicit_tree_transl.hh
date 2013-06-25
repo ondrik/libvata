@@ -60,6 +60,10 @@ VATA::ExplicitLTS VATA::TranslateDownward(const ExplicitTreeAut<SymbolType>& aut
 
 	ExplicitLTS result;
 
+  /*
+   * Iterate through all transitions and adds them
+   * to the LTS.
+   */
 	for (auto& stateClusterPair : *aut.transitions_) {
 
 		assert(stateClusterPair.second);
@@ -76,10 +80,10 @@ VATA::ExplicitLTS VATA::TranslateDownward(const ExplicitTreeAut<SymbolType>& aut
 
 				assert(tuple);
 
-				if (tuple->size() == 1) {
+				if (tuple->size() == 1) { // a(p) -> q
 					// inline lhs of size 1 >:-)
 					result.addTransition(state, symbol, tuple->front());
-				} else {
+				} else { // a(p,r) -> q
 					result.addTransition(
 						stateClusterPair.first, symbol, lhsTranslator(tuple.get())
 					);
@@ -345,7 +349,6 @@ VATA::ExplicitLTS VATA::TranslateUpward(const ExplicitTreeAut<SymbolType>& aut,
 		for (size_t j = 0; j < head.size(); ++j) {
 
 			assert(head[j]);
-
 			if (head[i]->lessThan(*head[j], param))
 				relation.set(base + i, base + j, true);
 
@@ -353,7 +356,7 @@ VATA::ExplicitLTS VATA::TranslateUpward(const ExplicitTreeAut<SymbolType>& aut,
 
 	}
 
-	result.init();
+  result.init();
 
 	return result;
 

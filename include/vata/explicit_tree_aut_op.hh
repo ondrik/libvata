@@ -34,6 +34,16 @@
 
 namespace VATA
 {
+	/*
+   * Fucntion for union of two automatons. It takes two automatons, 
+   * rename their states and then merges them into one. States are renamed
+   * by default dictionary or by user defined dictionary
+   *
+   * @param lhs Left automaton for union
+   * @param rhs Right automaton for union
+   * @param pTranslMapLhs renaming left automaton
+   * @param pTranslMapRhs renaming right automaton
+   */
 	template <class SymbolType>
 	ExplicitTreeAut<SymbolType> Union(
 		const ExplicitTreeAut<SymbolType>&    lhs,
@@ -303,6 +313,21 @@ namespace VATA
 		return ExplicitUpwardInclusion::Check(smaller, bigger, preorder);
 	}
 
+  // Added due to FA extension
+ 	template <class SymbolType, class Rel>
+	bool CheckUpwardInclusionWithSim(const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
+
+		return ExplicitUpwardInclusion::Check(smaller, bigger, preorder);
+	}
+
+  template <class SymbolType, class Rel>
+  bool CheckInclusionWithCongr(
+		const ExplicitTreeAut<SymbolType>& smaller, 
+    const ExplicitTreeAut<SymbolType>& bigger,
+		const Rel& preorder) {
+		throw std::runtime_error("Unimplemented");
+  }
 
 	template <class SymbolType, class Rel>
 	bool CheckOptDownwardInclusionWithPreorder(

@@ -190,6 +190,10 @@ Arguments parseArguments(int argc, char* argv[])
 				{
 					args.representation = REPRESENTATION_EXPLICIT;
 				}
+				else if (currentArg == "expl_fa")
+				{
+					args.representation = REPRESENTATION_EXPLICIT_FA;
+				}
 				else
 				{
 					throw std::runtime_error("Unsupported representation: " + currentArg);

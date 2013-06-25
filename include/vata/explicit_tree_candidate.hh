@@ -72,6 +72,8 @@ VATA::ExplicitTreeAut<SymbolType> VATA::GetCandidateTree(
 
 	size_t remaining = 0;
 
+  // Cycle builds information structure about transitions and also
+  // saves the reachable transitions (start states)
 	for (auto& stateClusterPair : *aut.transitions_) {
 
 		assert(stateClusterPair.second);
@@ -101,7 +103,9 @@ VATA::ExplicitTreeAut<SymbolType> VATA::GetCandidateTree(
 
 				for (auto& s : transitionInfoPtr->childrenSet_) {
 
-					stateMap.insert(
+          // Add a new pair to stateMap and also add the transitionInfor 
+          // ptr to the second item of the pair in one step
+					stateMap.insert( 
 						std::make_pair(s, std::vector<TransitionInfoPtr>())
 					).first->second.push_back(transitionInfoPtr);
 
@@ -117,6 +121,7 @@ VATA::ExplicitTreeAut<SymbolType> VATA::GetCandidateTree(
 
 	while (!newStates.empty()) {
 
+    // find transition which leads from the chosen state from newStates
 		auto i = stateMap.find(newStates.front());
 
 		newStates.pop_front();
@@ -124,21 +129,23 @@ VATA::ExplicitTreeAut<SymbolType> VATA::GetCandidateTree(
 		if (i == stateMap.end())
 			continue;
 
+    // iterate through all transitions
 		for (auto& info : i->second) {
 
 			assert(info);
 
+      // All states of tuple of transition was used
 			if (!info->reachedBy(i->first))
 				continue;
 
 			--remaining;
 
+      // Insert state, which is accessible from currently chosen transition 
 			if (reachableStates.insert(info->state_).second) {
 
 				reachableTransitions.push_back(info);
 
 				newStates.push_back(info->state_);
-
 				if (aut.IsFinalState(info->state_))
 					goto found_;
 
