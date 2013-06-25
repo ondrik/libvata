@@ -13,7 +13,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include "explicit_finite_aut.hh"
+#include <vata/finite_aut/explicit_finite_aut.hh>
 
 #include <vata/explicit_lts.hh>
 #include <vata/util/transl_weak.hh>

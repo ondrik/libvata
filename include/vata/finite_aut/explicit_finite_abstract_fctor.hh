@@ -14,7 +14,7 @@
 #define EXPLICIT_FINITE_AUT_ABSTRACT_FCTOR_HH_
 
 #include <vata/vata.hh>
-#include "explicit_finite_aut.hh"
+#include <vata/finite_aut/explicit_finite_aut.hh>
 
 namespace VATA {
   template <class SymbolType, class Rel> class ExplicitFAAbstractFunctor;

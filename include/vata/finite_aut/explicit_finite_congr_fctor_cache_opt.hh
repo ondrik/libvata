@@ -13,11 +13,12 @@
 #ifndef EXPLICIT_FINITE_AUT_CONGR_FCTOR_CACHE_OPT_
 #define EXPLICIT_FINITE_AUT_CONGR_FCTOR_CACHE_OPT_
 
+// VATA headers
 #include <vata/vata.hh>
 #include <vata/util/antichain2c_v2.hh>
 
-#include "util/map_to_list.hh"
-#include "util/macrostate_cache.hh"
+#include <vata/finite_aut/util/map_to_list.hh>
+#include <vata/finite_aut/util/macrostate_cache.hh>
 
 namespace VATA {
   template <class SymbolType, class Rel> class ExplicitFACongrFunctorCacheOpt;
