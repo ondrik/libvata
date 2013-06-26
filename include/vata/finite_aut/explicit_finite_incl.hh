@@ -75,4 +75,5 @@ bool VATA::CheckFiniteAutInclusion(
 	}
 	return inclFunc.DoesInclusionHold();
 }
+
 #endif

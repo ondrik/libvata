@@ -49,4 +49,5 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::Reverse(
 
 	return res;
 }
+
 #endif

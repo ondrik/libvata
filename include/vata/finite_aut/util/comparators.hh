@@ -139,6 +139,4 @@ public: // public methods
 	}
 };
 
-
-
 #endif

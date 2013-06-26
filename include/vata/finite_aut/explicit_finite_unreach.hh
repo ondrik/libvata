@@ -96,4 +96,5 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::RemoveUnreachableStates(
 
 	return res;
 }
+
 #endif

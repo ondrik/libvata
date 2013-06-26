@@ -142,4 +142,5 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::Intersection(
 
 	return RemoveUselessStates(res);
 }
+
 #endif
