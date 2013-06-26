@@ -33,6 +33,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	options.insert(std::make_pair("timeS", "yes"));
 	options.insert(std::make_pair("rec", "yes"));
 	options.insert(std::make_pair("congr", "no"));
+	options.insert(std::make_pair("order", "depth"));
 
 	std::runtime_error optErrorEx("Invalid options for inclusion: " +
 			Convert::ToString(options));
@@ -53,7 +54,10 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	{
 		VATA::Util::Identity ident(states);
     if (options["congr"] == "yes") {
-      return VATA::CheckInclusionWithCongr(smaller,bigger,ident);
+			if (options["order"] == "depth")
+      	return VATA::CheckInclusionWithCongr(smaller,bigger,ident,true);
+			else if (options["order"] == "breadth")
+      	return VATA::CheckInclusionWithCongr(smaller,bigger,ident,false);
     }
 		if (options["dir"] == "up")
 		{

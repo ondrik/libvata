@@ -44,6 +44,7 @@
 
 #include <vata/finite_aut/util/map_to_list.hh>
 #include <vata/finite_aut/util/macrostate_cache.hh>
+#include <vata/finite_aut/util/congr_product.hh>
 
 namespace VATA {
 
@@ -298,15 +299,23 @@ namespace VATA {
 	bool CheckInclusionWithCongr(
 		const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger,
-		const Rel& preorder) {
+		const Rel& preorder,
+		bool depth) {
 #ifdef CACHE_OPT_CONGR
-		typedef ExplicitFACongrFunctorCacheOpt<SymbolType,Rel> FunctorType;
+		typedef typename ExplicitFiniteAut<SymbolType>::StateSet StateSet;
+		typedef typename std::pair<StateSet*,StateSet*> ProductState;
+		typedef ProductStateSetBreadth<StateSet,ProductState> ProductSet;
+		if (depth)
+		{
+			typedef ProductStateSetDepth<StateSet,ProductState> ProductSet;
+		}
+		typedef ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
 #elif OPT_CONGR
-		typedef ExplicitFACongrFunctorOpt<SymbolType,Rel> FunctorType;
+		typedef ExplicitFACongrFunctorOpt<SymbolType,Rel,ProductSet> FunctorType;
 #elif CACHE_CONGR
-		typedef ExplicitFACongrFunctorCache<SymbolType,Rel> FunctorType;
+		typedef ExplicitFACongrFunctorCache<SymbolType,Rel,ProductSet> FunctorType;
 #else
-		typedef ExplicitFACongrFunctor<SymbolType,Rel> FunctorType;
+		typedef ExplicitFACongrFunctor<SymbolType,Rel,ProductSet> FunctorType;
 #endif
 		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
 	}

@@ -325,7 +325,8 @@ namespace VATA
   bool CheckInclusionWithCongr(
 		const ExplicitTreeAut<SymbolType>& smaller, 
     const ExplicitTreeAut<SymbolType>& bigger,
-		const Rel& preorder) {
+		const Rel& preorder,
+		bool depth) {
 		if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
 		{ }
 

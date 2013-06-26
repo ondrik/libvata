@@ -120,13 +120,20 @@ GCC_DIAG_ON(effc++)
 	template<class SymbolType, class Rel, class Comparator>
 	friend class ExplicitFAInclusionFunctorCache;
 
+	template <class SymbolType, class Rel>
+	friend bool CheckInclusionWithCongr(
+		const ExplicitFiniteAut<SymbolType>& smaller,
+		const ExplicitFiniteAut<SymbolType>& bigger,
+		const Rel& preorder,
+		bool depth);
+
 	template<class SymbolType, class Rel>
 	friend class ExplicitFACongrFunctor;
 	template<class SymbolType, class Rel>
 	friend class ExplicitFACongrFunctorOpt;
 	template<class SymbolType, class Rel>
 	friend class ExplicitFACongrFunctorCache;
-	template<class SymbolType, class Rel>
+	template<class SymbolType, class Rel, class ProductSet>
 	friend class ExplicitFACongrFunctorCacheOpt;
 
 	template<class SymbolType, class Rel>

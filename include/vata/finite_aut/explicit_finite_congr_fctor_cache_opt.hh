@@ -21,11 +21,11 @@
 #include <vata/finite_aut/util/macrostate_cache.hh>
 
 namespace VATA {
-	template <class SymbolType, class Rel> class ExplicitFACongrFunctorCacheOpt;
+	template <class SymbolType, class Rel, class ProductSet> class ExplicitFACongrFunctorCacheOpt;
 }
 
 GCC_DIAG_OFF(effc++)
-template <class SymbolType, class Rel>
+template <class SymbolType, class Rel, class ProductSet>
 class VATA::ExplicitFACongrFunctorCacheOpt :
 	public ExplicitFAAbstractFunctor <SymbolType,Rel> {
 GCC_DIAG_ON(effc++)
@@ -54,6 +54,7 @@ public : // data types
 	/*
 	 * Product state of built automaton is pair of macrostates
 	 */
+	/*
 GCC_DIAG_OFF(effc++)
 	class ProductStateSetType : public std::vector<ProductState> {
 GCC_DIAG_ON(effc++)
@@ -71,7 +72,8 @@ GCC_DIAG_ON(effc++)
 			return true;
 		}
 	};
-
+*/
+	typedef ProductSet ProductStateSetType;
 	// todo set is the same as the processed set of product states
 	typedef ProductStateSetType ProductNextType;
 
@@ -220,6 +222,11 @@ public: // public functions
 	};
 
 private:
+
+	void BfsManipulator()
+	{
+		return;
+	}
 
 	// Check if the rule is applyable
 	bool MatchPair(const StateSet& closure, const StateSet& rule) {
@@ -413,11 +420,11 @@ private:
 					StateSet& insertBigger = cache_.insert(biggerHashNum,newBigger);
 					if (!visitedPairs_.contains(&insertSmaller,&insertBigger)){
 						visitedPairs_.add(&insertSmaller,&insertBigger);
-						next_.push_back(std::make_pair(&insertSmaller,&insertBigger));
-						//next_.insert(next_.begin(),std::make_pair(&insertSmaller,&insertBigger));
-					 }
+						next_.add(insertSmaller,insertBigger);
+						//next_.push_back(std::make_pair(&insertSmaller,&insertBigger));
+					  //next_.insert(next_.begin(),std::make_pair(&insertSmaller,&insertBigger));
+					}
 				}
-
 			}
 		}
 	}

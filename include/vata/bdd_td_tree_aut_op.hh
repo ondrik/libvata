@@ -111,7 +111,7 @@ namespace VATA
   template <class Rel>
   bool CheckInclusionWithCongr(
 		const BDDTopDownTreeAut& smaller, const BDDTopDownTreeAut& bigger,
-    const Rel& preorder) {
+    const Rel& preorder, bool depth) {
 		if ((&smaller == nullptr) || (&bigger == nullptr) ||
 			(&preorder == nullptr)) { }
 
