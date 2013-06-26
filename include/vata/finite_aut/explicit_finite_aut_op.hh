@@ -307,7 +307,10 @@ namespace VATA {
 		typedef ProductStateSetBreadth<StateSet,ProductState> ProductSet;
 		if (depth)
 		{
+			// TODO: Do it better
 			typedef ProductStateSetDepth<StateSet,ProductState> ProductSet;
+			typedef ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
+			return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
 		}
 		typedef ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
 #elif OPT_CONGR
