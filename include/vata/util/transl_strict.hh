@@ -13,6 +13,10 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/util/convert.hh>
+
+// Standard library headers
+#include <stdexcept>
 
 
 namespace VATA

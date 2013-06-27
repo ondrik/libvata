@@ -94,7 +94,9 @@ public:   // methods
 	}
 
 	template <class Automaton>
-	static StateType SanitizeAutsForInclusion(Automaton& smaller, Automaton& bigger)
+	static StateType SanitizeAutsForInclusion(
+		Automaton&     smaller,
+		Automaton&     bigger)
 	{
 		StateType stateCnt = 0;
 		StateToStateMap stateMap;

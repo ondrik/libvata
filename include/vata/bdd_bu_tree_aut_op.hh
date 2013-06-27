@@ -36,12 +36,6 @@ namespace VATA
 
 	BDDBottomUpTreeAut RemoveUselessStates(const BDDBottomUpTreeAut& aut);
 
-	bool CheckUpwardInclusion(const BDDBottomUpTreeAut& smaller,
-		const BDDBottomUpTreeAut& bigger);
-
-	bool CheckDownwardInclusion(const BDDBottomUpTreeAut& smaller,
-		const BDDBottomUpTreeAut& bigger);
-
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		const BDDBottomUpTreeAut& aut);
 
@@ -54,81 +48,6 @@ namespace VATA
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
 		const BDDBottomUpTreeAut& aut, const size_t& size);
 
-	template <class Rel>
-	bool CheckDownwardInclusionWithPreorder(
-		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
-		const Rel& preorder)
-	{
-		BDDTopDownTreeAut invertSmaller = smaller.GetTopDownAut();
-		BDDTopDownTreeAut invertBigger = bigger.GetTopDownAut();
-
-		return CheckDownwardInclusionWithPreorder(invertSmaller, invertBigger,
-			preorder);
-	}
-
-	template <class Rel>
-	bool CheckInclusionWithCongr(
-		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
-		const Rel& preorder) {
-		if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
-		{ }
-
-		throw std::runtime_error("Unimplemented");
-	}
-
-	template <class Rel>
-	bool CheckDownwardInclusionNonRecWithPreorder(
-		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
-		const Rel& preorder)
-	{
-		if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
-		{ }
-
-		throw std::runtime_error("Unimplemented");
-	}
-
-	template <class Rel>
-	bool CheckOptDownwardInclusionWithPreorder(
-		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
-		const Rel& preorder)
-	{
-		BDDTopDownTreeAut invertSmaller = smaller.GetTopDownAut();
-		BDDTopDownTreeAut invertBigger = bigger.GetTopDownAut();
-
-		return CheckOptDownwardInclusionWithPreorder(invertSmaller, invertBigger,
-			preorder);
-	}
-
-	template <class Rel>
-	bool CheckUpwardInclusionWithPreorder(
-		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
-		const Rel& preorder)
-	{
-		return CheckUpwardTreeInclusion<BDDBottomUpTreeAut,
-			VATA::UpwardInclusionFunctor>(smaller, bigger, preorder);
-	}
-
-	// Added due to FA extension
-	template <class Rel>
-	bool CheckUpwardInclusionWithSim(
-		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
-		const Rel& preorder)
-	{
-		return CheckUpwardTreeInclusion<BDDBottomUpTreeAut,
-			VATA::UpwardInclusionFunctor>(smaller, bigger, preorder);
-	}
-
-	inline bool CheckInclusion(const BDDBottomUpTreeAut& smaller,
-		const BDDBottomUpTreeAut& bigger)
-	{
-		return CheckUpwardInclusion(smaller, bigger);
-	}
-
-	template <class SymbolType, class Dict>
-	BDDBottomUpTreeAut Complement(const BDDBottomUpTreeAut& aut,
-		const Dict& alphabet) {
-		throw std::runtime_error("Unimplemented");
-	}
 }
 
 #endif

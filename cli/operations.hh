@@ -32,129 +32,136 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	options.insert(std::make_pair("optC", "no"));
 	options.insert(std::make_pair("timeS", "yes"));
 	options.insert(std::make_pair("rec", "yes"));
-	options.insert(std::make_pair("congr", "no"));
+	options.insert(std::make_pair("alg", "antichains"));
 
 	std::runtime_error optErrorEx("Invalid options for inclusion: " +
 			Convert::ToString(options));
 
 	AutBase::StateType states = AutBase::SanitizeAutsForInclusion(smaller, bigger);
 
-	if (options["congr"] == "yes")
+	/****************************************************************************
+	 *                        Parsing of input parameters
+	 ****************************************************************************/
+
+	// parameters for inclusion
+	VATA::InclParam ip;
+
+	// the algorithm used
+	if (options["alg"] == "antichains")
 	{
+		ip.opt_congruence = false;
+	}
+	else if (options["alg"] == "congr")
+	{
+		ip.opt_congruence = true;
+	}
+	else { throw optErrorEx; }
+
+	// direction of the algorithm
+	if (options["dir"] == "up")
+	{
+		ip.opt_downward = false;
+	}
+	else if (options["dir"] == "down")
+	{
+		ip.opt_downward = true;
+	}
+	else { throw optErrorEx; }
+
+	// recursive/nonrecursive version
+	if (options["rec"] == "yes")
+	{
+		ip.opt_downward_rec = true;
+	}
+	else if (options["rec"] == "no")
+	{
+		ip.opt_downward_rec = false;
+	}
+	else { throw optErrorEx; }
+
+	// caching of implications
+	if (options["optC"] == "no")
+	{
+		ip.opt_downward_cache_impl = false;
+	}
+	else if (options["optC"] == "yes")
+	{
+		ip.opt_downward_cache_impl = true;
+	}
+	else { throw optErrorEx; }
+
+	// use simulation?
+	if (options["sim"] == "no")
+	{
+		ip.opt_simulation = false;
+	}
+	else if (options["sim"] == "yes")
+	{
+		ip.opt_simulation = true;
+	}
+	else { throw optErrorEx; }
+
+	bool incl_sim_time = false;
+	if (options["timeS"] == "no")
+	{
+		incl_sim_time = false;
+	}
+	else if (options["timeS"] == "yes")
+	{
+		incl_sim_time = true;
+	}
+	else { throw optErrorEx; }
+
+	/****************************************************************************
+	 *                            Additional handling
+	 ****************************************************************************/
+
+	// set the timer
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);
+
+	if (ip.opt_congruence)
+	{	// for congruences, make smaller := smaller UNION bigger and check for equivalence
+		// TODO: is the previous comment true?
 		AutBase::StateToStateMap opTranslMap1;
 		AutBase::StateToStateMap opTranslMap2;
 		smaller = UnionDisjointStates(smaller, bigger);//, &opTranslMap1, &opTranslMap2);
 	}
 
+	AutBase::StateBinaryRelation sim;
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
-
-	if (options["sim"] == "no")
-	{
-		VATA::Util::Identity ident(states);
-		if (options["congr"] == "yes")
-		{
-			return VATA::CheckInclusionWithCongr(smaller,bigger,ident);
-		}
-		if (options["dir"] == "up")
-		{
-			return VATA::CheckUpwardInclusionWithPreorder(smaller, bigger, ident);
-		}
-		else if (options["dir"] == "down")
-		{
-			if (options["optC"] == "no")
-			{
-				if (options["rec"] == "yes")
-				{
-					return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, ident);
-				}
-				else if (options["rec"] == "no")
-				{
-					return VATA::CheckDownwardInclusionNonRecWithPreorder(smaller, bigger, ident);
-				}
-				else
-				{
-					throw optErrorEx;
-				}
-			}
-			else if (options["optC"] == "yes")
-			{
-				return VATA::CheckOptDownwardInclusionWithPreorder(
-					smaller, bigger, ident);
-			}
-			else
-			{
-				throw optErrorEx;
-			}
-		}
-		else
-		{
-			throw optErrorEx;
-		}
-	}
-	else if (options["sim"] == "yes")
-	{
+	if (ip.opt_simulation)
+	{	// if simulation is desired, then compute it here!
 		Automaton unionAut = VATA::UnionDisjointStates(smaller, bigger);
 
-		if (options["dir"] == "up")
-		{
-			AutBase::StateBinaryRelation sim = ComputeUpwardSimulation(unionAut, states);
+		// the relation
+		AutBase::StateBinaryRelation sim;
 
-			if (options["timeS"] == "no")
-			{
-				clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
-			}
-			else if (options["timeS"] == "yes")
-			{ }
-			else
-			{
-				throw optErrorEx;
-			}
+		if (!ip.opt_downward)
+		{	// for upward algorithm compute the upward simulation
+			sim = ComputeUpwardSimulation(unionAut, states);
+			ip.simulation = &sim;
 
-			return VATA::CheckUpwardInclusionWithSim(smaller, bigger, sim);
-		}
-		else if (options["dir"] == "down")
-		{
-			AutBase::StateBinaryRelation sim = ComputeDownwardSimulation(unionAut, states);
-
-			if (options["timeS"] == "no")
-			{
-				clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
-			}
-			else if (options["timeS"] == "yes")
-			{ }
-			else
-			{
-				throw optErrorEx;
-			}
-
-			if (options["rec"] == "yes")
-			{
-				return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, sim);
-			}
-			else if (options["rec"] == "no")
-			{
-				return VATA::CheckDownwardInclusionNonRecWithPreorder(smaller, bigger, sim);
-			}
-			else
-			{
-				throw optErrorEx;
-			}
 		}
 		else
-		{
-			throw optErrorEx;
+		{	// for downward algorithm, compute the downward simualation
+			sim = ComputeDownwardSimulation(unionAut, states);
+			ip.simulation = &sim;
 		}
 	}
-	else
-	{
-		throw optErrorEx;
+
+	if (!incl_sim_time)
+	{	// if the simulation time is not to be included in the total time
+		// reset the timer
+		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);
 	}
+
+	return VATA::CheckInclusion(smaller, bigger, &ip);
 }
 
 template <class Automaton>
-VATA::AutBase::StateBinaryRelation ComputeSimulation(Automaton aut,
-	const Arguments& args)
+VATA::AutBase::StateBinaryRelation ComputeSimulation(
+	Automaton            aut,
+	const Arguments&     args)
 {
 	if (!args.pruneUseless)
 	{
@@ -184,7 +191,9 @@ VATA::AutBase::StateBinaryRelation ComputeSimulation(Automaton aut,
 }
 
 template <class Automaton>
-Automaton ComputeReduction(Automaton aut, const Arguments& args)
+Automaton ComputeReduction(
+	Automaton           aut,
+	const Arguments&    args)
 {
 	// insert default values
 	Options options = args.options;

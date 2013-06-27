@@ -12,6 +12,7 @@
 #include <vata/vata.hh>
 #include <vata/bdd_bu_tree_aut.hh>
 #include <vata/bdd_bu_tree_aut_op.hh>
+#include <vata/bdd_bu_tree_aut_incl.hh>
 #include <vata/bdd_td_tree_aut_op.hh>
 #include <vata/tree_incl_up.hh>
 
@@ -20,8 +21,26 @@ using VATA::BDDBottomUpTreeAut;
 using VATA::BDDTopDownTreeAut;
 using VATA::Util::Convert;
 
-bool VATA::CheckDownwardInclusion(const BDDBottomUpTreeAut& smaller,
-	const BDDBottomUpTreeAut& bigger)
+
+bool VATA::CheckInclusion(
+	const BDDBottomUpTreeAut&   smaller,
+	const BDDBottomUpTreeAut&   bigger,
+	const VATA::InclParam*      params)
+{
+	if (nullptr == params)
+	{
+		return CheckUpwardInclusion(smaller, bigger);
+	}
+	else
+	{
+		throw std::runtime_error("Unimplemented");
+	}
+}
+
+
+bool VATA::CheckDownwardInclusion(
+	const BDDBottomUpTreeAut&    smaller,
+	const BDDBottomUpTreeAut&    bigger)
 {
 	BDDTopDownTreeAut invSmaller = smaller.GetTopDownAut();
 	BDDTopDownTreeAut invBigger = bigger.GetTopDownAut();
@@ -29,8 +48,10 @@ bool VATA::CheckDownwardInclusion(const BDDBottomUpTreeAut& smaller,
 	return CheckDownwardInclusion(invSmaller, invBigger);
 }
 
-bool VATA::CheckUpwardInclusion(const BDDBottomUpTreeAut& smaller,
-	const BDDBottomUpTreeAut& bigger)
+
+bool VATA::CheckUpwardInclusion(
+	const BDDBottomUpTreeAut&   smaller,
+	const BDDBottomUpTreeAut&   bigger)
 {
 	BDDBottomUpTreeAut newSmaller = smaller;
 	BDDBottomUpTreeAut newBigger = bigger;

@@ -12,17 +12,21 @@
 #include <vata/vata.hh>
 #include <vata/bdd_bu_tree_aut.hh>
 #include <vata/bdd_bu_tree_aut_op.hh>
+#include <vata/bdd_bu_tree_aut_incl.hh>
 #include <vata/bdd_td_tree_aut.hh>
 #include <vata/bdd_td_tree_aut_op.hh>
+#include <vata/bdd_td_tree_aut_incl.hh>
 #include <vata/explicit_tree_aut.hh>
 #include <vata/explicit_tree_aut_op.hh>
+#include <vata/explicit_tree_incl.hh>
+#include <vata/finite_aut/explicit_finite_aut.hh>
+#include <vata/finite_aut/explicit_finite_aut_op.hh>
+#include <vata/finite_aut/explicit_finite_incl.hh>
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
 #include <vata/util/convert.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/util.hh>
-#include <vata/finite_aut/explicit_finite_aut.hh>
-#include <vata/finite_aut/explicit_finite_aut_op.hh>
 
 // standard library headers
 #include <cstdlib>
@@ -85,12 +89,12 @@ const char VATA_USAGE_COMMANDS[] =
 	"                            and <file2>, i.e., whether L(<file1>) is a subset\n"
 	"                            of L(<file2>). Options:\n"
 	"\n"
+	"          'alg=antichains' : use an antichain-based algorithm (default)\n"
+	"          'alg=congr'      : use a bisimulation up-to congruence algorithm\n"
 	"          'dir=down' : downward inclusion checking\n"
 	"          'dir=up'   : upward inclusion checking (default)\n"
 	"          'sim=yes'  : use corresponding simulation\n"
 	"          'sim=no'   : do not use simulation (default)\n"
-	"          'congr=no' : do not use congruence closure computation (default)\n"
-	"          'congr=yes': use congruence closure computation\n"
 	"          'optC=yes' : use optimised cache for downward direction\n"
 	"          'optC=no'  : without optimised cache (default)\n"
 	"          'rec=yes'  : recursive version of downward direction (default)\n"
