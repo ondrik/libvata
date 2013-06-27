@@ -300,15 +300,15 @@ namespace VATA {
 		const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger,
 		const Rel& preorder) {
-#ifdef CACHE_OPT_CONGR
 		typedef typename ExplicitFiniteAut<SymbolType>::StateSet StateSet;
 		typedef typename std::pair<StateSet*,StateSet*> ProductState;
 		typedef ProductStateSetDepth<StateSet,ProductState> ProductSet;
+#ifdef CACHE_OPT_CONGR
 		typedef ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
 #elif OPT_CONGR
 		typedef ExplicitFACongrFunctorOpt<SymbolType,Rel,ProductSet> FunctorType;
 #elif CACHE_CONGR
-		typedef ExplicitFACongrFunctorCache<SymbolType,Rel,ProductSet> FunctorType;
+		typedef ExplicitFACongrFunctorCache<SymbolType,Rel> FunctorType;
 #else
 		typedef ExplicitFACongrFunctor<SymbolType,Rel,ProductSet> FunctorType;
 #endif
@@ -324,15 +324,15 @@ namespace VATA {
 		const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger,
 		const Rel& preorder) {
-#ifdef CACHE_OPT_CONGR
 		typedef typename ExplicitFiniteAut<SymbolType>::StateSet StateSet;
 		typedef typename std::pair<StateSet*,StateSet*> ProductState;
 		typedef ProductStateSetBreadth<StateSet,ProductState> ProductSet;
+#ifdef CACHE_OPT_CONGR
 		typedef ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
 #elif OPT_CONGR
 		typedef ExplicitFACongrFunctorOpt<SymbolType,Rel,ProductSet> FunctorType;
 #elif CACHE_CONGR
-		typedef ExplicitFACongrFunctorCache<SymbolType,Rel,ProductSet> FunctorType;
+		typedef ExplicitFACongrFunctorCache<SymbolType,Rel> FunctorType;
 #else
 		typedef ExplicitFACongrFunctor<SymbolType,Rel,ProductSet> FunctorType;
 #endif
