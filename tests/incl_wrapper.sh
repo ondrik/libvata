@@ -45,11 +45,11 @@ ulimit -s 1000000
 
 case "${OPERATION}" in
   explfa)
-    ${VATA} -r expl_fa -t incl -o congr=yes "${FILE_LHS}" "${FILE_RHS}"
+    ${VATA} -r expl_fa -t incl -o alg=congr "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   explfa-congr)
-    ${VATA} -r expl_fa -t incl -o congr=yes "${FILE_LHS}" "${FILE_RHS}"
+    ${VATA} -r expl_fa -t incl -o alg=congr "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   explfa-sim)
