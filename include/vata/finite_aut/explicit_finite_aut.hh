@@ -46,9 +46,9 @@ GCC_DIAG_ON(effc++)
 		AutBase::StateToStateMap*, AutBase::StateToStateMap*);
 
 	template <class SymbolType>
-	friend ExplicitFiniteAut<SymbolType> UnionDisjunctStates(
-			const ExplicitFiniteAut<SymbolType>&,
-			const ExplicitFiniteAut<SymbolType>&);
+	friend ExplicitFiniteAut<SymbolType> UnionDisjointStates(
+		const ExplicitFiniteAut<SymbolType>&,
+		const ExplicitFiniteAut<SymbolType>&);
 
 	template <class SymbolType>
 	friend ExplicitFiniteAut<SymbolType> Intersection(

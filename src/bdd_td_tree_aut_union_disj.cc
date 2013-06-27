@@ -4,7 +4,7 @@
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
  *  Description:
- *    Implementation of union with disjunct state sets on BDD top-down tree
+ *    Implementation of union with disjoint state sets on BDD top-down tree
  *    automata.
  *
  *****************************************************************************/
@@ -17,8 +17,9 @@ using VATA::BDDTopDownTreeAut;
 using VATA::Util::Convert;
 
 
-BDDTopDownTreeAut VATA::UnionDisjunctStates(const BDDTopDownTreeAut& lhs,
-	const BDDTopDownTreeAut& rhs)
+BDDTopDownTreeAut VATA::UnionDisjointStates(
+	const BDDTopDownTreeAut&   lhs,
+	const BDDTopDownTreeAut&   rhs)
 {
 	typedef BDDTopDownTreeAut::StateType StateType;
 

@@ -101,7 +101,7 @@ namespace VATA
 	 * rhs
    */
 	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> UnionDisjunctStates(
+	ExplicitTreeAut<SymbolType> UnionDisjointStates(
 		const ExplicitTreeAut<SymbolType>&     lhs,
 		const ExplicitTreeAut<SymbolType>&     rhs)
 	{
@@ -422,7 +422,7 @@ namespace VATA
 
 		return CheckDownwardInclusionWithPreorder(newSmaller, newBigger,
 			ComputeDownwardSimulation(
-				UnionDisjunctStates(newSmaller, newBigger), states)
+				UnionDisjointStates(newSmaller, newBigger), states)
 			);
 	}
 

@@ -43,7 +43,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	{
 		AutBase::StateToStateMap opTranslMap1;
 		AutBase::StateToStateMap opTranslMap2;
-		smaller = UnionDisjunctStates(smaller, bigger);//, &opTranslMap1, &opTranslMap2);
+		smaller = UnionDisjointStates(smaller, bigger);//, &opTranslMap1, &opTranslMap2);
 	}
 
 
@@ -94,7 +94,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	}
 	else if (options["sim"] == "yes")
 	{
-		Automaton unionAut = VATA::UnionDisjunctStates(smaller, bigger);
+		Automaton unionAut = VATA::UnionDisjointStates(smaller, bigger);
 
 		if (options["dir"] == "up")
 		{

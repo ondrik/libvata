@@ -57,16 +57,20 @@ GCC_DIAG_ON(effc++)
 
 	template <class SymbolType>
 	friend ExplicitTreeAut<SymbolType> Union(
-		const ExplicitTreeAut<SymbolType>&, const ExplicitTreeAut<SymbolType>&,
-		AutBase::StateToStateMap*, AutBase::StateToStateMap*);
+		const ExplicitTreeAut<SymbolType>&,
+		const ExplicitTreeAut<SymbolType>&,
+		AutBase::StateToStateMap*,
+		AutBase::StateToStateMap*);
 
 	template <class SymbolType>
-	friend ExplicitTreeAut<SymbolType> UnionDisjunctStates(const ExplicitTreeAut<SymbolType>&,
+	friend ExplicitTreeAut<SymbolType> UnionDisjointStates(
+		const ExplicitTreeAut<SymbolType>&,
 		const ExplicitTreeAut<SymbolType>&);
 
 	template <class SymbolType>
 	friend ExplicitTreeAut<SymbolType> Intersection(
-		const ExplicitTreeAut<SymbolType>&, const ExplicitTreeAut<SymbolType>&,
+		const ExplicitTreeAut<SymbolType>&,
+		const ExplicitTreeAut<SymbolType>&,
 		AutBase::ProductTranslMap*);
 
 	template <class SymbolType>
@@ -74,15 +78,19 @@ GCC_DIAG_ON(effc++)
 
 	template <class SymbolType>
 	friend ExplicitTreeAut<SymbolType> RemoveUselessStates(
-		const ExplicitTreeAut<SymbolType>&, AutBase::StateToStateMap*);
+		const ExplicitTreeAut<SymbolType>&,
+		AutBase::StateToStateMap*);
 
 	template <class SymbolType>
 	friend ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
-		const ExplicitTreeAut<SymbolType>&, AutBase::StateToStateMap*);
+		const ExplicitTreeAut<SymbolType>&,
+		AutBase::StateToStateMap*);
 
 	template <class SymbolType, class Rel, class Index>
 	friend ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
-		const ExplicitTreeAut<SymbolType>&, const Rel&, const Index&);
+		const ExplicitTreeAut<SymbolType>&,
+		const Rel&,
+		const Index&);
 
 	template <class SymbolType, class Index>
 	friend ExplicitLTS TranslateDownward(const ExplicitTreeAut<SymbolType>&, const Index&);
