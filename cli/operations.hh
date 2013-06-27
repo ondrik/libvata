@@ -55,9 +55,9 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 		VATA::Util::Identity ident(states);
     if (options["congr"] == "yes") {
 			if (options["order"] == "depth")
-      	return VATA::CheckInclusionWithCongr(smaller,bigger,ident,true);
+      	return VATA::CheckInclusionWithCongrDepth(smaller,bigger,ident);
 			else if (options["order"] == "breadth")
-      	return VATA::CheckInclusionWithCongr(smaller,bigger,ident,false);
+      	return VATA::CheckInclusionWithCongrBreadth(smaller,bigger,ident);
     }
 		if (options["dir"] == "up")
 		{
