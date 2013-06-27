@@ -37,14 +37,14 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	std::runtime_error optErrorEx("Invalid options for inclusion: " +
 			Convert::ToString(options));
 
-  AutBase::StateType states = AutBase::SanitizeAutsForInclusion(smaller, bigger);
+	AutBase::StateType states = AutBase::SanitizeAutsForInclusion(smaller, bigger);
 
-  if (options["congr"] == "yes")
-  {
-	  AutBase::StateToStateMap opTranslMap1;
-	  AutBase::StateToStateMap opTranslMap2;
-    smaller = UnionDisjunctStates(smaller, bigger);//, &opTranslMap1, &opTranslMap2);
-  }
+	if (options["congr"] == "yes")
+	{
+		AutBase::StateToStateMap opTranslMap1;
+		AutBase::StateToStateMap opTranslMap2;
+		smaller = UnionDisjunctStates(smaller, bigger);//, &opTranslMap1, &opTranslMap2);
+	}
 
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
@@ -52,9 +52,10 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	if (options["sim"] == "no")
 	{
 		VATA::Util::Identity ident(states);
-    if (options["congr"] == "yes") {
-      return VATA::CheckInclusionWithCongr(smaller,bigger,ident);
-    }
+		if (options["congr"] == "yes")
+		{
+			return VATA::CheckInclusionWithCongr(smaller,bigger,ident);
+		}
 		if (options["dir"] == "up")
 		{
 			return VATA::CheckUpwardInclusionWithPreorder(smaller, bigger, ident);
