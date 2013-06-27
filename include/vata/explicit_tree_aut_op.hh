@@ -313,24 +313,24 @@ namespace VATA
 		return ExplicitUpwardInclusion::Check(smaller, bigger, preorder);
 	}
 
-  // Added due to FA extension
- 	template <class SymbolType, class Rel>
+	// Added due to FA extension
+	template <class SymbolType, class Rel>
 	bool CheckUpwardInclusionWithSim(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
 
 		return ExplicitUpwardInclusion::Check(smaller, bigger, preorder);
 	}
 
-  template <class SymbolType, class Rel>
-  bool CheckInclusionWithCongr(
-		const ExplicitTreeAut<SymbolType>& smaller, 
-    const ExplicitTreeAut<SymbolType>& bigger,
+	template <class SymbolType, class Rel>
+	bool CheckInclusionWithCongr(
+		const ExplicitTreeAut<SymbolType>& smaller,
+		const ExplicitTreeAut<SymbolType>& bigger,
 		const Rel& preorder) {
 		if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
 		{ }
 
 		throw std::runtime_error("Unimplemented");
-  }
+	}
 
 	template <class SymbolType, class Rel>
 	bool CheckOptDownwardInclusionWithPreorder(

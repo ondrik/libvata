@@ -66,15 +66,15 @@ namespace VATA
 			preorder);
 	}
 
-  template <class Rel>
-  bool CheckInclusionWithCongr(
+	template <class Rel>
+	bool CheckInclusionWithCongr(
 		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
-    const Rel& preorder) {
+		const Rel& preorder) {
 		if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
 		{ }
 
 		throw std::runtime_error("Unimplemented");
-  }
+	}
 
 	template <class Rel>
 	bool CheckDownwardInclusionNonRecWithPreorder(
@@ -108,7 +108,7 @@ namespace VATA
 			VATA::UpwardInclusionFunctor>(smaller, bigger, preorder);
 	}
 
-  // Added due to FA extension
+	// Added due to FA extension
 	template <class Rel>
 	bool CheckUpwardInclusionWithSim(
 		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
