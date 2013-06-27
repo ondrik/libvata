@@ -108,10 +108,23 @@ namespace VATA
 
 		throw std::runtime_error("Unimplemented");
 	}
-  template <class Rel>
-  bool CheckInclusionWithCongr(
+	
+	template <class Rel>
+	bool CheckInclusionWithCongrBreadth(
 		const BDDTopDownTreeAut& smaller, const BDDTopDownTreeAut& bigger,
-    const Rel& preorder, bool depth) {
+		const Rel& preorder) 
+	{
+		if ((&smaller == nullptr) || (&bigger == nullptr) ||
+			(&preorder == nullptr)) { }
+
+		throw std::runtime_error("Unimplemented");
+	}
+	
+	template <class Rel>
+	bool CheckInclusionWithCongrDepth(
+		const BDDTopDownTreeAut& smaller, const BDDTopDownTreeAut& bigger,
+		const Rel& preorder) 
+	{
 		if ((&smaller == nullptr) || (&bigger == nullptr) ||
 			(&preorder == nullptr)) { }
 

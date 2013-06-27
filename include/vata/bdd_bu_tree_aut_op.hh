@@ -66,14 +66,26 @@ namespace VATA
 			preorder);
 	}
 
-  template <class Rel>
-  bool CheckInclusionWithCongr(
+	template <class Rel>
+	bool CheckInclusionWithCongrBreadth(
 		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
-    const Rel& preorder, bool depth) {
+		const Rel& preorder) 
+	{
 		if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
 		{ }
 
 		throw std::runtime_error("Unimplemented");
+  }
+
+	template <class Rel>
+	bool CheckInclusionWithCongrDepth(
+		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
+		const Rel& preorder) 
+	{
+			if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
+			{ }
+
+			throw std::runtime_error("Unimplemented");
   }
 
 	template <class Rel>

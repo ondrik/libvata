@@ -296,22 +296,34 @@ namespace VATA {
 	 * preorder not used yet, but one time will be
 	 */
 	template <class SymbolType, class Rel>
-	bool CheckInclusionWithCongr(
+	bool CheckInclusionWithCongrDepth(
 		const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger,
-		const Rel& preorder,
-		bool depth) {
+		const Rel& preorder) {
+#ifdef CACHE_OPT_CONGR
+		typedef typename ExplicitFiniteAut<SymbolType>::StateSet StateSet;
+		typedef typename std::pair<StateSet*,StateSet*> ProductState;
+		typedef ProductStateSetDepth<StateSet,ProductState> ProductSet;
+		typedef ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
+#elif OPT_CONGR
+		typedef ExplicitFACongrFunctorOpt<SymbolType,Rel,ProductSet> FunctorType;
+#elif CACHE_CONGR
+		typedef ExplicitFACongrFunctorCache<SymbolType,Rel,ProductSet> FunctorType;
+#else
+		typedef ExplicitFACongrFunctor<SymbolType,Rel,ProductSet> FunctorType;
+#endif
+		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
+	}
+
+	template <class SymbolType, class Rel>
+	bool CheckInclusionWithCongrBreadth(
+		const ExplicitFiniteAut<SymbolType>& smaller,
+		const ExplicitFiniteAut<SymbolType>& bigger,
+		const Rel& preorder) {
 #ifdef CACHE_OPT_CONGR
 		typedef typename ExplicitFiniteAut<SymbolType>::StateSet StateSet;
 		typedef typename std::pair<StateSet*,StateSet*> ProductState;
 		typedef ProductStateSetBreadth<StateSet,ProductState> ProductSet;
-		if (depth)
-		{
-			// TODO: Do it better
-			typedef ProductStateSetDepth<StateSet,ProductState> ProductSet;
-			typedef ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
-			return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
-		}
 		typedef ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
 #elif OPT_CONGR
 		typedef ExplicitFACongrFunctorOpt<SymbolType,Rel,ProductSet> FunctorType;
