@@ -66,18 +66,7 @@ namespace VATA
 			preorder);
 	}
 
-	template <class SymbolType, class Rel>
-	bool CheckInclusionWithCongrDepth(
-		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
-		const Rel& preorder) 
-	{
-		if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
-		{ }
-
-		throw std::runtime_error("Unimplemented");
-	}
-
-	template <class SymbolType, class Rel>
+	template <class Rel>
 	bool CheckInclusionWithCongrBreadth(
 		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
 		const Rel& preorder) 
@@ -87,6 +76,17 @@ namespace VATA
 
 		throw std::runtime_error("Unimplemented");
 	}
+
+	template <class Rel>
+	bool CheckInclusionWithCongrDepth(
+		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
+		const Rel& preorder) 
+	{
+			if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
+			{ }
+
+			throw std::runtime_error("Unimplemented");
+  }
 
 	template <class Rel>
 	bool CheckDownwardInclusionNonRecWithPreorder(
