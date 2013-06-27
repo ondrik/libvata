@@ -25,7 +25,7 @@ namespace VATA
 		AutBase::StateToStateMap* pTranslMapLhs = nullptr,
 		AutBase::StateToStateMap* pTranslMapRhs = nullptr);
 
-	BDDBottomUpTreeAut UnionDisjunctStates(const BDDBottomUpTreeAut& lhs,
+	BDDBottomUpTreeAut UnionDisjointStates(const BDDBottomUpTreeAut& lhs,
 		const BDDBottomUpTreeAut& rhs);
 
 	BDDBottomUpTreeAut Intersection(const BDDBottomUpTreeAut& lhs,
@@ -120,7 +120,7 @@ namespace VATA
 			VATA::UpwardInclusionFunctor>(smaller, bigger, preorder);
 	}
 
-  // Added due to FA extension
+	// Added due to FA extension
 	template <class Rel>
 	bool CheckUpwardInclusionWithSim(
 		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,

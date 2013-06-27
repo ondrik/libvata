@@ -28,7 +28,7 @@ namespace VATA
 		AutBase::StateToStateMap* pTranslMapLhs = nullptr,
 		AutBase::StateToStateMap* pTranslMapRhs = nullptr);
 
-	BDDTopDownTreeAut UnionDisjunctStates(const BDDTopDownTreeAut& lhs,
+	BDDTopDownTreeAut UnionDisjointStates(const BDDTopDownTreeAut& lhs,
 		const BDDTopDownTreeAut& rhs);
 
 	BDDTopDownTreeAut Intersection(const BDDTopDownTreeAut& lhs,
@@ -97,8 +97,8 @@ namespace VATA
 		throw std::runtime_error("Unimplemented");
 	}
 
-  // added due to FA extension
-  template <class Rel>
+	// added due to FA extension
+	template <class Rel>
 	bool CheckUpwardInclusionWithSim(
 		const BDDTopDownTreeAut& smaller, const BDDTopDownTreeAut& bigger,
 		const Rel& preorder)
@@ -129,7 +129,7 @@ namespace VATA
 			(&preorder == nullptr)) { }
 
 		throw std::runtime_error("Unimplemented");
-  }
+	}
 
 	inline bool CheckInclusion(const BDDTopDownTreeAut& smaller,
 		const BDDTopDownTreeAut& bigger)

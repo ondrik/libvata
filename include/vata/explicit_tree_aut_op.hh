@@ -34,15 +34,21 @@
 
 namespace VATA
 {
-	/*
-   * Fucntion for union of two automatons. It takes two automatons, 
-   * rename their states and then merges them into one. States are renamed
-   * by default dictionary or by user defined dictionary
+	/**
+	 * @brief  Unites a pair of automata
+	 *
+	 * Function for the union of two automata. It takes a pair of automata,
+	 * renames their states and then merges them into a single automaton. States
+	 * are renamed by the default dictionary or by a user defined dictionary, so
+	 * they may be overlapping.
    *
-   * @param lhs Left automaton for union
-   * @param rhs Right automaton for union
-   * @param pTranslMapLhs renaming left automaton
-   * @param pTranslMapRhs renaming right automaton
+   * @param[in]      lhs             Left automaton for union
+   * @param[in]      rhs             Right automaton for union
+   * @param[in,out]  pTranslMapLhs   Dictionary for renaming left automaton
+   * @param[in,out]  pTranslMapRhs   Dictionary for renaming right automaton
+	 *
+	 * @returns  An automaton accepting the union of languages of @p lhs and @p
+	 * rhs
    */
 	template <class SymbolType>
 	ExplicitTreeAut<SymbolType> Union(
@@ -82,8 +88,20 @@ namespace VATA
 	}
 
 
+	/**
+	 * @brief  Unites two automata with disjoint sets of states
+	 *
+	 * Unites two automata. Note that these automata need to have disjoint sets of
+	 * states, otherwise the result is undefined.
+	 *
+   * @param[in]      lhs             Left automaton for union
+   * @param[in]      rhs             Right automaton for union
+	 *
+	 * @returns  An automaton accepting the union of languages of @p lhs and @p
+	 * rhs
+   */
 	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> UnionDisjunctStates(
+	ExplicitTreeAut<SymbolType> UnionDisjointStates(
 		const ExplicitTreeAut<SymbolType>&     lhs,
 		const ExplicitTreeAut<SymbolType>&     rhs)
 	{
@@ -101,6 +119,19 @@ namespace VATA
 	}
 
 
+	/**
+	 * @brief  Intersection of languages of a pair of automata
+	 *
+	 * This function creates an automaton that accepts the languages defined as
+	 * the intersection of langauges of a pair of automata.
+	 *
+   * @param[in]   lhs             Left automaton
+   * @param[in]   rhs             Right automaton
+   * @param[out]  pTranslMapLhs   Dictionary for the result
+	 *
+	 * @returns  An automaton accepting the intersection of languages of @p lhs
+	 * and @p rhs
+   */
 	template <class SymbolType>
 	ExplicitTreeAut<SymbolType> Intersection(
 		const ExplicitTreeAut<SymbolType>&     lhs,
@@ -313,8 +344,8 @@ namespace VATA
 		return ExplicitUpwardInclusion::Check(smaller, bigger, preorder);
 	}
 
-  // Added due to FA extension
- 	template <class SymbolType, class Rel>
+	// Added due to FA extension
+	template <class SymbolType, class Rel>
 	bool CheckUpwardInclusionWithSim(const ExplicitTreeAut<SymbolType>& smaller,
 		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
 
@@ -343,7 +374,7 @@ namespace VATA
 		{ }
 
 		throw std::runtime_error("Unimplemented");
-  }
+	}
 
 	template <class SymbolType, class Rel>
 	bool CheckOptDownwardInclusionWithPreorder(
@@ -404,7 +435,7 @@ namespace VATA
 
 		return CheckDownwardInclusionWithPreorder(newSmaller, newBigger,
 			ComputeDownwardSimulation(
-				UnionDisjunctStates(newSmaller, newBigger), states)
+				UnionDisjointStates(newSmaller, newBigger), states)
 			);
 	}
 

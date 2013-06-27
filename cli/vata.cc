@@ -415,7 +415,7 @@ int main(int argc, char* argv[])
 	// create the symbol directory for finite automata
 	ExplicitFiniteAut::StringToSymbolDict explFASymbolDict;
 	ExplicitFiniteAut::SetSymbolDictPtr(&explFASymbolDict);
-	
+
 	// create the ``next symbol`` variable for the explicit finite automaton
 	ExplicitFiniteAut::SymbolType explFANextSymbol(0);
 	ExplicitFiniteAut::SetNextSymbolPtr(&explFANextSymbol);
@@ -425,7 +425,7 @@ int main(int argc, char* argv[])
 	ExplicitFiniteAut::SetNextStatePtr(&explFANextState);
 
 	VATA::AutBase::StringToStateDict stateDict;
-	
+
 	try
 	{
 		if (args.representation == REPRESENTATION_BDD_TD)

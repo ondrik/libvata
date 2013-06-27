@@ -96,10 +96,10 @@ namespace VATA {
 	}
 
 	template <class SymbolType>
-	ExplicitFiniteAut<SymbolType> UnionDisjunctStates(
+	ExplicitFiniteAut<SymbolType> UnionDisjointStates(
 			const ExplicitFiniteAut<SymbolType> &lhs,
-			const ExplicitFiniteAut<SymbolType> &rhs) {
-
+			const ExplicitFiniteAut<SymbolType> &rhs)
+	{
 		ExplicitFiniteAut<SymbolType> res(lhs);
 
 		// Use uniqueCluster function, not explicitly transitions_,

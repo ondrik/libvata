@@ -4,7 +4,7 @@
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
  *  Description:
- *    Implementation of union with disjunct state sets on BDD bottom-up tree
+ *    Implementation of union with disjoint state sets on BDD bottom-up tree
  *    automata.
  *
  *****************************************************************************/
@@ -17,8 +17,9 @@ using VATA::BDDBottomUpTreeAut;
 using VATA::Util::Convert;
 
 
-BDDBottomUpTreeAut VATA::UnionDisjunctStates(const BDDBottomUpTreeAut& lhs,
-	const BDDBottomUpTreeAut& rhs)
+BDDBottomUpTreeAut VATA::UnionDisjointStates(
+	const BDDBottomUpTreeAut&   lhs,
+	const BDDBottomUpTreeAut&   rhs)
 {
 	typedef BDDBottomUpTreeAut::StateType StateType;
 	typedef BDDBottomUpTreeAut::StateTuple StateTuple;

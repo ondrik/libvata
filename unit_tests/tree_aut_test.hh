@@ -192,7 +192,7 @@ protected:// methods
 		AutBase::StateType states =
 			AutBase::SanitizeAutsForInclusion(smaller, bigger);
 
-		AutType unionAut = VATA::UnionDisjunctStates(smaller, bigger);
+		AutType unionAut = VATA::UnionDisjointStates(smaller, bigger);
 		StateBinaryRelation sim = VATA::ComputeDownwardSimulation(unionAut, states);
 
 		return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, sim);
@@ -203,7 +203,7 @@ protected:// methods
 		AutBase::StateType states =
 			AutBase::SanitizeAutsForInclusion(smaller, bigger);
 
-		AutType unionAut = VATA::UnionDisjunctStates(smaller, bigger);
+		AutType unionAut = VATA::UnionDisjointStates(smaller, bigger);
 		StateBinaryRelation sim = VATA::ComputeDownwardSimulation(unionAut, states);
 
 		return VATA::CheckOptDownwardInclusionWithPreorder(smaller, bigger, sim);
@@ -224,7 +224,7 @@ protected:// methods
 		AutBase::StateType states =
 			AutBase::SanitizeAutsForInclusion(smaller, bigger);
 
-		AutType unionAut = VATA::UnionDisjunctStates(smaller, bigger);
+		AutType unionAut = VATA::UnionDisjointStates(smaller, bigger);
 		StateBinaryRelation sim = VATA::ComputeUpwardSimulation(unionAut, states);
 
 		return VATA::CheckUpwardInclusionWithPreorder(smaller, bigger, sim);
