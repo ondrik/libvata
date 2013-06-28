@@ -10,9 +10,9 @@ set(vata_compiler_add_flags_list
   -pedantic-errors
 #  -DOPT_AC
   -DCACHE_AC
-#  -DCACHE_CONGR
-#  -DOPT_CONGR
-  -DCACHE_OPT_CONGR
+  -DCACHE_CONGR
+ # -DOPT_CONGR
+ # -DCACHE_OPT_CONGR
   -Wextra
   -Wall
   -Wfloat-equal

@@ -132,15 +132,15 @@ GCC_DIAG_ON(effc++)
 		const ExplicitFiniteAut<SymbolType>& bigger,
 		const Rel& preorder);
 
-
 	template<class SymbolType, class Rel>
 	friend class ExplicitFACongrFunctor;
 	template<class SymbolType, class Rel>
 	friend class ExplicitFACongrFunctorOpt;
-	template<class SymbolType, class Rel>
-	friend class ExplicitFACongrFunctorCache;
 	template<class SymbolType, class Rel, class ProductSet>
 	friend class ExplicitFACongrFunctorCacheOpt;
+
+	template<class SymbolType, class Rel>
+	friend class ExplicitFACongrEquivFunctor;
 
 	template<class SymbolType, class Rel>
 	friend class ExplicitFAStateSetComparator;

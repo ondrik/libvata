@@ -375,6 +375,18 @@ namespace VATA
 
 		throw std::runtime_error("Unimplemented");
 	}
+	
+	template <class SymbolType, class Rel>
+	bool CheckEquivalence(
+		const ExplicitTreeAut<SymbolType>& smaller, 
+    const ExplicitTreeAut<SymbolType>& bigger,
+		const Rel& preorder) 
+	{
+		if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
+		{ }
+
+		throw std::runtime_error("Unimplemented");
+	}
 
 	template <class SymbolType, class Rel>
 	bool CheckOptDownwardInclusionWithPreorder(

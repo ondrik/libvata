@@ -208,4 +208,27 @@ Automaton ComputeReduction(Automaton aut, const Arguments& args)
 	}
 }
 
+template <class Automaton>
+bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
+{
+	// insert default values
+	Options options = args.options;
+	options.insert(std::make_pair("order", "depth"));
+
+	std::runtime_error optErrorEx("Invalid options for inclusion: " +
+			Convert::ToString(options));
+
+	AutBase::StateType states = AutBase::SanitizeAutsForInclusion(smaller, bigger);
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
+
+	VATA::Util::Identity ident(states);
+	return VATA::CheckEquivalence(smaller,bigger,ident);
+/*
+			if (options["order"] == "depth")
+      	return VATA::CheckInclusionWithCongrDepth(smaller,bigger,ident);
+			else if (options["order"] == "breadth")
+      	return VATA::CheckInclusionWithCongrBreadth(smaller,bigger,ident);
+				*/
+}
 #endif

@@ -39,7 +39,7 @@
 
 #include <vata/finite_aut/explicit_finite_congr_fctor.hh>
 #include <vata/finite_aut/explicit_finite_congr_fctor_opt.hh>
-#include <vata/finite_aut/explicit_finite_congr_fctor_cache.hh>
+#include <vata/finite_aut/explicit_finite_congr_equiv_fctor.hh>
 #include <vata/finite_aut/explicit_finite_congr_fctor_cache_opt.hh>
 
 #include <vata/finite_aut/util/map_to_list.hh>
@@ -306,11 +306,9 @@ namespace VATA {
 #ifdef CACHE_OPT_CONGR
 		typedef ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
 #elif OPT_CONGR
-		typedef ExplicitFACongrFunctorOpt<SymbolType,Rel,ProductSet> FunctorType;
-#elif CACHE_CONGR
-		typedef ExplicitFACongrFunctorCache<SymbolType,Rel> FunctorType;
+		typedef ExplicitFACongrFunctorOpt<SymbolType,Rel> FunctorType;
 #else
-		typedef ExplicitFACongrFunctor<SymbolType,Rel,ProductSet> FunctorType;
+		typedef ExplicitFACongrFunctor<SymbolType,Rel> FunctorType;
 #endif
 		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
 	}
@@ -330,16 +328,33 @@ namespace VATA {
 #ifdef CACHE_OPT_CONGR
 		typedef ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
 #elif OPT_CONGR
-		typedef ExplicitFACongrFunctorOpt<SymbolType,Rel,ProductSet> FunctorType;
-#elif CACHE_CONGR
-		typedef ExplicitFACongrFunctorCache<SymbolType,Rel> FunctorType;
+		typedef ExplicitFACongrFunctorOpt<SymbolType,Rel> FunctorType;
 #else
-		typedef ExplicitFACongrFunctor<SymbolType,Rel,ProductSet> FunctorType;
+		typedef ExplicitFACongrFunctor<SymbolType,Rel> FunctorType;
 #endif
 		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
 	}
 
 
+	/*
+	 * Checks language equivalence.
+	 * Uses the inclusion wrapper function, because it works
+	 * on similiar principle, but special functor for equivalence checking
+	 * is given
+	 */
+	template <class SymbolType, class Rel>
+	bool CheckEquivalence(
+		const ExplicitFiniteAut<SymbolType>& smaller,
+		const ExplicitFiniteAut<SymbolType>& bigger,
+		const Rel& preorder) {
+		/*
+		typedef typename ExplicitFiniteAut<SymbolType>::StateSet StateSet;
+		typedef typename std::pair<StateSet*,StateSet*> ProductState;
+		typedef ProductStateSetBreadth<StateSet,ProductState> ProductSet;
+		*/
+		typedef ExplicitFACongrEquivFunctor<SymbolType,Rel> FunctorType;
+		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
+	}
 
 	/*
 	 * Get just two automata, first sanitization is
