@@ -343,7 +343,7 @@ namespace VATA {
 	 * is given
 	 */
 	template <class SymbolType, class Rel>
-	bool CheckEquivalence(
+	bool CheckEquivalenceBreadth(
 		const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger,
 		const Rel& preorder) {
@@ -352,7 +352,27 @@ namespace VATA {
 		typedef typename std::pair<StateSet*,StateSet*> ProductState;
 		typedef ProductStateSetBreadth<StateSet,ProductState> ProductSet;
 		*/
-		typedef ExplicitFACongrEquivFunctor<SymbolType,Rel> FunctorType;
+		typedef typename ExplicitFiniteAut<SymbolType>::StateSet StateSet;
+		typedef typename std::pair<StateSet*,StateSet*> ProductState;
+		typedef ProductStateSetBreadth<StateSet,ProductState> ProductSet;
+		typedef ExplicitFACongrEquivFunctor<SymbolType,Rel,ProductSet> FunctorType;
+		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
+	}
+
+	template <class SymbolType, class Rel>
+	bool CheckEquivalenceDepth(
+		const ExplicitFiniteAut<SymbolType>& smaller,
+		const ExplicitFiniteAut<SymbolType>& bigger,
+		const Rel& preorder) {
+		/*
+		typedef typename ExplicitFiniteAut<SymbolType>::StateSet StateSet;
+		typedef typename std::pair<StateSet*,StateSet*> ProductState;
+		typedef ProductStateSetBreadth<StateSet,ProductState> ProductSet;
+		*/
+		typedef typename ExplicitFiniteAut<SymbolType>::StateSet StateSet;
+		typedef typename std::pair<StateSet*,StateSet*> ProductState;
+		typedef ProductStateSetDepth<StateSet,ProductState> ProductSet;
+		typedef ExplicitFACongrEquivFunctor<SymbolType,Rel,ProductSet> FunctorType;
 		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
 	}
 

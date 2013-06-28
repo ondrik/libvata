@@ -22,11 +22,11 @@
 #include <vata/finite_aut/util/macrostate_cache.hh>
 
 namespace VATA {
-	template <class SymbolType, class Rel> class ExplicitFACongrEquivFunctor;
+	template <class SymbolType, class Rel, class ProductSet> class ExplicitFACongrEquivFunctor;
 }
 
 GCC_DIAG_OFF(effc++)
-template <class SymbolType, class Rel>
+template <class SymbolType, class Rel, class ProductSet>
 class VATA::ExplicitFACongrEquivFunctor :
 	public ExplicitFAAbstractFunctor <SymbolType,Rel> {
 GCC_DIAG_ON(effc++)
@@ -54,6 +54,7 @@ public : // data types
 	/*
 	 * Product state of built automaton is pair of macrostates
 	 */
+	/*
 	class ProductStateSetType : public std::vector<std::pair<SmallerElementType*,BiggerElementType*>> {
 		public:
 		bool get(SmallerElementType& smaller, BiggerElementType& bigger) {
@@ -69,7 +70,9 @@ public : // data types
 			return true;
 		}
 	};
+	*/
 	// todo set is the same as the processed set of product states
+	typedef ProductSet ProductStateSetType;
 	typedef ProductStateSetType ProductNextType;
 
 	typedef typename VATA::MacroStateCache<ExplicitFA> MacroStateCache;
@@ -146,7 +149,7 @@ public: // public functions
 		StateSet& insertSmaller = cache.insert(smallerHashNum,smallerInit);
 		StateSet& insertBigger = cache.insert(biggerHashNum,biggerInit);
 		// Add to todo set
-		next_.push_back(std::make_pair(&insertSmaller,&insertBigger));
+		next_.add(insertSmaller,insertBigger);
 		visitedPairs.add(&insertSmaller,&insertBigger);
 		this->inclNotHold_ = smallerInitFinal != biggerInitFinal;
 	};
@@ -334,7 +337,7 @@ private:
 
 					if (!visitedPairs.contains(&insertSmaller,&insertBigger)){
 						visitedPairs.add(&insertSmaller,&insertBigger);
-						next_.push_back(std::make_pair(&insertSmaller,&insertBigger));
+						next_.add(insertSmaller,insertBigger);
 					 }
 				}
 			}

@@ -139,8 +139,19 @@ GCC_DIAG_ON(effc++)
 	template<class SymbolType, class Rel, class ProductSet>
 	friend class ExplicitFACongrFunctorCacheOpt;
 
-	template<class SymbolType, class Rel>
+	template<class SymbolType, class Rel, class ProductSet>
 	friend class ExplicitFACongrEquivFunctor;
+	template<class SymbolType, class Rel>
+		friend bool CheckEquivalenceDepth(
+		const ExplicitFiniteAut<SymbolType>& smaller,
+		const ExplicitFiniteAut<SymbolType>& bigger,
+		const Rel& preorder);
+
+	template<class SymbolType, class Rel>
+		friend bool CheckEquivalenceBreadth(
+		const ExplicitFiniteAut<SymbolType>& smaller,
+		const ExplicitFiniteAut<SymbolType>& bigger,
+		const Rel& preorder);
 
 	template<class SymbolType, class Rel>
 	friend class ExplicitFAStateSetComparator;

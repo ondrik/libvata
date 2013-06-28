@@ -89,7 +89,7 @@ namespace VATA
   }
 
 	template <class Rel>
-	bool CheckEquivalence(
+	bool CheckEquivalenceBreadth(
 		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
 		const Rel& preorder) 
 	{
@@ -98,7 +98,16 @@ namespace VATA
 
 			throw std::runtime_error("Unimplemented");
   }
+	template <class Rel>
+	bool CheckEquivalenceDepth(
+		const BDDBottomUpTreeAut& smaller, const BDDBottomUpTreeAut& bigger,
+		const Rel& preorder) 
+	{
+			if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
+			{ }
 
+			throw std::runtime_error("Unimplemented");
+  }
 
 	template <class Rel>
 	bool CheckDownwardInclusionNonRecWithPreorder(

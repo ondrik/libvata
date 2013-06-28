@@ -223,12 +223,18 @@ bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
 
 	VATA::Util::Identity ident(states);
-	return VATA::CheckEquivalence(smaller,bigger,ident);
-/*
-			if (options["order"] == "depth")
-      	return VATA::CheckInclusionWithCongrDepth(smaller,bigger,ident);
-			else if (options["order"] == "breadth")
-      	return VATA::CheckInclusionWithCongrBreadth(smaller,bigger,ident);
-				*/
+	if (options["order"] == "depth")
+	{
+		return VATA::CheckEquivalenceDepth(smaller,bigger,ident);
+	}
+	else if (options["order"] == "breadth")
+	{
+		return VATA::CheckEquivalenceBreadth(smaller,bigger,ident);
+	}
+	else
+	{
+		throw std::runtime_error("Invalid options for simulation: " +
+			Convert::ToString(options));
+	}
 }
 #endif
