@@ -18,6 +18,7 @@
 #include <vata/util/util.hh>
 
 using VATA::AutBase;
+using VATA::InclParam;
 using VATA::Parsing::TimbukParser;
 using VATA::Serialization::TimbukSerializer;
 using VATA::Util::AutDescription;
@@ -130,7 +131,7 @@ protected:// methods
 			SymbolBackTranslatorStrict(Automaton::GetSymbolDict().GetReverseMap()));
 	}
 
-	void testInclusion(bool (*inclFunc)(AutType, AutType))
+	void testInclusion(VATA::InclParam& ip)
 	{
 		auto testfileContent = ParseTestFile(INCLUSION_TIMBUK_FILE.string());
 
@@ -158,76 +159,39 @@ protected:// methods
 			AutType autBigger;
 			readAut(autBigger, stateDictBigger, autBiggerStr);
 
-			bool doesInclusionHold = inclFunc(autSmaller, autBigger);
+			// prepare the automata
+			AutBase::StateType states =
+				AutBase::SanitizeAutsForInclusion(autSmaller, autBigger);
+
+			// the simulation (if present)
+			StateBinaryRelation sim;
+
+			if (ip.GetUseSimulation())
+			{	// if there is simulation, we need to compute it
+				AutType unionAut = VATA::UnionDisjointStates(autSmaller, autBigger);
+				if (InclParam::e_direction::downward == ip.GetDirection())
+				{	// downward direction
+					sim = VATA::ComputeDownwardSimulation(unionAut, states);
+				}
+				else if (InclParam::e_direction::upward == ip.GetDirection())
+				{	// upward direction
+					sim = VATA::ComputeUpwardSimulation(unionAut, states);
+				}
+				else
+				{
+					assert(false);       // fail gracefully
+				}
+
+				ip.SetSimulation(&sim);
+			}
+
+			bool doesInclusionHold = VATA::CheckInclusion(autSmaller, autBigger, ip);
 
 			BOOST_CHECK_MESSAGE(expectedResult == doesInclusionHold,
 				"\n\nError checking inclusion " + inputSmallerFile + " <= " +
 				inputBiggerFile + ": expected " + Convert::ToString(expectedResult) +
 				", got " + Convert::ToString(doesInclusionHold));
 		}
-	}
-
-	static bool checkDownInclusion(AutType smaller, AutType bigger)
-	{
-		AutBase::StateType states =
-			AutBase::SanitizeAutsForInclusion(smaller, bigger);
-
-		VATA::Util::Identity ident(states);
-
-		return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, ident);
-	}
-
-	static bool checkOptDownInclusion(AutType smaller, AutType bigger)
-	{
-		AutBase::StateType states =
-			AutBase::SanitizeAutsForInclusion(smaller, bigger);
-
-		VATA::Util::Identity ident(states);
-
-		return VATA::CheckOptDownwardInclusionWithPreorder(smaller, bigger, ident);
-	}
-
-	static bool checkDownInclusionWithSimulation(AutType smaller, AutType bigger)
-	{
-		AutBase::StateType states =
-			AutBase::SanitizeAutsForInclusion(smaller, bigger);
-
-		AutType unionAut = VATA::UnionDisjointStates(smaller, bigger);
-		StateBinaryRelation sim = VATA::ComputeDownwardSimulation(unionAut, states);
-
-		return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, sim);
-	}
-
-	static bool checkOptDownInclusionWithSimulation(AutType smaller, AutType bigger)
-	{
-		AutBase::StateType states =
-			AutBase::SanitizeAutsForInclusion(smaller, bigger);
-
-		AutType unionAut = VATA::UnionDisjointStates(smaller, bigger);
-		StateBinaryRelation sim = VATA::ComputeDownwardSimulation(unionAut, states);
-
-		return VATA::CheckOptDownwardInclusionWithPreorder(smaller, bigger, sim);
-	}
-
-	static bool checkUpInclusion(AutType smaller, AutType bigger)
-	{
-		AutBase::StateType states =
-			AutBase::SanitizeAutsForInclusion(smaller, bigger);
-
-		VATA::Util::Identity ident(states);
-
-		return VATA::CheckUpwardInclusionWithPreorder(smaller, bigger, ident);
-	}
-
-	static bool checkUpInclusionWithSimulation(AutType smaller, AutType bigger)
-	{
-		AutBase::StateType states =
-			AutBase::SanitizeAutsForInclusion(smaller, bigger);
-
-		AutType unionAut = VATA::UnionDisjointStates(smaller, bigger);
-		StateBinaryRelation sim = VATA::ComputeUpwardSimulation(unionAut, states);
-
-		return VATA::CheckUpwardInclusionWithPreorder(smaller, bigger, sim);
 	}
 
 	void testDownwardSimulation()
@@ -695,12 +659,19 @@ BOOST_AUTO_TEST_CASE(aut_remove_useless)
 	}
 }
 
-BOOST_AUTO_TEST_CASE(aut_down_inclusion)
+BOOST_AUTO_TEST_CASE(aut_down_inclusion_rec_nosim)
 {
-	testInclusion(checkDownInclusion);
+	VATA::InclParam ip;
+	ip.SetDirection(InclParam::e_direction::downward);
+	ip.SetUseRecursion(true);
+	testInclusion(ip);
 }
 
-BOOST_AUTO_TEST_CASE(aut_down_inclusion_opt)
+BOOST_AUTO_TEST_CASE(aut_down_inclusion_opt_rec_nosim)
 {
-	testInclusion(checkOptDownInclusion);
+	VATA::InclParam ip;
+	ip.SetDirection(InclParam::e_direction::downward);
+	ip.SetUseDownwardCacheImpl(true);
+	ip.SetUseRecursion(true);
+	testInclusion(ip);
 }

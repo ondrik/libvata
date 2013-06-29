@@ -104,11 +104,8 @@ namespace VATA
 	bool CheckInclusion(
 		const ExplicitFiniteAut<SymbolType>&    smaller,
 		const ExplicitFiniteAut<SymbolType>&    bigger,
-		const VATA::InclParam*                  params = nullptr)
+		const VATA::InclParam&                  params)
 	{
-		if (nullptr == params)
-		{ }
-
 		if ((nullptr == &smaller) || (nullptr == &bigger))
 		{ }
 

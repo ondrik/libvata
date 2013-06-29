@@ -105,19 +105,11 @@ BOOST_AUTO_TEST_CASE(aut_down_simulation)
 	testDownwardSimulation();
 }
 
-BOOST_AUTO_TEST_CASE(aut_down_inclusion_sim)
-{
-	testInclusion(&checkDownInclusionWithSimulation);
-}
-
-BOOST_AUTO_TEST_CASE(aut_down_inclusion_sim_opt)
-{
-	testInclusion(checkOptDownInclusionWithSimulation);
-}
-
 BOOST_AUTO_TEST_CASE(aut_up_inclusion)
 {
-	testInclusion(checkUpInclusion);
+	VATA::InclParam ip;
+	ip.SetDirection(InclParam::e_direction::upward);
+	testInclusion(ip);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

@@ -13,7 +13,7 @@
 #include <vata/bdd_bu_tree_aut.hh>
 #include <vata/bdd_bu_tree_aut_op.hh>
 #include <vata/bdd_bu_tree_aut_incl.hh>
-#include <vata/bdd_td_tree_aut_op.hh>
+#include <vata/bdd_td_tree_aut_incl.hh>
 #include <vata/tree_incl_up.hh>
 
 using VATA::AutBase;
@@ -25,40 +25,45 @@ using VATA::Util::Convert;
 bool VATA::CheckInclusion(
 	const BDDBottomUpTreeAut&   smaller,
 	const BDDBottomUpTreeAut&   bigger,
-	const VATA::InclParam*      params)
+	const VATA::InclParam&      params)
 {
-	if (nullptr == params)
-	{
-		return CheckUpwardInclusion(smaller, bigger);
+	BDDBottomUpTreeAut newSmaller;
+	BDDBottomUpTreeAut newBigger;
+	typename AutBase::StateType states;
+
+	if (InclParam::e_direction::downward == params.GetDirection())
+	{	// for the other direction
+		return CheckInclusion(smaller.GetTopDownAut(), bigger.GetTopDownAut(), params);
 	}
-	else
+
+	if (!params.GetUseSimulation())
 	{
-		throw std::runtime_error("Unimplemented");
+		newSmaller = smaller;
+		newBigger = bigger;
+
+		states = AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
 	}
-}
 
+	switch (params.GetOptions())
+	{
+		case InclParam::ANTICHAINS_UP_NOSIM:
+		{
+			return CheckUpwardTreeInclusion<BDDBottomUpTreeAut,
+				VATA::UpwardInclusionFunctor>(newSmaller, newBigger,
+					Util::Identity(states));
+		}
 
-bool VATA::CheckDownwardInclusion(
-	const BDDBottomUpTreeAut&    smaller,
-	const BDDBottomUpTreeAut&    bigger)
-{
-	BDDTopDownTreeAut invSmaller = smaller.GetTopDownAut();
-	BDDTopDownTreeAut invBigger = bigger.GetTopDownAut();
+		case InclParam::ANTICHAINS_UP_SIM:
+		{
+			return CheckUpwardTreeInclusion<BDDBottomUpTreeAut,
+				VATA::UpwardInclusionFunctor>(smaller, bigger,
+					params.GetSimulation());
+		}
 
-	return CheckDownwardInclusion(invSmaller, invBigger);
-}
-
-
-bool VATA::CheckUpwardInclusion(
-	const BDDBottomUpTreeAut&   smaller,
-	const BDDBottomUpTreeAut&   bigger)
-{
-	BDDBottomUpTreeAut newSmaller = smaller;
-	BDDBottomUpTreeAut newBigger = bigger;
-
-	AutBase::StateType states =
-		AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
-
-	return CheckUpwardInclusionWithPreorder(newSmaller, newBigger,
-		VATA::Util::Identity(states));
+		default:
+		{
+			throw std::runtime_error("Unimplemented inclusion:\n" +
+				params.toString());
+		}
+	}
 }

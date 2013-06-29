@@ -24,30 +24,54 @@ typedef VATA::AutBase::StateType StateType;
 bool VATA::CheckInclusion(
 	const BDDTopDownTreeAut&    smaller,
 	const BDDTopDownTreeAut&    bigger,
-	const VATA::InclParam*      params)
+	const VATA::InclParam&      params)
 {
-	if (nullptr == params)
+	BDDTopDownTreeAut newSmaller;
+	BDDTopDownTreeAut newBigger;
+	typename AutBase::StateType states;
+
+	if (!params.GetUseSimulation())
 	{
-		return CheckDownwardInclusion(smaller, bigger);
+		newSmaller = smaller;
+		newBigger = bigger;
+
+		states = AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
 	}
-	else
-	{	// unsupported stuff
-		throw std::runtime_error("Unimplemented");
+
+	switch (params.GetOptions())
+	{
+		case InclParam::ANTICHAINS_DOWN_REC_NOSIM:
+		{
+			return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
+				VATA::DownwardInclusionFunctor>(newSmaller, newBigger,
+					Util::Identity(states));
+		}
+
+		case InclParam::ANTICHAINS_DOWN_REC_OPT_NOSIM:
+		{
+			return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
+				VATA::OptDownwardInclusionFunctor>(newSmaller, newBigger,
+					Util::Identity(states));
+		}
+
+		case InclParam::ANTICHAINS_DOWN_REC_SIM:
+		{
+			return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
+				VATA::DownwardInclusionFunctor>(smaller, bigger,
+					params.GetSimulation());
+		}
+
+		case InclParam::ANTICHAINS_DOWN_REC_OPT_SIM:
+		{
+			return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
+				VATA::OptDownwardInclusionFunctor>(smaller, bigger,
+					params.GetSimulation());
+		}
+
+		default:
+		{
+			throw std::runtime_error("Unimplemented inclusion:\n" +
+				params.toString());
+		}
 	}
-
-	return CheckDownwardInclusion(smaller, bigger);
-}
-
-
-bool VATA::CheckDownwardInclusion(
-	const BDDTopDownTreeAut&    smaller,
-	const BDDTopDownTreeAut&    bigger)
-{
-	BDDTopDownTreeAut newSmaller = smaller;
-	BDDTopDownTreeAut newBigger = bigger;
-	StateType states = AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
-
-	VATA::Util::Identity ident(states);
-
-	return CheckDownwardInclusionWithPreorder(newSmaller, newBigger, ident);
 }

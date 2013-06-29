@@ -32,100 +32,80 @@ namespace VATA
 	bool CheckInclusion(
 		const ExplicitTreeAut<SymbolType>&     smaller,
 		const ExplicitTreeAut<SymbolType>&     bigger,
-		const VATA::InclParam*                 params = nullptr)
+		const VATA::InclParam&                 params)
 	{
-		if (nullptr == params)
+		ExplicitTreeAut<SymbolType> newSmaller;
+		ExplicitTreeAut<SymbolType> newBigger;
+		typename AutBase::StateType states;
+
+		if (!params.GetUseSimulation())
 		{
-			return CheckUpwardInclusion(smaller, bigger);
+			newSmaller = smaller;
+			newBigger = bigger;
+
+			states = AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
 		}
-		else if (!params->opt_downward && !params->opt_simulation)
-		{	// upward inclusion (plain)
-			return CheckUpwardInclusion(smaller, bigger);
+
+		switch (params.GetOptions())
+		{
+			case InclParam::ANTICHAINS_UP_NOSIM:
+			{
+				return ExplicitUpwardInclusion::Check(newSmaller, newBigger,
+					Util::Identity(states));
+			}
+
+			case InclParam::ANTICHAINS_UP_SIM:
+			{
+				return ExplicitUpwardInclusion::Check(smaller, bigger,
+					params.GetSimulation());
+			}
+
+			case InclParam::ANTICHAINS_DOWN_NONREC_NOSIM:
+			{
+				return ExplicitDownwardInclusion::Check(newSmaller, newBigger,
+					Util::Identity(states));
+			}
+
+			case InclParam::ANTICHAINS_DOWN_NONREC_SIM:
+			{
+				return ExplicitDownwardInclusion::Check(smaller, bigger,
+					params.GetSimulation());
+			}
+
+			case InclParam::ANTICHAINS_DOWN_REC_NOSIM:
+			{
+				return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
+					VATA::DownwardInclusionFunctor>(newSmaller, newBigger,
+						Util::Identity(states));
+			}
+
+			case InclParam::ANTICHAINS_DOWN_REC_OPT_NOSIM:
+			{
+				return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
+					VATA::OptDownwardInclusionFunctor>(newSmaller, newBigger,
+						Util::Identity(states));
+			}
+
+			case InclParam::ANTICHAINS_DOWN_REC_SIM:
+			{
+				return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
+					VATA::DownwardInclusionFunctor>(smaller, bigger,
+						params.GetSimulation());
+			}
+
+			case InclParam::ANTICHAINS_DOWN_REC_OPT_SIM:
+			{
+				return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
+					VATA::OptDownwardInclusionFunctor>(smaller, bigger,
+						params.GetSimulation());
+			}
+
+			default:
+			{
+				throw std::runtime_error("Unimplemented inclusion:\n" +
+					params.toString());
+			}
 		}
-		else
-		{	// unsupported stuff
-			throw std::runtime_error("Unimplemented");
-		}
-	}
-
-	template <class SymbolType, class Rel>
-	bool CheckUpwardInclusionWithPreorder(
-		const ExplicitTreeAut<SymbolType>&     smaller,
-		const ExplicitTreeAut<SymbolType>&     bigger,
-		const Rel&                             preorder)
-	{
-		return ExplicitUpwardInclusion::Check(smaller, bigger, preorder);
-	}
-
-	// Added due to FA extension
-	template <class SymbolType, class Rel>
-	bool CheckUpwardInclusionWithSim(const ExplicitTreeAut<SymbolType>& smaller,
-		const ExplicitTreeAut<SymbolType>& bigger, const Rel& preorder) {
-
-		return ExplicitUpwardInclusion::Check(smaller, bigger, preorder);
-	}
-
-	template <class SymbolType, class Rel>
-	bool CheckOptDownwardInclusionWithPreorder(
-		const ExplicitTreeAut<SymbolType>&     smaller,
-		const ExplicitTreeAut<SymbolType>&     bigger,
-		const Rel&                             preorder)
-	{
-		return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
-			VATA::OptDownwardInclusionFunctor>(smaller, bigger, preorder);
-	}
-
-
-	template <class SymbolType, class Rel>
-	bool CheckDownwardInclusionWithPreorder(
-		const ExplicitTreeAut<SymbolType>&     smaller,
-		const ExplicitTreeAut<SymbolType>&     bigger,
-		const Rel&                             preorder)
-	{
-		return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
-			VATA::DownwardInclusionFunctor>(smaller, bigger, preorder);
-	}
-
-
-	template <class SymbolType, class Rel>
-	bool CheckDownwardInclusionNonRecWithPreorder(
-		const ExplicitTreeAut<SymbolType>&     smaller,
-		const ExplicitTreeAut<SymbolType>&     bigger,
-		const Rel&                             preorder)
-	{
-		return ExplicitDownwardInclusion::Check(smaller, bigger, preorder);
-	}
-
-
-	template <class SymbolType>
-	bool CheckUpwardInclusion(
-		const ExplicitTreeAut<SymbolType>&     smaller,
-		const ExplicitTreeAut<SymbolType>&     bigger)
-	{
-		ExplicitTreeAut<SymbolType> newSmaller = smaller;
-		ExplicitTreeAut<SymbolType> newBigger = bigger;
-		typename AutBase::StateType states =
-			AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
-
-		return CheckUpwardInclusionWithPreorder(newSmaller, newBigger,
-			Util::Identity(states));
-	}
-
-
-	template <class SymbolType>
-	bool CheckDownwardInclusion(
-		const ExplicitTreeAut<SymbolType>&     smaller,
-		const ExplicitTreeAut<SymbolType>&     bigger)
-	{
-		ExplicitTreeAut<SymbolType> newSmaller = smaller;
-		ExplicitTreeAut<SymbolType> newBigger = bigger;
-		typename AutBase::StateType states =
-			AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
-
-		return CheckDownwardInclusionWithPreorder(newSmaller, newBigger,
-			ComputeDownwardSimulation(
-				UnionDisjointStates(newSmaller, newBigger), states)
-			);
 	}
 }
 
