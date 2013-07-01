@@ -136,7 +136,6 @@ public: // public functions
 		bool smallerInitFinal = false;
 		bool biggerInitFinal = false;
 
-		std::cout  <<  "dosel jsem sem" << std::endl;
 		// Created macrostate of smaller automaton
 		size_t smallerHashNum = 0;
 		for (auto state : smaller_.startStates_) {

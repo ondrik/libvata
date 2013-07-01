@@ -39,7 +39,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	std::runtime_error optErrorEx("Invalid options for inclusion: " +
 			Convert::ToString(options));
 
-	AutBase::StateType states = AutBase::SanitizeAutsForInclusion(smaller, bigger);
+//	AutBase::StateType states = AutBase::SanitizeAutsForInclusion(smaller, bigger);
 
 	/****************************************************************************
 	 *                        Parsing of input parameters
@@ -192,6 +192,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	{	// if simulation is desired, then compute it here!
 		Automaton unionAut = VATA::UnionDisjointStates(smaller, bigger);
 
+	AutBase::StateType states = AutBase::SanitizeAutsForInclusion(smaller, bigger);
 		// the relation
 		AutBase::StateBinaryRelation sim;
 
