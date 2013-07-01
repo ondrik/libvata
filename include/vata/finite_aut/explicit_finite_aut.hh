@@ -31,9 +31,10 @@ namespace VATA {
  * There is no template needed, because
  * symbol is not ranked
  */
-GCC_DIAG_OFF(effc++) // non virtual destructors warnings suppres
+GCC_DIAG_OFF(effc++) // non virtual destructors warnings suppress
 template <class Symbol>
-class VATA::ExplicitFiniteAut : public AutBase {
+class VATA::ExplicitFiniteAut : public AutBase
+{
 GCC_DIAG_ON(effc++)
 
 	/*

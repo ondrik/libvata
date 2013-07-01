@@ -15,16 +15,112 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/util/antichain2c_v2.hh>
+
 #include <vata/finite_aut/explicit_finite_aut.hh>
+#include <vata/finite_aut/explicit_finite_congr_fctor_cache.hh>
+#include <vata/finite_aut/explicit_finite_congr_fctor_cache_opt.hh>
 #include <vata/finite_aut/explicit_finite_incl_fctor.hh>
+#include <vata/finite_aut/explicit_finite_incl_fctor_cache.hh>
 
-namespace VATA {
+#include <vata/finite_aut/util/comparators.hh>
 
+namespace VATA
+{
 	template<class SymbolType, class Rel, class Functor>
 	bool CheckFiniteAutInclusion(
 		const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger,
 		const Rel& preorder);
+
+
+	template<class SymbolType, class Rel, class Functor>
+	bool CheckFiniteAutInclusion (
+		const ExplicitFiniteAut<SymbolType>& smaller,
+		const ExplicitFiniteAut<SymbolType>& bigger,
+		const Rel& preorder);
+
+	template <class SymbolType, class Rel>
+	bool CheckUpwardInclusionWithPreorder(
+		const ExplicitFiniteAut<SymbolType>& smaller,
+		const ExplicitFiniteAut<SymbolType>& bigger,
+		const Rel& preorder) {
+
+		typedef ExplicitFAStateSetComparatorIdentity<SymbolType,Rel> Comparator;
+		// There is possible to set macro to use one of the optimization
+#ifdef OPT_AC
+		typedef ExplicitFAInclusionFunctorOpt<SymbolType,Rel,Comparator> FunctorType;
+#elif CACHE_AC
+		typedef ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
+#else
+		typedef ExplicitFAInclusionFunctor<SymbolType,Rel> FunctorType;
+#endif
+		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
+	}
+
+	// Special for simulation
+	template <class SymbolType, class Rel>
+	bool CheckUpwardInclusionWithSim(
+		const ExplicitFiniteAut<SymbolType>& smaller,
+		const ExplicitFiniteAut<SymbolType>& bigger,
+		const Rel& preorder) {
+
+		typedef ExplicitFAStateSetComparatorSimulation<SymbolType,Rel> Comparator;
+#ifdef OPT_AC
+		typedef ExplicitFAInclusionFunctorOpt<SymbolType,Rel,Comparator> FunctorType;
+#elif CACHE_AC
+		typedef ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
+#else
+		typedef ExplicitFAInclusionFunctor<SymbolType,Rel> FunctorType;
+#endif
+		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
+	}
+
+	/*
+	 * Congruence function
+	 * preorder not used yet, but one time will be
+	 */
+	template <class SymbolType, class Rel>
+	bool CheckInclusionWithCongr(
+		const ExplicitFiniteAut<SymbolType>& smaller,
+		const ExplicitFiniteAut<SymbolType>& bigger,
+		const Rel& preorder) {
+#ifdef CACHE_OPT_CONGR
+		typedef ExplicitFACongrFunctorCacheOpt<SymbolType,Rel> FunctorType;
+#elif OPT_CONGR
+		typedef ExplicitFACongrFunctorOpt<SymbolType,Rel> FunctorType;
+#elif CACHE_CONGR
+		typedef ExplicitFACongrFunctorCache<SymbolType,Rel> FunctorType;
+#else
+		typedef ExplicitFACongrFunctor<SymbolType,Rel> FunctorType;
+#endif
+		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
+	}
+
+	/*
+	 * Get just two automata, first sanitization is
+	 * made then the inclusion check is called
+	 */
+	template <class SymbolType>
+	bool CheckInclusion(
+		const ExplicitFiniteAut<SymbolType>&    smaller,
+		const ExplicitFiniteAut<SymbolType>&    bigger,
+		const VATA::InclParam&                  params)
+	{
+		if ((nullptr == &smaller) || (nullptr == &bigger))
+		{ }
+
+		// TODO: implement these things
+		assert(false);
+
+//		AutBase::StateType states =
+//			AutBase::SanitizeAutsForInclusion(smaller, bigger);
+//		VATA::Util::Identity ident(states);
+
+//		return CheckUpwardInclusion(smaller, bigger,states);
+//		TODO: this was... like... bullshit, right?
+//
+		throw std::runtime_error("Unimplemented");
+	}
 }
 
 /*

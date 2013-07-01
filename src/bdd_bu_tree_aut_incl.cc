@@ -12,7 +12,8 @@
 #include <vata/vata.hh>
 #include <vata/bdd_bu_tree_aut.hh>
 #include <vata/bdd_bu_tree_aut_op.hh>
-#include <vata/bdd_td_tree_aut_op.hh>
+#include <vata/bdd_bu_tree_aut_incl.hh>
+#include <vata/bdd_td_tree_aut_incl.hh>
 #include <vata/tree_incl_up.hh>
 
 using VATA::AutBase;
@@ -20,24 +21,49 @@ using VATA::BDDBottomUpTreeAut;
 using VATA::BDDTopDownTreeAut;
 using VATA::Util::Convert;
 
-bool VATA::CheckDownwardInclusion(const BDDBottomUpTreeAut& smaller,
-	const BDDBottomUpTreeAut& bigger)
+
+bool VATA::CheckInclusion(
+	const BDDBottomUpTreeAut&   smaller,
+	const BDDBottomUpTreeAut&   bigger,
+	const VATA::InclParam&      params)
 {
-	BDDTopDownTreeAut invSmaller = smaller.GetTopDownAut();
-	BDDTopDownTreeAut invBigger = bigger.GetTopDownAut();
+	BDDBottomUpTreeAut newSmaller;
+	BDDBottomUpTreeAut newBigger;
+	typename AutBase::StateType states;
 
-	return CheckDownwardInclusion(invSmaller, invBigger);
-}
+	if (InclParam::e_direction::downward == params.GetDirection())
+	{	// for the other direction
+		return CheckInclusion(smaller.GetTopDownAut(), bigger.GetTopDownAut(), params);
+	}
 
-bool VATA::CheckUpwardInclusion(const BDDBottomUpTreeAut& smaller,
-	const BDDBottomUpTreeAut& bigger)
-{
-	BDDBottomUpTreeAut newSmaller = smaller;
-	BDDBottomUpTreeAut newBigger = bigger;
+	if (!params.GetUseSimulation())
+	{
+		newSmaller = smaller;
+		newBigger = bigger;
 
-	AutBase::StateType states =
-		AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
+		states = AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
+	}
 
-	return CheckUpwardInclusionWithPreorder(newSmaller, newBigger,
-		VATA::Util::Identity(states));
+	switch (params.GetOptions())
+	{
+		case InclParam::ANTICHAINS_UP_NOSIM:
+		{
+			return CheckUpwardTreeInclusion<BDDBottomUpTreeAut,
+				VATA::UpwardInclusionFunctor>(newSmaller, newBigger,
+					Util::Identity(states));
+		}
+
+		case InclParam::ANTICHAINS_UP_SIM:
+		{
+			return CheckUpwardTreeInclusion<BDDBottomUpTreeAut,
+				VATA::UpwardInclusionFunctor>(smaller, bigger,
+					params.GetSimulation());
+		}
+
+		default:
+		{
+			throw std::runtime_error("Unimplemented inclusion:\n" +
+				params.toString());
+		}
+	}
 }

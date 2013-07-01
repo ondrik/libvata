@@ -19,6 +19,7 @@
 
 using VATA::Util::Convert;
 using VATA::AutBase;
+using VATA::InclParam;
 
 extern timespec startTime;
 
@@ -32,7 +33,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	options.insert(std::make_pair("optC", "no"));
 	options.insert(std::make_pair("timeS", "yes"));
 	options.insert(std::make_pair("rec", "yes"));
-	options.insert(std::make_pair("congr", "no"));
+	options.insert(std::make_pair("alg", "antichains"));
 	options.insert(std::make_pair("order", "depth"));
 
 	std::runtime_error optErrorEx("Invalid options for inclusion: " +
@@ -40,18 +41,62 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 
 	AutBase::StateType states = AutBase::SanitizeAutsForInclusion(smaller, bigger);
 
-	if (options["congr"] == "yes")
+	/****************************************************************************
+	 *                        Parsing of input parameters
+	 ****************************************************************************/
+
+	// parameters for inclusion
+	InclParam ip;
+
+	// the algorithm used
+	if (options["alg"] == "antichains")
 	{
-		AutBase::StateToStateMap opTranslMap1;
-		AutBase::StateToStateMap opTranslMap2;
-		smaller = UnionDisjointStates(smaller, bigger);//, &opTranslMap1, &opTranslMap2);
+		ip.SetAlgorithm(InclParam::e_algorithm::antichains);
 	}
+	else if (options["alg"] == "congr")
+	{
+		ip.SetAlgorithm(InclParam::e_algorithm::congruences);
+	}
+	else { throw optErrorEx; }
 
+	// direction of the algorithm
+	if (options["dir"] == "up")
+	{
+		ip.SetDirection(InclParam::e_direction::upward);
+	}
+	else if (options["dir"] == "down")
+	{
+		ip.SetDirection(InclParam::e_direction::downward);
+	}
+	else { throw optErrorEx; }
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
+	// recursive/nonrecursive version
+	if (options["rec"] == "yes")
+	{
+		ip.SetUseRecursion(true);
+	}
+	else if (options["rec"] == "no")
+	{
+		ip.SetUseRecursion(false);
+	}
+	else { throw optErrorEx; }
 
+	// caching of implications
+	if (options["optC"] == "no")
+	{
+		ip.SetUseDownwardCacheImpl(false);
+	}
+	else if (options["optC"] == "yes")
+	{
+		ip.SetUseDownwardCacheImpl(true);
+	}
+	else { throw optErrorEx; }
+
+	// use simulation?
 	if (options["sim"] == "no")
 	{
+		/*
+<<<<<<< HEAD
 		VATA::Util::Identity ident(states);
     if (options["congr"] == "yes") {
 			if (options["order"] == "depth")
@@ -94,70 +139,82 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 		{
 			throw optErrorEx;
 		}
+=======
+*/
+		ip.SetUseSimulation(false);
+//>>>>>>> upstream/refactoring_inclusion
 	}
 	else if (options["sim"] == "yes")
 	{
+		ip.SetUseSimulation(true);
+	}
+	else { throw optErrorEx; }
+
+	bool incl_sim_time = false;
+	if (options["timeS"] == "no")
+	{
+		incl_sim_time = false;
+	}
+	else if (options["timeS"] == "yes")
+	{
+		incl_sim_time = true;
+	}
+	else { throw optErrorEx; }
+
+	/****************************************************************************
+	 *                            Additional handling
+	 ****************************************************************************/
+
+	// set the timer
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);
+
+	if (InclParam::e_algorithm::congruences == ip.GetAlgorithm())
+	{	// for congruences, make smaller := smaller UNION bigger and check for equivalence
+		// TODO: is the previous comment true?
+		AutBase::StateToStateMap opTranslMap1;
+		AutBase::StateToStateMap opTranslMap2;
+		smaller = UnionDisjointStates(smaller, bigger);//, &opTranslMap1, &opTranslMap2);
+	}
+
+	AutBase::StateBinaryRelation sim;
+
+	if (ip.GetUseSimulation())
+	{	// if simulation is desired, then compute it here!
 		Automaton unionAut = VATA::UnionDisjointStates(smaller, bigger);
 
-		if (options["dir"] == "up")
-		{
-			AutBase::StateBinaryRelation sim = ComputeUpwardSimulation(unionAut, states);
+		// the relation
+		AutBase::StateBinaryRelation sim;
 
-			if (options["timeS"] == "no")
-			{
-				clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
-			}
-			else if (options["timeS"] == "yes")
-			{ }
-			else
-			{
-				throw optErrorEx;
-			}
+		if (InclParam::e_direction::upward == ip.GetDirection())
+		{	// for upward algorithm compute the upward simulation
+			sim = ComputeUpwardSimulation(unionAut, states);
+			ip.SetSimulation(&sim);
 
-			return VATA::CheckUpwardInclusionWithSim(smaller, bigger, sim);
 		}
-		else if (options["dir"] == "down")
-		{
-			AutBase::StateBinaryRelation sim = ComputeDownwardSimulation(unionAut, states);
-
-			if (options["timeS"] == "no")
-			{
-				clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
-			}
-			else if (options["timeS"] == "yes")
-			{ }
-			else
-			{
-				throw optErrorEx;
-			}
-
-			if (options["rec"] == "yes")
-			{
-				return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, sim);
-			}
-			else if (options["rec"] == "no")
-			{
-				return VATA::CheckDownwardInclusionNonRecWithPreorder(smaller, bigger, sim);
-			}
-			else
-			{
-				throw optErrorEx;
-			}
+		else if (InclParam::e_direction::downward == ip.GetDirection())
+		{	// for downward algorithm, compute the downward simualation
+			sim = ComputeDownwardSimulation(unionAut, states);
+			ip.SetSimulation(&sim);
 		}
 		else
 		{
-			throw optErrorEx;
+			assert(false);
 		}
 	}
-	else
-	{
-		throw optErrorEx;
+
+	if (!incl_sim_time)
+	{	// if the simulation time is not to be included in the total time
+		// reset the timer
+		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);
 	}
+
+	return VATA::CheckInclusion(smaller, bigger, ip);
 }
 
 template <class Automaton>
-VATA::AutBase::StateBinaryRelation ComputeSimulation(Automaton aut,
-	const Arguments& args)
+VATA::AutBase::StateBinaryRelation ComputeSimulation(
+	Automaton            aut,
+	const Arguments&     args)
 {
 	if (!args.pruneUseless)
 	{
@@ -187,7 +244,9 @@ VATA::AutBase::StateBinaryRelation ComputeSimulation(Automaton aut,
 }
 
 template <class Automaton>
-Automaton ComputeReduction(Automaton aut, const Arguments& args)
+Automaton ComputeReduction(
+	Automaton           aut,
+	const Arguments&    args)
 {
 	// insert default values
 	Options options = args.options;
@@ -208,6 +267,7 @@ Automaton ComputeReduction(Automaton aut, const Arguments& args)
 	}
 }
 
+//TODO use interface for inclusion
 template <class Automaton>
 bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
 {

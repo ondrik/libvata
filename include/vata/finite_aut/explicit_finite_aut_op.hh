@@ -16,7 +16,6 @@
 #include <vata/vata.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/two_way_dict.hh>
-#include <vata/util/util.hh>
 #include <vata/util/binary_relation.hh>
 #include <vata/util/transl_weak.hh>
 #include <vata/explicit_lts.hh>
@@ -34,13 +33,14 @@
 
 #include <vata/finite_aut/explicit_finite_incl_fctor.hh>
 #include <vata/finite_aut/explicit_finite_incl_fctor_opt.hh>
-#include <vata/finite_aut/explicit_finite_incl_fctor_cache.hh>
-#include <vata/finite_aut/util/comparators.hh>
 
 #include <vata/finite_aut/explicit_finite_congr_fctor.hh>
 #include <vata/finite_aut/explicit_finite_congr_fctor_opt.hh>
+<<<<<<< HEAD
 #include <vata/finite_aut/explicit_finite_congr_equiv_fctor.hh>
 #include <vata/finite_aut/explicit_finite_congr_fctor_cache_opt.hh>
+=======
+>>>>>>> upstream/refactoring_inclusion
 
 #include <vata/finite_aut/util/map_to_list.hh>
 #include <vata/finite_aut/util/macrostate_cache.hh>
@@ -245,6 +245,7 @@ namespace VATA {
 
 	}
 
+<<<<<<< HEAD
 	/***************************************************************
 	 * Inclusion checking functions
 	 */
@@ -439,5 +440,7 @@ template <class SymbolType, class Rel>
 
 		throw std::runtime_error("Unimplemented");
 	}
+=======
+>>>>>>> upstream/refactoring_inclusion
 }
 #endif

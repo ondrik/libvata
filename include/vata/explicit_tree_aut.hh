@@ -29,12 +29,12 @@
 #include <unordered_set>
 #include <unordered_map>
 
-namespace VATA {
-
+namespace VATA
+{
 	template <class Symbol> class ExplicitTreeAut;
 
-	struct Explicit {
-
+	struct Explicit
+	{
 		typedef AutBase::StateType StateType;
 
 		typedef std::vector<StateType> StateTuple;

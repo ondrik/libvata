@@ -12,6 +12,7 @@
 #include <vata/vata.hh>
 #include <vata/explicit_tree_aut.hh>
 #include <vata/explicit_tree_aut_op.hh>
+#include <vata/explicit_tree_incl.hh>
 
 // testing headers
 #include "log_fixture.hh"
@@ -55,24 +56,53 @@ BOOST_AUTO_TEST_CASE(aut_down_simulation)
 	testDownwardSimulation();
 }
 
-BOOST_AUTO_TEST_CASE(aut_down_inclusion_sim)
+BOOST_AUTO_TEST_CASE(aut_down_inclusion_nonrec_nosim)
 {
-	testInclusion(checkDownInclusionWithSimulation);
+	VATA::InclParam ip;
+	ip.SetDirection(InclParam::e_direction::downward);
+	testInclusion(ip);
 }
 
-BOOST_AUTO_TEST_CASE(aut_down_inclusion_sim_opt)
+BOOST_AUTO_TEST_CASE(aut_down_inclusion_nonrec_sim)
 {
-	testInclusion(checkOptDownInclusionWithSimulation);
+	VATA::InclParam ip;
+	ip.SetDirection(InclParam::e_direction::downward);
+	ip.SetUseSimulation(true);
+	testInclusion(ip);
+}
+
+BOOST_AUTO_TEST_CASE(aut_down_inclusion_rec_sim)
+{
+	VATA::InclParam ip;
+	ip.SetDirection(InclParam::e_direction::downward);
+	ip.SetUseRecursion(true);
+	ip.SetUseSimulation(true);
+	testInclusion(ip);
+}
+
+BOOST_AUTO_TEST_CASE(aut_down_inclusion_opt_rec_sim)
+{
+	VATA::InclParam ip;
+	ip.SetDirection(InclParam::e_direction::downward);
+	ip.SetUseDownwardCacheImpl(true);
+	ip.SetUseRecursion(true);
+	ip.SetUseSimulation(true);
+	testInclusion(ip);
 }
 
 BOOST_AUTO_TEST_CASE(aut_up_inclusion)
 {
-	testInclusion(checkUpInclusion);
+	VATA::InclParam ip;
+	ip.SetDirection(InclParam::e_direction::upward);
+	testInclusion(ip);
 }
 
 BOOST_AUTO_TEST_CASE(aut_up_inclusion_sim)
 {
-	testInclusion(checkUpInclusionWithSimulation);
+	VATA::InclParam ip;
+	ip.SetDirection(InclParam::e_direction::upward);
+	ip.SetUseSimulation(true);
+	testInclusion(ip);
 }
 
 BOOST_AUTO_TEST_SUITE_END()
