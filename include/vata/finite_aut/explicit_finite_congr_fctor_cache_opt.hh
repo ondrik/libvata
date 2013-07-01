@@ -136,6 +136,7 @@ public: // public functions
 		bool smallerInitFinal = false;
 		bool biggerInitFinal = false;
 
+		std::cout  <<  "dosel jsem sem" << std::endl;
 		// Created macrostate of smaller automaton
 		size_t smallerHashNum = 0;
 		for (auto state : smaller_.startStates_) {
@@ -223,11 +224,6 @@ public: // public functions
 	};
 
 private:
-
-	void BfsManipulator()
-	{
-		return;
-	}
 
 	// Check if the rule is applyable
 	bool MatchPair(const StateSet& closure, const StateSet& rule) {

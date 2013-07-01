@@ -59,7 +59,6 @@ bool VATA::CheckInclusion(
 		throw std::runtime_error("Smaller or bigger automata is not defined.");
 	}
 
-
 	VATA::ExplicitFiniteAut<SymbolType> newSmaller;
 	VATA::ExplicitFiniteAut<SymbolType> newBigger;
 	typename VATA::AutBase::StateType states;
@@ -171,9 +170,12 @@ bool VATA::CheckFiniteAutInclusion(
 	BiggerElementType procMacroState;
 	SmallerElementType procState;
 
+	int i=0;
 	while(inclFunc.DoesInclusionHold() && next.get(procState,procMacroState)) {
 		inclFunc.MakePost(procState,procMacroState);
+		i++;
 	}
+	std::cout  <<  i  <<  std::endl;
 	return inclFunc.DoesInclusionHold();
 }
 
