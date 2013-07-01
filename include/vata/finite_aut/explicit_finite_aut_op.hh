@@ -36,11 +36,8 @@
 
 #include <vata/finite_aut/explicit_finite_congr_fctor.hh>
 #include <vata/finite_aut/explicit_finite_congr_fctor_opt.hh>
-<<<<<<< HEAD
 #include <vata/finite_aut/explicit_finite_congr_equiv_fctor.hh>
 #include <vata/finite_aut/explicit_finite_congr_fctor_cache_opt.hh>
-=======
->>>>>>> upstream/refactoring_inclusion
 
 #include <vata/finite_aut/util/map_to_list.hh>
 #include <vata/finite_aut/util/macrostate_cache.hh>
@@ -245,98 +242,6 @@ namespace VATA {
 
 	}
 
-<<<<<<< HEAD
-	/***************************************************************
-	 * Inclusion checking functions
-	 */
-
-	template<class SymbolType, class Rel, class Functor>
-	bool CheckFiniteAutInclusion (
-		const ExplicitFiniteAut<SymbolType>& smaller,
-		const ExplicitFiniteAut<SymbolType>& bigger,
-		const Rel& preorder);
-
-	template <class SymbolType, class Rel>
-	bool CheckUpwardInclusionWithPreorder(
-		const ExplicitFiniteAut<SymbolType>& smaller,
-		const ExplicitFiniteAut<SymbolType>& bigger,
-		const Rel& preorder) {
-
-		typedef ExplicitFAStateSetComparatorIdentity<SymbolType,Rel> Comparator;
-		// There is possible to set macro to use one of the optimization
-#ifdef OPT_AC
-		typedef ExplicitFAInclusionFunctorOpt<SymbolType,Rel,Comparator> FunctorType;
-#elif CACHE_AC
-		typedef ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
-#else
-		typedef ExplicitFAInclusionFunctor<SymbolType,Rel> FunctorType;
-#endif
-		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
-	}
-
-	// Special for simulation
-	template <class SymbolType, class Rel>
-	bool CheckUpwardInclusionWithSim(
-		const ExplicitFiniteAut<SymbolType>& smaller,
-		const ExplicitFiniteAut<SymbolType>& bigger,
-		const Rel& preorder) {
-
-		typedef ExplicitFAStateSetComparatorSimulation<SymbolType,Rel> Comparator;
-#ifdef OPT_AC
-		typedef ExplicitFAInclusionFunctorOpt<SymbolType,Rel,Comparator> FunctorType;
-#elif CACHE_AC
-		typedef ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
-#else
-		typedef ExplicitFAInclusionFunctor<SymbolType,Rel> FunctorType;
-#endif
-		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
-	}
-
-	/*
-	 * Congruence function
-	 * preorder not used yet, but one time will be
-	 */
-	template <class SymbolType, class Rel>
-	bool CheckInclusionWithCongrDepth(
-		const ExplicitFiniteAut<SymbolType>& smaller,
-		const ExplicitFiniteAut<SymbolType>& bigger,
-		const Rel& preorder) {
-		typedef typename ExplicitFiniteAut<SymbolType>::StateSet StateSet;
-		typedef typename std::pair<StateSet*,StateSet*> ProductState;
-		typedef ProductStateSetDepth<StateSet,ProductState> ProductSet;
-#ifdef CACHE_OPT_CONGR
-		typedef ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
-#elif OPT_CONGR
-		typedef ExplicitFACongrFunctorOpt<SymbolType,Rel> FunctorType;
-#else
-		typedef ExplicitFACongrFunctor<SymbolType,Rel> FunctorType;
-#endif
-		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
-	}
-
-	/*
-	 * Congruence function
-	 * preorder not used yet, but one time will be
-	 */
-	template <class SymbolType, class Rel>
-	bool CheckInclusionWithCongrBreadth(
-		const ExplicitFiniteAut<SymbolType>& smaller,
-		const ExplicitFiniteAut<SymbolType>& bigger,
-		const Rel& preorder) {
-		typedef typename ExplicitFiniteAut<SymbolType>::StateSet StateSet;
-		typedef typename std::pair<StateSet*,StateSet*> ProductState;
-		typedef ProductStateSetBreadth<StateSet,ProductState> ProductSet;
-#ifdef CACHE_OPT_CONGR
-		typedef ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
-#elif OPT_CONGR
-		typedef ExplicitFACongrFunctorOpt<SymbolType,Rel> FunctorType;
-#else
-		typedef ExplicitFACongrFunctor<SymbolType,Rel> FunctorType;
-#endif
-		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
-	}
-
-
 	/*
 	 * Checks language equivalence.
 	 * Uses the inclusion wrapper function, because it works
@@ -376,71 +281,5 @@ namespace VATA {
 		typedef ExplicitFACongrEquivFunctor<SymbolType,Rel,ProductSet> FunctorType;
 		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
 	}
-
-	/*
-	 * Get just two automata, first sanitization is
-	 * made then the inclusion check is called
-	 */
-	template <class SymbolType>
-	bool CheckInclusion(const ExplicitFiniteAut<SymbolType>& smaller,
-		const ExplicitFiniteAut<SymbolType>& bigger) {
-		AutBase::StateType states =
-			AutBase::SanitizeAutsForInclusion(smaller, bigger);
-		VATA::Util::Identity ident(states);
-		return CheckUpwardInclusion(smaller, bigger,states);
-	}
-
-
-	/****************************************************************
-	 * Compatibility to other formats
-	 */
-
-template <class SymbolType, class Rel>
-	bool CheckOptDownwardInclusionWithPreorder(
-		const ExplicitFiniteAut<SymbolType>& smaller,
-		const ExplicitFiniteAut<SymbolType>& bigger, const Rel& preorder) {
-		if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
-		{ }
-
-		throw std::runtime_error("Unimplemented");
-	}
-
-	template <class SymbolType, class Rel>
-	bool CheckDownwardInclusionWithPreorder(const ExplicitFiniteAut<SymbolType>& smaller,
-		const ExplicitFiniteAut<SymbolType>& bigger, const Rel& preorder) {
-		if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
-		{ }
-
-		throw std::runtime_error("Unimplemented");
-	}
-
-	template <class SymbolType, class Rel>
-	bool CheckDownwardInclusionNonRecWithPreorder(const ExplicitFiniteAut<SymbolType>& smaller,
-		const ExplicitFiniteAut<SymbolType>& bigger, const Rel& preorder) {
-		if ((nullptr != &smaller) || (nullptr != &bigger) || (nullptr != &preorder))
-		{ }
-
-		throw std::runtime_error("Unimplemented");
-	}
-
-	template <class SymbolType>
-	bool CheckUpwardInclusion(const ExplicitFiniteAut<SymbolType>& smaller,
-		const ExplicitFiniteAut<SymbolType>& bigger) {
-		if ((nullptr != &smaller) || (nullptr != &bigger))
-		{ }
-
-		throw std::runtime_error("Unimplemented");
-	}
-
-	template <class SymbolType>
-	bool CheckDownwardInclusion(const ExplicitFiniteAut<SymbolType>& smaller,
-		const ExplicitFiniteAut<SymbolType>& bigger) {
-		if ((nullptr != &smaller) || (nullptr != &bigger))
-		{ }
-
-		throw std::runtime_error("Unimplemented");
-	}
-=======
->>>>>>> upstream/refactoring_inclusion
 }
 #endif

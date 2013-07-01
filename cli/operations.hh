@@ -150,6 +150,16 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	}
 	else { throw optErrorEx; }
 
+	if (options["order"] == "depth")
+	{
+		ip.SetSearchOrder(InclParam::e_search_order::depth);
+	}
+	else if (options["order"] == "breadth")
+	{
+		ip.SetSearchOrder(InclParam::e_search_order::breadth);
+	}
+	else {throw optErrorEx; }
+
 	bool incl_sim_time = false;
 	if (options["timeS"] == "no")
 	{
@@ -267,10 +277,10 @@ Automaton ComputeReduction(
 	}
 }
 
-//TODO use interface for inclusion
 template <class Automaton>
 bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
 {
+	/*
 	// insert default values
 	Options options = args.options;
 	options.insert(std::make_pair("order", "depth"));
@@ -296,5 +306,7 @@ bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
 		throw std::runtime_error("Invalid options for simulation: " +
 			Convert::ToString(options));
 	}
+	*/
+	return false;
 }
 #endif

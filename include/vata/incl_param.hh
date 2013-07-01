@@ -36,6 +36,12 @@ namespace VATA
 			upward
 		};
 
+		enum class e_search_order
+		{
+			breadth,
+			depth
+		};
+
 		typedef unsigned TOptions;
 
 		typedef VATA::Util::Convert Convert;
@@ -52,8 +58,17 @@ namespace VATA
 		static const unsigned FLAG_MASK_RECURSIVE              = 1 << 3;
 		/// 0 ... do not use (default),       1 ... use simulation
 		static const unsigned FLAG_MASK_SIMULATION             = 1 << 4;
+		/// 0 ... depth-first search (default), 1 ... breadth-first search
+		static const unsigned FLAG_MASK_SEARCH_ORDER           = 1 << 5;
 
 	public:  // constants
+
+		static const unsigned ANTICHAINS_NOSIM = 0
+			;
+
+		static const unsigned ANTICHAINS_SIM = 0
+			| FLAG_MASK_SIMULATION
+			;
 
 		static const unsigned ANTICHAINS_UP_NOSIM = 0
 			;
@@ -104,6 +119,15 @@ namespace VATA
 			| FLAG_MASK_DOWNWARD_CACHE_IMPL
 			| FLAG_MASK_RECURSIVE
 			| FLAG_MASK_SIMULATION
+			;
+
+		static const unsigned CONGR_DEPTH_NOSIM = 0
+			| FLAG_MASK_ALGORITHM
+			;
+
+		static const unsigned CONGR_BREADTH_NOSIM = 0
+			| FLAG_MASK_ALGORITHM
+			| FLAG_MASK_SEARCH_ORDER
 			;
 
 	private: // data members
@@ -235,6 +259,28 @@ namespace VATA
 		{
 			assert(nullptr != sim);
 			simulation_ = sim;
+		}
+
+		void SetSearchOrder(e_search_order order)
+		{
+			switch (order)
+			{
+				case e_search_order::depth:   flags_ &= ~FLAG_MASK_SEARCH_ORDER; break;
+				case e_search_order::breadth: flags_ |=  FLAG_MASK_SEARCH_ORDER; break;
+				default: assert(false);
+			}
+		}
+
+		e_search_order GetSearchOrder() const
+		{
+			if (flags_ & FLAG_MASK_SEARCH_ORDER)
+			{
+				return e_search_order::breadth;
+			}
+			else
+			{
+				return e_search_order::depth;
+			}
 		}
 
 		std::string toString() const
