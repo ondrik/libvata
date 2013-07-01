@@ -12,6 +12,8 @@
 #ifndef EXPLICIT_FINITE_AUT_INCL_HH_
 #define EXPLICIT_FINITE_AUT_INCL_HH_
 
+#include <iostream>
+
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/util/antichain2c_v2.hh>
@@ -78,8 +80,8 @@ bool VATA::CheckInclusion(
 			typedef VATA::ExplicitFAStateSetComparatorIdentity<SymbolType,Rel> Comparator;
 			typedef VATA::ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
 
-			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, 
-					bigger, VATA::Util::Identity(states));
+			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller, 
+					newBigger, VATA::Util::Identity(states));
 		}
 		case InclParam::ANTICHAINS_SIM:
 		{
@@ -87,7 +89,7 @@ bool VATA::CheckInclusion(
 			typedef VATA::ExplicitFAStateSetComparatorSimulation<SymbolType,Rel> Comparator;
 			typedef VATA::ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
 
-			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, params.GetSimulation());
+			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller, newBigger, params.GetSimulation());
 		}
 		case InclParam::CONGR_BREADTH_NOSIM:
 		{
@@ -97,7 +99,7 @@ bool VATA::CheckInclusion(
 			typedef VATA::ProductStateSetBreadth<StateSet,ProductState> ProductSet;
 			typedef VATA::ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
 			
-			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, VATA::Util::Identity(states));
+			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller, newBigger, VATA::Util::Identity(states));
 		}
 		case InclParam::CONGR_DEPTH_NOSIM:
 		{
@@ -107,7 +109,7 @@ bool VATA::CheckInclusion(
 			typedef VATA::ProductStateSetDepth<StateSet,ProductState> ProductSet;
 			typedef VATA::ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
 			
-			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, VATA::Util::Identity(states));
+			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller, newBigger, VATA::Util::Identity(states));
 		}
 		default:
 		{
