@@ -136,7 +136,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	{	// for congruences, make smaller := smaller UNION bigger and check for equivalence
 		// TODO: is the previous comment true?
 		// Not exactly true, because there is implemented the optimized algorithm for inclusion
-		// checking, which is not possible to use for the equivalence checking. It would be
+		// checking which is not possible to use for the equivalence checking. It would be
 		// perhaps better to move this to the CheckInclusion function.
 		AutBase::StateToStateMap opTranslMap1;
 		AutBase::StateToStateMap opTranslMap2;
@@ -248,7 +248,7 @@ bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
 	std::runtime_error optErrorEx("Invalid options for inclusion: " +
 			Convert::ToString(options));
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime); // set the timer
 
 	ip.SetEquivalence(true);
 	ip.SetAlgorithm(InclParam::e_algorithm::congruences);
