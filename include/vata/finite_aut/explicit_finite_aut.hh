@@ -101,6 +101,12 @@ GCC_DIAG_ON(effc++)
 			 const ExplicitFiniteAut<SymbolType>& bigger,
 			 const InclParam& params);
 
+	template <class SymbolType>
+	friend bool CheckEquivalence(
+			 const ExplicitFiniteAut<SymbolType>& smaller,
+			 const ExplicitFiniteAut<SymbolType>& bigger,
+			 const InclParam& params);
+
 	// Checking inclusion
 	template<class SymbolType, class Rel, class Functor>
 	friend bool CheckFiniteAutInclusion (
@@ -128,20 +134,8 @@ GCC_DIAG_ON(effc++)
 	friend class ExplicitFACongrFunctorOpt;
 	template<class SymbolType, class Rel, class ProductSet>
 	friend class ExplicitFACongrFunctorCacheOpt;
-
 	template<class SymbolType, class Rel, class ProductSet>
 	friend class ExplicitFACongrEquivFunctor;
-	template<class SymbolType, class Rel>
-		friend bool CheckEquivalenceDepth(
-		const ExplicitFiniteAut<SymbolType>& smaller,
-		const ExplicitFiniteAut<SymbolType>& bigger,
-		const Rel& preorder);
-
-	template<class SymbolType, class Rel>
-		friend bool CheckEquivalenceBreadth(
-		const ExplicitFiniteAut<SymbolType>& smaller,
-		const ExplicitFiniteAut<SymbolType>& bigger,
-		const Rel& preorder);
 
 	template<class SymbolType, class Rel>
 	friend class ExplicitFAStateSetComparator;

@@ -281,33 +281,34 @@ Automaton ComputeReduction(
 template <class Automaton>
 bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
 {
-	/*
 	// insert default values
 	Options options = args.options;
 	options.insert(std::make_pair("order", "depth"));
 
+	// parameters for inclusion
+	InclParam ip;
+
 	std::runtime_error optErrorEx("Invalid options for inclusion: " +
 			Convert::ToString(options));
 
-	AutBase::StateType states = AutBase::SanitizeAutsForInclusion(smaller, bigger);
-
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
 
-	VATA::Util::Identity ident(states);
+	ip.SetEquivalence(true);
+	ip.SetAlgorithm(InclParam::e_algorithm::congruences);
+
 	if (options["order"] == "depth")
 	{
-		return VATA::CheckEquivalenceDepth(smaller,bigger,ident);
+		ip.SetSearchOrder(InclParam::e_search_order::depth);
 	}
 	else if (options["order"] == "breadth")
 	{
-		return VATA::CheckEquivalenceBreadth(smaller,bigger,ident);
+		ip.SetSearchOrder(InclParam::e_search_order::breadth);
 	}
 	else
 	{
-		throw std::runtime_error("Invalid options for simulation: " +
+		throw std::runtime_error("Invalid options for equivalence: " +
 			Convert::ToString(options));
 	}
-	*/
-	return false;
+	return VATA::CheckInclusion(smaller, bigger, ip);
 }
 #endif

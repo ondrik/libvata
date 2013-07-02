@@ -241,45 +241,5 @@ namespace VATA {
 		return ComputeDownwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
 
 	}
-
-	/*
-	 * Checks language equivalence.
-	 * Uses the inclusion wrapper function, because it works
-	 * on similiar principle, but special functor for equivalence checking
-	 * is given
-	 */
-	template <class SymbolType, class Rel>
-	bool CheckEquivalenceBreadth(
-		const ExplicitFiniteAut<SymbolType>& smaller,
-		const ExplicitFiniteAut<SymbolType>& bigger,
-		const Rel& preorder) {
-		/*
-		typedef typename ExplicitFiniteAut<SymbolType>::StateSet StateSet;
-		typedef typename std::pair<StateSet*,StateSet*> ProductState;
-		typedef ProductStateSetBreadth<StateSet,ProductState> ProductSet;
-		*/
-		typedef typename ExplicitFiniteAut<SymbolType>::StateSet StateSet;
-		typedef typename std::pair<StateSet*,StateSet*> ProductState;
-		typedef ProductStateSetBreadth<StateSet,ProductState> ProductSet;
-		typedef ExplicitFACongrEquivFunctor<SymbolType,Rel,ProductSet> FunctorType;
-		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
-	}
-
-	template <class SymbolType, class Rel>
-	bool CheckEquivalenceDepth(
-		const ExplicitFiniteAut<SymbolType>& smaller,
-		const ExplicitFiniteAut<SymbolType>& bigger,
-		const Rel& preorder) {
-		/*
-		typedef typename ExplicitFiniteAut<SymbolType>::StateSet StateSet;
-		typedef typename std::pair<StateSet*,StateSet*> ProductState;
-		typedef ProductStateSetBreadth<StateSet,ProductState> ProductSet;
-		*/
-		typedef typename ExplicitFiniteAut<SymbolType>::StateSet StateSet;
-		typedef typename std::pair<StateSet*,StateSet*> ProductState;
-		typedef ProductStateSetDepth<StateSet,ProductState> ProductSet;
-		typedef ExplicitFACongrEquivFunctor<SymbolType,Rel,ProductSet> FunctorType;
-		return CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, preorder);
-	}
 }
 #endif

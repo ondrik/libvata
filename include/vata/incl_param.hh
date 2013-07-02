@@ -60,6 +60,8 @@ namespace VATA
 		static const unsigned FLAG_MASK_SIMULATION             = 1 << 4;
 		/// 0 ... depth-first search (default), 1 ... breadth-first search
 		static const unsigned FLAG_MASK_SEARCH_ORDER           = 1 << 5;
+		/// 0 ... equivalence checking no (default), 1 ... yes
+		static const unsigned FLAG_MASK_EQUIV           = 1 << 6;
 
 	public:  // constants
 
@@ -127,6 +129,17 @@ namespace VATA
 
 		static const unsigned CONGR_BREADTH_NOSIM = 0
 			| FLAG_MASK_ALGORITHM
+			| FLAG_MASK_SEARCH_ORDER
+			;
+
+		static const unsigned CONGR_DEPTH_EQUIV_NOSIM = 0
+			| FLAG_MASK_ALGORITHM
+			| FLAG_MASK_EQUIV
+			;
+
+		static const unsigned CONGR_BREADTH_EQUIV_NOSIM = 0
+			| FLAG_MASK_ALGORITHM
+			| FLAG_MASK_EQUIV
 			| FLAG_MASK_SEARCH_ORDER
 			;
 
@@ -280,6 +293,30 @@ namespace VATA
 			else
 			{
 				return e_search_order::depth;
+			}
+		}
+
+		void SetEquivalence(bool equiv)
+		{
+			if (equiv)
+			{
+				flags_ |= FLAG_MASK_EQUIV;
+			}
+			else
+			{
+				flags_ &= ~FLAG_MASK_EQUIV;
+			}
+		}
+
+		bool GetEquivalence() const
+		{
+			if (flags_ & FLAG_MASK_EQUIV)
+			{
+				return true;
+			}
+			else
+			{
+				return false;
 			}
 		}
 

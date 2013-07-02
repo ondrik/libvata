@@ -21,6 +21,7 @@
 
 #include <vata/finite_aut/explicit_finite_aut.hh>
 #include <vata/finite_aut/explicit_finite_congr_fctor_cache_opt.hh>
+#include <vata/finite_aut/explicit_finite_congr_equiv_fctor.hh>
 #include <vata/finite_aut/explicit_finite_incl_fctor_cache.hh>
 
 #include <vata/finite_aut/util/comparators.hh>
@@ -42,6 +43,12 @@ namespace VATA
 		const ExplicitFiniteAut<SymbolType>&    bigger,
 		const InclParam&                  params);
 
+	template <class SymbolType>
+	bool CheckEquivalence(
+		const ExplicitFiniteAut<SymbolType>& smaller,
+		const ExplicitFiniteAut<SymbolType>& bigger,
+		const InclParam&                  params);
+
 }
 
 /*
@@ -52,7 +59,7 @@ template <class SymbolType>
 bool VATA::CheckInclusion(
 	const VATA::ExplicitFiniteAut<SymbolType>&    smaller,
 	const VATA::ExplicitFiniteAut<SymbolType>&    bigger,
-	const VATA::InclParam&                  params)
+	const VATA::InclParam&												params)
 {
 	if ((nullptr == &smaller) || (nullptr == &bigger))
 	{ 
@@ -107,6 +114,26 @@ bool VATA::CheckInclusion(
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;
 			typedef VATA::ProductStateSetDepth<StateSet,ProductState> ProductSet;
 			typedef VATA::ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
+			
+			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller, newBigger, VATA::Util::Identity(states));
+		}
+		case InclParam::CONGR_DEPTH_EQUIV_NOSIM:
+		{
+			typedef VATA::Util::Identity Rel;
+			typedef typename VATA::ExplicitFiniteAut<SymbolType>::StateSet StateSet;
+			typedef typename std::pair<StateSet*,StateSet*> ProductState;
+			typedef VATA::ProductStateSetDepth<StateSet,ProductState> ProductSet;
+			typedef VATA::ExplicitFACongrEquivFunctor<SymbolType,Rel,ProductSet> FunctorType;
+			
+			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller, newBigger, VATA::Util::Identity(states));
+		}
+		case InclParam::CONGR_BREADTH_EQUIV_NOSIM:
+		{
+			typedef VATA::Util::Identity Rel;
+			typedef typename VATA::ExplicitFiniteAut<SymbolType>::StateSet StateSet;
+			typedef typename std::pair<StateSet*,StateSet*> ProductState;
+			typedef VATA::ProductStateSetBreadth<StateSet,ProductState> ProductSet;
+			typedef VATA::ExplicitFACongrEquivFunctor<SymbolType,Rel,ProductSet> FunctorType;
 			
 			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller, newBigger, VATA::Util::Identity(states));
 		}
