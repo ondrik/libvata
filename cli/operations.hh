@@ -136,7 +136,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	{	// for congruences, make smaller := smaller UNION bigger and check for equivalence
 		// TODO: is the previous comment true?
 		// Not exactly true, because there is implemented the optimized algorithm for inclusion
-		// checking, which is not possible to use for equivalence checking. It would be
+		// checking, which is not possible to use for the equivalence checking. It would be
 		// perhaps better to move this to the CheckInclusion function.
 		AutBase::StateToStateMap opTranslMap1;
 		AutBase::StateToStateMap opTranslMap2;

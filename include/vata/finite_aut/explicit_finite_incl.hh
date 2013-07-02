@@ -143,16 +143,7 @@ bool VATA::CheckInclusion(
 				params.toString());
 		}
 	}
-
-//		AutBase::StateType states =
-//			AutBase::SanitizeAutsForInclusion(smaller, bigger);
-//		VATA::Util::Identity ident(states);
-
-//		return CheckUpwardInclusion(smaller, bigger,states);
-//		TODO: this was... like... bullshit, right?
-//		Yes, it was bullshit
-//
-		throw std::runtime_error("Unimplemented");
+	throw std::runtime_error("Unimplemented");
 }
 
 /*
