@@ -105,8 +105,8 @@ const char VATA_USAGE_COMMANDS[] =
 	"          'order=breadth': use breadth-first search for congruence algorithm\n"
 	"          'optC=yes' : use optimised cache for downward direction\n"
 	"          'optC=no'  : without optimised cache (default)\n"
-	"          'rec=yes'  : recursive version of downward direction (default)\n"
-	"          'rec=no'   : non-recursive version (only for '-r expl' and 'optC=no')\n"
+	"          'rec=yes'  : recursive version of downward direction\n"
+	"          'rec=no'   : non-recursive version (only for '-r expl' and 'optC=no') (default)\n"
 	"          'timeS=yes': include time of simulation computation (default)\n"
 	"          'timeS=no' : do not include time of simulation computation\n"
 	;
