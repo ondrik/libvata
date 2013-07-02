@@ -40,6 +40,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 			Convert::ToString(options));
 
 //	AutBase::StateType states = AutBase::SanitizeAutsForInclusion(smaller, bigger);
+//	TODO: this done again in CheckInclusion functions and it is not neccessary to call it twice
 
 	/****************************************************************************
 	 *                        Parsing of input parameters
@@ -95,54 +96,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	// use simulation?
 	if (options["sim"] == "no")
 	{
-		/*
-<<<<<<< HEAD
-		VATA::Util::Identity ident(states);
-    if (options["congr"] == "yes") {
-			if (options["order"] == "depth")
-      	return VATA::CheckInclusionWithCongrDepth(smaller,bigger,ident);
-			else if (options["order"] == "breadth")
-      	return VATA::CheckInclusionWithCongrBreadth(smaller,bigger,ident);
-    }
-		if (options["dir"] == "up")
-		{
-			return VATA::CheckUpwardInclusionWithPreorder(smaller, bigger, ident);
-		}
-		else if (options["dir"] == "down")
-		{
-			if (options["optC"] == "no")
-			{
-				if (options["rec"] == "yes")
-				{
-					return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, ident);
-				}
-				else if (options["rec"] == "no")
-				{
-					return VATA::CheckDownwardInclusionNonRecWithPreorder(smaller, bigger, ident);
-				}
-				else
-				{
-					throw optErrorEx;
-				}
-			}
-			else if (options["optC"] == "yes")
-			{
-				return VATA::CheckOptDownwardInclusionWithPreorder(
-					smaller, bigger, ident);
-			}
-			else
-			{
-				throw optErrorEx;
-			}
-		}
-		else
-		{
-			throw optErrorEx;
-		}
-=======
-*/
 		ip.SetUseSimulation(false);
-//>>>>>>> upstream/refactoring_inclusion
 	}
 	else if (options["sim"] == "yes")
 	{
@@ -181,6 +135,9 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	if (InclParam::e_algorithm::congruences == ip.GetAlgorithm())
 	{	// for congruences, make smaller := smaller UNION bigger and check for equivalence
 		// TODO: is the previous comment true?
+		// Not exactly true, because there is implemented the optimized algorithm for inclusion
+		// checking, which is not possible to use for equivalence checking. It would be
+		// perhaps better to move this to the CheckInclusion function.
 		AutBase::StateToStateMap opTranslMap1;
 		AutBase::StateToStateMap opTranslMap2;
 		smaller = UnionDisjointStates(smaller, bigger);//, &opTranslMap1, &opTranslMap2);

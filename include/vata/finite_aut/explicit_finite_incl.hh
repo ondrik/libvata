@@ -150,6 +150,7 @@ bool VATA::CheckInclusion(
 
 //		return CheckUpwardInclusion(smaller, bigger,states);
 //		TODO: this was... like... bullshit, right?
+//		Yes, it was bullshit
 //
 		throw std::runtime_error("Unimplemented");
 }
