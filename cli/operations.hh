@@ -32,7 +32,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	options.insert(std::make_pair("dir", "up"));
 	options.insert(std::make_pair("optC", "no"));
 	options.insert(std::make_pair("timeS", "yes"));
-	options.insert(std::make_pair("rec", "yes"));
+	options.insert(std::make_pair("rec", "no"));
 	options.insert(std::make_pair("alg", "antichains"));
 
 	std::runtime_error optErrorEx("Invalid options for inclusion: " +
