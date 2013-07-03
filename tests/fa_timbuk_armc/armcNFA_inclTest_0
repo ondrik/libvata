@@ -1,0 +1,20 @@
+Ops a0:1 a1:1 a2:1 a3:1 a4:1 a5:1 a6:1 a7:1 a8:1 a9:1 a10:1 a11:1 a12:1 a13:1 a14:1 a15:1 a16:1 a17:1 a18:1 x:0
+
+Automaton A
+States q0 q1 q2 q3 
+Final States q1 
+Transitions
+x -> q0
+a17(q0) -> q3
+a18(q0) -> q3
+a0(q1) -> q1
+a1(q1) -> q1
+a2(q1) -> q1
+a4(q1) -> q1
+a8(q1) -> q1
+a17(q1) -> q1
+a18(q1) -> q1
+a17(q2) -> q1
+a18(q2) -> q1
+a17(q3) -> q2
+a18(q3) -> q2
