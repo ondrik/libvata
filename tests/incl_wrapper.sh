@@ -44,76 +44,76 @@ RETVAL="?"
 ulimit -s 1000000
 
 case "${OPERATION}" in
-  explfa)
-    ${VATA} -r expl_fa -t incl -o alg=congr "${FILE_LHS}" "${FILE_RHS}"
+  explfa-ac)
+    ${VATA} -r expl_fa -t incl -o alg=antichains "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
+  explfa-ac-sim)
+    ${VATA} -r expl_fa -t incl -o alg=antichains,sim=yes,timeS=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   explfa-congr)
     ${VATA} -r expl_fa -t incl -o alg=congr "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  explfa-sim)
-    ${VATA} -r expl_fa -t incl -o sim=yes,timeS=yes "${FILE_LHS}" "${FILE_RHS}"
+  expldown-rec)
+    ${VATA} -r expl -t incl -o dir=down,sim=no,optC=no,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  expldown)
-    ${VATA} -r expl -t incl -o dir=down,sim=no,optC=no "${FILE_LHS}" "${FILE_RHS}"
+  expldown-rec-sim)
+    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=no,timeS=yes,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  expldown-sim)
-    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=no,timeS=yes "${FILE_LHS}" "${FILE_RHS}"
+  expldown-rec-sim-nosimtime)
+    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=no,timeS=no,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  expldown-sim-nosimtime)
-    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=no,timeS=no "${FILE_LHS}" "${FILE_RHS}"
+  expldown-rec-optC)
+    ${VATA} -r expl -t incl -o dir=down,sim=no,optC=yes,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  expldown-optC)
-    ${VATA} -r expl -t incl -o dir=down,sim=no,optC=yes "${FILE_LHS}" "${FILE_RHS}"
+  expldown-rec-sim-optC)
+    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=yes,timeS=yes,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  expldown-sim-optC)
-    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=yes,timeS=yes "${FILE_LHS}" "${FILE_RHS}"
-    RETVAL="$?"
-    ;;
-  expldown-sim-optC-nosimtime)
-    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=yes,timeS=no "${FILE_LHS}" "${FILE_RHS}"
+  expldown-rec-sim-optC-nosimtime)
+    ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=yes,timeS=no,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   expldown-nonrec)
     ${VATA} -r expl -t incl -o dir=down,sim=no,optC=no,rec=no "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  expldown-sim-nonrec)
+  expldown-nonrec-sim)
     ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=no,timeS=yes,rec=no "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  expldown-sim-nonrec-nosimtime)
+  expldown-nonrec-sim-nosimtime)
     ${VATA} -r expl -t incl -o dir=down,sim=yes,optC=no,timeS=no,rec=no "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  old-expldown)
-    ${OLDVATA} -r expl -t incl -o dir=down,sim=no,optC=no "${FILE_LHS}" "${FILE_RHS}"
+  old-expldown-rec)
+    ${OLDVATA} -r expl -t incl -o dir=down,sim=no,optC=no,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  old-expldown-sim)
-    ${OLDVATA} -r expl -t incl -o dir=down,sim=yes,optC=no,timeS=yes "${FILE_LHS}" "${FILE_RHS}"
+  old-expldown-rec-sim)
+    ${OLDVATA} -r expl -t incl -o dir=down,sim=yes,optC=no,timeS=yes,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  old-expldown-sim-nosimtime)
-    ${OLDVATA} -r expl -t incl -o dir=down,sim=yes,optC=no,timeS=no "${FILE_LHS}" "${FILE_RHS}"
+  old-expldown-rec-sim-nosimtime)
+    ${OLDVATA} -r expl -t incl -o dir=down,sim=yes,optC=no,timeS=no,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  old-expldown-optC)
-    ${OLDVATA} -r expl -t incl -o dir=down,sim=no,optC=yes "${FILE_LHS}" "${FILE_RHS}"
+  old-expldown-rec-optC)
+    ${OLDVATA} -r expl -t incl -o dir=down,sim=no,optC=yes,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  old-expldown-sim-optC)
-    ${OLDVATA} -r expl -t incl -o dir=down,sim=yes,optC=yes,timeS=yes "${FILE_LHS}" "${FILE_RHS}"
+  old-expldown-rec-sim-optC)
+    ${OLDVATA} -r expl -t incl -o dir=down,sim=yes,optC=yes,timeS=yes,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  old-expldown-sim-optC-nosimtime)
-    ${OLDVATA} -r expl -t incl -o dir=down,sim=yes,optC=yes,timeS=no "${FILE_LHS}" "${FILE_RHS}"
+  old-expldown-rec-sim-optC-nosimtime)
+    ${OLDVATA} -r expl -t incl -o dir=down,sim=yes,optC=yes,timeS=no,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   explup)
@@ -128,28 +128,28 @@ case "${OPERATION}" in
     ${VATA} -r expl -t incl -o dir=up,sim=yes,timeS=no "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  symdown)
-    ${VATA} -r bdd-td -t incl -o dir=down,sim=no,optC=no "${FILE_LHS}" "${FILE_RHS}"
+  symdown-rec)
+    ${VATA} -r bdd-td -t incl -o dir=down,sim=no,optC=no,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  symdown-sim)
-    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes,optC=no,timeS=yes "${FILE_LHS}" "${FILE_RHS}"
+  symdown-rec-sim)
+    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes,optC=no,timeS=yes,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  symdown-sim-nosimtime)
-    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes,optC=no,timeS=no "${FILE_LHS}" "${FILE_RHS}"
+  symdown-rec-sim-nosimtime)
+    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes,optC=no,timeS=no,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  symdown-optC)
-    ${VATA} -r bdd-td -t incl -o dir=down,sim=no,optC=yes "${FILE_LHS}" "${FILE_RHS}"
+  symdown-rec-optC)
+    ${VATA} -r bdd-td -t incl -o dir=down,sim=no,optC=yes,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  symdown-sim-optC)
-    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes,optC=yes,timeS=yes "${FILE_LHS}" "${FILE_RHS}"
+  symdown-rec-sim-optC)
+    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes,optC=yes,timeS=yes,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
-  symdown-sim-optC-nosimtime)
-    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes,optC=yes,timeS=no "${FILE_LHS}" "${FILE_RHS}"
+  symdown-rec-sim-optC-nosimtime)
+    ${VATA} -r bdd-bu -t incl -o dir=down,sim=yes,optC=yes,timeS=no,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
   symup)
