@@ -56,7 +56,6 @@ namespace VATA
 
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
 		const BDDTopDownTreeAut& aut, const size_t& size);
-
 }
 
 #endif

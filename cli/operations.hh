@@ -34,11 +34,13 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	options.insert(std::make_pair("timeS", "yes"));
 	options.insert(std::make_pair("rec", "no"));
 	options.insert(std::make_pair("alg", "antichains"));
+	options.insert(std::make_pair("order", "depth"));
 
 	std::runtime_error optErrorEx("Invalid options for inclusion: " +
 			Convert::ToString(options));
 
-	AutBase::StateType states = AutBase::SanitizeAutsForInclusion(smaller, bigger);
+//	AutBase::StateType states = AutBase::SanitizeAutsForInclusion(smaller, bigger);
+//	TODO: this done again in CheckInclusion functions and it is not neccessary to call it twice
 
 	/****************************************************************************
 	 *                        Parsing of input parameters
@@ -102,6 +104,16 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	}
 	else { throw optErrorEx; }
 
+	if (options["order"] == "depth")
+	{
+		ip.SetSearchOrder(InclParam::e_search_order::depth);
+	}
+	else if (options["order"] == "breadth")
+	{
+		ip.SetSearchOrder(InclParam::e_search_order::breadth);
+	}
+	else {throw optErrorEx; }
+
 	bool incl_sim_time = false;
 	if (options["timeS"] == "no")
 	{
@@ -123,6 +135,9 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	if (InclParam::e_algorithm::congruences == ip.GetAlgorithm())
 	{	// for congruences, make smaller := smaller UNION bigger and check for equivalence
 		// TODO: is the previous comment true?
+		// Not exactly true, because there is implemented the optimized algorithm for inclusion
+		// checking which is not possible to use for the equivalence checking. It would be
+		// perhaps better to move this to the CheckInclusion function.
 		AutBase::StateToStateMap opTranslMap1;
 		AutBase::StateToStateMap opTranslMap2;
 		smaller = UnionDisjointStates(smaller, bigger);//, &opTranslMap1, &opTranslMap2);
@@ -134,6 +149,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	{	// if simulation is desired, then compute it here!
 		Automaton unionAut = VATA::UnionDisjointStates(smaller, bigger);
 
+	AutBase::StateType states = AutBase::SanitizeAutsForInclusion(smaller, bigger);
 		// the relation
 		AutBase::StateBinaryRelation sim;
 
@@ -219,4 +235,37 @@ Automaton ComputeReduction(
 	}
 }
 
+template <class Automaton>
+bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
+{
+	// insert default values
+	Options options = args.options;
+	options.insert(std::make_pair("order", "depth"));
+
+	// parameters for inclusion
+	InclParam ip;
+
+	std::runtime_error optErrorEx("Invalid options for inclusion: " +
+			Convert::ToString(options));
+
+	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime); // set the timer
+
+	ip.SetEquivalence(true);
+	ip.SetAlgorithm(InclParam::e_algorithm::congruences);
+
+	if (options["order"] == "depth")
+	{
+		ip.SetSearchOrder(InclParam::e_search_order::depth);
+	}
+	else if (options["order"] == "breadth")
+	{
+		ip.SetSearchOrder(InclParam::e_search_order::breadth);
+	}
+	else
+	{
+		throw std::runtime_error("Invalid options for equivalence: " +
+			Convert::ToString(options));
+	}
+	return VATA::CheckInclusion(smaller, bigger, ip);
+}
 #endif

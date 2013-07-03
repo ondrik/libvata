@@ -85,6 +85,12 @@ const char VATA_USAGE_COMMANDS[] =
 	"          'dir=down' : downward simulation (default)\n"
 	"          'dir=up'   : upward simulation\n"
 	"\n"
+	"    equiv <file1> <file2>   Checks language equivalence of finite automata from <file1>\n"
+	"                            and <file2>, i.e., whether L(<file1>) is a equal\n"
+	"                            to L(<file2>). Options\n"
+	"          'order=depth': use depth-first search for congruence algorithm (default)\n"
+	"          'order=breadth': use breadth-first search for congruence algorithm\n"
+	"\n"
 	"    incl <file1> <file2>    Checks language inclusion of automata from <file1>\n"
 	"                            and <file2>, i.e., whether L(<file1>) is a subset\n"
 	"                            of L(<file2>). Options:\n"
@@ -95,6 +101,8 @@ const char VATA_USAGE_COMMANDS[] =
 	"          'dir=up'   : upward inclusion checking (default)\n"
 	"          'sim=yes'  : use corresponding simulation\n"
 	"          'sim=no'   : do not use simulation (default)\n"
+	"          'order=depth': use depth-first search for congruence algorithm (default)\n"
+	"          'order=breadth': use breadth-first search for congruence algorithm\n"
 	"          'optC=yes' : use optimised cache for downward direction\n"
 	"          'optC=no'  : without optimised cache (default)\n"
 	"          'rec=no'   : recursive version of the algorithm (default)\n"
@@ -243,6 +251,10 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	{
 		boolResult = CheckInclusion(autInput1, autInput2, args);
 	}
+	else if (args.command == COMMAND_EQUIV)
+	{
+		boolResult = CheckEquiv(autInput1, autInput2, args);
+	}
 	else if (args.command == COMMAND_SIM)
 	{
 		relResult = ComputeSimulation(autInput1, args);
@@ -312,7 +324,7 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 				StateBackTranslatorStrict(stateDict1.GetReverseMap()),
 				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
 		}
-		if ((args.command == COMMAND_INCLUSION))
+		if ((args.command == COMMAND_INCLUSION) || (args.command == COMMAND_EQUIV))
 		{
 			std::cout << boolResult << "\n";
 		}

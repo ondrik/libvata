@@ -11,7 +11,7 @@ set(vata_compiler_add_flags_list
 #  -DOPT_AC
   -DCACHE_AC
 #  -DCACHE_CONGR
-#  -DOPT_CONGR
+ # -DOPT_CONGR
   -DCACHE_OPT_CONGR
   -Wextra
   -Wall

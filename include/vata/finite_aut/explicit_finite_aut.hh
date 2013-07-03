@@ -97,8 +97,15 @@ GCC_DIAG_ON(effc++)
 	// Checking inclusion
 	template <class SymbolType>
 	friend bool CheckInclusion(
-			 const ExplicitFiniteAut<SymbolType> smaller,
-			 const ExplicitFiniteAut<SymbolType> bigger);
+			 const ExplicitFiniteAut<SymbolType>& smaller,
+			 const ExplicitFiniteAut<SymbolType>& bigger,
+			 const InclParam& params);
+
+	template <class SymbolType>
+	friend bool CheckEquivalence(
+			 const ExplicitFiniteAut<SymbolType>& smaller,
+			 const ExplicitFiniteAut<SymbolType>& bigger,
+			 const InclParam& params);
 
 	// Checking inclusion
 	template<class SymbolType, class Rel, class Functor>
@@ -125,10 +132,10 @@ GCC_DIAG_ON(effc++)
 	friend class ExplicitFACongrFunctor;
 	template<class SymbolType, class Rel>
 	friend class ExplicitFACongrFunctorOpt;
-	template<class SymbolType, class Rel>
-	friend class ExplicitFACongrFunctorCache;
-	template<class SymbolType, class Rel>
+	template<class SymbolType, class Rel, class ProductSet>
 	friend class ExplicitFACongrFunctorCacheOpt;
+	template<class SymbolType, class Rel, class ProductSet>
+	friend class ExplicitFACongrEquivFunctor;
 
 	template<class SymbolType, class Rel>
 	friend class ExplicitFAStateSetComparator;
@@ -253,6 +260,21 @@ public:
 		startStateToSymbols_(aut.startStateToSymbols_),
 		transitions_(aut.transitions_)
 	{ }
+
+	ExplicitFiniteAut& operator=(const ExplicitFiniteAut& rhs) {
+
+		if (this != &rhs) {
+
+			this->finalStates_ = rhs.finalStates_;
+			this->startStates_ = rhs.startStates_;
+			this->startStateToSymbols_ = rhs.startStateToSymbols_;
+			this->transitions_ = rhs.transitions_;
+
+		}
+
+		return *this;
+
+	}
 
 
 	~ExplicitFiniteAut() {}

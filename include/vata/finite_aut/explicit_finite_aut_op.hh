@@ -36,9 +36,12 @@
 
 #include <vata/finite_aut/explicit_finite_congr_fctor.hh>
 #include <vata/finite_aut/explicit_finite_congr_fctor_opt.hh>
+#include <vata/finite_aut/explicit_finite_congr_equiv_fctor.hh>
+#include <vata/finite_aut/explicit_finite_congr_fctor_cache_opt.hh>
 
 #include <vata/finite_aut/util/map_to_list.hh>
 #include <vata/finite_aut/util/macrostate_cache.hh>
+#include <vata/finite_aut/util/congr_product.hh>
 
 namespace VATA {
 
@@ -238,6 +241,5 @@ namespace VATA {
 		return ComputeDownwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
 
 	}
-
 }
 #endif
