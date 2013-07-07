@@ -78,6 +78,11 @@ bool VATA::CheckInclusion(
 		states = VATA::AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
 	}
 
+	if (params.GetAlgorithm() == InclParam::e_algorithm::congruences)
+	{
+		newSmaller = UnionDisjointStates(smaller, bigger);
+	}
+
 	switch (params.GetOptions())
 	{
 		case InclParam::ANTICHAINS_NOSIM:
