@@ -19,19 +19,22 @@
 #include <vector>
 
 namespace VATA {
-	template <class StateSet, class ProductState> 
+	template <class StateSet, class ProductState>
 		class ProductStateSet;
-	template <class StateSet, class ProductState> 
+	template <class StateSet, class ProductState>
 		class ProductStateSetBreadth;
-	template <class StateSet, class ProductState> 
+	template <class StateSet, class ProductState>
 		class ProductStateSetDepth;
 }
 
 /*
  * Cache for caching macro state
  */
+GCC_DIAG_OFF(effc++)
 template<class StateSet,class ProductState>
-class VATA::ProductStateSet : public std::vector<ProductState> {
+class VATA::ProductStateSet : public std::vector<ProductState>
+{
+GCC_DIAG_ON(effc++)
 private: //data types
 	typedef StateSet SmallerElementType;
 	typedef StateSet BiggerElementType;
@@ -51,18 +54,24 @@ public:
 		}
 };
 
+GCC_DIAG_OFF(effc++)
 template<class StateSet,class ProductState>
-class VATA::ProductStateSetBreadth : 
-	public VATA::ProductStateSet<StateSet,ProductState> {
+class VATA::ProductStateSetBreadth :
+	public VATA::ProductStateSet<StateSet,ProductState>
+{
+GCC_DIAG_ON(effc++)
 		public:
 			void add(StateSet& smaller, StateSet& bigger) {
 				this->insert(this->begin(),std::make_pair(&smaller,&bigger));
 			}
 };
 
+GCC_DIAG_OFF(effc++)
 template<class StateSet,class ProductState>
-class VATA::ProductStateSetDepth : 
-	public VATA::ProductStateSet<StateSet,ProductState> {
+class VATA::ProductStateSetDepth :
+	public VATA::ProductStateSet<StateSet,ProductState>
+{
+GCC_DIAG_ON(effc++)
 		public:
 			void add(StateSet& smaller, StateSet& bigger) {
 				this->push_back(std::make_pair(&smaller,&bigger));

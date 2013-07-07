@@ -44,6 +44,10 @@ endif()
 #set(CMAKE_C_COMPILER "gcc-4.6")
 #set(CMAKE_CXX_COMPILER "g++-4.6")
 
+# Uncomment for profiling with Callgrind
+#set(CMAKE_C_FLAGS_RELEASE  "${CMAKE_C_FLAGS_RELEASE} -g")
+#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g")
+
 project(libvata)
 
 # Include CTest so that sophisticated testing can be done now

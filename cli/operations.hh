@@ -137,7 +137,6 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	{	// if simulation is desired, then compute it here!
 		Automaton unionAut = VATA::UnionDisjointStates(smaller, bigger);
 
-	AutBase::StateType states = AutBase::SanitizeAutsForInclusion(smaller, bigger);
 		// the relation
 		AutBase::StateBinaryRelation sim;
 
