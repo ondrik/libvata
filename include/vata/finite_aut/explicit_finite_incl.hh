@@ -89,6 +89,7 @@ bool VATA::CheckInclusion(
 			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller,
 					newBigger, VATA::Util::Identity(states));
 		}
+		/* simulation out of order
 		case InclParam::ANTICHAINS_SIM:
 		{
 			typedef VATA::AutBase::StateBinaryRelation Rel;
@@ -97,6 +98,7 @@ bool VATA::CheckInclusion(
 
 			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller, newBigger, params.GetSimulation());
 		}
+		*/
 		case InclParam::CONGR_BREADTH_NOSIM:
 		{
 			typedef VATA::Util::Identity Rel;
