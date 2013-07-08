@@ -61,7 +61,7 @@ namespace VATA
 		/// 0 ... depth-first search (default), 1 ... breadth-first search
 		static const unsigned FLAG_MASK_SEARCH_ORDER           = 1 << 5;
 		/// 0 ... equivalence checking no (default), 1 ... yes
-		static const unsigned FLAG_MASK_EQUIV									 = 1 << 6;
+		static const unsigned FLAG_MASK_EQUIV                  = 1 << 6;
 
 	public:  // constants
 
