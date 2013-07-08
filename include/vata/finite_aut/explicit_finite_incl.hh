@@ -61,11 +61,6 @@ bool VATA::CheckInclusion(
 	const VATA::ExplicitFiniteAut<SymbolType>&    bigger,
 	const VATA::InclParam&												params)
 {
-	if ((nullptr == &smaller) || (nullptr == &bigger))
-	{ 
-		throw std::runtime_error("Smaller or bigger automata is not defined.");
-	}
-
 	VATA::ExplicitFiniteAut<SymbolType> newSmaller;
 	VATA::ExplicitFiniteAut<SymbolType> newBigger;
 	typename VATA::AutBase::StateType states;
@@ -86,7 +81,7 @@ bool VATA::CheckInclusion(
 			typedef VATA::ExplicitFAStateSetComparatorIdentity<SymbolType,Rel> Comparator;
 			typedef VATA::ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
 
-			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller, 
+			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller,
 					newBigger, VATA::Util::Identity(states));
 		}
 		case InclParam::ANTICHAINS_SIM:
@@ -104,7 +99,7 @@ bool VATA::CheckInclusion(
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;
 			typedef VATA::ProductStateSetBreadth<StateSet,ProductState> ProductSet;
 			typedef VATA::ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
-			
+
 			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller, newBigger, VATA::Util::Identity(states));
 		}
 		case InclParam::CONGR_DEPTH_NOSIM:
@@ -114,7 +109,7 @@ bool VATA::CheckInclusion(
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;
 			typedef VATA::ProductStateSetDepth<StateSet,ProductState> ProductSet;
 			typedef VATA::ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
-			
+
 			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller, newBigger, VATA::Util::Identity(states));
 		}
 		case InclParam::CONGR_DEPTH_EQUIV_NOSIM:
@@ -124,7 +119,7 @@ bool VATA::CheckInclusion(
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;
 			typedef VATA::ProductStateSetDepth<StateSet,ProductState> ProductSet;
 			typedef VATA::ExplicitFACongrEquivFunctor<SymbolType,Rel,ProductSet> FunctorType;
-			
+
 			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller, newBigger, VATA::Util::Identity(states));
 		}
 		case InclParam::CONGR_BREADTH_EQUIV_NOSIM:
@@ -134,7 +129,7 @@ bool VATA::CheckInclusion(
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;
 			typedef VATA::ProductStateSetBreadth<StateSet,ProductState> ProductSet;
 			typedef VATA::ExplicitFACongrEquivFunctor<SymbolType,Rel,ProductSet> FunctorType;
-			
+
 			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller, newBigger, VATA::Util::Identity(states));
 		}
 		default:
@@ -143,7 +138,6 @@ bool VATA::CheckInclusion(
 				params.toString());
 		}
 	}
-	throw std::runtime_error("Unimplemented");
 }
 
 /*
