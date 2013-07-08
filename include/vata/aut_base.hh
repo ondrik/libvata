@@ -46,6 +46,16 @@ namespace VATA
 		throw std::runtime_error("Unimplemented.");
 	}
 
+	/**
+	 * @brief  Generic procedure for checking equivalence of automata
+	 *
+	 * To be used when a specific implementation is not available
+	 */
+	template <class Automaton>
+	bool CheckEquivalence(const Automaton& lhs, const Automaton& rhs)
+	{
+		return CheckInclusion(lhs, rhs) && CheckInclusion(rhs, lhs);
+	}
 }
 
 

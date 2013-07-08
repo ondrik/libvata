@@ -153,7 +153,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 		}
 		else
 		{
-			assert(false);
+			assert(false);         // fail gracefully
 		}
 	}
 
@@ -232,7 +232,7 @@ bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
 	// parameters for inclusion
 	InclParam ip;
 
-	std::runtime_error optErrorEx("Invalid options for inclusion: " +
+	std::runtime_error optErrorEx("Invalid options for equivalence: " +
 			Convert::ToString(options));
 
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime); // set the timer
@@ -248,11 +248,8 @@ bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
 	{
 		ip.SetSearchOrder(InclParam::e_search_order::breadth);
 	}
-	else
-	{
-		throw std::runtime_error("Invalid options for equivalence: " +
-			Convert::ToString(options));
-	}
+	else { throw optErrorEx; }
+
 	return VATA::CheckInclusion(smaller, bigger, ip);
 }
 #endif
