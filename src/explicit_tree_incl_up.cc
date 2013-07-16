@@ -319,6 +319,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 		auto ptr = biggerTypeCache.lookup(tmp);
 
+		//std::cout  <<  "Symbol "  <<  symbol  <<  " "  << smallerLeaves[symbol].size() <<  std::endl;
 		for (auto& transition : smallerLeaves[symbol])
 		{
 			assert(transition);
@@ -328,6 +329,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 			assert(transition->state() < ind.size());
 
+			//std::cout  <<  "Inner "  <<  symbol  <<  " "  <<  transition->state() <<  std::endl;
 			if (checkIntersection(ind[transition->state()], tmp))
 				continue;
 
@@ -352,6 +354,8 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 	ChoiceVector choiceVector(processed, fixedList);
 
+	//std::cout  <<  "Next size "  <<  next.size()  <<  std::endl;
+
 	while (!next.empty())
 	{
 		q = next.begin()->first;
@@ -360,6 +364,15 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 		next.erase(next.begin());
 
 		assert(q < inv.size());
+
+		//std::cout  << "Left side: "  << q  <<  std::endl;
+		
+		/*
+		for (auto qt : *Q) 
+		{
+			std::cout  << "Right side "  << qt <<  std::endl;
+		}
+		*/
 
 		// Post(processed)
 
