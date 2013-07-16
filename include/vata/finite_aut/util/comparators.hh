@@ -132,7 +132,7 @@ public: // public methods
 	inline void getCandidate(std::vector<StateType>& candidates, StateType state,
 			Antichain1Type& antichain) {
 		for (StateType candidate : antichain.data()) {
-			if (preorder_.get(candidate,state)) {
+			if (preorder_.get(state,candidate)) {
 				candidates.push_back(candidate);
 			}
 		}
