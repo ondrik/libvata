@@ -137,9 +137,6 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	{	// if simulation is desired, then compute it here!
 		Automaton unionAut = VATA::UnionDisjointStates(smaller, bigger);
 
-		// the relation
-		AutBase::StateBinaryRelation sim;
-
 		if (InclParam::e_direction::upward == ip.GetDirection())
 		{	// for upward algorithm compute the upward simulation
 			sim = ComputeUpwardSimulation(unionAut, states);
