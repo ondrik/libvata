@@ -146,7 +146,6 @@ public: // public functions
 	 */
 	void MakePost(StateType procState, BiggerElementType& procMacroState) {
 
-
 		auto sum = [](StateSet& set, size_t& sum) {for (auto& state : set) sum+=state;};
 
 		auto iteratorSmallerSymbolToState = smaller_.transitions_->find(procState);
