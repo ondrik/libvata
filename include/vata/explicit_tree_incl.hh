@@ -38,12 +38,13 @@ namespace VATA
 		ExplicitTreeAut<SymbolType> newBigger;
 		typename AutBase::StateType states;
 
+		if (!params.GetUseSimulation())
+		{
 			newSmaller = smaller;
 			newBigger = bigger;
 
 			states = AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
-			ExplicitTreeAut<SymbolType> unionAut = VATA::UnionDisjointStates(newSmaller, newBigger);
-			AutBase::StateBinaryRelation sim = ComputeUpwardSimulation(unionAut, states);
+		}
 
 		switch (params.GetOptions())
 		{
@@ -55,8 +56,8 @@ namespace VATA
 
 			case InclParam::ANTICHAINS_UP_SIM:
 			{
-				return ExplicitUpwardInclusion::Check(newSmaller, newBigger,
-					sim);
+				return ExplicitUpwardInclusion::Check(smaller, bigger,
+					params.GetSimulation());
 			}
 
 			case InclParam::ANTICHAINS_DOWN_NONREC_NOSIM:

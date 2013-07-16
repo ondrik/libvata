@@ -144,7 +144,6 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 		{	// for upward algorithm compute the upward simulation
 			sim = ComputeUpwardSimulation(unionAut, states);
 			ip.SetSimulation(&sim);
-
 		}
 		else if (InclParam::e_direction::downward == ip.GetDirection())
 		{	// for downward algorithm, compute the downward simualation

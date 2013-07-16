@@ -691,18 +691,14 @@ public:   // public methods
 			for (auto c : childrenStr) {
 				// for all children states
 				children.push_back(stateTranslator(c));
-				//std::cout << "Translate " << c << " " << stateTranslator(c) << std::endl;
 			}
 
-			//std::cout << "Symbols " << symbolStr << " " << symbolTranslator(StringRank(symbolStr, children.size())) << std::endl;
 			this->AddTransition(
 				children,
 				symbolTranslator(StringRank(symbolStr, children.size())),
 				stateTranslator(parentStr));
-			//std::cout << "Translate " << parentStr << " " << stateTranslator(parentStr) << std::endl;
 		}
 
-		//std::cout << "END OF AUTOMATA" << std::endl;
 	}
 
 	template <class SymbolTransFunc>
@@ -870,7 +866,6 @@ public:   // public methods
 			assert(stateClusterPair.second);
 
 			auto cluster = clusterMap->uniqueCluster(index[stateClusterPair.first]);
-			//std::cout << "Translate " << stateClusterPair.first << " " << index[stateClusterPair.first] << std::endl;
 
 			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
 
@@ -886,7 +881,6 @@ public:   // public methods
 
 					for (auto& s : *tuple) {
 						newTuple.push_back(index[s]);
-						//std::cout << "Translate " << s << " " << index[s] << std::endl;
 					}
 
 					tuplePtrSet->insert(dst.tupleLookup(newTuple));
@@ -896,7 +890,6 @@ public:   // public methods
 			}
 
 		}
-		//std::cout << "END OF AUTOMATA" << std::endl;
 
 	}
 
