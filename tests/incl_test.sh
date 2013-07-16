@@ -48,7 +48,7 @@ METHODS=(
 #  "symup"
 
 #  "explfa-ac"
-#  "explfa-ac-sim"
+  "explfa-ac-sim"
 #  "explfa-congr"
 )
 
