@@ -96,14 +96,14 @@ VATA::ExplicitLTS VATA::Translate(
 
 	for (auto& startState : aut.GetStartStates()) { // add start transitions
 		for (auto& startSymbol : aut.GetStartSymbols(startState)) {
-			res.addTransition(aut.transitions_->size()+aut.GetStartStates().size(),
+			res.addTransition(aut.transitions_->size(),
 				symbolTranslator[startSymbol],startState);
 		}
 	}
 
 
 	// parition represents start state
-	partition[base-1].push_back(stateIndex[aut.transitions_->size()+aut.GetStartStates().size()]);
+	partition[base-1].push_back(stateIndex[aut.transitions_->size()]);
 
 	relation.resize(partition.size());
 	relation.reset(false);
