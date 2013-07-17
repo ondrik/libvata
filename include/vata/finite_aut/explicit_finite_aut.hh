@@ -440,7 +440,9 @@ public:
 
 		// Converts the final states
 		for (auto& state : this->finalStates_)
+		{
 			dst.SetStateFinal(index[state]);
+		}
 
 		// Converts the start states
 		for( auto& state : this->startStates_) {

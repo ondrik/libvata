@@ -239,6 +239,8 @@ private: // private functions
 		// Get candidates for given state
 		comparator_.getCandidate(candidates,state,singleAntichain_);
 		if (!antichain_.contains(candidates,&set,lte)) {
+			std::vector<StateType> candidates;
+			comparator_.getCandidateRev(candidates,state,singleAntichain_);
 			antichain_.refine(candidates,&set,gte);
 			antichain_.insert(state,&set);
 			AddToSingleAC(state);
@@ -309,8 +311,12 @@ private: // private functions
 			}
 			return res;
 		};
-		std::vector<StateType> tempStateSet = {state};
+
+		std::vector<StateType> tempStateSet;// = {state};
+		comparator_.getCandidate(tempStateSet,state,singleAntichain_);
 		if (!next_.contains(tempStateSet,&set,lte)) {
+			std::vector<StateType> tempStateSet;// = {state};
+			comparator_.getCandidateRev(tempStateSet,state,singleAntichain_);
 			next_.refine(tempStateSet,&set,gte);
 			next_.insert(state,&set);
 		}
