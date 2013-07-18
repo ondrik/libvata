@@ -875,18 +875,6 @@ BinaryRelation VATA::ExplicitLTS::computeSimulation(
 
 	SimulationEngine engine(*this);
 
-	std::cout << "Partition" << std::endl;
-
-	for (auto f = partition.begin(); f != partition.end(); f++)
-	{
-		for (auto s = f->begin(); s != f->end(); s++)
-			std::cout << *s << " ";
-		std::cout << std::endl;
-	}
-	std::cout << "Relation " << relation << std::endl;
-	std::cout << "OutputSize " << outputSize << std::endl;
-	std::cout << "LTS " << this << std::endl;
-
 	engine.init(partition, relation);
 	engine.run();
 

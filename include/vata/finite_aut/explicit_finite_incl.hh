@@ -190,10 +190,7 @@ bool VATA::CheckFiniteAutInclusion(
 	BiggerElementType procMacroState;
 	SmallerElementType procState;
 
-	int round;
 	while(inclFunc.DoesInclusionHold() && next.get(procState,procMacroState)) {
-		int static state=0;
-		std::cout << "Round " << state++ << std::endl;
 		inclFunc.MakePost(procState,procMacroState);
 	}
 	return inclFunc.DoesInclusionHold();

@@ -118,12 +118,7 @@ VATA::ExplicitLTS VATA::Translate(
 	relation.set(base - 1, base - 1, true); // reflexivity of start state
 
 	res.init();
-	for (auto f = partition.begin(); f != partition.end(); f++)
-	{
-		for (auto s = f->begin(); s != f->end(); s++)
-			std::cout << *s << " ";
-		std::cout << std::endl;
-	}
+
 	return res;
 }
 
