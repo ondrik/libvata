@@ -86,6 +86,7 @@ bool VATA::CheckInclusion(
 			typedef VATA::ExplicitFAStateSetComparatorIdentity<SymbolType,Rel> Comparator;
 			typedef VATA::ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
 
+			//std::cout << "Sim " << newSmaller.startStates_.size() << std::endl; 
 			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller,
 					newBigger, VATA::Util::Identity(states));
 		}
@@ -95,6 +96,7 @@ bool VATA::CheckInclusion(
 			typedef VATA::ExplicitFAStateSetComparatorSimulation<SymbolType,Rel> Comparator;
 			typedef VATA::ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
 
+			//std::cout << "Sim " << smaller.startStates_.size() << std::endl; 
 			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, params.GetSimulation());
 		}
 		case InclParam::CONGR_BREADTH_NOSIM:
@@ -188,7 +190,10 @@ bool VATA::CheckFiniteAutInclusion(
 	BiggerElementType procMacroState;
 	SmallerElementType procState;
 
+	int round;
 	while(inclFunc.DoesInclusionHold() && next.get(procState,procMacroState)) {
+		int static state=0;
+		std::cout << "Round " << state++ << std::endl;
 		inclFunc.MakePost(procState,procMacroState);
 	}
 	return inclFunc.DoesInclusionHold();
