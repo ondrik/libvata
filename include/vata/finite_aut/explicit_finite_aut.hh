@@ -132,7 +132,7 @@ GCC_DIAG_ON(effc++)
 	friend class ExplicitFACongrFunctor;
 	template<class SymbolType, class Rel>
 	friend class ExplicitFACongrFunctorOpt;
-	template<class SymbolType, class Rel, class ProductSet>
+	template<class SymbolType, class Rel, class ProductSet, class NormalFormRel>
 	friend class ExplicitFACongrFunctorCacheOpt;
 	template<class SymbolType, class Rel, class ProductSet>
 	friend class ExplicitFACongrEquivFunctor;
@@ -143,6 +143,11 @@ GCC_DIAG_ON(effc++)
 	friend class ExplicitFAStateSetComparatorIdentity;
 	template<class SymbolType, class Rel>
 	friend class ExplicitFAStateSetComparatorSimulation;
+
+	template<class SymbolType, class Rel>
+	friend class NormalFormRelPreorder;
+	template<class SymbolType, class Rel>
+	friend class NormalFormRelSimulation;
 
 	template<class Key, class Value>
 	friend class MapToList;
