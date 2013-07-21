@@ -47,7 +47,7 @@ METHODS=(
 #  "symdown-rec-sim-optC-nosimtime"
 #  "symup"
 
-#  "explfa-ac"
+  "explfa-ac"
   "explfa-ac-sim"
 #  "explfa-congr"
 )

@@ -72,7 +72,6 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::GetCandidateTree(
 				}
 
 				if (aut.IsStateFinal(stateInSet)) { // Set final state and return
-					std::cout	 <<	 "jsem tady"	<<	std::endl;
 					res.SetStateFinal(stateInSet);
 					res.transitions_->insert(std::make_pair(actState,transitionsCluster->second));
 					//res.internalAddTransition(actState,symbolToState.first,stateInSet);
