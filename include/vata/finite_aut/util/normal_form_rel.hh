@@ -74,7 +74,7 @@ public: // public functions
 	{
 		for (auto& state : normalForm)
 		{
-			for (size_t r=0; r < preorder_.size(); r++) // for all states in simu
+			for (size_t r=0; r < preorder_.size(); r++) // for all states in simulation
 			{
 				if (preorder_.get(r,state))
 				{

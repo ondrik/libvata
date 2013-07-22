@@ -240,7 +240,10 @@ private:
 	}
 
 	void AddSubSet(StateSet& mainset, StateSet& subset) {
-		mainset.insert(subset.begin(),subset.end());
+		StateSet temp = StateSet(subset);
+		normalFormRel_.applyRule(temp);
+		mainset.insert(temp.begin(),temp.end());
+		//mainset.insert(subset.begin(),subset.end());
 	}
 
 	/*

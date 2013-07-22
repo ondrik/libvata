@@ -74,7 +74,8 @@ bool VATA::CheckInclusion(
 		states = VATA::AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
 	}
 
-	if (params.GetAlgorithm() == InclParam::e_algorithm::congruences)
+	// if a simulation is used, a union has been already done before the simulation
+	if (params.GetAlgorithm() == InclParam::e_algorithm::congruences && !params.GetUseSimulation())
 	{
 		newSmaller = UnionDisjointStates(smaller, bigger);
 	}
@@ -130,7 +131,7 @@ bool VATA::CheckInclusion(
 
 			typedef VATA::ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet,NormalFormRel> FunctorType;
 
-			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller, newBigger, params.GetSimulation());
+			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, params.GetSimulation());
 		}
 		case InclParam::CONGR_DEPTH_EQUIV_NOSIM:
 		{

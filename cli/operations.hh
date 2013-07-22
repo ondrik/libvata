@@ -135,7 +135,16 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 
 	if (ip.GetUseSimulation())
 	{	// if simulation is desired, then compute it here!
-		Automaton unionAut = VATA::UnionDisjointStates(smaller, bigger);
+
+		Automaton unionAut;
+		if (ip.GetAlgorithm() == InclParam::e_algorithm::congruences)
+		{
+			smaller = VATA::UnionDisjointStates(smaller, bigger);
+		}
+		else
+		{
+			unionAut = VATA::UnionDisjointStates(smaller, bigger);
+		}
 
 		if (InclParam::e_direction::upward == ip.GetDirection())
 		{	// for upward algorithm compute the upward simulation
