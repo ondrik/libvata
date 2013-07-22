@@ -88,6 +88,10 @@ public: // public methods
 		candidates.push_back(state);
 	}
 
+	inline bool checkSmallerInBigger(const StateType& smaller, const StateSet& biggerSet)
+	{
+		return false;
+	}
 };
 
 /*
@@ -151,6 +155,16 @@ public: // public methods
 				candidates.push_back(candidate);
 			}
 		}
+	}
+
+	inline bool checkSmallerInBigger(const StateType& smaller, const StateSet& biggerSet)
+	{
+		for (const StateType& s : biggerSet) {
+			if (preorder_.get(smaller,s)) {
+				return true;
+			}
+		}
+		return false;
 	}
 };
 

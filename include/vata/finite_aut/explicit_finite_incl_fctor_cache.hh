@@ -173,7 +173,9 @@ public: // public functions
 					return;
 				}
 
-				this->AddNewPairToAntichain(newSmallerState,newCachedMacro);
+				if (!comparator_.checkSmallerInBigger(newSmallerState,newCachedMacro)) {
+					this->AddNewPairToAntichain(newSmallerState,newCachedMacro);
+				}
 			}
 		}
 	}
