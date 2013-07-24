@@ -676,8 +676,10 @@ public:   // public methods
 		for (auto symbolRankPair : desc.symbols)
 			symbolTranslator(StringRank(symbolRankPair.first, symbolRankPair.second));
 
-		for (auto s : desc.finalStates)
+		for (auto s : desc.finalStates) {
 			this->finalStates_.insert(stateTranslator(s));
+			std::cout << s << " " << stateTranslator(s) << std::endl;
+		}
 
 		for (auto t : desc.transitions) {
 
@@ -691,12 +693,14 @@ public:   // public methods
 			for (auto c : childrenStr) {
 				// for all children states
 				children.push_back(stateTranslator(c));
+				std::cout << c << " " << stateTranslator(c) << std::endl;
 			}
 
 			this->AddTransition(
 				children,
 				symbolTranslator(StringRank(symbolStr, children.size())),
 				stateTranslator(parentStr));
+			std::cout << parentStr << " " << stateTranslator(parentStr) << std::endl;
 		}
 
 	}
@@ -856,8 +860,10 @@ public:   // public methods
 	template <class Index>
 	void ReindexStates(ExplicitTreeAut& dst, Index& index) const {
 
-		for (auto& state : this->finalStates_)
+		for (auto& state : this->finalStates_) {
 			dst.SetStateFinal(index[state]);
+			std::cout << state << " " << index[state] << std::endl;
+		}
 
 		auto clusterMap = dst.uniqueClusterMap();
 
@@ -866,6 +872,7 @@ public:   // public methods
 			assert(stateClusterPair.second);
 
 			auto cluster = clusterMap->uniqueCluster(index[stateClusterPair.first]);
+			std::cout << stateClusterPair.first << " " << index[stateClusterPair.first] << std::endl;
 
 			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
 
@@ -881,6 +888,7 @@ public:   // public methods
 
 					for (auto& s : *tuple) {
 						newTuple.push_back(index[s]);
+						std::cout << s << " " << index[s] << std::endl;
 					}
 
 					tuplePtrSet->insert(dst.tupleLookup(newTuple));

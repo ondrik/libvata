@@ -870,6 +870,10 @@ BinaryRelation VATA::ExplicitLTS::computeSimulation(
 	size_t outputSize
 ) {
 
+	std::cout  <<  outputSize  <<  std::endl;
+	std::cout  <<  relation  <<  std::endl;
+	std::cout  <<  *this  <<  std::endl;
+
 	if (this->states_ == 0)
 		return BinaryRelation();
 
