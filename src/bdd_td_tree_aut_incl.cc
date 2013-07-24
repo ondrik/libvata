@@ -28,7 +28,7 @@ bool VATA::CheckInclusion(
 {
 	BDDTopDownTreeAut newSmaller;
 	BDDTopDownTreeAut newBigger;
-	typename AutBase::StateType states;
+	typename AutBase::StateType states = static_cast<typename AutBase::StateType>(-1);
 
 	if (!params.GetUseSimulation())
 	{
@@ -42,6 +42,8 @@ bool VATA::CheckInclusion(
 	{
 		case InclParam::ANTICHAINS_DOWN_REC_NOSIM:
 		{
+			assert(static_cast<typename AutBase::StateType>(-1) != states);
+
 			return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
 				VATA::DownwardInclusionFunctor>(newSmaller, newBigger,
 					Util::Identity(states));
@@ -49,6 +51,8 @@ bool VATA::CheckInclusion(
 
 		case InclParam::ANTICHAINS_DOWN_REC_OPT_NOSIM:
 		{
+			assert(static_cast<typename AutBase::StateType>(-1) != states);
+
 			return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
 				VATA::OptDownwardInclusionFunctor>(newSmaller, newBigger,
 					Util::Identity(states));
@@ -56,6 +60,8 @@ bool VATA::CheckInclusion(
 
 		case InclParam::ANTICHAINS_DOWN_REC_SIM:
 		{
+			assert(static_cast<typename AutBase::StateType>(-1) == states);
+
 			return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
 				VATA::DownwardInclusionFunctor>(smaller, bigger,
 					params.GetSimulation());
@@ -63,6 +69,8 @@ bool VATA::CheckInclusion(
 
 		case InclParam::ANTICHAINS_DOWN_REC_OPT_SIM:
 		{
+			assert(static_cast<typename AutBase::StateType>(-1) == states);
+
 			return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
 				VATA::OptDownwardInclusionFunctor>(smaller, bigger,
 					params.GetSimulation());

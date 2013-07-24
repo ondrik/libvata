@@ -63,7 +63,7 @@ bool VATA::CheckInclusion(
 {
 	VATA::ExplicitFiniteAut<SymbolType> newSmaller;
 	VATA::ExplicitFiniteAut<SymbolType> newBigger;
-	typename VATA::AutBase::StateType states;
+	typename AutBase::StateType states = static_cast<typename AutBase::StateType>(-1);
 
 	if (!params.GetUseSimulation())
 	{
@@ -82,6 +82,8 @@ bool VATA::CheckInclusion(
 	{
 		case InclParam::ANTICHAINS_NOSIM:
 		{
+			assert(static_cast<typename AutBase::StateType>(-1) != states);
+
 			typedef VATA::Util::Identity Rel;
 			typedef VATA::ExplicitFAStateSetComparatorIdentity<SymbolType,Rel> Comparator;
 			typedef VATA::ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
@@ -91,6 +93,8 @@ bool VATA::CheckInclusion(
 		}
 		case InclParam::ANTICHAINS_SIM:
 		{
+			assert(static_cast<typename AutBase::StateType>(-1) == states);
+
 			typedef VATA::AutBase::StateBinaryRelation Rel;
 			typedef VATA::ExplicitFAStateSetComparatorSimulation<SymbolType,Rel> Comparator;
 			typedef VATA::ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
@@ -99,6 +103,8 @@ bool VATA::CheckInclusion(
 		}
 		case InclParam::CONGR_BREADTH_NOSIM:
 		{
+			assert(static_cast<typename AutBase::StateType>(-1) != states);
+
 			typedef VATA::Util::Identity Rel;
 			typedef typename VATA::ExplicitFiniteAut<SymbolType>::StateSet StateSet;
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;
@@ -109,6 +115,8 @@ bool VATA::CheckInclusion(
 		}
 		case InclParam::CONGR_DEPTH_NOSIM:
 		{
+			assert(static_cast<typename AutBase::StateType>(-1) != states);
+
 			typedef VATA::Util::Identity Rel;
 			typedef typename VATA::ExplicitFiniteAut<SymbolType>::StateSet StateSet;
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;
@@ -119,6 +127,8 @@ bool VATA::CheckInclusion(
 		}
 		case InclParam::CONGR_DEPTH_EQUIV_NOSIM:
 		{
+			assert(static_cast<typename AutBase::StateType>(-1) != states);
+
 			typedef VATA::Util::Identity Rel;
 			typedef typename VATA::ExplicitFiniteAut<SymbolType>::StateSet StateSet;
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;
@@ -129,6 +139,8 @@ bool VATA::CheckInclusion(
 		}
 		case InclParam::CONGR_BREADTH_EQUIV_NOSIM:
 		{
+			assert(static_cast<typename AutBase::StateType>(-1) != states);
+
 			typedef VATA::Util::Identity Rel;
 			typedef typename VATA::ExplicitFiniteAut<SymbolType>::StateSet StateSet;
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;

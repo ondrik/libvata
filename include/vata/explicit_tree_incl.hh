@@ -36,7 +36,7 @@ namespace VATA
 	{
 		ExplicitTreeAut<SymbolType> newSmaller;
 		ExplicitTreeAut<SymbolType> newBigger;
-		typename AutBase::StateType states;
+		typename AutBase::StateType states = static_cast<typename AutBase::StateType>(-1);
 
 		if (!params.GetUseSimulation())
 		{
@@ -50,30 +50,40 @@ namespace VATA
 		{
 			case InclParam::ANTICHAINS_UP_NOSIM:
 			{
+				assert(static_cast<typename AutBase::StateType>(-1) != states);
+
 				return ExplicitUpwardInclusion::Check(newSmaller, newBigger,
 					Util::Identity(states));
 			}
 
 			case InclParam::ANTICHAINS_UP_SIM:
 			{
+				assert(static_cast<typename AutBase::StateType>(-1) == states);
+
 				return ExplicitUpwardInclusion::Check(smaller, bigger,
 					params.GetSimulation());
 			}
 
 			case InclParam::ANTICHAINS_DOWN_NONREC_NOSIM:
 			{
+				assert(static_cast<typename AutBase::StateType>(-1) != states);
+
 				return ExplicitDownwardInclusion::Check(newSmaller, newBigger,
 					Util::Identity(states));
 			}
 
 			case InclParam::ANTICHAINS_DOWN_NONREC_SIM:
 			{
+				assert(static_cast<typename AutBase::StateType>(-1) == states);
+
 				return ExplicitDownwardInclusion::Check(smaller, bigger,
 					params.GetSimulation());
 			}
 
 			case InclParam::ANTICHAINS_DOWN_REC_NOSIM:
 			{
+				assert(static_cast<typename AutBase::StateType>(-1) != states);
+
 				return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
 					VATA::DownwardInclusionFunctor>(newSmaller, newBigger,
 						Util::Identity(states));
@@ -81,6 +91,8 @@ namespace VATA
 
 			case InclParam::ANTICHAINS_DOWN_REC_OPT_NOSIM:
 			{
+				assert(static_cast<typename AutBase::StateType>(-1) != states);
+
 				return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
 					VATA::OptDownwardInclusionFunctor>(newSmaller, newBigger,
 						Util::Identity(states));
@@ -88,6 +100,8 @@ namespace VATA
 
 			case InclParam::ANTICHAINS_DOWN_REC_SIM:
 			{
+				assert(static_cast<typename AutBase::StateType>(-1) == states);
+
 				return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
 					VATA::DownwardInclusionFunctor>(smaller, bigger,
 						params.GetSimulation());
@@ -95,6 +109,8 @@ namespace VATA
 
 			case InclParam::ANTICHAINS_DOWN_REC_OPT_SIM:
 			{
+				assert(static_cast<typename AutBase::StateType>(-1) == states);
+
 				return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
 					VATA::OptDownwardInclusionFunctor>(smaller, bigger,
 						params.GetSimulation());
