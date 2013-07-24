@@ -298,12 +298,12 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 				[](const AutBase::StateType& state){ return "q" + Convert::ToString(state); },
 				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
 		}
-    else if (args.command == COMMAND_COMPLEMENT) {
-      std::cout << autResult.DumpToString(serializer,
+		else if (args.command == COMMAND_COMPLEMENT)
+		{
+			std::cout << autResult.DumpToString(serializer,
 				StateBackTranslatorStrict(stateDict1.GetReverseMap()),
 				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
-
-    }
+		}
 
 		if (args.command == COMMAND_UNION)
 		{
