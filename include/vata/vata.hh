@@ -25,16 +25,16 @@
 
 #define VATA_LOG_PREFIX (std::string(__FILE__ ":" + VATA::Util::Convert::ToString(__LINE__) + ": "))
 
-#define VATA_LOG_MESSAGE(severity) (std::clog << #severity << ": " << (VATA_LOG_PREFIX))
+#define VATA_LOG_MESSAGE(severity, msg) (std::clog << #severity << ": " << (VATA_LOG_PREFIX) << msg << "\n")
 
-#define VATA_LOG_DEBUG    (VATA_LOG_MESSAGE(debug))
-#define VATA_LOG_INFO     (VATA_LOG_MESSAGE(info))
-#define VATA_LOG_NOTICE   (VATA_LOG_MESSAGE(notice))
-#define VATA_LOG_WARN     (VATA_LOG_MESSAGE(warning))
-#define VATA_LOG_ERROR    (VATA_LOG_MESSAGE(error))
-#define VATA_LOG_CRIT     (VATA_LOG_MESSAGE(critical))
-#define VATA_LOG_ALERT    (VATA_LOG_MESSAGE(alert))
-#define VATA_LOG_FATAL    (VATA_LOG_MESSAGE(fatal))
+#define VATA_DEBUG(msg)    (VATA_LOG_MESSAGE(debug, msg))
+#define VATA_INFO(msg)     (VATA_LOG_MESSAGE(info, msg))
+#define VATA_NOTICE(msg)   (VATA_LOG_MESSAGE(notice, msg))
+#define VATA_WARN(msg)     (VATA_LOG_MESSAGE(warning, msg))
+#define VATA_ERROR(msg)    (VATA_LOG_MESSAGE(error, msg))
+#define VATA_CRIT(msg)     (VATA_LOG_MESSAGE(critical, msg))
+#define VATA_ALERT(msg)    (VATA_LOG_MESSAGE(alert, msg))
+#define VATA_FATAL(msg)    (VATA_LOG_MESSAGE(fatal, msg))
 
 #if ((__GNUC__ * 100) + __GNUC_MINOR__) >= 402
 #define GCC_DIAG_STR(s) #s
