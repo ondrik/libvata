@@ -514,7 +514,7 @@ protected:
 
 				if (mask[q]) {
 
-					VATA_LOGGER_INFO("state " + Convert::ToString(q) + " appears in more than one block");
+					VATA_LOG_INFO << "state " << q << " appears in more than one block";
 
 					return false;
 
@@ -530,7 +530,7 @@ protected:
 
 			if (!mask[i]) {
 
-				VATA_LOGGER_INFO("state " + Convert::ToString(i) + " does not appear anywhere");
+				VATA_LOG_INFO << "state " << i << " does not appear anywhere";
 
 				return false;
 
@@ -547,7 +547,7 @@ protected:
 
 		if (part.size() != rel.size()) {
 
-			VATA_LOGGER_INFO("partition and relation sizes differ");
+			VATA_LOG_INFO << "partition and relation sizes differ";
 
 			return false;
 
@@ -557,7 +557,7 @@ protected:
 
 			if (!rel.get(i, i)) {
 
-				VATA_LOGGER_INFO("relation is not reflexive");
+				VATA_LOG_INFO << "relation is not reflexive";
 
 				return false;
 

@@ -719,7 +719,7 @@ public:   // public methods
 
 			const std::string& operator()(const SymbolType& sym) const
 			{
-				throw std::runtime_error("unimplemented");
+				throw NotImplementedException(__func__);
 			}
 		};
 

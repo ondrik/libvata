@@ -15,14 +15,20 @@
 #include <vata/vata.hh>
 #include <vata/aut_base.hh>
 #include <vata/bdd_td_tree_aut.hh>
+#include <vata/notimpl_except.hh>
+
+// MTBDD headers
 #include <vata/mtbdd/apply1func.hh>
 #include <vata/mtbdd/apply2func.hh>
 #include <vata/mtbdd/ondriks_mtbdd.hh>
 #include <vata/mtbdd/void_apply2func.hh>
+
+// utilities
 #include <vata/util/bdd_bu_trans_table.hh>
 #include <vata/util/ord_vector.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
+
 
 namespace VATA { class BDDBottomUpTreeAut; }
 
@@ -444,7 +450,7 @@ private:  // methods
 		StateBackTransFunc /* stateBackTranslator */,
 		SymbolTransFunc /* symbolTranslator */) const
 	{
-		throw std::runtime_error("Unimplemented");
+		throw NotImplementedException(__func__);
 	}
 
 public:   // methods
@@ -763,7 +769,7 @@ public:   // methods
 
 	static inline AlphabetType GetAlphabet()
 	{
-		throw std::runtime_error("unimplemented");
+		throw NotImplementedException(__func__);
 	}
 };
 

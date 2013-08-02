@@ -14,13 +14,19 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/symbolic_aut_base.hh>
+#include <vata/notimpl_except.hh>
+
+// MTBDD
 #include <vata/mtbdd/apply1func.hh>
 #include <vata/mtbdd/apply2func.hh>
 #include <vata/mtbdd/ondriks_mtbdd.hh>
 #include <vata/mtbdd/void_apply1func.hh>
 #include <vata/mtbdd/void_apply2func.hh>
+
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
+
+// Utilities
 #include <vata/util/ord_vector.hh>
 #include <vata/util/bdd_td_trans_table.hh>
 #include <vata/util/vector_map.hh>
@@ -254,7 +260,7 @@ private:  // methods
 		StateBackTransFunc /* stateBackTranslator */,
 		SymbolTransFunc /* symbolTranslator */) const
 	{
-		throw std::runtime_error("Unimplemented");
+		throw NotImplementedException(__func__);
 	}
 
 	inline void addArityToSymbol(SymbolType& symbol, size_t arity) const
@@ -591,7 +597,7 @@ public:   // public methods
 
 	static inline AlphabetType GetAlphabet()
 	{
-		throw std::runtime_error("unimplemented");
+		throw NotImplementedException(__func__);
 	}
 
 };

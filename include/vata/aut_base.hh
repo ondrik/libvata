@@ -13,8 +13,11 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/notimpl_except.hh>
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
+
+// Utilities
 #include <vata/util/binary_relation.hh>
 #include <vata/util/two_way_dict.hh>
 #include <vata/util/transl_weak.hh>
@@ -28,13 +31,13 @@ namespace VATA
 	template <class Automaton>
 	Automaton Reduce(const Automaton&)
 	{
-		throw std::runtime_error("Unimplemented.");
+		throw NotImplementedException(__func__);
 	}
 
 	template <class Automaton>
 	Automaton GetCandidateTree(const Automaton&)
 	{
-		throw std::runtime_error("Unimplemented.");
+		throw NotImplementedException(__func__);
 	}
 
 	template <class Automaton, class Dict>
@@ -43,7 +46,7 @@ namespace VATA
 		if ((nullptr == &aut) && (nullptr == &alphabet))
 		{ }
 
-		throw std::runtime_error("Unimplemented.");
+		throw NotImplementedException(__func__);
 	}
 
 	/**

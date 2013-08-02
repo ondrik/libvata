@@ -39,7 +39,7 @@ namespace VATA {
 			const VATA::ExplicitFiniteAut<SymbolType> &aut,
 			const Dict &/*alphabet*/) {
 
-	 VATA_LOGGER_WARN("Calling " + std::string(__func__));
+	VATA_LOG_WARN << "Calling " << __func__;
 
 	typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
 

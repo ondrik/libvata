@@ -151,7 +151,7 @@ bool VATA::CheckInclusion(
 		}
 		default:
 		{
-			throw std::runtime_error("Unimplemented inclusion:\n" +
+			throw NotImplementedException("Unimplemented inclusion:\n" +
 				params.toString());
 		}
 	}
