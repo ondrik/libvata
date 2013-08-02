@@ -11,7 +11,7 @@
 #ifndef _VATA_EXPLICIT_TREE_INCL_UP_HH_
 #define _VATA_EXPLICIT_TREE_INCL_UP_HH_
 
-#include <vata/explicit_tree_aut.hh>
+#include <vata/ta_expl/explicit_tree_aut.hh>
 
 namespace VATA {
 

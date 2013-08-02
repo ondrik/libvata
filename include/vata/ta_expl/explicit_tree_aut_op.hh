@@ -13,16 +13,16 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/explicit_tree_aut.hh>
 #include <vata/explicit_lts.hh>
-#include <vata/explicit_tree_isect.hh>
-#include <vata/explicit_tree_useless.hh>
-#include <vata/explicit_tree_unreach.hh>
-#include <vata/explicit_tree_candidate.hh>
-#include <vata/explicit_tree_comp_down.hh>
-#include <vata/explicit_tree_transl.hh>
-#include <vata/explicit_tree_incl_down.hh>
-#include <vata/explicit_tree_incl_up.hh>
+#include <vata/ta_expl/explicit_tree_aut.hh>
+#include <vata/ta_expl/explicit_tree_isect.hh>
+#include <vata/ta_expl/explicit_tree_useless.hh>
+#include <vata/ta_expl/explicit_tree_unreach.hh>
+#include <vata/ta_expl/explicit_tree_candidate.hh>
+#include <vata/ta_expl/explicit_tree_comp_down.hh>
+#include <vata/ta_expl/explicit_tree_transl.hh>
+#include <vata/ta_expl/explicit_tree_incl_down.hh>
+#include <vata/ta_expl/explicit_tree_incl_up.hh>
 #include <vata/down_tree_incl_fctor.hh>
 #include <vata/down_tree_opt_incl_fctor.hh>
 #include <vata/tree_incl_down.hh>

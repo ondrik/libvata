@@ -18,8 +18,8 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/explicit_tree_aut.hh>
-#include <vata/explicit_tree_unreach.hh>
+#include <vata/ta_expl/explicit_tree_aut.hh>
+#include <vata/ta_expl/explicit_tree_unreach.hh>
 
 namespace VATA {
 

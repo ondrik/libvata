@@ -15,7 +15,7 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include <vata/explicit_tree_aut.hh>
+#include <vata/ta_expl/explicit_tree_aut.hh>
 #include <vata/util/antichain1c.hh>
 #include <vata/util/transl_strict.hh>
 

@@ -16,8 +16,8 @@
 #include <boost/functional/hash.hpp>
 
 #include <vata/vata.hh>
-#include <vata/explicit_tree_aut.hh>
 #include <vata/explicit_lts.hh>
+#include <vata/ta_expl/explicit_tree_aut.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
 #include <vata/util/convert.hh>
