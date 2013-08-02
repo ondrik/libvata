@@ -25,6 +25,7 @@
 
 #define VATA_LOG_PREFIX (std::string(__FILE__ ":" + VATA::Util::Convert::ToString(__LINE__) + ": "))
 
+/// @todo: maybe change logging to something like Boost::Log or Google's logging stuff?
 #define VATA_LOG_MESSAGE(severity, msg) (std::clog << #severity << ": " << (VATA_LOG_PREFIX) << msg << "\n")
 
 #define VATA_DEBUG(msg)    (VATA_LOG_MESSAGE(debug, msg))
