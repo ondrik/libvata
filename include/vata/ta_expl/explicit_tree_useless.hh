@@ -23,22 +23,19 @@
 
 namespace VATA {
 
-	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> RemoveUselessStates(
-		const ExplicitTreeAut<SymbolType>& aut,
+	ExplicitTreeAut RemoveUselessStates(
+		const ExplicitTreeAut& aut,
 		AutBase::StateToStateMap* pTranslMap = nullptr);
 
 }
 
-template <class SymbolType>
-VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUselessStates(
-	const VATA::ExplicitTreeAut<SymbolType>& aut,
-	VATA::AutBase::StateToStateMap* pTranslMap = nullptr) {
+VATA::ExplicitTreeAut VATA::RemoveUselessStates(
+	const VATA::ExplicitTreeAut& aut,
+	VATA::AutBase::StateToStateMap* pTranslMap) {
 
-	typedef VATA::ExplicitTreeAut<SymbolType> ExplicitTA;
-
-	typedef typename ExplicitTA::StateType StateType;
-	typedef typename ExplicitTA::TuplePtr TuplePtr;
+	typedef ExplicitTreeAut::StateType StateType;
+	typedef ExplicitTreeAut::TuplePtr TuplePtr;
+	typedef ExplicitTreeAut::SymbolType SymbolType;
 
 	struct TransitionInfo {
 
@@ -153,7 +150,7 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUselessStates(
 
 	}
 */
-	ExplicitTA result(aut.cache_);
+	ExplicitTreeAut result(aut.cache_);
 
 	for (auto& state : aut.finalStates_) {
 

@@ -10,7 +10,14 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/explicit_tree_aut.hh>
+#include <vata/ta_expl/explicit_tree_aut.hh>
 
 // global tuple cache definition
 VATA::Explicit::TupleCache VATA::Explicit::tupleCache;
+
+// pointer to symbol dictionary
+VATA::ExplicitTreeAut::StringToSymbolDict* VATA::ExplicitTreeAut::pSymbolDict_ = nullptr;
+
+// pointer to next symbol counter
+VATA::ExplicitTreeAut::SymbolType* VATA::ExplicitTreeAut::pNextSymbol_ = nullptr;
+

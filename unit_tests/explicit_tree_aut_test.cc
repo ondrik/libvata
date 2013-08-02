@@ -10,9 +10,9 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/explicit_tree_aut.hh>
-#include <vata/explicit_tree_aut_op.hh>
-#include <vata/explicit_tree_incl.hh>
+#include <vata/ta_expl/explicit_tree_aut.hh>
+#include <vata/ta_expl/explicit_tree_aut_op.hh>
+#include <vata/ta_expl/explicit_tree_incl.hh>
 
 // testing headers
 #include "log_fixture.hh"
@@ -34,7 +34,7 @@ class AutTypeFixture
 {
 protected:// data types
 
-	typedef VATA::ExplicitTreeAut<size_t> AutType;
+	typedef VATA::ExplicitTreeAut AutType;
 
 protected:// data members
 

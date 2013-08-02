@@ -20,28 +20,24 @@
 
 namespace VATA {
 
-	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> Intersection(
-		const ExplicitTreeAut<SymbolType>& lhs,
-		const ExplicitTreeAut<SymbolType>& rhs,
+	ExplicitTreeAut Intersection(
+		const ExplicitTreeAut& lhs,
+		const ExplicitTreeAut& rhs,
 		AutBase::ProductTranslMap* pTranslMap = nullptr);
 
 }
 
-template <class SymbolType>
-VATA::ExplicitTreeAut<SymbolType> VATA::Intersection(
-	const VATA::ExplicitTreeAut<SymbolType>& lhs,
-	const VATA::ExplicitTreeAut<SymbolType>& rhs,
-	VATA::AutBase::ProductTranslMap* pTranslMap = nullptr) {
-
-	typedef VATA::ExplicitTreeAut<SymbolType> ExplicitTA;
-
+VATA::ExplicitTreeAut VATA::Intersection(
+	const VATA::ExplicitTreeAut& lhs,
+	const VATA::ExplicitTreeAut& rhs,
+	VATA::AutBase::ProductTranslMap* pTranslMap)
+{
 	VATA::AutBase::ProductTranslMap translMap;
 
 	if (!pTranslMap)
 		pTranslMap = &translMap;
 
-	ExplicitTA res(lhs.cache_);
+	ExplicitTreeAut res(lhs.cache_);
 
 	std::vector<const VATA::AutBase::ProductTranslMap::value_type*> stack;
 
@@ -69,24 +65,24 @@ VATA::ExplicitTreeAut<SymbolType> VATA::Intersection(
 
 		stack.pop_back();
 
-		auto leftCluster = ExplicitTA::genericLookup(*lhs.transitions_, p->first.first);
+		auto leftCluster = ExplicitTreeAut::genericLookup(*lhs.transitions_, p->first.first);
 
 		if (!leftCluster)
 			continue;
 
-		auto rightCluster = ExplicitTA::genericLookup(*rhs.transitions_, p->first.second);
+		auto rightCluster = ExplicitTreeAut::genericLookup(*rhs.transitions_, p->first.second);
 
 		if (!rightCluster)
 			continue;
 
 		assert(leftCluster);
 
-		typename ExplicitTreeAut<SymbolType>::TransitionClusterPtr cluster(nullptr);
+		ExplicitTreeAut::TransitionClusterPtr cluster(nullptr);
 
 		for (auto& leftSymbolStateTupleSetPtr : *leftCluster) {
 
 			auto rightTupleSet =
-				ExplicitTA::genericLookup(*rightCluster, leftSymbolStateTupleSetPtr.first);
+				ExplicitTreeAut::genericLookup(*rightCluster, leftSymbolStateTupleSetPtr.first);
 
 			if (!rightTupleSet)
 				continue;
@@ -102,7 +98,7 @@ VATA::ExplicitTreeAut<SymbolType> VATA::Intersection(
 
 					assert(leftTuplePtr->size() == rightTuplePtr->size());
 
-					typename ExplicitTA::StateTuple children;
+					ExplicitTreeAut::StateTuple children;
 
 					for (size_t i = 0; i < leftTuplePtr->size(); ++i) {
 

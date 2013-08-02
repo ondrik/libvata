@@ -142,13 +142,13 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 
 		if (InclParam::e_direction::upward == ip.GetDirection())
 		{	// for upward algorithm compute the upward simulation
-			sim = ComputeUpwardSimulation(unionAut, states);
+			sim = unionAut.ComputeUpwardSimulation(states);
 			ip.SetSimulation(&sim);
 
 		}
 		else if (InclParam::e_direction::downward == ip.GetDirection())
 		{	// for downward algorithm, compute the downward simualation
-			sim = ComputeDownwardSimulation(unionAut, states);
+			sim = unionAut.ComputeDownwardSimulation(states);
 			ip.SetSimulation(&sim);
 		}
 		else
@@ -185,11 +185,11 @@ VATA::AutBase::StateBinaryRelation ComputeSimulation(
 
 	if (options["dir"] == "up")
 	{
-		return VATA::ComputeUpwardSimulation(aut, states);
+		return aut.ComputeUpwardSimulation(states);
 	}
 	else if (options["dir"] == "down")
 	{
-		return VATA::ComputeDownwardSimulation(aut, states);
+		return aut.ComputeDownwardSimulation(states);
 	}
 	else
 	{

@@ -15,6 +15,7 @@
 #include <vata/vata.hh>
 #include <vata/symbolic_aut_base.hh>
 #include <vata/notimpl_except.hh>
+#include <vata/incl_param.hh>
 
 // MTBDD
 #include <vata/mtbdd/apply1func.hh>
@@ -600,6 +601,18 @@ public:   // public methods
 		throw NotImplementedException(__func__);
 	}
 
+	static bool CheckInclusion(
+		const BDDTopDownTreeAut&    smaller,
+		const BDDTopDownTreeAut&    bigger,
+		const VATA::InclParam&      params);
+
+	AutBase::StateBinaryRelation ComputeDownwardSimulation() const;
+
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(size_t size) const;
+
+	AutBase::StateBinaryRelation ComputeUpwardSimulation() const;
+
+	AutBase::StateBinaryRelation ComputeUpwardSimulation(size_t size) const;
 };
 
 #endif

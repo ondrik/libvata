@@ -90,7 +90,9 @@ public:   // data types
 
 private:  // data members
 
+#if 0
 	static StateType* pNextState_;
+#endif
 
 protected:// methods
 
@@ -98,6 +100,7 @@ protected:// methods
 
 public:   // methods
 
+#if 0
 	inline static void SetNextStatePtr(StateType* pNextState)
 	{
 		// Assertions
@@ -105,6 +108,7 @@ public:   // methods
 
 		pNextState_ = pNextState;
 	}
+#endif
 
 	template <class Automaton>
 	static StateType SanitizeAutsForInclusion(

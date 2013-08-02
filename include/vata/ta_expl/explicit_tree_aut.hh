@@ -17,11 +17,13 @@
 #include <vata/explicit_lts.hh>
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
+
 #include <vata/util/ord_vector.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
 #include <vata/util/convert.hh>
 #include <vata/util/cache.hh>
+#include <vata/util/util.hh>
 
 // Standard library headers
 #include <cstdint>
@@ -31,7 +33,7 @@
 
 namespace VATA
 {
-	template <class Symbol> class ExplicitTreeAut;
+	class ExplicitTreeAut;
 
 	struct Explicit
 	{
@@ -51,58 +53,40 @@ namespace VATA
 }
 
 GCC_DIAG_OFF(effc++)
-template <class Symbol>
 class VATA::ExplicitTreeAut : public AutBase
 {
 GCC_DIAG_ON(effc++)
 
-	template <class SymbolType>
-	friend ExplicitTreeAut<SymbolType> Union(
-		const ExplicitTreeAut<SymbolType>&,
-		const ExplicitTreeAut<SymbolType>&,
+	friend ExplicitTreeAut Union(
+		const ExplicitTreeAut&,
+		const ExplicitTreeAut&,
 		AutBase::StateToStateMap*,
 		AutBase::StateToStateMap*);
 
-	template <class SymbolType>
-	friend ExplicitTreeAut<SymbolType> UnionDisjointStates(
-		const ExplicitTreeAut<SymbolType>&,
-		const ExplicitTreeAut<SymbolType>&);
+	friend ExplicitTreeAut UnionDisjointStates(
+		const ExplicitTreeAut&,
+		const ExplicitTreeAut&);
 
-	template <class SymbolType>
-	friend ExplicitTreeAut<SymbolType> Intersection(
-		const ExplicitTreeAut<SymbolType>&,
-		const ExplicitTreeAut<SymbolType>&,
+	friend ExplicitTreeAut Intersection(
+		const ExplicitTreeAut&,
+		const ExplicitTreeAut&,
 		AutBase::ProductTranslMap*);
 
-	template <class SymbolType>
-	friend ExplicitTreeAut<SymbolType> GetCandidateTree(const ExplicitTreeAut<SymbolType>& aut);
+	friend ExplicitTreeAut GetCandidateTree(const ExplicitTreeAut& aut);
 
-	template <class SymbolType>
-	friend ExplicitTreeAut<SymbolType> RemoveUselessStates(
-		const ExplicitTreeAut<SymbolType>&,
+	friend ExplicitTreeAut RemoveUselessStates(
+		const ExplicitTreeAut&,
 		AutBase::StateToStateMap*);
 
-	template <class SymbolType>
-	friend ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
-		const ExplicitTreeAut<SymbolType>&,
+	friend ExplicitTreeAut RemoveUnreachableStates(
+		const ExplicitTreeAut&,
 		AutBase::StateToStateMap*);
 
-	template <class SymbolType, class Rel, class Index>
-	friend ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
-		const ExplicitTreeAut<SymbolType>&,
+	template <class Rel, class Index>
+	friend ExplicitTreeAut RemoveUnreachableStates(
+		const ExplicitTreeAut&,
 		const Rel&,
-		const Index&);
-
-	template <class SymbolType, class Index>
-	friend ExplicitLTS TranslateDownward(const ExplicitTreeAut<SymbolType>&, const Index&);
-
-	template <class SymbolType, class Rel, class Index>
-	friend ExplicitLTS TranslateUpward(const ExplicitTreeAut<SymbolType>&,
-		std::vector<std::vector<size_t>>&, Util::BinaryRelation&, const Rel&, const Index&);
-
-	template <class SymbolType, class Rel, class Index>
-	friend ExplicitTreeAut<SymbolType> CollapseStates(const ExplicitTreeAut<SymbolType>&,
-		const Rel&, const Index&);
+		const Index& = Index());
 
 	friend class ExplicitUpwardInclusion;
 	friend class ExplicitDownwardComplementation;
@@ -121,7 +105,7 @@ public:   // public data types
 	typedef Explicit::StateSet StateSet;
 	typedef Explicit::TupleCache TupleCache;
 
-	typedef Symbol SymbolType;
+	typedef uintptr_t SymbolType;
 
 	struct StringRank
 	{
@@ -376,6 +360,8 @@ public:
 
 public:
 
+// TODO: remove --- I suspect this was not used anywhere
+#if 0
 	struct AcceptingTransitions {
 
 		const ExplicitTreeAut& aut_;
@@ -410,13 +396,13 @@ public:
 
 			void _init() {
 
-				for (; this->stateSetIterator_ != this->aut.finalStates_->end();
+				for (; this->stateSetIterator_ != this->aut_.finalStates_.end();
 					++this->stateSetIterator_) {
 
 					this->stateClusterIterator_ =
-						this->aut_.transitions_.find(*this->stateSetIterator_);
+						this->aut_.transitions_->find(*this->stateSetIterator_);
 
-					if (this->stateClusterIterator_ != this->aut_.transitions_.end())
+					if (this->stateClusterIterator_ != this->aut_.transitions->.end())
 						break;
 
 				}
@@ -490,9 +476,11 @@ public:
 	};
 
 	AcceptingTransitions accepting;
+#endif
 
 public:
 
+#if 0
 	struct ClusterAccessor {
 
 		const size_t& state_;
@@ -589,6 +577,8 @@ public:
 
 	};
 
+#endif
+
 private:  // data members
 
 	TupleCache& cache_;
@@ -603,37 +593,32 @@ private:  // data members
 public:   // public methods
 
 	ExplicitTreeAut(Explicit::TupleCache& tupleCache = Explicit::tupleCache) :
-		accepting(*this),
 		cache_(tupleCache),
 		finalStates_(),
 		transitions_(StateToTransitionClusterMapPtr(new StateToTransitionClusterMap()))
 	{ }
 
 	ExplicitTreeAut(const ExplicitTreeAut& aut) :
-		accepting(*this),
 		cache_(aut.cache_),
 		finalStates_(aut.finalStates_),
 		transitions_(aut.transitions_)
 	{ }
 
 	ExplicitTreeAut(const ExplicitTreeAut& aut, Explicit::TupleCache& tupleCache) :
-		accepting(*this),
 		cache_(tupleCache),
 		finalStates_(aut.finalStates_),
-		transitions_(aut.transitions)
+		transitions_(aut.transitions_)
 	{ }
 
-	ExplicitTreeAut& operator=(const ExplicitTreeAut& rhs) {
-
-		if (this != &rhs) {
-
-			this->finalStates_ = rhs.finalStates_;
-			this->transitions_ = rhs.transitions_;
-
+	ExplicitTreeAut& operator=(const ExplicitTreeAut& rhs)
+	{
+		if (this != &rhs)
+		{
+			finalStates_ = rhs.finalStates_;
+			transitions_ = rhs.transitions_;
 		}
 
 		return *this;
-
 	}
 
 	~ExplicitTreeAut() {}
@@ -718,16 +703,20 @@ public:   // public methods
 	{
 		struct SymbolTranslatorPrinter
 		{
-			const SymbolBackTranslatorStrict* translator;
+			const SymbolBackTranslatorStrict& translator;
 
-			const std::string& operator()(const SymbolType& sym) const
+			explicit SymbolTranslatorPrinter(const SymbolBackTranslatorStrict& transl) :
+				translator(transl)
+			{ }
+
+			const StringRank& operator()(const SymbolType& /* sym */) const
 			{
 				throw NotImplementedException(__func__);
 			}
 		};
 
-		SymbolTranslatorPrinter printer;
-		printer.translator = SymbolBackTranslatorStrict(GetSymbolDict().GetReverseMap());
+		SymbolTranslatorPrinter printer(
+			SymbolBackTranslatorStrict(GetSymbolDict().GetReverseMap()));
 
 		return DumpToString(serializer,
 			StateBackTranslatorStrict(stateDict.GetReverseMap()),
@@ -741,21 +730,20 @@ public:   // public methods
 		SymbolPrintFunc                           symbolPrinter,
 		const std::string&                        /* params */ = "") const
 	{
+#if 0
 		struct SymbolTranslatorPrinter
 		{
-			const SymbolPrintFunc& printFunc;
-
-			SymbolTranslatorPrinter(const SymbolPrintFunc& printFunc) :
-				printFunc(printFunc)
-			{ }
-
 			std::string operator()(const SymbolType& sym) const
 			{
-				return printFunc(sym).symbolStr;
+				return SymPrFnc(sym).symbolStr;
 			}
 		};
+#endif
 
-		SymbolTranslatorPrinter printer(symbolPrinter);
+		auto printer = [&symbolPrinter](const SymbolType& sym)
+			{
+				return symbolPrinter(sym).symbolStr;
+			};
 
 		AutDescription desc;
 
@@ -768,7 +756,7 @@ public:   // public methods
 		{
 			std::vector<std::string> tupleStr;
 
-			for (auto& s : t.children())
+			for (const StateType& s : t.children())
 			{
 				tupleStr.push_back(statePrinter(s));
 			}
@@ -816,6 +804,7 @@ public:   // public methods
 		dst.transitions_ = src.transitions_;
 	}
 
+#if 0
 	ClusterAccessor GetCluster(
 		const StateType&           state) const
 	{
@@ -827,6 +816,7 @@ public:   // public methods
 	{
 		return this->GetCluster(state);
 	}
+#endif
 
 	template <class Index>
 	void BuildStateIndex(
@@ -964,6 +954,7 @@ public:   // public methods
 
 public:
 
+#if 0
 	inline StateType AddState()
 	{
 		// Assertions
@@ -971,6 +962,7 @@ public:
 
 		return (*pNextState_)++;
 	}
+#endif
 
 	static inline SymbolType AddSymbol()
 	{
@@ -1023,14 +1015,135 @@ public:
 		return alphabet;
 	}
 
+
+	template <class Index = Util::IdentityTranslator<StateType>>
+	ExplicitLTS TranslateDownward(
+		const Index&                 stateIndex = Index()) const;
+
+
+	template <
+		class Rel,
+		class Index = Util::IdentityTranslator<StateType>
+	>
+	ExplicitLTS TranslateUpward(
+		std::vector<std::vector<size_t>>&     partition,
+		Util::BinaryRelation&                 relation,
+		const Rel&                            param,
+		const Index&                          stateIndex = Index()) const;
+
+
+	template <
+		class Rel,
+		class Index = Util::IdentityTranslator<AutBase::StateType>>
+	ExplicitTreeAut CollapseStates(
+		const Rel&                       rel,
+		const Index&                     bwIndex = Index()) const
+	{
+		std::vector<size_t> representatives;
+
+		rel.buildClasses(representatives);
+
+		std::vector<StateType> transl(representatives.size());
+
+		Util::RebindMap2(transl, representatives, bwIndex);
+
+		ExplicitTreeAut res(cache_);
+
+		this->ReindexStates(res, transl);
+
+		return res;
+	}
+
+	template <class Index>
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		size_t            size,
+		const Index&      index) const
+	{
+		return this->TranslateDownward(index).computeSimulation(size);
+	}
+
+
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		size_t            size) const
+	{
+		return this->TranslateDownward().computeSimulation(size);
+	}
+
+#if 0
+	AutBase::StateBinaryRelation ComputeDownwardSimulation() const
+	{
+		return ComputeDownwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
+	}
+#endif
+
+	template <class Index>
+	AutBase::StateBinaryRelation ComputeUpwardSimulation(
+		size_t                   size,
+		const Index&             index) const
+	{
+		std::vector<std::vector<size_t>> partition;
+
+		AutBase::StateBinaryRelation relation;
+
+		return TranslateUpward(
+			*this, partition, relation, Util::Identity(size), index
+		).computeSimulation(partition, relation, size);
+	}
+
+
+	AutBase::StateBinaryRelation ComputeUpwardSimulation(
+		size_t             size) const
+	{
+		std::vector<std::vector<size_t>> partition;
+
+		AutBase::StateBinaryRelation relation;
+
+		return this->TranslateUpward(
+			partition, relation, Util::Identity(size)
+		).computeSimulation(partition, relation, size);
+	}
+
+#if 0
+	AutBase::StateBinaryRelation ComputeUpwardSimulation(
+		const ExplicitTreeAut& aut)
+	{
+		return ComputeUpwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
+	}
+#endif
+
+
+	ExplicitTreeAut Reduce() const
+	{
+		typedef AutBase::StateType StateType;
+
+		typedef Util::TwoWayDict<
+			StateType,
+			StateType,
+			std::unordered_map<StateType, StateType>,
+			std::unordered_map<StateType, StateType>
+		> StateDict;
+
+		size_t stateCnt = 0;
+
+		StateDict stateDict;
+		Util::TranslatorWeak<StateDict> stateTranslator(
+			stateDict, [&stateCnt](const StateType&){ return stateCnt++; }
+		);
+
+		this->BuildStateIndex(stateTranslator);
+
+		AutBase::StateBinaryRelation sim = this->ComputeDownwardSimulation(
+			stateDict.size(), Util::TranslatorStrict<StateDict>(stateDict)
+		);
+
+		return RemoveUnreachableStates(
+			this->CollapseStates(
+				sim, Util::TranslatorStrict<StateDict::MapBwdType>(stateDict.GetReverseMap())
+			),
+			sim,
+			Util::TranslatorStrict<StateDict>(stateDict)
+		);
+	}
 };
-
-template <class Symbol>
-typename VATA::ExplicitTreeAut<Symbol>::StringToSymbolDict*
-	VATA::ExplicitTreeAut<Symbol>::pSymbolDict_ = nullptr;
-
-template <class Symbol>
-typename VATA::ExplicitTreeAut<Symbol>::SymbolType*
-	VATA::ExplicitTreeAut<Symbol>::pNextSymbol_ = nullptr;
 
 #endif

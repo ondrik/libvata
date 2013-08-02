@@ -503,8 +503,10 @@ public:   // methods
 	}
 
 
-	void AddTransition(const StateTuple& children,
-		SymbolType symbol, const StateType& parent)
+	void AddTransition(
+		const StateTuple&      children,
+		SymbolType             symbol,
+		const StateType&       parent)
 	{
 		// Assertions
 		assert(symbol.length() == SYMBOL_SIZE);
@@ -771,6 +773,19 @@ public:   // methods
 	{
 		throw NotImplementedException(__func__);
 	}
+
+	static bool CheckInclusion(
+		const BDDBottomUpTreeAut&    smaller,
+		const BDDBottomUpTreeAut&    bigger,
+		const VATA::InclParam&       params);
+
+	AutBase::StateBinaryRelation ComputeDownwardSimulation() const;
+
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(size_t size) const;
+
+	AutBase::StateBinaryRelation ComputeUpwardSimulation() const;
+
+	AutBase::StateBinaryRelation ComputeUpwardSimulation(size_t size) const;
 };
 
 #endif

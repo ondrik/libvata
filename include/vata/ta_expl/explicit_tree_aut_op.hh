@@ -51,10 +51,9 @@ namespace VATA
 	 * @returns  An automaton accepting the union of languages of @p lhs and @p
 	 * rhs
    */
-	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> Union(
-		const ExplicitTreeAut<SymbolType>&    lhs,
-		const ExplicitTreeAut<SymbolType>&    rhs,
+	ExplicitTreeAut Union(
+		const ExplicitTreeAut&                lhs,
+		const ExplicitTreeAut&                rhs,
 		AutBase::StateToStateMap*             pTranslMapLhs = nullptr,
 		AutBase::StateToStateMap*             pTranslMapRhs = nullptr)
 	{
@@ -80,7 +79,7 @@ namespace VATA
 		StateToStateTranslator stateTransLhs(*pTranslMapLhs, translFunc);
 		StateToStateTranslator stateTransRhs(*pTranslMapRhs, translFunc);
 
-		ExplicitTreeAut<SymbolType> res(lhs.cache_);
+		ExplicitTreeAut res(lhs.cache_);
 
 		lhs.ReindexStates(res, stateTransLhs);
 		rhs.ReindexStates(res, stateTransRhs);
@@ -101,12 +100,11 @@ namespace VATA
 	 * @returns  An automaton accepting the union of languages of @p lhs and @p
 	 * rhs
    */
-	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> UnionDisjointStates(
-		const ExplicitTreeAut<SymbolType>&     lhs,
-		const ExplicitTreeAut<SymbolType>&     rhs)
+	ExplicitTreeAut UnionDisjointStates(
+		const ExplicitTreeAut&           lhs,
+		const ExplicitTreeAut&           rhs)
 	{
-		ExplicitTreeAut<SymbolType> res(lhs);
+		ExplicitTreeAut res(lhs);
 
 		assert(rhs.transitions_);
 
@@ -133,184 +131,55 @@ namespace VATA
 	 * @returns  An automaton accepting the intersection of languages of @p lhs
 	 * and @p rhs
    */
-	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> Intersection(
-		const ExplicitTreeAut<SymbolType>&     lhs,
-		const ExplicitTreeAut<SymbolType>&     rhs,
-		AutBase::ProductTranslMap*             pTranslMap = nullptr
-	);
+	ExplicitTreeAut Intersection(
+		const ExplicitTreeAut&            lhs,
+		const ExplicitTreeAut&            rhs,
+		AutBase::ProductTranslMap*        pTranslMap);
 
 
-	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> GetCandidateTree(
-		const ExplicitTreeAut<SymbolType>&     aut);
+	ExplicitTreeAut GetCandidateTree(
+		const ExplicitTreeAut&             aut);
 
 
-	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> RemoveUselessStates(
-		const ExplicitTreeAut<SymbolType>&     aut,
-		AutBase::StateToStateMap*              pTranslMap = nullptr);
+	ExplicitTreeAut RemoveUselessStates(
+		const ExplicitTreeAut&             aut,
+		AutBase::StateToStateMap*          pTranslMap);
 
 
-	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
-		const ExplicitTreeAut<SymbolType>&     aut,
-		AutBase::StateToStateMap*              pTranslMap = nullptr);
+	ExplicitTreeAut RemoveUnreachableStates(
+		const ExplicitTreeAut&             aut,
+		AutBase::StateToStateMap*          pTranslMap);
 
 
 	template <
-		class SymbolType,
 		class Rel,
-		class Index = Util::IdentityTranslator<AutBase::StateType>>
-	ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
-		const ExplicitTreeAut<SymbolType>&     aut,
-		const Rel&                             rel,
-		const Index&                           index = Index());
+		class Index>
+	ExplicitTreeAut RemoveUnreachableStates(
+		const ExplicitTreeAut&            aut,
+		const Rel&                        rel,
+		const Index&                      index);
 
 
-	template <
-		class SymbolType,
-		class Rel,
-		class Index = Util::IdentityTranslator<AutBase::StateType>>
-	ExplicitTreeAut<SymbolType> CollapseStates(
-		const ExplicitTreeAut<SymbolType>&     aut,
-		const Rel&                             rel,
-		const Index&                           bwIndex = Index())
-	{
-		std::vector<size_t> representatives;
-
-		rel.buildClasses(representatives);
-
-		std::vector<AutBase::StateType> transl(representatives.size());
-
-		Util::RebindMap2(transl, representatives, bwIndex);
-
-		ExplicitTreeAut<SymbolType> res(aut.cache_);
-
-		aut.ReindexStates(res, transl);
-
-		return res;
-	}
 
 
-	template <class SymbolType, class Index>
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const ExplicitTreeAut<SymbolType>&     aut,
-		const size_t&                          size,
-		const Index&                           index)
-	{
-		return TranslateDownward(aut, index).computeSimulation(size);
-	}
 
 
-	template <class SymbolType>
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const ExplicitTreeAut<SymbolType>&    aut,
-		const size_t&                         size)
-	{
-		return TranslateDownward(aut).computeSimulation(size);
-	}
-
-
-	template <class SymbolType>
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut)
-	{
-		return ComputeDownwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
-	}
-
-
-	template <class SymbolType, class Index>
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const ExplicitTreeAut<SymbolType>&    aut,
-		const size_t&                         size,
-		const Index&                          index)
-	{
-		std::vector<std::vector<size_t>> partition;
-
-		AutBase::StateBinaryRelation relation;
-
-		return TranslateUpward(
-			aut, partition, relation, Util::Identity(size), index
-		).computeSimulation(partition, relation, size);
-	}
-
-
-	template <class SymbolType>
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const ExplicitTreeAut<SymbolType>&    aut,
-		const size_t&                         size)
-	{
-		std::vector<std::vector<size_t>> partition;
-
-		AutBase::StateBinaryRelation relation;
-
-		return TranslateUpward(
-			aut, partition, relation, Util::Identity(size)
-		).computeSimulation(partition, relation, size);
-	}
-
-
-	template <class SymbolType>
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const ExplicitTreeAut<SymbolType>& aut)
-	{
-		return ComputeUpwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
-	}
-
-
-	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> Reduce(
-		const ExplicitTreeAut<SymbolType>& aut)
-	{
-		typedef AutBase::StateType StateType;
-
-		typedef Util::TwoWayDict<
-			StateType,
-			StateType,
-			std::unordered_map<StateType, StateType>,
-			std::unordered_map<StateType, StateType>
-		> StateDict;
-
-		size_t stateCnt = 0;
-
-		StateDict stateDict;
-		Util::TranslatorWeak<StateDict> stateTranslator(
-			stateDict, [&stateCnt](const StateType&){ return stateCnt++; }
-		);
-
-		aut.BuildStateIndex(stateTranslator);
-
-		AutBase::StateBinaryRelation sim = ComputeDownwardSimulation(
-			aut, stateDict.size(), Util::TranslatorStrict<StateDict>(stateDict)
-		);
-
-		return RemoveUnreachableStates(
-			CollapseStates(
-				aut, sim, Util::TranslatorStrict<StateDict::MapBwdType>(stateDict.GetReverseMap())
-			),
-			sim,
-			Util::TranslatorStrict<StateDict>(stateDict)
-		);
-	}
-
-
-	template <class SymbolType, class Dict, class Rel>
-	ExplicitTreeAut<SymbolType> ComplementWithPreorder(
-		const ExplicitTreeAut<SymbolType>&     aut,
+	template <class Dict, class Rel>
+	ExplicitTreeAut ComplementWithPreorder(
+		const ExplicitTreeAut&                 aut,
 		const Dict&                            alphabet,
 		const Rel&                             preorder)
 	{
-		ExplicitTreeAut<SymbolType> res;
+		ExplicitTreeAut res;
 
 		ExplicitDownwardComplementation::Compute(res, aut, alphabet, preorder);
 
 		return RemoveUselessStates(res);
 	}
 
-	template <class SymbolType, class Dict>
-	ExplicitTreeAut<SymbolType> Complement(
-		const ExplicitTreeAut<SymbolType>&    aut,
+	template <class Dict>
+	ExplicitTreeAut Complement(
+		const ExplicitTreeAut&                aut,
 		const Dict&                           alphabet)
 	{
 		typedef AutBase::StateType StateType;

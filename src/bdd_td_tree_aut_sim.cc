@@ -20,18 +20,14 @@ using VATA::Util::Convert;
 typedef VATA::AutBase::StateBinaryRelation StateBinaryRelation;
 
 
-StateBinaryRelation VATA::ComputeDownwardSimulation(
-	const BDDTopDownTreeAut& aut, const size_t& size)
+StateBinaryRelation BDDTopDownTreeAut::ComputeDownwardSimulation(
+	size_t /* size */) const
 {
-	if ((&aut == nullptr) || (&size == nullptr)) { }
-
-	throw std::runtime_error("Unimplemented");
+	throw NotImplementedException(__func__);
 }
 
-StateBinaryRelation VATA::ComputeUpwardSimulation(
-	const BDDTopDownTreeAut& aut, const size_t& size)
+StateBinaryRelation BDDTopDownTreeAut::ComputeUpwardSimulation(
+	size_t /* size */) const
 {
-	if ((&aut == nullptr) || (&size == nullptr)) { }
-
-	throw std::runtime_error("Unimplemented");
+	throw NotImplementedException(__func__);
 }

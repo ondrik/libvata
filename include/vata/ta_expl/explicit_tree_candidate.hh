@@ -22,19 +22,17 @@
 
 namespace VATA {
 
-	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> GetCandidateTree(const ExplicitTreeAut<SymbolType>& aut);
+	ExplicitTreeAut GetCandidateTree(const ExplicitTreeAut& aut);
 
 }
 
-template <class SymbolType>
-VATA::ExplicitTreeAut<SymbolType> VATA::GetCandidateTree(
-	const VATA::ExplicitTreeAut<SymbolType>& aut) {
+VATA::ExplicitTreeAut VATA::GetCandidateTree(
+	const VATA::ExplicitTreeAut& aut) {
 
-	typedef VATA::ExplicitTreeAut<SymbolType> ExplicitTA;
+	typedef ExplicitTreeAut::StateType StateType;
+	typedef ExplicitTreeAut::TuplePtr TuplePtr;
+	typedef ExplicitTreeAut::SymbolType SymbolType;
 
-	typedef typename ExplicitTA::StateType StateType;
-	typedef typename ExplicitTA::TuplePtr TuplePtr;
 
 	struct TransitionInfo {
 
@@ -155,7 +153,7 @@ VATA::ExplicitTreeAut<SymbolType> VATA::GetCandidateTree(
 
 	}
 found_:
-	ExplicitTA result(aut.cache_);
+	ExplicitTreeAut result(aut.cache_);
 
 	for (auto& state : aut.finalStates_) {
 

@@ -35,19 +35,6 @@ namespace VATA
 	BDDBottomUpTreeAut RemoveUnreachableStates(const BDDBottomUpTreeAut& aut);
 
 	BDDBottomUpTreeAut RemoveUselessStates(const BDDBottomUpTreeAut& aut);
-
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const BDDBottomUpTreeAut& aut);
-
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const BDDBottomUpTreeAut& aut, const size_t& size);
-
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const BDDBottomUpTreeAut& aut);
-
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const BDDBottomUpTreeAut& aut, const size_t& size);
-
 }
 
 #endif

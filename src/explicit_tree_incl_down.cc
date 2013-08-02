@@ -14,14 +14,14 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/explicit_tree_aut.hh>
 #include <vata/util/cache.hh>
 #include <vata/util/cached_binary_op.hh>
 #include <vata/util/antichain1c.hh>
 #include <vata/util/antichain2c_v2.hh>
 #include <vata/util/caching_allocator.hh>
 
-#include <vata/explicit_tree_incl_down.hh>
+#include <vata/ta_expl/explicit_tree_aut.hh>
+#include <vata/ta_expl/explicit_tree_incl_down.hh>
 
 template <class T1, class T2>
 bool checkIntersection(const T1& s1, const T2& s2)

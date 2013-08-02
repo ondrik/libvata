@@ -236,21 +236,20 @@ namespace
 }
 
 
-StateBinaryRelation VATA::ComputeDownwardSimulation(
-	const BDDBottomUpTreeAut& aut)
+StateBinaryRelation VATA::BDDBottomUpTreeAut::ComputeDownwardSimulation() const
 {
-	BDDBottomUpTreeAut newAut = aut;
+	BDDBottomUpTreeAut newAut = *this;
 	StateType states = AutBase::SanitizeAutForSimulation(newAut);
 
-	return ComputeDownwardSimulation(newAut, states);
+	return newAut.ComputeDownwardSimulation(states);
 }
 
-StateBinaryRelation VATA::ComputeDownwardSimulation(
-	const BDDBottomUpTreeAut& aut, const size_t& size)
+StateBinaryRelation VATA::BDDBottomUpTreeAut::ComputeDownwardSimulation(
+	size_t               size) const
 {
 	StateBinaryRelation sim(size);
 
-	BDDTopDownTreeAut topDownAut = aut.GetTopDownAut();
+	BDDTopDownTreeAut topDownAut = this->GetTopDownAut();
 
 	CounterMTBDD initCnt((CounterElementMap(size)));
 
@@ -282,7 +281,7 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 			else
 			{	// prune
 				forAllTuplesWithMatchingStatesDo(
-					aut.GetTransTable(), firstState, secondState,
+					this->GetTransTable(), firstState, secondState,
 					[&remove](const StateTuple& firstTuple, const StateTuple& secondTuple){
 						remove.insert(std::make_pair(firstTuple, secondTuple));}
 					);
@@ -291,12 +290,12 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 	}
 
 	CounterHT cnt;
-	for (auto tupleBddPair : aut.GetTransTable())
+	for (auto tupleBddPair : this->GetTransTable())
 	{
 		cnt.insert(std::make_pair(tupleBddPair.first, initCnt));
 	}
 
-	RefineApplyFctor refineFctor(aut.GetTransTable(), sim, remove);
+	RefineApplyFctor refineFctor(this->GetTransTable(), sim, remove);
 
 	while (!remove.empty())
 	{
@@ -314,25 +313,21 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 			assert(false);       // fail gracefully
 		}
 
-		itCnt->second = refineFctor(aut.GetMtbdd(elem.second),
-			aut.GetMtbdd(elem.first),
+		itCnt->second = refineFctor(this->GetMtbdd(elem.second),
+			this->GetMtbdd(elem.first),
 			BDDTopDownTreeAut::GetMtbddForArity(itCnt->second, elem.first.size()));
 	}
 
 	return sim;
 }
 
-StateBinaryRelation VATA::ComputeUpwardSimulation(const BDDBottomUpTreeAut& aut)
+StateBinaryRelation VATA::BDDBottomUpTreeAut::ComputeUpwardSimulation() const
 {
-	if (&aut == nullptr) { }
-
-	throw std::runtime_error("Unimplemented");
+	throw NotImplementedException(__func__);
 }
 
-StateBinaryRelation VATA::ComputeUpwardSimulation(const BDDBottomUpTreeAut& aut,
-	const size_t& size)
+StateBinaryRelation VATA::BDDBottomUpTreeAut::ComputeUpwardSimulation(
+	size_t             /* size */) const
 {
-	if ((&aut == nullptr) || (&size == nullptr)) { }
-
-	throw std::runtime_error("Unimplemented");
+	throw NotImplementedException(__func__);
 }

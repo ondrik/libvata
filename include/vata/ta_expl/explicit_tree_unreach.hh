@@ -23,9 +23,8 @@
 
 namespace VATA {
 
-	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
-		const ExplicitTreeAut<SymbolType>&   aut,
+	ExplicitTreeAut RemoveUnreachableStates(
+		const ExplicitTreeAut&   aut,
 		AutBase::StateToStateMap*            pTranslMap = nullptr);
 
 	template <
@@ -33,20 +32,18 @@ namespace VATA {
 		class Rel,
 		class Index = Util::IdentityTranslator<AutBase::StateType>
 	>
-	ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
-		const ExplicitTreeAut<SymbolType>&   aut,
+	ExplicitTreeAut RemoveUnreachableStates(
+		const ExplicitTreeAut&               aut,
 		const Rel&                           rel,
 		const Index&                         index = Index());
 
 }
 
-template <class SymbolType>
-VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUnreachableStates(
-	const VATA::ExplicitTreeAut<SymbolType>&   aut,
-	VATA::AutBase::StateToStateMap*            pTranslMap = nullptr)
+VATA::ExplicitTreeAut VATA::RemoveUnreachableStates(
+	const VATA::ExplicitTreeAut&               aut,
+	VATA::AutBase::StateToStateMap*            pTranslMap)
 {
-	typedef VATA::ExplicitTreeAut<SymbolType> ExplicitTA;
-	typedef typename ExplicitTA::StateToTransitionClusterMapPtr
+	typedef ExplicitTreeAut::StateToTransitionClusterMapPtr
 		StateToTransitionClusterMapPtr;
 
 	std::unordered_set<AutBase::StateType> reachableStates(aut.GetFinalStates());
@@ -54,7 +51,7 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUnreachableStates(
 
 	while (!newStates.empty())
 	{
-		auto cluster = ExplicitTA::genericLookup(*aut.transitions_, newStates.back());
+		auto cluster = ExplicitTreeAut::genericLookup(*aut.transitions_, newStates.back());
 
 		newStates.pop_back();
 
@@ -87,11 +84,11 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUnreachableStates(
 	if (reachableStates.size() == aut.transitions_->size())
 		return aut;
 
-	ExplicitTA result(aut.cache_);
+	ExplicitTreeAut result(aut.cache_);
 
 	result.finalStates_ = aut.finalStates_;
 	result.transitions_ = StateToTransitionClusterMapPtr(
-		new typename ExplicitTA::StateToTransitionClusterMap()
+		new ExplicitTreeAut::StateToTransitionClusterMap()
 	);
 
 	for (auto& state : reachableStates)
@@ -112,22 +109,21 @@ template <
 	class Rel,
 	class Index = VATA::Util::IdentityTranslator<VATA::AutBase::StateType>
 >
-VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUnreachableStates(
-	const VATA::ExplicitTreeAut<SymbolType>&   aut,
+VATA::ExplicitTreeAut VATA::RemoveUnreachableStates(
+	const VATA::ExplicitTreeAut&               aut,
 	const Rel&                                 rel,
 	const Index&                               index = Index())
 {
-	typedef ExplicitTreeAut<SymbolType> ExplicitTA;
-	typedef typename ExplicitTA::StateToTransitionClusterMap
+	typedef ExplicitTreeAut::StateToTransitionClusterMap
 		StateToTransitionClusterMap;
-	typedef typename ExplicitTA::StateToTransitionClusterMapPtr
+	typedef ExplicitTreeAut::StateToTransitionClusterMapPtr
 		StateToTransitionClusterMapPtr;
-	typedef typename ExplicitTA::TransitionCluster TransitionCluster;
-	typedef typename ExplicitTA::TransitionClusterPtr TransitionClusterPtr;
-	typedef typename ExplicitTA::TuplePtrSet TuplePtrSet;
-	typedef typename ExplicitTA::TuplePtrSetPtr TuplePtrSetPtr;
-	typedef typename ExplicitTA::TuplePtr TuplePtr;
-	typedef typename ExplicitTA::StateTuple StateTuple;
+	typedef ExplicitTreeAut::TransitionCluster TransitionCluster;
+	typedef ExplicitTreeAut::TransitionClusterPtr TransitionClusterPtr;
+	typedef ExplicitTreeAut::TuplePtrSet TuplePtrSet;
+	typedef ExplicitTreeAut::TuplePtrSetPtr TuplePtrSetPtr;
+	typedef ExplicitTreeAut::TuplePtr TuplePtr;
+	typedef ExplicitTreeAut::StateTuple StateTuple;
 
 	struct TupleCmp
 	{
@@ -253,7 +249,7 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUnreachableStates(
 		(finalStates.data().size() == aut.finalStates_.size()))
 		return aut;
 
-	ExplicitTA result(aut.cache_);
+	ExplicitTreeAut result(aut.cache_);
 
 	result.finalStates_.insert(finalStates.data().begin(), finalStates.data().end());
 

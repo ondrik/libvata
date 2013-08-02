@@ -44,18 +44,6 @@ namespace VATA
 
 	bool CheckUpwardInclusion(const BDDTopDownTreeAut& smaller,
 		const BDDTopDownTreeAut& bigger);
-
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const BDDTopDownTreeAut& aut);
-
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const BDDTopDownTreeAut& aut, const size_t& size);
-
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const BDDTopDownTreeAut& aut);
-
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const BDDTopDownTreeAut& aut, const size_t& size);
 }
 
 #endif

@@ -14,5 +14,7 @@
 
 using VATA::AutBase;
 
+#if 0
 AutBase::StateType* AutBase::pNextState_ = nullptr;
+#endif
 

@@ -28,14 +28,13 @@ namespace VATA
 	 * @returns  @p true if the language of @p smaller is a subset of the language
 	 *           of @p bigger, @p false otherwise
 	 */
-	template <class SymbolType>
 	bool CheckInclusion(
-		const ExplicitTreeAut<SymbolType>&     smaller,
-		const ExplicitTreeAut<SymbolType>&     bigger,
+		const ExplicitTreeAut&                 smaller,
+		const ExplicitTreeAut&                 bigger,
 		const VATA::InclParam&                 params)
 	{
-		ExplicitTreeAut<SymbolType> newSmaller;
-		ExplicitTreeAut<SymbolType> newBigger;
+		ExplicitTreeAut newSmaller;
+		ExplicitTreeAut newBigger;
 		typename AutBase::StateType states = static_cast<typename AutBase::StateType>(-1);
 
 		if (!params.GetUseSimulation())
@@ -84,7 +83,7 @@ namespace VATA
 			{
 				assert(static_cast<typename AutBase::StateType>(-1) != states);
 
-				return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
+				return CheckDownwardTreeInclusion<ExplicitTreeAut,
 					VATA::DownwardInclusionFunctor>(newSmaller, newBigger,
 						Util::Identity(states));
 			}
@@ -93,7 +92,7 @@ namespace VATA
 			{
 				assert(static_cast<typename AutBase::StateType>(-1) != states);
 
-				return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
+				return CheckDownwardTreeInclusion<ExplicitTreeAut,
 					VATA::OptDownwardInclusionFunctor>(newSmaller, newBigger,
 						Util::Identity(states));
 			}
@@ -102,7 +101,7 @@ namespace VATA
 			{
 				assert(static_cast<typename AutBase::StateType>(-1) == states);
 
-				return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
+				return CheckDownwardTreeInclusion<ExplicitTreeAut,
 					VATA::DownwardInclusionFunctor>(smaller, bigger,
 						params.GetSimulation());
 			}
@@ -111,7 +110,7 @@ namespace VATA
 			{
 				assert(static_cast<typename AutBase::StateType>(-1) == states);
 
-				return CheckDownwardTreeInclusion<ExplicitTreeAut<SymbolType>,
+				return CheckDownwardTreeInclusion<ExplicitTreeAut,
 					VATA::OptDownwardInclusionFunctor>(smaller, bigger,
 						params.GetSimulation());
 			}

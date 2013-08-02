@@ -14,6 +14,8 @@
 #include <unordered_map>
 #include <memory>
 
+#include <boost/functional/hash.hpp>
+
 // insert class to proper namespace
 namespace VATA {
 	namespace Util {

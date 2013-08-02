@@ -22,28 +22,14 @@
 #include <vata/util/transl_weak.hh>
 #include <vata/util/convert.hh>
 
-namespace VATA {
 
-	template <class SymbolType, class Index = Util::IdentityTranslator<AutBase::StateType>>
-	ExplicitLTS TranslateDownward(const ExplicitTreeAut<SymbolType>& aut,
-		const Index& stateIndex = Index());
-
-	template <
-		class SymbolType,
-		class Rel,
-		class Index = Util::IdentityTranslator<AutBase::StateType>
-	>
-	ExplicitLTS TranslateUpward(const ExplicitTreeAut<SymbolType>& aut,
-		std::vector<std::vector<size_t>>& partition, Util::BinaryRelation& relation,
-		const Rel& param, const Index& stateIndex = Index());
-
-}
-
-template <class SymbolType, class Index>
-VATA::ExplicitLTS VATA::TranslateDownward(const ExplicitTreeAut<SymbolType>& aut,
-	const Index& stateIndex) {
+template <class Index>
+VATA::ExplicitLTS VATA::ExplicitTreeAut::TranslateDownward(
+	const Index&        stateIndex) const
+{
 
 	typedef Explicit::StateTuple StateTuple;
+	typedef ExplicitTreeAut::SymbolType SymbolType;
 
 	std::unordered_map<SymbolType, size_t> symbolMap;
 	std::unordered_map<const StateTuple*, size_t> lhsMap;
@@ -52,9 +38,9 @@ VATA::ExplicitLTS VATA::TranslateDownward(const ExplicitTreeAut<SymbolType>& aut
 	Util::TranslatorWeak2<std::unordered_map<SymbolType, size_t>>
 		symbolTranslator(symbolMap, [&symbolCnt](const SymbolType&){ return symbolCnt++; });
 
-	assert(aut.transitions_);
+	assert(nullptr !=transitions_);
 
-	size_t lhsCnt = aut.transitions_->size();
+	size_t lhsCnt = transitions_->size();
 	Util::TranslatorWeak2<std::unordered_map<const StateTuple*, size_t>>
 		lhsTranslator(lhsMap, [&lhsCnt](const StateTuple*){ return lhsCnt++; });
 
@@ -64,7 +50,7 @@ VATA::ExplicitLTS VATA::TranslateDownward(const ExplicitTreeAut<SymbolType>& aut
    * Iterate through all transitions and adds them
    * to the LTS.
    */
-	for (auto& stateClusterPair : *aut.transitions_) {
+	for (auto& stateClusterPair : *transitions_) {
 
 		assert(stateClusterPair.second);
 
@@ -117,12 +103,15 @@ VATA::ExplicitLTS VATA::TranslateDownward(const ExplicitTreeAut<SymbolType>& aut
 
 }
 
-template <class SymbolType, class Rel, class Index>
-VATA::ExplicitLTS VATA::TranslateUpward(const ExplicitTreeAut<SymbolType>& aut,
-	std::vector<std::vector<size_t>>& partition, Util::BinaryRelation& relation,
-	const Rel& param, const Index& stateIndex) {
-
+template <class Rel, class Index>
+VATA::ExplicitLTS VATA::ExplicitTreeAut::TranslateUpward(
+	std::vector<std::vector<size_t>>&       partition,
+	Util::BinaryRelation&                   relation,
+	const Rel&                              param,
+	const Index&                            stateIndex) const
+{
 	typedef Explicit::StateTuple StateTuple;
+	typedef ExplicitTreeAut::SymbolType SymbolType;
 
 	struct Env {
 
@@ -204,17 +193,17 @@ VATA::ExplicitLTS VATA::TranslateUpward(const ExplicitTreeAut<SymbolType>& aut,
 	};
 
 
-	assert(aut.transitions_);
+	assert(nullptr != transitions_);
 //	assert(aut.transitions_->size() == param.size());
 
 	size_t symbolCnt = 0;
-	size_t stateCnt = aut.transitions_->size() + 1; // leaf state
+	size_t stateCnt = transitions_->size() + 1; // leaf state
 
 	std::unordered_map<SymbolType, size_t> symbolMap;
 	std::unordered_map<Env, size_t, env_hash> envMap;
 
-	size_t base = ((0 < aut.finalStates_.size()) &&
-		(aut.finalStates_.size() < aut.transitions_->size())) ? 3 : 2;
+	size_t base = ((0 < finalStates_.size()) &&
+		(finalStates_.size() < transitions_->size())) ? 3 : 2;
 
 	partition.clear();
 	partition.resize(base);
@@ -251,13 +240,13 @@ VATA::ExplicitLTS VATA::TranslateUpward(const ExplicitTreeAut<SymbolType>& aut,
 			}
 	);
 
-	for (auto& stateClusterPair : *aut.transitions_) {
+	for (auto& stateClusterPair : *transitions_) {
 
 		assert(stateClusterPair.second);
-		assert(stateIndex[stateClusterPair.first] < aut.transitions_->size());
+		assert(stateIndex[stateClusterPair.first] < transitions_->size());
 
 		partition[
-			aut.IsFinalState(stateClusterPair.first)?(0):(base - 2)
+			this->IsFinalState(stateClusterPair.first)?(0):(base - 2)
 		].push_back(stateIndex[stateClusterPair.first]);
 
 		for (auto& symbolTupleSetPair : *stateClusterPair.second) {
@@ -270,11 +259,11 @@ VATA::ExplicitLTS VATA::TranslateUpward(const ExplicitTreeAut<SymbolType>& aut,
 
 	}
 
-	partition[base - 1].push_back(aut.transitions_->size()); // leaf state
+	partition[base - 1].push_back(transitions_->size()); // leaf state
 
 	ExplicitLTS result;
 
-	for (auto& stateClusterPair : *aut.transitions_) {
+	for (auto& stateClusterPair : *transitions_) {
 
 		assert(stateClusterPair.second);
 
@@ -292,7 +281,7 @@ VATA::ExplicitLTS VATA::TranslateUpward(const ExplicitTreeAut<SymbolType>& aut,
 
 				if (tuple->empty()) {
 					// take care of leaves
-					result.addTransition(aut.transitions_->size(), symbol, state);
+					result.addTransition(transitions_->size(), symbol, state);
 					continue;
 				}
 

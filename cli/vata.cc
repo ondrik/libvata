@@ -40,6 +40,7 @@
 using VATA::AutBase;
 using VATA::BDDBottomUpTreeAut;
 using VATA::BDDTopDownTreeAut;
+using VATA::ExplicitTreeAut;
 using VATA::Parsing::AbstrParser;
 using VATA::Parsing::TimbukParser;
 using VATA::Serialization::AbstrSerializer;
@@ -47,7 +48,6 @@ using VATA::Serialization::TimbukSerializer;
 using VATA::Util::Convert;
 
 
-typedef VATA::ExplicitTreeAut<size_t> ExplicitTreeAut;
 typedef VATA::ExplicitFiniteAut<size_t> ExplicitFiniteAut;
 
 typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
@@ -422,10 +422,6 @@ int main(int argc, char* argv[])
 	ExplicitTreeAut::SymbolType explNextSymbol(0);
 	ExplicitTreeAut::SetNextSymbolPtr(&explNextSymbol);
 
-	// create the ``next state'' variable
-	AutBase::StateType nextState(0);
-	ExplicitTreeAut::SetNextStatePtr(&nextState);
-
 	// create the symbol directory for finite automata
 	ExplicitFiniteAut::StringToSymbolDict explFASymbolDict;
 	ExplicitFiniteAut::SetSymbolDictPtr(&explFASymbolDict);
@@ -433,10 +429,6 @@ int main(int argc, char* argv[])
 	// create the ``next symbol`` variable for the explicit finite automaton
 	ExplicitFiniteAut::SymbolType explFANextSymbol(0);
 	ExplicitFiniteAut::SetNextSymbolPtr(&explFANextSymbol);
-
-	// create the ``next state`` variable
-	AutBase::StateType explFANextState(0);
-	ExplicitFiniteAut::SetNextStatePtr(&explFANextState);
 
 	VATA::AutBase::StringToStateDict stateDict;
 

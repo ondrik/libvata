@@ -93,8 +93,6 @@ protected:// data members
 	TimbukParser parser_;
 	TimbukSerializer serializer_;
 
-	AutType::StateType nextState_;
-
 	AutType::StringToSymbolDict symbolDict_;
 
 protected:// methods
@@ -102,29 +100,34 @@ protected:// methods
 	TreeAutFixture() :
 		parser_(),
 		serializer_(),
-		nextState_(0),
 		symbolDict_()
 	{
-		AutType::SetNextStatePtr(&nextState_);
 		AutType::SetSymbolDictPtr(&symbolDict_);
 		AutType::SetNextSymbolPtr(&nextSymbol_);
 	}
 
 	template <class Automaton>
-	void readAut(Automaton& aut, StringToStateDict& stateDict, const std::string& str)
+	void readAut(
+		Automaton&              aut,
+		StringToStateDict&      stateDict,
+		const std::string&      str)
 	{
 		aut.LoadFromString(parser_, str, stateDict);
 	}
 
 	template <class Automaton>
-	void readAut(Automaton& aut, const std::string& str)
+	void readAut(
+		Automaton&              aut,
+		const std::string&      str)
 	{
 		StringToStateDict dict;
 		readAut(aut, dict, str);
 	}
 
 	template <class Automaton>
-	std::string dumpAut(const Automaton& aut, const StringToStateDict& stateDict)
+	std::string dumpAut(
+		const Automaton&           aut,
+		const StringToStateDict&   stateDict)
 	{
 		return aut.DumpToString(serializer_,
 			StateBackTranslatorStrict(stateDict.GetReverseMap()),
@@ -171,11 +174,11 @@ protected:// methods
 				AutType unionAut = VATA::UnionDisjointStates(autSmaller, autBigger);
 				if (InclParam::e_direction::downward == ip.GetDirection())
 				{	// downward direction
-					sim = VATA::ComputeDownwardSimulation(unionAut, states);
+					sim = unionAut.ComputeDownwardSimulation(states);
 				}
 				else if (InclParam::e_direction::upward == ip.GetDirection())
 				{	// upward direction
-					sim = VATA::ComputeUpwardSimulation(unionAut, states);
+					sim = unionAut.ComputeUpwardSimulation(states);
 				}
 				else
 				{
@@ -226,8 +229,7 @@ protected:// methods
 
 			stateDict = RebindMap(stateDict, stateMap);
 
-			StateBinaryRelation sim = VATA::ComputeDownwardSimulation(
-				reindexedAut, stateCnt);
+			StateBinaryRelation sim = reindexedAut.ComputeDownwardSimulation(stateCnt);
 
 			auto simulationContent = ParseTestFile(resultFile);
 			StateBinaryRelation refSim(stateCnt);

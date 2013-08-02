@@ -15,7 +15,7 @@
 #include <vata/vata.hh>
 #include <vata/aut_base.hh>
 #include <vata/parsing/abstr_parser.hh>
-#include <vata/explicit_tree_aut.hh>
+#include <vata/ta_expl/explicit_tree_aut.hh>
 #include <vata/serialization/abstr_serializer.hh>
 #include <vata/util/transl_weak.hh>
 #include <vata/explicit_lts.hh>
@@ -595,10 +595,65 @@ protected:
 
 		auto iter = cont.find(key);
 		if (iter == cont.end())
-			return NULL;
+			return nullptr;
 
 		return iter->second.get();
 
+	}
+
+
+	/***************************************************
+	 * Simulation functions
+	 */
+public:   // methods
+
+	template <class Index>
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		size_t              size,
+		const Index&        index)
+	{
+		AutBase::StateBinaryRelation relation;
+		std::vector<std::vector<size_t>> partition(1);
+		return Translate(*this, partition, relation, index).computeSimulation(size);
+	}
+
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		size_t              size)
+	{
+		AutBase::StateBinaryRelation relation;
+		std::vector<std::vector<size_t>> partition(1);
+		return Translate(*this, partition, relation).computeSimulation(partition,relation,size);
+	}
+
+#if 0
+	// Automaton has not been sanitized
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		const ExplicitFiniteAut<SymbolType>& aut) {
+
+		return ComputeDownwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
+	}
+#endif
+
+	/*****************************************************************
+	 * Upward simulation just for compability
+	 */
+	template <class Index>
+	AutBase::StateBinaryRelation ComputeUpwardSimulation(
+		size_t                  /* size */,
+		const Index&            /* index */) const
+	{
+		throw NotImplementedException(__func__);
+	}
+
+	AutBase::StateBinaryRelation ComputeUpwardSimulation(
+		size_t                  /* size */) const
+	{
+		throw NotImplementedException(__func__);
+	}
+
+	AutBase::StateBinaryRelation ComputeUpwardSimulation() const
+	{
+		throw NotImplementedException(__func__);
 	}
 };
 
