@@ -16,9 +16,9 @@
 #include <vata/bdd_td_tree_aut.hh>
 #include <vata/bdd_td_tree_aut_op.hh>
 #include <vata/bdd_td_tree_aut_incl.hh>
-#include <vata/explicit_tree_aut.hh>
-#include <vata/explicit_tree_aut_op.hh>
-#include <vata/explicit_tree_incl.hh>
+#include <vata/ta_expl/explicit_tree_aut.hh>
+#include <vata/ta_expl/explicit_tree_aut_op.hh>
+#include <vata/ta_expl/explicit_tree_incl.hh>
 #include <vata/finite_aut/explicit_finite_aut.hh>
 #include <vata/finite_aut/explicit_finite_aut_op.hh>
 #include <vata/finite_aut/explicit_finite_incl.hh>
