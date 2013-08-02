@@ -52,7 +52,8 @@ namespace VATA
 
 GCC_DIAG_OFF(effc++)
 template <class Symbol>
-class VATA::ExplicitTreeAut : public AutBase {
+class VATA::ExplicitTreeAut : public AutBase
+{
 GCC_DIAG_ON(effc++)
 
 	template <class SymbolType>
@@ -218,68 +219,75 @@ private:  // private data types
 protected:
 
 	template <class T>
-	static const typename T::mapped_type::element_type* genericLookup(const T& cont,
-		const typename T::key_type& key) {
-
+	static const typename T::mapped_type::element_type* genericLookup(
+		const T&                        cont,
+		const typename T::key_type&     key)
+	{
 		auto iter = cont.find(key);
 		if (iter == cont.end())
+		{
 			return nullptr;
+		}
 
 		return iter->second.get();
-
 	}
 
-	TuplePtr tupleLookup(const StateTuple& tuple) {
-
-		return this->cache_.lookup(tuple);
-
+	TuplePtr tupleLookup(const StateTuple& tuple)
+	{
+		return cache_.lookup(tuple);
 	}
 
-	const StateToTransitionClusterMapPtr& uniqueClusterMap() {
+	const StateToTransitionClusterMapPtr& uniqueClusterMap()
+	{
+		assert(nullptr != transitions_);
 
-		assert(this->transitions_);
-
-		if (!this->transitions_.unique()) {
-
-			this->transitions_ = StateToTransitionClusterMapPtr(
+		if (!transitions_.unique())
+		{
+			transitions_ = StateToTransitionClusterMapPtr(
 				new StateToTransitionClusterMap(*transitions_)
 			);
 
 		}
 
-		return this->transitions_;
-
+		return transitions_;
 	}
 
-	void internalAddTransition(const TuplePtr& children, const SymbolType& symbol, const StateType& state) {
-
-		this->uniqueClusterMap()->uniqueCluster(state)->uniqueTuplePtrSet(symbol)->insert(children);
-
+	void internalAddTransition(
+		const TuplePtr&           children,
+		const SymbolType&         symbol,
+		const StateType&          parent)
+	{
+		this->uniqueClusterMap()->uniqueCluster(parent)->uniqueTuplePtrSet(symbol)->insert(children);
 	}
 
 public:
 
-	class Transition {
-
+	class Transition
+	{
 		friend class ExplicitTreeAut;
 
 		const StateTuple& children_;
 		const SymbolType& symbol_;
-		const StateType& state_;
+		const StateType& parent_;
 
-		Transition(const StateTuple& children, const SymbolType& symbol, const StateType& state)
-			 : children_(children), symbol_(symbol), state_(state) {}
+		Transition(
+			const StateTuple&        children,
+			const SymbolType&        symbol,
+			const StateType&         parent) :
+			children_(children),
+			symbol_(symbol),
+			parent_(parent)
+		{ }
 
 	public:
 
-		const StateTuple& children() const { return this->children_; }
-		const SymbolType& symbol() const { return this->symbol_; }
-		const StateType& state() const { return this->state_; }
-
+		const StateTuple& children() const { return children_; }
+		const SymbolType& symbol()   const { return symbol_;   }
+		const StateType& parent()    const { return parent_;   }
 	};
 
-	struct Iterator {
-
+	struct Iterator
+	{
 		typedef std::input_iterator_tag iterator_category;
 		typedef size_t difference_type;
 		typedef Transition value_type;
@@ -333,36 +341,31 @@ public:
 
 		}
 
-		Iterator operator++(int) {
-
+		Iterator operator++(int)
+		{
 			return ++Iterator(*this);
-
 		}
 
-		bool operator==(const Iterator& rhs) const {
-
-			return this->tupleIterator_ == rhs.tupleIterator_;
-
+		bool operator==(const Iterator& rhs) const
+		{
+			return tupleIterator_ == rhs.tupleIterator_;
 		}
 
-		bool operator!=(const Iterator& rhs) const {
-
-			return this->tupleIterator_ != rhs.tupleIterator_;
-
+		bool operator!=(const Iterator& rhs) const
+		{
+			return tupleIterator_ != rhs.tupleIterator_;
 		}
 
-		Transition operator*() const {
-
-			assert(*this->tupleIterator_);
+		Transition operator*() const
+		{
+			assert(*tupleIterator_);
 
 			return Transition(
-				**this->tupleIterator_,
-				this->symbolSetIterator_->first,
-				this->stateClusterIterator_->first
+				**tupleIterator_,
+				symbolSetIterator_->first,
+				stateClusterIterator_->first
 			);
-
 		}
-
 	};
 
 	typedef Iterator iterator;
@@ -748,9 +751,6 @@ public:   // public methods
 
 			std::string operator()(const SymbolType& sym) const
 			{
-				if (nullptr == &sym)
-				{ }
-
 				return printFunc(sym).symbolStr;
 			}
 		};
@@ -776,7 +776,7 @@ public:   // public methods
 			AutDescription::Transition trans(
 				tupleStr,
 				printer(t.symbol()),
-				statePrinter(t.state()));
+				statePrinter(t.parent()));
 
 			desc.transitions.insert(trans);
 		}
@@ -784,153 +784,169 @@ public:   // public methods
 		return serializer.Serialize(desc);
 	}
 
-	inline const StateSet& GetFinalStates() const {
-		return this->finalStates_;
+	const StateSet& GetFinalStates() const
+	{
+		return finalStates_;
 	}
 
-	inline void SetStateFinal(const StateType& state) {
-		this->finalStates_.insert(state);
+	void SetStateFinal(
+		const StateType&          state)
+	{
+		finalStates_.insert(state);
 	}
 
-	inline bool IsFinalState(const StateType& state) const {
-		return this->finalStates_.count(state) > 0;
+	bool IsFinalState(
+		const StateType&          state) const
+	{
+		return finalStates_.count(state) > 0;
 	}
 
-	inline void AddTransition(const StateTuple& children, const SymbolType& symbol,
-		const StateType& state) {
-
+	void AddTransition(
+		const StateTuple&         children,
+		const SymbolType&         symbol,
+		const StateType&          state)
+	{
 		this->internalAddTransition(this->tupleLookup(children), symbol, state);
-
 	}
 
-	inline static void CopyTransitions(ExplicitTreeAut& dst, const ExplicitTreeAut& src) {
-
+	static void CopyTransitions(
+		ExplicitTreeAut&           dst,
+		const ExplicitTreeAut&     src)
+	{
 		dst.transitions_ = src.transitions_;
-
 	}
 
-	inline ClusterAccessor GetCluster(const StateType& state) const {
-
-		return ClusterAccessor(state, ExplicitTreeAut::genericLookup(this->transitions_, state));
-
+	ClusterAccessor GetCluster(
+		const StateType&           state) const
+	{
+		return ClusterAccessor(state, ExplicitTreeAut::genericLookup(transitions_, state));
 	}
 
-	inline ClusterAccessor operator[](const StateType& state) const {
-
+	ClusterAccessor operator[](
+		const StateType&           state) const
+	{
 		return this->GetCluster(state);
-
 	}
 
 	template <class Index>
-	void BuildStateIndex(Index& index) const {
-
-		for (auto& state : this->finalStates_)
+	void BuildStateIndex(
+		Index&                     index) const
+	{
+		for (const StateType& state : finalStates_)
+		{
 			index(state);
+		}
 
-		for (auto& stateClusterPair : *this->transitions_) {
-
+		for (auto& stateClusterPair : *transitions_)
+		{
 			assert(stateClusterPair.second);
 
 			index(stateClusterPair.first);
 
-			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
-
+			for (auto& symbolTupleSetPair : *stateClusterPair.second)
+			{
 				assert(symbolTupleSetPair.second);
 
-				for (auto& tuple : *symbolTupleSetPair.second) {
-
+				for (auto& tuple : *symbolTupleSetPair.second)
+				{
 					assert(tuple);
 
-					for (auto& s : *tuple)
+					for (const StateType& s : *tuple)
+					{
 						index(s);
-
+					}
 				}
-
 			}
-
 		}
-
 	}
 
 	template <class Index>
-	void ReindexStates(ExplicitTreeAut& dst, Index& index) const {
-
-		for (auto& state : this->finalStates_)
+	void ReindexStates(
+		ExplicitTreeAut&          dst,
+		Index&                    index) const
+	{
+		for (const StateType& state : finalStates_)
+		{
 			dst.SetStateFinal(index[state]);
+		}
 
 		auto clusterMap = dst.uniqueClusterMap();
 
-		for (auto& stateClusterPair : *this->transitions_) {
-
+		for (auto& stateClusterPair : *transitions_)
+		{
 			assert(stateClusterPair.second);
 
 			auto cluster = clusterMap->uniqueCluster(index[stateClusterPair.first]);
 
-			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
-
+			for (auto& symbolTupleSetPair : *stateClusterPair.second)
+			{
 				assert(symbolTupleSetPair.second);
 
 				auto tuplePtrSet = cluster->uniqueTuplePtrSet(symbolTupleSetPair.first);
 
-				for (auto& tuple : *symbolTupleSetPair.second) {
-
+				for (auto& tuple : *symbolTupleSetPair.second)
+				{
 					assert(tuple);
 
 					StateTuple newTuple;
 
-					for (auto& s : *tuple)
+					for (const StateType& s : *tuple)
+					{
 						newTuple.push_back(index[s]);
+					}
 
 					tuplePtrSet->insert(dst.tupleLookup(newTuple));
-
 				}
-
 			}
-
 		}
-
 	}
 
 	template <class OperationFunc>
-	static void ForeachDownSymbolFromStateAndStateSetDo(const ExplicitTreeAut& lhs,
-		const ExplicitTreeAut& rhs, const StateType& lhsState,
-		const StateSetLight& rhsSet, OperationFunc& opFunc)
+	static void ForeachDownSymbolFromStateAndStateSetDo(
+		const ExplicitTreeAut&      lhs,
+		const ExplicitTreeAut&      rhs,
+		const StateType&            lhsState,
+		const StateSetLight&        rhsSet,
+		OperationFunc&              opFunc)
 	{
-
-		assert(lhs.transitions_);
-		assert(rhs.transitions_);
+		assert(nullptr != lhs.transitions_);
+		assert(nullptr != rhs.transitions_);
 
 		auto leftCluster = ExplicitTreeAut::genericLookup(*lhs.transitions_, lhsState);
 
 		if (!leftCluster)
+		{
 			return;
+		}
 
 		std::vector<const TransitionCluster*> rightClusters;
 
-		for (auto& rhsState : rhsSet) {
-
+		for (const StateType& rhsState : rhsSet)
+		{
 			auto rightCluster = ExplicitTreeAut::genericLookup(*rhs.transitions_, rhsState);
 
 			if (rightCluster)
+			{
 				rightClusters.push_back(rightCluster);
-
+			}
 		}
 
-		for (auto& leftSymbolTupleSetPair : *leftCluster) {
-
+		for (auto& leftSymbolTupleSetPair : *leftCluster)
+		{
 			TuplePtrSet rightTuples;
 
-			for (auto& rightCluster : rightClusters) {
-
+			for (auto& rightCluster : rightClusters)
+			{
 				auto rightTupleSet = ExplicitTreeAut::genericLookup(
 					*rightCluster, leftSymbolTupleSetPair.first
 				);
 
 				if (!rightTupleSet)
+				{
 					continue;
+				}
 
 				rightTuples.insert(rightTupleSet->begin(), rightTupleSet->end());
-
 			}
 
 			auto AccessElementF = [](const TuplePtr& tuplePtr){return *tuplePtr;};
@@ -938,12 +954,12 @@ public:   // public methods
 			assert(leftSymbolTupleSetPair.second);
 
 			opFunc(
-				*leftSymbolTupleSetPair.second, AccessElementF,
-				rightTuples, AccessElementF
+				*leftSymbolTupleSetPair.second,
+				AccessElementF,
+				rightTuples,
+				AccessElementF
 			);
-
 		}
-
 	}
 
 public:
