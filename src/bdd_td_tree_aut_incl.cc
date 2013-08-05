@@ -13,6 +13,7 @@
 #include <vata/bdd_td_tree_aut.hh>
 #include <vata/bdd_td_tree_aut_op.hh>
 #include <vata/bdd_td_tree_aut_incl.hh>
+
 #include "down_tree_incl_fctor.hh"
 #include "down_tree_opt_incl_fctor.hh"
 #include "tree_incl_down.hh"
@@ -79,8 +80,7 @@ bool BDDTopDownTreeAut::CheckInclusion(
 
 		default:
 		{
-			throw std::runtime_error("Unimplemented inclusion:\n" +
-				params.toString());
+			throw NotImplementedException("Inclusion:\n" + params.toString());
 		}
 	}
 }

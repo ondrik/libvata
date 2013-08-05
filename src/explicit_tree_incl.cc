@@ -10,6 +10,7 @@
 
 // VATA headers
 #include <vata/ta_expl/explicit_tree_aut.hh>
+
 #include "explicit_tree_incl_up.hh"
 #include "explicit_tree_incl_down.hh"
 #include "tree_incl_down.hh"
