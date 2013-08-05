@@ -257,7 +257,7 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	}
 	else if (args.command == COMMAND_SIM)
 	{
-		relResult = ComputeSimulation(autInput1, args);
+		relResult = ComputeSimulation(autInput1, args,stateDict1);
 	}
 	else if (args.command == COMMAND_RED)
 	{

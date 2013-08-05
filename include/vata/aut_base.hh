@@ -144,6 +144,19 @@ public:   // methods
 
 		return stateCnt;
 	}
+
+	template <class Automaton, class Index>
+	static StateType SanitizeAutForSimulationWithIndex(Automaton& aut,
+			StateType& stateCnt, Index& index)
+	{
+		Automaton newAut = RemoveUselessStates(aut);
+		Automaton reindexedAut;
+		newAut.ReindexStates(reindexedAut, index);
+
+		aut = reindexedAut;
+
+		return stateCnt;
+	}
 };
 
 #endif

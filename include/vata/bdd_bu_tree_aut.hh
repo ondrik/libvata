@@ -634,6 +634,11 @@ public:   // methods
 		return TransMTBDD::DumpToDot(tupleVec);
 	}
 
+	template <class TranslIndex, class SanitizeIndex>
+	void PrintSimulationMapping (TranslIndex index, SanitizeIndex& sanitizeIndex) {
+		throw std::runtime_error("unimplemented");
+	}
+
 	BDDTopDownTreeAut GetTopDownAut() const;
 
 	template <class OperationFunc>

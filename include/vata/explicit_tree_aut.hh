@@ -736,6 +736,11 @@ public:   // public methods
 			printer);
 	}
 
+	template <class TranslIndex, class SanitizeIndex>
+	void PrintSimulationMapping (TranslIndex index, SanitizeIndex& sanitizeIndex) {
+		throw std::runtime_error("unimplemented");
+	}
+
 	template <class StatePrintFunc, class SymbolPrintFunc>
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&     serializer,

@@ -341,6 +341,7 @@ public:
 		// Load final states
 		for (auto s : desc.finalStates) { // Finale states extraction
 			this->finalStates_.insert(stateTranslator(s));
+			std::cout << s << " " << stateTranslator(s) << std::endl;
 		}
 
 		// Load transitions
@@ -351,6 +352,8 @@ public:
 			// Check whether there are no start states
 			if (t.first.empty()) {
 				StateType translatedState = stateTranslator(rightState);
+				std::cout << translatedState << " " << stateTranslator(rightState) << std::endl;
+
 				SymbolType translatedSymbol = symbolTranslator(symbol);
 
 				SetStateStart(translatedState, translatedSymbol);
@@ -365,9 +368,12 @@ public:
 			// load here because t could be empty
 			const State& leftState = t.first[0];
 
+			std::cout << leftState << " " << stateTranslator(leftState) << std::endl;
+			std::cout << rightState << " " << stateTranslator(rightState) << std::endl;
 			this->AddTransition(stateTranslator(leftState),symbolTranslator(symbol),
 															stateTranslator(rightState));
 		}
+		std::cout << "Loaded" << std::endl;
 	}
 
 	/*
@@ -385,26 +391,31 @@ public:
 			AutDescription desc;
 
 			// Dump the final states
-			for (auto& s : this->finalStates_) {
+			for (auto& s : this->finalStates_)
+			{
 				desc.finalStates.insert(statePrinter(s));
 			}
 
 			// Dump start states
 			std::string x("x"); // initial input symbol
 			std::vector<std::string> leftStateAsTuple;
-			for (auto &s : this->startStates_) {
+			for (auto &s : this->startStates_)
+			{
 
 				SymbolSet symset = this->GetStartSymbols(s);
 
-				if (!symset.size()) { // No start symbols are defined,
+				if (!symset.size()) 
+				{ // No start symbols are defined,
 					AutDescription::Transition trans(
 							leftStateAsTuple,
 							x,
 							statePrinter(s));
 					desc.transitions.insert(trans);
 				}
-				else { // print all starts symbols
-					for (auto &sym : symset) {
+				else 
+				{ // print all starts symbols
+					for (auto &sym : symset) 
+					{
 					 AutDescription::Transition trans(
 							leftStateAsTuple,
 							symbolPrinter(sym),
@@ -418,9 +429,12 @@ public:
 			/*
 			 * Converts transitions to data structure for serializer
 			 */
-			for (auto& ls : *(this->transitions_)) {
-				for (auto& s : *ls.second){
-					for (auto& rs : s.second) {
+			for (auto& ls : *(this->transitions_)) 
+			{
+				for (auto& s : *ls.second)
+				{
+					for (auto& rs : s.second) 
+					{
 						std::vector<std::string> leftStateAsTuple;
 						leftStateAsTuple.push_back(statePrinter(ls.first));
 
@@ -436,6 +450,25 @@ public:
 			return serializer.Serialize(desc);
 	}
 
+	template <class TranslIndex, class SanitizeIndex>
+	void PrintSimulationMapping (TranslIndex index, SanitizeIndex& sanitizeIndex) {
+		std::cout << "Jsem tady spravne" << std::endl;
+
+		for (auto& ls : *(this->transitions_)) 
+		{
+			for (auto& s : *ls.second)
+			{
+				for (auto& rs : s.second) 
+				{
+					std::cout << index(ls.first) << " -> " << sanitizeIndex[ls.first] << std::endl;
+
+					std::cout << index(rs) << " -> " << sanitizeIndex[rs] << std::endl;
+				}
+			}
+		}
+		std::cout << "Konec vypisu" << std::endl;
+	}
+
 	/*
 	 * The current indexes for states are transform to the new ones,
 	 * and stored to the new automaton
@@ -443,15 +476,18 @@ public:
 	template <class Index>
 	void ReindexStates(ExplicitFiniteAut& dst, Index& index) const {
 
+		std::cout << "Reindexace" << std::endl;
 		// Converts the final states
 		for (auto& state : this->finalStates_)
 		{
 			dst.SetStateFinal(index[state]);
+			std::cout << state << " " << index[state] << std::endl;
 		}
 
 		// Converts the start states
 		for( auto& state : this->startStates_) {
 			dst.SetExistingStateStart(index[state],GetStartSymbols(state));
+			std::cout << state << " " << index[state] << std::endl;
 		}
 
 		auto clusterMap = dst.uniqueClusterMap();
@@ -465,6 +501,7 @@ public:
 			//assert(stateClusterPair.second);
 
 			auto cluster = clusterMap->uniqueCluster(index[stateClusterPair.first]);
+			std::cout << stateClusterPair.first << " " << index[stateClusterPair.first] << std::endl;
 
 			for (auto& symbolRStateSetPair : *stateClusterPair.second) {
 
@@ -474,6 +511,7 @@ public:
 
 				for (auto& rState : symbolRStateSetPair.second) {
 					rstatesSet.insert(index[rState]);
+					std::cout << rState << " " << index[rState] << std::endl;
 				}
 			}
 		}

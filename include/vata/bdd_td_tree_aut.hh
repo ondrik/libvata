@@ -405,6 +405,11 @@ public:   // public methods
 			symbolTranslator, params);
 	}
 
+	template <class TranslIndex, class SanitizeIndex>
+	void PrintSimulationMapping (TranslIndex index, SanitizeIndex& sanitizeIndex) {
+		throw std::runtime_error("unimplemented");
+	}
+
 	inline const TransMTBDD& GetMtbdd(const StateType& state) const
 	{
 		return transTable_->GetMtbdd(state);
