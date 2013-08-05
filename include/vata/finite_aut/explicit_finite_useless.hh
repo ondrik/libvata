@@ -17,26 +17,17 @@
 #include <vata/finite_aut/explicit_finite_reverse.hh>
 #include <vata/finite_aut/explicit_finite_unreach.hh>
 
-namespace VATA {
-	template <class SymbolType>
-	ExplicitFiniteAut<SymbolType> RemoveUselessStates(
-			const ExplicitFiniteAut<SymbolType> &aut,
-			VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
-}
 
 template <class SymbolType>
-VATA::ExplicitFiniteAut<SymbolType> VATA::RemoveUselessStates(
-		const VATA::ExplicitFiniteAut<SymbolType> &aut,
-		VATA::AutBase::StateToStateMap* pTranslMap = nullptr) {
+VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::RemoveUselessStates(
+		VATA::AutBase::StateToStateMap* pTranslMap) {
 
 	// remove useless states by applying following operations
-	return Reverse(
-		RemoveUnreachableStates(
-			Reverse(
-				RemoveUnreachableStates(aut,pTranslMap)
-			),pTranslMap
-		 )
-		);
+	return this->
+		RemoveUnreachableStates(pTranslMap).
+		Reverse(pTranslMap).
+		RemoveUnreachableStates().
+		Reverse();
 }
 
 #endif

@@ -41,45 +41,10 @@ GCC_DIAG_ON(effc++)
 	 * Friend functions
 	 */
 
-	template <class SymbolType>
-	friend ExplicitFiniteAut<SymbolType> Union(
-		const ExplicitFiniteAut<SymbolType>&, const ExplicitFiniteAut<SymbolType>&,
-		AutBase::StateToStateMap*, AutBase::StateToStateMap*);
-
-	template <class SymbolType>
-	friend ExplicitFiniteAut<SymbolType> UnionDisjointStates(
-		const ExplicitFiniteAut<SymbolType>&,
-		const ExplicitFiniteAut<SymbolType>&);
-
-	template <class SymbolType>
-	friend ExplicitFiniteAut<SymbolType> Intersection(
-		const ExplicitFiniteAut<SymbolType> &,
-		const ExplicitFiniteAut<SymbolType> &,
-		AutBase::ProductTranslMap*);
-
-	template <class SymbolType>
-	friend ExplicitFiniteAut<SymbolType> RemoveUnreachableStates(
-			const ExplicitFiniteAut<SymbolType> &,
-			VATA::AutBase::StateToStateMap*);
-
-	template <class SymbolType>
-	friend ExplicitFiniteAut<SymbolType> RemoveUselessStates(
-			const ExplicitFiniteAut<SymbolType> &,
-			VATA::AutBase::StateToStateMap*);
-
-	template <class SymbolType>
-	friend ExplicitFiniteAut<SymbolType> Reverse(
-			const ExplicitFiniteAut<SymbolType> &,
-			AutBase::ProductTranslMap*);
-
 	template <class SymbolType, class Dict>
 	friend ExplicitFiniteAut<SymbolType> Complement(
 			const ExplicitFiniteAut<SymbolType> &,
 			const Dict &);
-
-	template <class SymbolType>
-	friend ExplicitFiniteAut<SymbolType> GetCandidateTree(
-			const ExplicitFiniteAut<SymbolType> &);
 
 	template <class SymbolType, class Rel, class Index>
 	friend ExplicitFiniteAut<SymbolType> CollapseStates(
@@ -601,6 +566,47 @@ protected:
 
 	}
 
+public:   // methods
+
+	ExplicitFiniteAut<SymbolType> RemoveUnreachableStates(
+			VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
+
+
+	ExplicitFiniteAut<SymbolType> RemoveUselessStates(
+			VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
+
+	ExplicitFiniteAut<SymbolType> GetCandidateTree() const;
+
+
+	/*
+	 * Creates union of two automata. It just reindexs
+	 * existing states of both automata to a new one.
+	 * Reindexing of states is not done in this function, this
+	 * function just prepares translators.
+	 */
+	static ExplicitFiniteAut<SymbolType> Union(
+		const ExplicitFiniteAut<SymbolType>& lhs,
+		const ExplicitFiniteAut<SymbolType>& rhs,
+		AutBase::StateToStateMap* pTranslMapLhs = nullptr,
+		AutBase::StateToStateMap* pTranslMapRhs = nullptr);
+
+	static ExplicitFiniteAut<SymbolType> UnionDisjointStates(
+		const ExplicitFiniteAut<SymbolType>& lhs,
+		const ExplicitFiniteAut<SymbolType>& rhs);
+
+	static VATA::ExplicitFiniteAut<SymbolType> Intersection(
+			const VATA::ExplicitFiniteAut<SymbolType> &lhs,
+			const VATA::ExplicitFiniteAut<SymbolType> &rhs,
+			AutBase::ProductTranslMap* pTranslMap = nullptr);
+
+
+	static bool CheckInclusion(
+		const VATA::ExplicitFiniteAut<SymbolType>&    smaller,
+		const VATA::ExplicitFiniteAut<SymbolType>&    bigger,
+		const VATA::InclParam&												params);
+
+	ExplicitFiniteAut<SymbolType> Reverse(
+			AutBase::StateToStateMap* pTranslMap = nullptr) const;
 
 	/***************************************************
 	 * Simulation functions
@@ -635,7 +641,7 @@ public:   // methods
 #endif
 
 	/*****************************************************************
-	 * Upward simulation just for compability
+	 * Upward simulation just for compatibility
 	 */
 	template <class Index>
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(

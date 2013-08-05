@@ -38,19 +38,6 @@ class VATA::BDDBottomUpTreeAut
 {
 GCC_DIAG_ON(effc++)
 
-	friend BDDBottomUpTreeAut Union(const BDDBottomUpTreeAut&,
-		const BDDBottomUpTreeAut&, AutBase::StateToStateMap*,
-		AutBase::StateToStateMap*);
-
-	friend BDDBottomUpTreeAut Intersection(const BDDBottomUpTreeAut&,
-		const BDDBottomUpTreeAut&, AutBase::ProductTranslMap*);
-
-	friend BDDBottomUpTreeAut RemoveUnreachableStates(const BDDBottomUpTreeAut&,
-		AutBase::StateToStateMap* pTranslMap);
-
-	friend BDDBottomUpTreeAut RemoveUselessStates(const BDDBottomUpTreeAut&,
-		AutBase::StateToStateMap* pTranslMap);
-
 public:   // data types
 
 	typedef std::unordered_set<StateType> StateHT;
@@ -786,6 +773,27 @@ public:   // methods
 	AutBase::StateBinaryRelation ComputeUpwardSimulation() const;
 
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(size_t size) const;
+
+	BDDBottomUpTreeAut RemoveUnreachableStates() const;
+
+	BDDBottomUpTreeAut RemoveUselessStates() const;
+
+	BDDBottomUpTreeAut GetCandidateTree() const
+	{
+		throw NotImplementedException(__func__);
+	}
+
+	static BDDBottomUpTreeAut Union(const BDDBottomUpTreeAut& lhs,
+		const BDDBottomUpTreeAut& rhs,
+		AutBase::StateToStateMap* pTranslMapLhs = nullptr,
+		AutBase::StateToStateMap* pTranslMapRhs = nullptr);
+
+	static BDDBottomUpTreeAut UnionDisjointStates(const BDDBottomUpTreeAut& lhs,
+		const BDDBottomUpTreeAut& rhs);
+
+	static BDDBottomUpTreeAut Intersection(const BDDBottomUpTreeAut& lhs,
+		const BDDBottomUpTreeAut& rhs,
+		AutBase::ProductTranslMap* pTranslMap = nullptr);
 };
 
 #endif

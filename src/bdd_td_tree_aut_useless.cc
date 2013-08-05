@@ -23,7 +23,7 @@ using VATA::BDDTopDownTreeAut;
 using VATA::Util::Convert;
 using VATA::Util::Graph;
 
-BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut)
+BDDTopDownTreeAut BDDTopDownTreeAut::RemoveUselessStates() const
 {
 	typedef AutBase::StateType StateType;
 	typedef BDDTopDownTreeAut::StateTuple StateTuple;
@@ -140,7 +140,7 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut)
 	AndOrGraphConstrFunctor func(procPair.first, graph, workset, andNodes,
 		orNodes, termNodes);
 
-	for (auto fst : aut.GetFinalStates())
+	for (auto fst : this->GetFinalStates())
 	{
 		NodeStatePair translPair(graph.AddNode(), fst);
 		orNodes.insert(translPair);
@@ -152,7 +152,7 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut)
 		procPair = workset.top();
 		workset.pop();
 
-		func(aut.GetMtbdd(procPair.second));
+		func(this->GetMtbdd(procPair.second));
 	}
 
 	// now perform the analysis of useful states
@@ -263,7 +263,7 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut)
 
 	RestrictApplyFunctor restrFunc(usefulStates);
 
-	for (auto fst : aut.GetFinalStates())
+	for (auto fst : this->GetFinalStates())
 	{	// start from all final states of the original automaton
 		if (usefulStates.find(fst) != usefulStates.end())
 		{	// in case the state is useful
@@ -271,7 +271,7 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut)
 		}
 	}
 
-	for (auto stateBddPair : aut.GetStates())
+	for (auto stateBddPair : this->GetStates())
 	{	// for all states
 		const StateType& state = stateBddPair.first;
 		const TransMTBDD& bdd = stateBddPair.second;
@@ -282,5 +282,5 @@ BDDTopDownTreeAut VATA::RemoveUselessStates(const BDDTopDownTreeAut& aut)
 		}
 	}
 
-	return RemoveUnreachableStates(result);
+	return result.RemoveUnreachableStates();
 }

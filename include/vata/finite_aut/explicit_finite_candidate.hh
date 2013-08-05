@@ -19,19 +19,12 @@
 #include <list>
 #include <unordered_map>
 
-namespace VATA {
-	template <class SymbolType>
-	ExplicitFiniteAut<SymbolType> GetCandidateTree(
-			const ExplicitFiniteAut<SymbolType> &aut);
-}
-
 /*
  * Get candidate nfa. It is the smallest nfa which
  * has language which is subset of the input nfa
  */
 template <class SymbolType>
-VATA::ExplicitFiniteAut<SymbolType> VATA::GetCandidateTree(
-		const VATA::ExplicitFiniteAut<SymbolType> &aut) {
+VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::GetCandidateTree() const {
 
 	typedef ExplicitFiniteAut<SymbolType> ExplicitFA;
 	typedef typename ExplicitFA::StateType StateType;
@@ -39,17 +32,15 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::GetCandidateTree(
 	std::unordered_set<StateType> reachableStates;
 	std::list<StateType> newStates;
 
-	auto transitions_ = aut.transitions_;
-
 	ExplicitFA res;
 
 
 	// Starts from start states
-	for (StateType s : aut.GetStartStates()) {
+	for (StateType s : this->GetStartStates()) {
 		if (reachableStates.insert(s).second) {
 			newStates.push_back(s);
 		}
-		res.SetExistingStateStart(s,aut.GetStartSymbols(s));
+		res.SetExistingStateStart(s, this->GetStartSymbols(s));
 	}
 
 	while (!newStates.empty()) {
@@ -71,12 +62,12 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::GetCandidateTree(
 					newStates.push_back(stateInSet);
 				}
 
-				if (aut.IsStateFinal(stateInSet)) { // Set final state and return
+				if (this->IsStateFinal(stateInSet)) { // Set final state and return
 					std::cout	 <<	 "jsem tady"	<<	std::endl;
 					res.SetStateFinal(stateInSet);
 					res.transitions_->insert(std::make_pair(actState,transitionsCluster->second));
 					//res.internalAddTransition(actState,symbolToState.first,stateInSet);
-					return RemoveUselessStates(res);
+					return res.RemoveUselessStates();
 				}
 				// add to transitions
 				res.transitions_->insert(std::make_pair(actState,transitionsCluster->second));
@@ -85,7 +76,7 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::GetCandidateTree(
 		}
 	}
 
-	return RemoveUselessStates(res);
+	return res.RemoveUselessStates();
 }
 
 #endif

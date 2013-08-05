@@ -11,7 +11,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_bu_tree_aut_op.hh>
+#include <vata/bdd_bu_tree_aut.hh>
 
 using VATA::AutBase;
 using VATA::BDDBottomUpTreeAut;
@@ -28,44 +28,44 @@ typedef std::unordered_map<StateTuple, TransMTBDD, boost::hash<StateTuple>>
 
 
 namespace
+{	// anonymous namespace
+GCC_DIAG_OFF(effc++)
+class ReachableCollectorFctor :
+	public VATA::MTBDDPkg::VoidApply1Functor<ReachableCollectorFctor,
+	StateSet>
 {
-	GCC_DIAG_OFF(effc++)
-	class ReachableCollectorFctor :
-		public VATA::MTBDDPkg::VoidApply1Functor<ReachableCollectorFctor,
-		StateSet>
+GCC_DIAG_ON(effc++)
+
+private:  // data members
+
+	StateHT& reachable_;
+	StateHT& workset_;
+
+public:   // methods
+
+	ReachableCollectorFctor(StateHT& reachable, StateHT& workset) :
+		reachable_(reachable),
+		workset_(workset)
+	{ }
+
+	inline void ApplyOperation(const StateSet& value)
 	{
-	GCC_DIAG_ON(effc++)
-
-	private:  // data members
-
-		StateHT& reachable_;
-		StateHT& workset_;
-
-	public:   // methods
-
-		ReachableCollectorFctor(StateHT& reachable, StateHT& workset) :
-			reachable_(reachable),
-			workset_(workset)
-		{ }
-
-		inline void ApplyOperation(const StateSet& value)
+		for (const StateType& state : value)
 		{
-			for (const StateType& state : value)
-			{
-				if (reachable_.insert(state).second)
-				{	// if the value was inserted
-					if (!workset_.insert(state).second)
-					{	// if it is already in the workset
-						assert(false);     // fail gracefully
-					}
+			if (reachable_.insert(state).second)
+			{	// if the value was inserted
+				if (!workset_.insert(state).second)
+				{	// if it is already in the workset
+					assert(false);     // fail gracefully
 				}
 			}
 		}
-	};
-}
+	}
+};
+} // namespace
 
 
-BDDBottomUpTreeAut VATA::RemoveUnreachableStates(const BDDBottomUpTreeAut& aut)
+BDDBottomUpTreeAut BDDBottomUpTreeAut::RemoveUnreachableStates() const
 {
 	BDDBottomUpTreeAut result;
 
@@ -74,7 +74,7 @@ BDDBottomUpTreeAut VATA::RemoveUnreachableStates(const BDDBottomUpTreeAut& aut)
 
 	TupleHT tuples;
 
-	for (auto tupleBddPair : aut.GetTransTable())
+	for (auto tupleBddPair : this->GetTransTable())
 	{
 		tuples.insert(tupleBddPair);
 	}
@@ -83,7 +83,7 @@ BDDBottomUpTreeAut VATA::RemoveUnreachableStates(const BDDBottomUpTreeAut& aut)
 
 	ReachableCollectorFctor reachFunc(reachable, workset);
 
-	const TransMTBDD& nullaryBdd = aut.GetMtbdd(StateTuple());
+	const TransMTBDD& nullaryBdd = this->GetMtbdd(StateTuple());
 	reachFunc(nullaryBdd);
 	result.SetMtbdd(StateTuple(), nullaryBdd);
 
@@ -128,7 +128,7 @@ BDDBottomUpTreeAut VATA::RemoveUnreachableStates(const BDDBottomUpTreeAut& aut)
 		}
 	}
 
-	for (const StateType& fst : aut.GetFinalStates())
+	for (const StateType& fst : this->GetFinalStates())
 	{
 		if (reachable.find(fst) != reachable.end())
 		{

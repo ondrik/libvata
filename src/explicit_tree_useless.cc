@@ -4,12 +4,9 @@
  *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
  *  Description:
- *    Header file for RemoveUselessStates() on explicit tree automata.
+ *    Implementation of RemoveUselessStates() on explicit tree automata.
  *
  *****************************************************************************/
-
-#ifndef _VATA_EXPLICIT_TREE_USELESS_HH_
-#define _VATA_EXPLICIT_TREE_USELESS_HH_
 
 // Standard library headers
 #include <vector>
@@ -18,27 +15,16 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/explicit_tree_aut.hh>
-#include <vata/explicit_tree_unreach.hh>
+#include <vata/ta_expl/explicit_tree_aut.hh>
 
-namespace VATA {
+using VATA::ExplicitTreeAut;
 
-	template <class SymbolType>
-	ExplicitTreeAut<SymbolType> RemoveUselessStates(
-		const ExplicitTreeAut<SymbolType>& aut,
-		AutBase::StateToStateMap* pTranslMap = nullptr);
-
-}
-
-template <class SymbolType>
-VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUselessStates(
-	const VATA::ExplicitTreeAut<SymbolType>& aut,
-	VATA::AutBase::StateToStateMap* pTranslMap = nullptr) {
-
-	typedef VATA::ExplicitTreeAut<SymbolType> ExplicitTA;
-
-	typedef typename ExplicitTA::StateType StateType;
-	typedef typename ExplicitTA::TuplePtr TuplePtr;
+ExplicitTreeAut ExplicitTreeAut::RemoveUselessStates(
+	VATA::AutBase::StateToStateMap* pTranslMap) const
+{
+	typedef ExplicitTreeAut::StateType StateType;
+	typedef ExplicitTreeAut::TuplePtr TuplePtr;
+	typedef ExplicitTreeAut::SymbolType SymbolType;
 
 	struct TransitionInfo {
 
@@ -72,11 +58,11 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUselessStates(
 	std::vector<TransitionInfoPtr> reachableTransitions;
 	std::vector<StateType> newStates;
 
-	assert(aut.transitions_);
+	assert(nullptr != transitions_);
 
 	size_t remaining = 0;
 
-	for (auto& stateClusterPair : *aut.transitions_) {
+	for (auto& stateClusterPair : *transitions_) {
 
 		assert(stateClusterPair.second);
 
@@ -153,9 +139,9 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUselessStates(
 
 	}
 */
-	ExplicitTA result(aut.cache_);
+	ExplicitTreeAut result(cache_);
 
-	for (auto& state : aut.finalStates_) {
+	for (auto& state : finalStates_) {
 
 		if (reachableStates.count(state))
 			result.SetStateFinal(state);
@@ -164,9 +150,9 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUselessStates(
 
 	if (!remaining) {
 
-		result.transitions_ = aut.transitions_;
+		result.transitions_ = transitions_;
 
-		return RemoveUnreachableStates(result, pTranslMap);
+		return result.RemoveUnreachableStates(pTranslMap);
 
 	}
 
@@ -178,8 +164,6 @@ VATA::ExplicitTreeAut<SymbolType> VATA::RemoveUselessStates(
 
 	}
 
-	return RemoveUnreachableStates(result, pTranslMap);
+	return result.RemoveUnreachableStates(pTranslMap);
 
 }
-
-#endif

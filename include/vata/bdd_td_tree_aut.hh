@@ -613,6 +613,30 @@ public:   // public methods
 	AutBase::StateBinaryRelation ComputeUpwardSimulation() const;
 
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(size_t size) const;
+
+	BDDTopDownTreeAut RemoveUnreachableStates() const;
+
+	BDDTopDownTreeAut RemoveUselessStates() const;
+
+	BDDTopDownTreeAut GetCandidateTree() const
+	{
+		throw NotImplementedException(__func__);
+	}
+
+	static BDDTopDownTreeAut Union(
+		const BDDTopDownTreeAut&      lhs,
+		const BDDTopDownTreeAut&      rhs,
+		AutBase::StateToStateMap*     pTranslMapLhs = nullptr,
+		AutBase::StateToStateMap*     pTranslMapRhs = nullptr);
+
+	static BDDTopDownTreeAut UnionDisjointStates(
+		const BDDTopDownTreeAut&      lhs,
+		const BDDTopDownTreeAut&      rhs);
+
+	static BDDTopDownTreeAut Intersection(
+		const BDDTopDownTreeAut&      lhs,
+		const BDDTopDownTreeAut&      rhs,
+		AutBase::ProductTranslMap*    pTranslMap = nullptr);
 };
 
 #endif

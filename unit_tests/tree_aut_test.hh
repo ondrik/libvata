@@ -171,7 +171,7 @@ protected:// methods
 
 			if (ip.GetUseSimulation())
 			{	// if there is simulation, we need to compute it
-				AutType unionAut = VATA::UnionDisjointStates(autSmaller, autBigger);
+				AutType unionAut = AutType::UnionDisjointStates(autSmaller, autBigger);
 				if (InclParam::e_direction::downward == ip.GetDirection())
 				{	// downward direction
 					sim = unionAut.ComputeDownwardSimulation(states);
@@ -188,7 +188,7 @@ protected:// methods
 				ip.SetSimulation(&sim);
 			}
 
-			bool doesInclusionHold = VATA::CheckInclusion(autSmaller, autBigger, ip);
+			bool doesInclusionHold = AutType::CheckInclusion(autSmaller, autBigger, ip);
 
 			BOOST_CHECK_MESSAGE(expectedResult == doesInclusionHold,
 				"\n\nError checking inclusion " + inputSmallerFile + " <= " +
@@ -223,7 +223,7 @@ protected:// methods
 			StateToStateTranslator stateTrans(stateMap,
 				[&stateCnt](const StateType&){return stateCnt++;});
 
-			aut = VATA::RemoveUselessStates(aut);
+			aut = aut.RemoveUselessStates();
 			AutType reindexedAut;
 			aut.ReindexStates(reindexedAut, stateTrans);
 
@@ -525,7 +525,7 @@ BOOST_AUTO_TEST_CASE(aut_union_trans_table_copy)
 
 		AutBase::StateToStateMap stateTranslMapLhs;
 		AutBase::StateToStateMap stateTranslMapRhs;
-		AutType autUnion = VATA::Union(autLhs, autRhs, &stateTranslMapLhs,
+		AutType autUnion = AutType::Union(autLhs, autRhs, &stateTranslMapLhs,
 			&stateTranslMapRhs);
 		StringToStateDict stateDictUnion =
 			VATA::Util::CreateUnionStringToStateMap(stateDictLhs, stateDictRhs,
@@ -574,7 +574,7 @@ BOOST_AUTO_TEST_CASE(aut_intersection)
 		AutDescription autRhsDesc = parser_.ParseString(autRhsStr);
 
 		AutBase::ProductTranslMap translMap;
-		AutType autIntersect = VATA::Intersection(autLhs, autRhs, &translMap);
+		AutType autIntersect = AutType::Intersection(autLhs, autRhs, &translMap);
 
 		StringToStateDict stateDictIsect = VATA::Util::CreateProductStringToStateMap(
 			stateDictLhs, stateDictRhs, translMap);
@@ -613,7 +613,7 @@ BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
 		AutDescription autDesc = parser_.ParseString(autStr);
 
 		StateToStateMap translMap;
-		AutType autNoUnreach = VATA::RemoveUnreachableStates(aut);
+		AutType autNoUnreach = aut.RemoveUnreachableStates();
 		std::string autNoUnreachStr = dumpAut(autNoUnreach, stateDict);
 
 		AutDescription descOutNoUnreach = parser_.ParseString(autNoUnreachStr);
@@ -648,7 +648,7 @@ BOOST_AUTO_TEST_CASE(aut_remove_useless)
 		readAut(aut, stateDict, autStr);
 		AutDescription autDesc = parser_.ParseString(autStr);
 
-		AutType autNoUseless = VATA::RemoveUselessStates(aut);
+		AutType autNoUseless = aut.RemoveUselessStates();
 		std::string autNoUselessStr = dumpAut(autNoUseless, stateDict);
 
 		AutDescription descOutNoUseless = parser_.ParseString(autNoUselessStr);

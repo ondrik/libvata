@@ -27,7 +27,6 @@ template <class Index>
 VATA::ExplicitLTS VATA::ExplicitTreeAut::TranslateDownward(
 	const Index&        stateIndex) const
 {
-
 	typedef Explicit::StateTuple StateTuple;
 	typedef ExplicitTreeAut::SymbolType SymbolType;
 
@@ -46,24 +45,24 @@ VATA::ExplicitLTS VATA::ExplicitTreeAut::TranslateDownward(
 
 	ExplicitLTS result;
 
-  /*
-   * Iterate through all transitions and adds them
-   * to the LTS.
-   */
-	for (auto& stateClusterPair : *transitions_) {
-
+	/*
+	 * Iterate through all transitions and adds them
+	 * to the LTS.
+	 */
+	for (auto& stateClusterPair : *transitions_)
+	{
 		assert(stateClusterPair.second);
 
 		size_t state = stateIndex[stateClusterPair.first];
 
-		for (auto& symbolTupleSetPair : *stateClusterPair.second) {
-
+		for (auto& symbolTupleSetPair : *stateClusterPair.second)
+		{
 			assert(symbolTupleSetPair.second);
 
 			size_t symbol = symbolTranslator(symbolTupleSetPair.first);
 
-			for (auto& tuple : *symbolTupleSetPair.second) {
-
+			for (auto& tuple : *symbolTupleSetPair.second)
+			{
 				assert(tuple);
 
 				if (tuple->size() == 1) { // a(p) -> q
@@ -74,11 +73,8 @@ VATA::ExplicitLTS VATA::ExplicitTreeAut::TranslateDownward(
 						stateClusterPair.first, symbol, lhsTranslator(tuple.get())
 					);
 				}
-
 			}
-
 		}
-
 	}
 
 	for (auto& tupleIndexPair : lhsMap) {
@@ -345,7 +341,7 @@ VATA::ExplicitLTS VATA::ExplicitTreeAut::TranslateUpward(
 
 	}
 
-  result.init();
+	result.init();
 
 	return result;
 

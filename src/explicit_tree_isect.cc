@@ -4,12 +4,9 @@
  *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
  *  Description:
- *    Header file for Intersection() on explicit tree automata.
+ *    Implementation of Intersection() on explicit tree automata.
  *
  *****************************************************************************/
-
-#ifndef _VATA_EXPLICIT_TREE_ISECT_HH_
-#define _VATA_EXPLICIT_TREE_ISECT_HH_
 
 // VATA headers
 #include <vata/vata.hh>
@@ -18,24 +15,19 @@
 // Standard library headers
 #include <vector>
 
-namespace VATA {
+using VATA::ExplicitTreeAut;
 
-	ExplicitTreeAut Intersection(
-		const ExplicitTreeAut& lhs,
-		const ExplicitTreeAut& rhs,
-		AutBase::ProductTranslMap* pTranslMap = nullptr);
-
-}
-
-VATA::ExplicitTreeAut VATA::Intersection(
-	const VATA::ExplicitTreeAut& lhs,
-	const VATA::ExplicitTreeAut& rhs,
-	VATA::AutBase::ProductTranslMap* pTranslMap)
+ExplicitTreeAut ExplicitTreeAut::Intersection(
+	const ExplicitTreeAut&               lhs,
+	const ExplicitTreeAut&               rhs,
+	VATA::AutBase::ProductTranslMap*     pTranslMap)
 {
 	VATA::AutBase::ProductTranslMap translMap;
 
-	if (!pTranslMap)
+	if (nullptr == pTranslMap)
+	{
 		pTranslMap = &translMap;
+	}
 
 	ExplicitTreeAut res(lhs.cache_);
 
@@ -130,5 +122,3 @@ VATA::ExplicitTreeAut VATA::Intersection(
 	return res;
 
 }
-
-#endif

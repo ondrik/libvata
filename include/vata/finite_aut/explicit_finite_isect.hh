@@ -19,19 +19,12 @@
 // Standard library headers
 #include <vector>
 
-namespace VATA {
- template <class SymbolType>
-		ExplicitFiniteAut<SymbolType> Intersection(
-			const ExplicitFiniteAut<SymbolType> &lhs,
-			const ExplicitFiniteAut<SymbolType> &rhs,
-			AutBase::ProductTranslMap* pTranslMap = nullptr);
-}
 
 template <class SymbolType>
-VATA::ExplicitFiniteAut<SymbolType> VATA::Intersection(
+VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::Intersection(
 		const VATA::ExplicitFiniteAut<SymbolType> &lhs,
 		const VATA::ExplicitFiniteAut<SymbolType> &rhs,
-		AutBase::ProductTranslMap* pTranslMap = nullptr) {
+		AutBase::ProductTranslMap* pTranslMap) {
 
 	typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
 	typedef typename ExplicitFA::StateSet StateSet;
@@ -140,7 +133,7 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::Intersection(
 		}
 	}
 
-	return RemoveUselessStates(res);
+	return res.RemoveUselessStates();
 }
 
 #endif

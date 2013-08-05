@@ -4,7 +4,7 @@
  *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
  *  Description:
- *    Header file for RemoveUnreachableStates() on explicit tree automata.
+ *    Implementation of template RemoveUnreachableStates() on explicit tree automata.
  *
  *****************************************************************************/
 
@@ -12,107 +12,16 @@
 #define _VATA_EXPLICIT_TREE_UNREACH_HH_
 
 // VATA headers
-#include <vata/vata.hh>
 #include <vata/ta_expl/explicit_tree_aut.hh>
-#include <vata/util/transl_strict.hh>
 #include <vata/util/antichain1c.hh>
 
-// Standard library headers
-#include <vector>
-#include <unordered_set>
-
-namespace VATA {
-
-	ExplicitTreeAut RemoveUnreachableStates(
-		const ExplicitTreeAut&   aut,
-		AutBase::StateToStateMap*            pTranslMap = nullptr);
-
-	template <
-		class SymbolType,
-		class Rel,
-		class Index = Util::IdentityTranslator<AutBase::StateType>
-	>
-	ExplicitTreeAut RemoveUnreachableStates(
-		const ExplicitTreeAut&               aut,
-		const Rel&                           rel,
-		const Index&                         index = Index());
-
-}
-
-VATA::ExplicitTreeAut VATA::RemoveUnreachableStates(
-	const VATA::ExplicitTreeAut&               aut,
-	VATA::AutBase::StateToStateMap*            pTranslMap)
-{
-	typedef ExplicitTreeAut::StateToTransitionClusterMapPtr
-		StateToTransitionClusterMapPtr;
-
-	std::unordered_set<AutBase::StateType> reachableStates(aut.GetFinalStates());
-	std::vector<AutBase::StateType> newStates(reachableStates.begin(), reachableStates.end());
-
-	while (!newStates.empty())
-	{
-		auto cluster = ExplicitTreeAut::genericLookup(*aut.transitions_, newStates.back());
-
-		newStates.pop_back();
-
-		if (!cluster)
-			continue;
-
-		for (auto& symbolStateTupleSetPtr : *cluster)
-		{
-			assert(symbolStateTupleSetPtr.second);
-
-			for (auto& stateTuple : *symbolStateTupleSetPtr.second)
-			{
-				assert(stateTuple);
-
-				for (auto& state : *stateTuple)
-				{
-					if (reachableStates.insert(state).second)
-						newStates.push_back(state);
-				}
-			}
-		}
-	}
-
-	if (pTranslMap)
-	{
-		for (auto& state : reachableStates)
-			pTranslMap->insert(std::make_pair(state, state));
-	}
-
-	if (reachableStates.size() == aut.transitions_->size())
-		return aut;
-
-	ExplicitTreeAut result(aut.cache_);
-
-	result.finalStates_ = aut.finalStates_;
-	result.transitions_ = StateToTransitionClusterMapPtr(
-		new ExplicitTreeAut::StateToTransitionClusterMap()
-	);
-
-	for (auto& state : reachableStates)
-	{
-		auto iter = aut.transitions_->find(state);
-
-		if (iter == aut.transitions_->end())
-			continue;
-
-		result.transitions_->insert(std::make_pair(state, iter->second));
-	}
-
-	return result;
-}
-
 template <
-	class SymbolType,
 	class Rel,
-	class Index = VATA::Util::IdentityTranslator<VATA::AutBase::StateType>
+	class Index
 >
-VATA::ExplicitTreeAut VATA::RemoveUnreachableStates(
-	const VATA::ExplicitTreeAut&               aut,
+VATA::ExplicitTreeAut VATA::ExplicitTreeAut::RemoveUnreachableStates(
 	const Rel&                                 rel,
-	const Index&                               index = Index())
+	const Index&                               index)
 {
 	typedef ExplicitTreeAut::StateToTransitionClusterMap
 		StateToTransitionClusterMap;
@@ -158,7 +67,7 @@ VATA::ExplicitTreeAut VATA::RemoveUnreachableStates(
 
 	rel.buildIndex(ind, inv);
 
-	for (auto& state : aut.GetFinalStates())
+	for (auto& state : this->GetFinalStates())
 	{
 		if (finalStates.contains(ind[state]))
 			continue;
@@ -185,9 +94,9 @@ VATA::ExplicitTreeAut VATA::RemoveUnreachableStates(
 
 		newStates.pop_back();
 
-		auto stateClusterIter = aut.transitions_->find(state);
+		auto stateClusterIter = transitions_->find(state);
 
-		if (stateClusterIter == aut.transitions_->end())
+		if (stateClusterIter == transitions_->end())
 			continue;
 
 		bool clusterModified = false;
@@ -245,17 +154,17 @@ VATA::ExplicitTreeAut VATA::RemoveUnreachableStates(
 		newTransitions->insert(std::make_pair(state, transitionCluster));
 	}
 
-	if (!transitionsModified && (reachableStates.size() == aut.transitions_->size()) &&
-		(finalStates.data().size() == aut.finalStates_.size()))
-		return aut;
+	if (!transitionsModified && (reachableStates.size() == transitions_->size()) &&
+		(finalStates.data().size() == finalStates_.size()))
+		return *this;
 
-	ExplicitTreeAut result(aut.cache_);
+	ExplicitTreeAut result(cache_);
 
 	result.finalStates_.insert(finalStates.data().begin(), finalStates.data().end());
 
-	if (!transitionsModified && (reachableStates.size() == aut.transitions_->size()))
+	if (!transitionsModified && (reachableStates.size() == transitions_->size()))
 	{
-		result.transitions_ = aut.transitions_;
+		result.transitions_ = transitions_;
 
 		return result;
 	}

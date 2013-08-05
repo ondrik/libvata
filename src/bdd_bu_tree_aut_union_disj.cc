@@ -11,13 +11,13 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_bu_tree_aut_op.hh>
+#include <vata/bdd_bu_tree_aut.hh>
 
 using VATA::BDDBottomUpTreeAut;
 using VATA::Util::Convert;
 
 
-BDDBottomUpTreeAut VATA::UnionDisjointStates(
+BDDBottomUpTreeAut BDDBottomUpTreeAut::UnionDisjointStates(
 	const BDDBottomUpTreeAut&   lhs,
 	const BDDBottomUpTreeAut&   rhs)
 {

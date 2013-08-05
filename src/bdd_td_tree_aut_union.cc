@@ -20,9 +20,11 @@ using VATA::Util::Convert;
 #include <unordered_map>
 
 
-BDDTopDownTreeAut VATA::Union(const BDDTopDownTreeAut& lhs,
-	const BDDTopDownTreeAut& rhs, AutBase::StateToStateMap* pTranslMapLhs,
-	AutBase::StateToStateMap* pTranslMapRhs)
+BDDTopDownTreeAut BDDTopDownTreeAut::Union(
+	const BDDTopDownTreeAut&     lhs,
+	const BDDTopDownTreeAut&     rhs,
+	AutBase::StateToStateMap*    pTranslMapLhs,
+	AutBase::StateToStateMap*    pTranslMapRhs)
 {
 	typedef BDDTopDownTreeAut::StateType StateType;
 	typedef BDDTopDownTreeAut::StateTuple StateTuple;

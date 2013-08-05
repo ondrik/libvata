@@ -19,7 +19,7 @@
 #include <vata/util/antichain2c_v2.hh>
 
 #include <vata/ta_expl/explicit_tree_aut.hh>
-#include <vata/ta_expl/explicit_tree_incl_up.hh>
+#include "explicit_tree_incl_up.hh"
 
 template <class T1, class T2>
 bool checkIntersection(const T1& s1, const T2& s2)

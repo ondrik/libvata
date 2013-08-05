@@ -23,7 +23,7 @@ using VATA::Util::Convert;
 #include <unordered_map>
 
 
-BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut)
+BDDTopDownTreeAut BDDTopDownTreeAut::RemoveUnreachableStates() const
 {
 	typedef BDDTopDownTreeAut::StateType StateType;
 	typedef BDDTopDownTreeAut::StateTuple StateTuple;
@@ -73,7 +73,7 @@ BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut)
 
 	UnreachableApplyFunctor unreach(workset, processed);
 
-	for (auto fst : aut.GetFinalStates())
+	for (auto fst : this->GetFinalStates())
 	{	// start from all final states of the original automaton
 		result.SetStateFinal(fst);
 		workset.push(fst);
@@ -84,7 +84,7 @@ BDDTopDownTreeAut VATA::RemoveUnreachableStates(const BDDTopDownTreeAut& aut)
 		StateType state = workset.top();
 		workset.pop();
 
-		result.SetMtbdd(state, unreach(aut.GetMtbdd(state)));
+		result.SetMtbdd(state, unreach(this->GetMtbdd(state)));
 	}
 
 	return result;

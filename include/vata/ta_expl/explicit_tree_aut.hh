@@ -17,6 +17,7 @@
 #include <vata/explicit_lts.hh>
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
+#include <vata/incl_param.hh>
 
 #include <vata/util/ord_vector.hh>
 #include <vata/util/transl_strict.hh>
@@ -56,37 +57,6 @@ GCC_DIAG_OFF(effc++)
 class VATA::ExplicitTreeAut : public AutBase
 {
 GCC_DIAG_ON(effc++)
-
-	friend ExplicitTreeAut Union(
-		const ExplicitTreeAut&,
-		const ExplicitTreeAut&,
-		AutBase::StateToStateMap*,
-		AutBase::StateToStateMap*);
-
-	friend ExplicitTreeAut UnionDisjointStates(
-		const ExplicitTreeAut&,
-		const ExplicitTreeAut&);
-
-	friend ExplicitTreeAut Intersection(
-		const ExplicitTreeAut&,
-		const ExplicitTreeAut&,
-		AutBase::ProductTranslMap*);
-
-	friend ExplicitTreeAut GetCandidateTree(const ExplicitTreeAut& aut);
-
-	friend ExplicitTreeAut RemoveUselessStates(
-		const ExplicitTreeAut&,
-		AutBase::StateToStateMap*);
-
-	friend ExplicitTreeAut RemoveUnreachableStates(
-		const ExplicitTreeAut&,
-		AutBase::StateToStateMap*);
-
-	template <class Rel, class Index>
-	friend ExplicitTreeAut RemoveUnreachableStates(
-		const ExplicitTreeAut&,
-		const Rel&,
-		const Index& = Index());
 
 	friend class ExplicitUpwardInclusion;
 	friend class ExplicitDownwardComplementation;
@@ -1057,17 +1027,10 @@ public:
 	template <class Index>
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		size_t            size,
-		const Index&      index) const
-	{
-		return this->TranslateDownward(index).computeSimulation(size);
-	}
-
+		const Index&      index) const;
 
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		size_t            size) const
-	{
-		return this->TranslateDownward().computeSimulation(size);
-	}
+		size_t            size) const;
 
 #if 0
 	AutBase::StateBinaryRelation ComputeDownwardSimulation() const
@@ -1112,38 +1075,103 @@ public:
 #endif
 
 
-	ExplicitTreeAut Reduce() const
-	{
-		typedef AutBase::StateType StateType;
+	ExplicitTreeAut Reduce() const;
 
-		typedef Util::TwoWayDict<
-			StateType,
-			StateType,
-			std::unordered_map<StateType, StateType>,
-			std::unordered_map<StateType, StateType>
-		> StateDict;
+	ExplicitTreeAut RemoveUnreachableStates(
+		AutBase::StateToStateMap*            pTranslMap = nullptr);
 
-		size_t stateCnt = 0;
+	template <
+		class Rel,
+		class Index = Util::IdentityTranslator<AutBase::StateType>
+	>
+	ExplicitTreeAut RemoveUnreachableStates(
+		const Rel&                           rel,
+		const Index&                         index = Index());
 
-		StateDict stateDict;
-		Util::TranslatorWeak<StateDict> stateTranslator(
-			stateDict, [&stateCnt](const StateType&){ return stateCnt++; }
-		);
+	ExplicitTreeAut RemoveUselessStates(
+		AutBase::StateToStateMap*          pTranslMap = nullptr) const;
 
-		this->BuildStateIndex(stateTranslator);
+	ExplicitTreeAut GetCandidateTree() const;
 
-		AutBase::StateBinaryRelation sim = this->ComputeDownwardSimulation(
-			stateDict.size(), Util::TranslatorStrict<StateDict>(stateDict)
-		);
 
-		return RemoveUnreachableStates(
-			this->CollapseStates(
-				sim, Util::TranslatorStrict<StateDict::MapBwdType>(stateDict.GetReverseMap())
-			),
-			sim,
-			Util::TranslatorStrict<StateDict>(stateDict)
-		);
-	}
+	/**
+	 * @brief  Unites a pair of automata
+	 *
+	 * Function for the union of two automata. It takes a pair of automata,
+	 * renames their states and then merges them into a single automaton. States
+	 * are renamed by the default dictionary or by a user defined dictionary, so
+	 * they may be overlapping.
+   *
+   * @param[in]      lhs             Left automaton for union
+   * @param[in]      rhs             Right automaton for union
+   * @param[in,out]  pTranslMapLhs   Dictionary for renaming left automaton
+   * @param[in,out]  pTranslMapRhs   Dictionary for renaming right automaton
+	 *
+	 * @returns  An automaton accepting the union of languages of @p lhs and @p
+	 * rhs
+   */
+	static ExplicitTreeAut Union(
+		const ExplicitTreeAut&                lhs,
+		const ExplicitTreeAut&                rhs,
+		AutBase::StateToStateMap*             pTranslMapLhs = nullptr,
+		AutBase::StateToStateMap*             pTranslMapRhs = nullptr);
+
+
+	/**
+	 * @brief  Unites two automata with disjoint sets of states
+	 *
+	 * Unites two automata. Note that these automata need to have disjoint sets of
+	 * states, otherwise the result is undefined.
+	 *
+   * @param[in]      lhs             Left automaton for union
+   * @param[in]      rhs             Right automaton for union
+	 *
+	 * @returns  An automaton accepting the union of languages of @p lhs and @p
+	 * rhs
+   */
+	static ExplicitTreeAut UnionDisjointStates(
+		const ExplicitTreeAut&           lhs,
+		const ExplicitTreeAut&           rhs);
+
+
+	/**
+	 * @brief  Intersection of languages of a pair of automata
+	 *
+	 * This function creates an automaton that accepts the languages defined as
+	 * the intersection of langauges of a pair of automata.
+	 *
+   * @param[in]   lhs             Left automaton
+   * @param[in]   rhs             Right automaton
+   * @param[out]  pTranslMapLhs   Dictionary for the result
+	 *
+	 * @returns  An automaton accepting the intersection of languages of @p lhs
+	 * and @p rhs
+   */
+	static ExplicitTreeAut Intersection(
+		const ExplicitTreeAut&            lhs,
+		const ExplicitTreeAut&            rhs,
+		AutBase::ProductTranslMap*        pTranslMap);
+
+
+	/**
+	 * @brief  Dispatcher for calling correct inclusion checking function
+	 *
+	 * This function is a dispatcher that calls a proper inclusion checking
+	 * function between @p smaller and @p bigger according to the parameters in @p
+	 * params.
+	 *
+	 * @param[in]  smaller  The smaller automaton
+	 * @param[in]  bigger   The bigger automaton
+	 * @param[in]  params   Parameters for the inclusion (can be @p nullptr for
+	 *                      the default parameters)
+	 *
+	 * @returns  @p true if the language of @p smaller is a subset of the language
+	 *           of @p bigger, @p false otherwise
+	 */
+	static bool CheckInclusion(
+		const ExplicitTreeAut&                 smaller,
+		const ExplicitTreeAut&                 bigger,
+		const VATA::InclParam&                 params);
 };
 
 #endif

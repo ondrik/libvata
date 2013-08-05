@@ -120,11 +120,11 @@ public:   // methods
 		StateToStateTranslator stateTrans(stateMap,
 			[&stateCnt](const StateType&){return stateCnt++;});
 
-		Automaton tmpAut = RemoveUselessStates(smaller);
+		Automaton tmpAut = smaller.RemoveUselessStates();
 		Automaton newSmaller;
 		tmpAut.ReindexStates(newSmaller, stateTrans);
 
-		tmpAut = RemoveUselessStates(bigger);
+		tmpAut = bigger.RemoveUselessStates();
 		stateMap.clear();
 		Automaton newBigger;
 		tmpAut.ReindexStates(newBigger, stateTrans);
@@ -143,7 +143,7 @@ public:   // methods
 		StateToStateTranslator stateTrans(stateMap,
 			[&stateCnt](const StateType&){return stateCnt++;});
 
-		Automaton newAut = RemoveUselessStates(aut);
+		Automaton newAut = aut.RemoveUselessStates();
 		Automaton reindexedAut;
 		newAut.ReindexStates(reindexedAut, stateTrans);
 

@@ -63,6 +63,13 @@ add_library(libvata STATIC
   explicit_tree_incl_up.cc
   explicit_lts_sim.cc
   explicit_tree_aut.cc
+  explicit_tree_candidate.cc
+  explicit_tree_union.cc
+  explicit_tree_isect.cc
+  explicit_tree_incl.cc
+  explicit_tree_unreach.cc
+  explicit_tree_useless.cc
+  explicit_tree_sim.cc
   convert.cc
   fake_file.cc
 	symbolic_aut_base.cc

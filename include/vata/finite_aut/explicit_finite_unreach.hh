@@ -21,25 +21,17 @@
 #include <unordered_set>
 #include <utility>
 
-namespace VATA {
-	template <class SymbolType>
-	ExplicitFiniteAut<SymbolType> RemoveUnreachableStates(
-			const ExplicitFiniteAut<SymbolType> &aut,
-			VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
-}
-
 
 template <class SymbolType>
-VATA::ExplicitFiniteAut<SymbolType> VATA::RemoveUnreachableStates(
-	const VATA::ExplicitFiniteAut<SymbolType> &aut,
-	VATA::AutBase::StateToStateMap* pTranslMap = nullptr) {
+VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::RemoveUnreachableStates(
+	VATA::AutBase::StateToStateMap* pTranslMap) {
 
 	typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
 	typedef typename ExplicitFA::StateToTransitionClusterMapPtr
 		StateToTransitionClusterMapPtr;
 
 	// start from start states
-	std::unordered_set<AutBase::StateType> reachableStates(aut.GetStartStates());
+	std::unordered_set<AutBase::StateType> reachableStates(this->GetStartStates());
 	std::vector<AutBase::StateType> newStates(reachableStates.begin(),reachableStates.end());
 
 	// Find all reachable states
@@ -48,7 +40,7 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::RemoveUnreachableStates(
 
 		newStates.pop_back();
 
-		auto cluster = ExplicitFA::genericLookup(*aut.transitions_,actState);
+		auto cluster = ExplicitFA::genericLookup(*transitions_, actState);
 
 		if (!cluster) {
 			continue;
@@ -72,8 +64,8 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::RemoveUnreachableStates(
 
 	ExplicitFA res;
 	//initialize the result automaton
-	res.startStates_ = aut.startStates_;
-	res.startStateToSymbols_ = aut.startStateToSymbols_;
+	res.startStates_ = startStates_;
+	res.startStateToSymbols_ = startStateToSymbols_;
 
 	res.transitions_ = StateToTransitionClusterMapPtr(
 			new typename ExplicitFA::StateToTransitionClusterMap()
@@ -82,12 +74,12 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::RemoveUnreachableStates(
 	// Add all reachables states and its transitions to result nfa
 	for (auto& state : reachableStates) {
 
-		if (aut.IsStateFinal(state)) {
+		if (this->IsStateFinal(state)) {
 			res.SetStateFinal(state);
 		}
 
-		auto stateToClusterIterator = aut.transitions_->find(state);
-		if (stateToClusterIterator == aut.transitions_->end()) {
+		auto stateToClusterIterator = transitions_->find(state);
+		if (stateToClusterIterator == transitions_->end()) {
 			continue;
 		}
 

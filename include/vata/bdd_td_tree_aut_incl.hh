@@ -11,11 +11,7 @@
 #ifndef _VATA_BDD_TD_TREE_AUT_INCL_
 #define _VATA_BDD_TD_TREE_AUT_INCL_
 
-#include <vata/down_tree_incl_fctor.hh>
-#include <vata/down_tree_opt_incl_fctor.hh>
 #include <vata/incl_param.hh>
-#include <vata/tree_incl_down.hh>
-#include <vata/tree_incl_up.hh>
 
 namespace VATA
 {

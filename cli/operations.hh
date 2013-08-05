@@ -135,7 +135,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 
 	if (ip.GetUseSimulation())
 	{	// if simulation is desired, then compute it here!
-		Automaton unionAut = VATA::UnionDisjointStates(smaller, bigger);
+		Automaton unionAut = Automaton::UnionDisjointStates(smaller, bigger);
 
 		// the relation
 		AutBase::StateBinaryRelation sim;
@@ -163,7 +163,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);
 	}
 
-	return VATA::CheckInclusion(smaller, bigger, ip);
+	return Automaton::CheckInclusion(smaller, bigger, ip);
 }
 
 template <class Automaton>
@@ -250,6 +250,8 @@ bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
 	}
 	else { throw optErrorEx; }
 
-	return VATA::CheckInclusion(smaller, bigger, ip);
+	// TODO: change
+	assert(false);
+	return Automaton::CheckInclusion(smaller, bigger, ip);
 }
 #endif

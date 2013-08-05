@@ -38,12 +38,6 @@ namespace VATA
 		const Rel& preorder);
 
 	template <class SymbolType>
-	bool CheckInclusion(
-		const ExplicitFiniteAut<SymbolType>&    smaller,
-		const ExplicitFiniteAut<SymbolType>&    bigger,
-		const InclParam&                  params);
-
-	template <class SymbolType>
 	bool CheckEquivalence(
 		const ExplicitFiniteAut<SymbolType>& smaller,
 		const ExplicitFiniteAut<SymbolType>& bigger,
@@ -56,7 +50,7 @@ namespace VATA
  * made then the inclusion check is called
  */
 template <class SymbolType>
-bool VATA::CheckInclusion(
+bool VATA::ExplicitFiniteAut<SymbolType>::CheckInclusion(
 	const VATA::ExplicitFiniteAut<SymbolType>&    smaller,
 	const VATA::ExplicitFiniteAut<SymbolType>&    bigger,
 	const VATA::InclParam&												params)

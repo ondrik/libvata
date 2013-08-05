@@ -11,16 +11,17 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_bu_tree_aut.hh>
-#include <vata/bdd_bu_tree_aut_op.hh>
 #include <vata/bdd_bu_tree_aut_incl.hh>
 #include <vata/bdd_td_tree_aut.hh>
 #include <vata/bdd_td_tree_aut_op.hh>
 #include <vata/bdd_td_tree_aut_incl.hh>
 #include <vata/ta_expl/explicit_tree_aut.hh>
 #include <vata/ta_expl/explicit_tree_aut_op.hh>
-#include <vata/ta_expl/explicit_tree_incl.hh>
 #include <vata/finite_aut/explicit_finite_aut.hh>
 #include <vata/finite_aut/explicit_finite_aut_op.hh>
+#include <vata/finite_aut/explicit_finite_union.hh>
+#include <vata/finite_aut/explicit_finite_unreach.hh>
+#include <vata/finite_aut/explicit_finite_useless.hh>
 #include <vata/finite_aut/explicit_finite_incl.hh>
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
@@ -196,24 +197,24 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 		{
 			if (args.operands >= 1)
 			{
-				autInput1 = RemoveUselessStates(autInput1);
+				autInput1 = autInput1.RemoveUselessStates();
 			}
 
 			if (args.operands >= 2)
 			{
-				autInput2 = RemoveUselessStates(autInput2);
+				autInput2 = autInput2.RemoveUselessStates();
 			}
 		}
 		else if (args.pruneUnreachable)
 		{
 			if (args.operands >= 1)
 			{
-				autInput1 = RemoveUnreachableStates(autInput1);
+				autInput1 = autInput1.RemoveUnreachableStates();
 			}
 
 			if (args.operands >= 2)
 			{
-				autInput2 = RemoveUnreachableStates(autInput2);
+				autInput2 = autInput2.RemoveUnreachableStates();
 			}
 		}
 	}
@@ -233,7 +234,7 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	}
 	else if (args.command == COMMAND_WITNESS)
 	{
-		autResult = GetCandidateTree(autInput1);
+		autResult = autInput1.GetCandidateTree();
 	}
 	else if (args.command == COMMAND_COMPLEMENT)
 	{
@@ -241,11 +242,11 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	}
 	else if (args.command == COMMAND_UNION)
 	{
-		autResult = Union(autInput1, autInput2, &opTranslMap1, &opTranslMap2);
+		autResult = Aut::Union(autInput1, autInput2, &opTranslMap1, &opTranslMap2);
 	}
 	else if (args.command == COMMAND_INTERSECTION)
 	{
-		autResult = Intersection(autInput1, autInput2, &prodTranslMap);
+		autResult = Aut::Intersection(autInput1, autInput2, &prodTranslMap);
 	}
 	else if (args.command == COMMAND_INCLUSION)
 	{

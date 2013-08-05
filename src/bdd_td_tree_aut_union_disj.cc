@@ -17,7 +17,7 @@ using VATA::BDDTopDownTreeAut;
 using VATA::Util::Convert;
 
 
-BDDTopDownTreeAut VATA::UnionDisjointStates(
+BDDTopDownTreeAut BDDTopDownTreeAut::UnionDisjointStates(
 	const BDDTopDownTreeAut&   lhs,
 	const BDDTopDownTreeAut&   rhs)
 {

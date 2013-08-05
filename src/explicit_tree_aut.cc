@@ -11,6 +11,8 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/ta_expl/explicit_tree_aut.hh>
+#include <vata/ta_expl/explicit_tree_unreach.hh>
+#include <vata/ta_expl/explicit_tree_sim.hh>
 
 // global tuple cache definition
 VATA::Explicit::TupleCache VATA::Explicit::tupleCache;
@@ -21,3 +23,33 @@ VATA::ExplicitTreeAut::StringToSymbolDict* VATA::ExplicitTreeAut::pSymbolDict_ =
 // pointer to next symbol counter
 VATA::ExplicitTreeAut::SymbolType* VATA::ExplicitTreeAut::pNextSymbol_ = nullptr;
 
+
+VATA::ExplicitTreeAut VATA::ExplicitTreeAut::Reduce() const
+{
+	typedef AutBase::StateType StateType;
+
+	typedef Util::TwoWayDict<
+		StateType,
+		StateType,
+		std::unordered_map<StateType, StateType>,
+		std::unordered_map<StateType, StateType>
+	> StateDict;
+
+	size_t stateCnt = 0;
+
+	StateDict stateDict;
+	Util::TranslatorWeak<StateDict> stateTranslator(
+		stateDict, [&stateCnt](const StateType&){ return stateCnt++; }
+	);
+
+	this->BuildStateIndex(stateTranslator);
+
+	AutBase::StateBinaryRelation sim = this->ComputeDownwardSimulation(
+		stateDict.size(), Util::TranslatorStrict<StateDict>(stateDict)
+	);
+
+	return this->CollapseStates(
+			sim, Util::TranslatorStrict<StateDict::MapBwdType>(stateDict.GetReverseMap())
+		).RemoveUnreachableStates(sim, Util::TranslatorStrict<StateDict>(stateDict)
+	);
+}

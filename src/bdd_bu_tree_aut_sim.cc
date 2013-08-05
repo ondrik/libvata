@@ -12,7 +12,6 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_bu_tree_aut.hh>
-#include <vata/bdd_bu_tree_aut_op.hh>
 #include <vata/mtbdd/apply3func.hh>
 
 // Standard library headers
@@ -45,198 +44,198 @@ typedef std::unordered_set<RemoveElement, boost::hash<RemoveElement>> RemoveSet;
 typedef BDDBottomUpTreeAut::TransTable BUTransTable;
 
 namespace
+{	// anonymous namespace
+template <class ArbitraryFunction>
+void forAllTuplesWithMatchingStatesDo(
+	const BUTransTable& tuples, const StateType& lhsState,
+	const StateType& rhsState, ArbitraryFunction func)
 {
-	template <class ArbitraryFunction>
-	void forAllTuplesWithMatchingStatesDo(
-		const BUTransTable& tuples, const StateType& lhsState,
-		const StateType& rhsState, ArbitraryFunction func)
+	for (auto lhsTupleBddPair : tuples)
 	{
-		for (auto lhsTupleBddPair : tuples)
+		const StateTuple& lhsTuple = lhsTupleBddPair.first;
+
+		std::vector<size_t> matchedPositions;
+		for (size_t i = 0; i < lhsTuple.size(); ++i)
 		{
-			const StateTuple& lhsTuple = lhsTupleBddPair.first;
-
-			std::vector<size_t> matchedPositions;
-			for (size_t i = 0; i < lhsTuple.size(); ++i)
+			if (lhsTuple[i] == lhsState)
 			{
-				if (lhsTuple[i] == lhsState)
-				{
-					matchedPositions.push_back(i);
-				}
+				matchedPositions.push_back(i);
 			}
+		}
 
-			if (matchedPositions.empty())
+		if (matchedPositions.empty())
+		{
+			continue;
+		}
+
+		for (auto rhsTupleBddPair : tuples)
+		{
+			const StateTuple& rhsTuple = rhsTupleBddPair.first;
+
+			if (rhsTuple.size() != lhsTuple.size())
 			{
 				continue;
 			}
 
-			for (auto rhsTupleBddPair : tuples)
+			size_t i;
+			for (i = 0; i < matchedPositions.size(); ++i)
 			{
-				const StateTuple& rhsTuple = rhsTupleBddPair.first;
-
-				if (rhsTuple.size() != lhsTuple.size())
+				if (rhsTuple[matchedPositions[i]] == rhsState)
 				{
-					continue;
+					break;
 				}
-
-				size_t i;
-				for (i = 0; i < matchedPositions.size(); ++i)
-				{
-					if (rhsTuple[matchedPositions[i]] == rhsState)
-					{
-						break;
-					}
-				}
-
-				if (i == matchedPositions.size())
-				{
-					continue;
-				}
-
-				func(lhsTuple, rhsTuple);
 			}
+
+			if (i == matchedPositions.size())
+			{
+				continue;
+			}
+
+			func(lhsTuple, rhsTuple);
 		}
 	}
-
-	inline bool componentWiseSim(const StateBinaryRelation& sim,
-		const StateTuple& lhsTuple, const StateTuple& rhsTuple)
-	{
-		for (size_t i = 0; i < lhsTuple.size(); ++i)
-		{
-			if (!sim.get(lhsTuple[i], rhsTuple[i]))
-			{
-				return false;
-			}
-		}
-
-		return true;
-	}
-
-	GCC_DIAG_OFF(effc++)
-	class InitCntApplyFctor :
-		public VATA::MTBDDPkg::Apply2Functor<InitCntApplyFctor, StateTupleSet,
-		CounterElementMap, CounterElementMap>
-	{
-	GCC_DIAG_ON(effc++)
-
-	private:  // data members
-
-		const StateType& state_;
-
-	public:   // methods
-
-		InitCntApplyFctor(const StateType& state) :
-			state_(state)
-		{ }
-
-		CounterElementMap ApplyOperation(const StateTupleSet& lhs,
-			const CounterElementMap& rhs)
-		{
-			// Assertions
-			assert(state_ < rhs.size());
-
-			CounterElementMap result = rhs;
-			result[state_] = lhs.size();
-
-			return result;
-		}
-	};
-
-
-	GCC_DIAG_OFF(effc++)
-	class InitRefineApplyFctor :
-		public VATA::MTBDDPkg::VoidApply2Functor<InitRefineApplyFctor, StateTupleSet,
-		StateTupleSet>
-	{
-	GCC_DIAG_ON(effc++)
-
-	private:  // data members
-
-		bool& isSim_;
-
-	public:   // methods
-
-		InitRefineApplyFctor(bool& isSim) :
-			isSim_(isSim)
-		{ }
-
-		void ApplyOperation(const StateTupleSet& lhs, const StateTupleSet& rhs)
-		{
-			if (!lhs.empty() && rhs.empty())
-			{
-				isSim_ = false;
-				stopProcessing();
-			}
-		}
-	};
-
-	GCC_DIAG_OFF(effc++)
-	class RefineApplyFctor :
-		public VATA::MTBDDPkg::Apply3Functor<RefineApplyFctor, StateSet, StateSet,
-		CounterElementMap, CounterElementMap>
-	{
-	GCC_DIAG_ON(effc++)
-
-	private:  // data members
-
-		const BUTransTable& transTable_;
-		StateBinaryRelation& sim_;
-		RemoveSet& remove_;
-
-	public:   // methods
-
-		RefineApplyFctor(const BUTransTable& transTable, StateBinaryRelation& sim,
-			RemoveSet& remove) :
-			transTable_(transTable),
-			sim_(sim),
-			remove_(remove)
-		{ }
-
-		CounterElementMap ApplyOperation(const StateSet& upR, const StateSet& upQ,
-			const CounterElementMap& cntQ)
-		{
-			if (upR.empty())
-			{
-				return cntQ;
-			}
-
-			CounterElementMap result = cntQ;
-
-			for (const StateType& s : upR)
-			{
-				// Assertions
-				assert(s < cntQ.size());
-				assert(result[s] > 0);
-
-				if (--(result[s]) == 0)
-				{
-					for (const StateType& p : upQ)
-					{
-						if (sim_.get(p, s))
-						{	// if 's' simulates 'p'
-							forAllTuplesWithMatchingStatesDo(
-								transTable_, p, s,
-								[this](const StateTuple& pTuple, const StateTuple& sTuple){
-									if (componentWiseSim(sim_, pTuple, sTuple))
-									{
-										remove_.insert(std::make_pair(pTuple, sTuple));
-									}}
-								);
-
-							// 's' no longer simulates 'p'
-							sim_.set(p, s, false);
-						}
-					}
-				}
-			}
-
-			return result;
-		}
-
-	};
 }
 
+inline bool componentWiseSim(const StateBinaryRelation& sim,
+	const StateTuple& lhsTuple, const StateTuple& rhsTuple)
+{
+	for (size_t i = 0; i < lhsTuple.size(); ++i)
+	{
+		if (!sim.get(lhsTuple[i], rhsTuple[i]))
+		{
+			return false;
+		}
+	}
 
-StateBinaryRelation VATA::BDDBottomUpTreeAut::ComputeDownwardSimulation() const
+	return true;
+}
+
+GCC_DIAG_OFF(effc++)
+class InitCntApplyFctor :
+	public VATA::MTBDDPkg::Apply2Functor<InitCntApplyFctor, StateTupleSet,
+	CounterElementMap, CounterElementMap>
+{
+GCC_DIAG_ON(effc++)
+
+private:  // data members
+
+	const StateType& state_;
+
+public:   // methods
+
+	InitCntApplyFctor(const StateType& state) :
+		state_(state)
+	{ }
+
+	CounterElementMap ApplyOperation(const StateTupleSet& lhs,
+		const CounterElementMap& rhs)
+	{
+		// Assertions
+		assert(state_ < rhs.size());
+
+		CounterElementMap result = rhs;
+		result[state_] = lhs.size();
+
+		return result;
+	}
+};
+
+
+GCC_DIAG_OFF(effc++)
+class InitRefineApplyFctor :
+	public VATA::MTBDDPkg::VoidApply2Functor<InitRefineApplyFctor, StateTupleSet,
+	StateTupleSet>
+{
+GCC_DIAG_ON(effc++)
+
+private:  // data members
+
+	bool& isSim_;
+
+public:   // methods
+
+	InitRefineApplyFctor(bool& isSim) :
+		isSim_(isSim)
+	{ }
+
+	void ApplyOperation(const StateTupleSet& lhs, const StateTupleSet& rhs)
+	{
+		if (!lhs.empty() && rhs.empty())
+		{
+			isSim_ = false;
+			stopProcessing();
+		}
+	}
+};
+
+GCC_DIAG_OFF(effc++)
+class RefineApplyFctor :
+	public VATA::MTBDDPkg::Apply3Functor<RefineApplyFctor, StateSet, StateSet,
+	CounterElementMap, CounterElementMap>
+{
+GCC_DIAG_ON(effc++)
+
+private:  // data members
+
+	const BUTransTable& transTable_;
+	StateBinaryRelation& sim_;
+	RemoveSet& remove_;
+
+public:   // methods
+
+	RefineApplyFctor(const BUTransTable& transTable, StateBinaryRelation& sim,
+		RemoveSet& remove) :
+		transTable_(transTable),
+		sim_(sim),
+		remove_(remove)
+	{ }
+
+	CounterElementMap ApplyOperation(const StateSet& upR, const StateSet& upQ,
+		const CounterElementMap& cntQ)
+	{
+		if (upR.empty())
+		{
+			return cntQ;
+		}
+
+		CounterElementMap result = cntQ;
+
+		for (const StateType& s : upR)
+		{
+			// Assertions
+			assert(s < cntQ.size());
+			assert(result[s] > 0);
+
+			if (--(result[s]) == 0)
+			{
+				for (const StateType& p : upQ)
+				{
+					if (sim_.get(p, s))
+					{	// if 's' simulates 'p'
+						forAllTuplesWithMatchingStatesDo(
+							transTable_, p, s,
+							[this](const StateTuple& pTuple, const StateTuple& sTuple){
+								if (componentWiseSim(sim_, pTuple, sTuple))
+								{
+									remove_.insert(std::make_pair(pTuple, sTuple));
+								}}
+							);
+
+						// 's' no longer simulates 'p'
+						sim_.set(p, s, false);
+					}
+				}
+			}
+		}
+
+		return result;
+	}
+
+};
+} // namespace
+
+
+StateBinaryRelation BDDBottomUpTreeAut::ComputeDownwardSimulation() const
 {
 	BDDBottomUpTreeAut newAut = *this;
 	StateType states = AutBase::SanitizeAutForSimulation(newAut);
@@ -244,7 +243,7 @@ StateBinaryRelation VATA::BDDBottomUpTreeAut::ComputeDownwardSimulation() const
 	return newAut.ComputeDownwardSimulation(states);
 }
 
-StateBinaryRelation VATA::BDDBottomUpTreeAut::ComputeDownwardSimulation(
+StateBinaryRelation BDDBottomUpTreeAut::ComputeDownwardSimulation(
 	size_t               size) const
 {
 	StateBinaryRelation sim(size);
@@ -321,12 +320,12 @@ StateBinaryRelation VATA::BDDBottomUpTreeAut::ComputeDownwardSimulation(
 	return sim;
 }
 
-StateBinaryRelation VATA::BDDBottomUpTreeAut::ComputeUpwardSimulation() const
+StateBinaryRelation BDDBottomUpTreeAut::ComputeUpwardSimulation() const
 {
 	throw NotImplementedException(__func__);
 }
 
-StateBinaryRelation VATA::BDDBottomUpTreeAut::ComputeUpwardSimulation(
+StateBinaryRelation BDDBottomUpTreeAut::ComputeUpwardSimulation(
 	size_t             /* size */) const
 {
 	throw NotImplementedException(__func__);

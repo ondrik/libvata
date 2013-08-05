@@ -10,7 +10,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_bu_tree_aut_op.hh>
+#include <vata/bdd_bu_tree_aut.hh>
 
 using VATA::BDDBottomUpTreeAut;
 using VATA::Util::Convert;
@@ -19,9 +19,11 @@ using VATA::Util::Convert;
 #include <unordered_map>
 
 
-BDDBottomUpTreeAut VATA::Union(const BDDBottomUpTreeAut& lhs,
-	const BDDBottomUpTreeAut& rhs, AutBase::StateToStateMap* pTranslMapLhs,
-	AutBase::StateToStateMap* pTranslMapRhs)
+BDDBottomUpTreeAut BDDBottomUpTreeAut::Union(
+	const BDDBottomUpTreeAut&      lhs,
+	const BDDBottomUpTreeAut&      rhs,
+	AutBase::StateToStateMap*      pTranslMapLhs,
+	AutBase::StateToStateMap*      pTranslMapRhs)
 {
 	typedef BDDBottomUpTreeAut::StateType StateType;
 	typedef BDDBottomUpTreeAut::StateTuple StateTuple;

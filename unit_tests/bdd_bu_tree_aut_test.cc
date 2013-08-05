@@ -11,7 +11,6 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_bu_tree_aut.hh>
-#include <vata/bdd_bu_tree_aut_op.hh>
 #include <vata/bdd_bu_tree_aut_incl.hh>
 #include <vata/bdd_td_tree_aut.hh>
 #include <vata/bdd_td_tree_aut_op.hh>
@@ -81,14 +80,14 @@ BOOST_AUTO_TEST_CASE(aut_inversion)
 		StringToStateDict stateDict;
 		AutType aut;
 		readAut(aut, stateDict, autStr);
-		aut = RemoveUselessStates(aut);
+		aut = aut.RemoveUselessStates();
 		AutTypeInverted invertAut = aut.GetTopDownAut();
 		std::string autOut = dumpAut(invertAut, stateDict);
 
 		StringToStateDict stateDictRef;
 		AutTypeInverted refAut;
 		readAut(refAut, stateDictRef, autStr);
-		refAut = RemoveUselessStates(refAut);
+		refAut = refAut.RemoveUselessStates();
 		std::string refOut = dumpAut(refAut, stateDictRef);
 
 		AutDescription descOrig = parser_.ParseString(refOut);

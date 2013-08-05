@@ -11,7 +11,6 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_bu_tree_aut.hh>
-#include <vata/bdd_bu_tree_aut_op.hh>
 #include <vata/util/graph.hh>
 
 // Standard library headers
@@ -40,72 +39,70 @@ typedef VATA::Util::TwoWayDict<NodeType, StateType,
 typedef std::stack<NodeType, std::list<NodeType>> NodeWorkSet;
 
 namespace
+{	// anonymous namespace
+GCC_DIAG_OFF(effc++)
+class ReachableCollectorFctor :
+	public VATA::MTBDDPkg::VoidApply1Functor<ReachableCollectorFctor,
+	StateSet>
 {
-	GCC_DIAG_OFF(effc++)
-	class ReachableCollectorFctor :
-		public VATA::MTBDDPkg::VoidApply1Functor<ReachableCollectorFctor,
-		StateSet>
+GCC_DIAG_ON(effc++)
+
+private:  // data members
+
+	StateHT& reachable_;
+	StateHT& workset_;
+	const StateTuple& tuple_;
+	NodeToStateDict& nodes_;
+	Graph& graph_;
+
+public:   // methods
+
+	ReachableCollectorFctor(StateHT& reachable, StateHT& workset,
+		const StateTuple& tuple, NodeToStateDict& nodes, Graph& graph) :
+		reachable_(reachable),
+		workset_(workset),
+		tuple_(tuple),
+		nodes_(nodes),
+		graph_(graph)
+	{ }
+
+	inline void ApplyOperation(const StateSet& value)
 	{
-	GCC_DIAG_ON(effc++)
-
-	private:  // data members
-
-		StateHT& reachable_;
-		StateHT& workset_;
-		const StateTuple& tuple_;
-		NodeToStateDict& nodes_;
-		Graph& graph_;
-
-	public:   // methods
-
-		ReachableCollectorFctor(StateHT& reachable, StateHT& workset,
-			const StateTuple& tuple, NodeToStateDict& nodes, Graph& graph) :
-			reachable_(reachable),
-			workset_(workset),
-			tuple_(tuple),
-			nodes_(nodes),
-			graph_(graph)
-		{ }
-
-		inline void ApplyOperation(const StateSet& value)
+		for (const StateType& state : value)
 		{
-			for (const StateType& state : value)
-			{
-				if (reachable_.insert(state).second)
-				{	// if the value was inserted
-					if (!workset_.insert(state).second)
-					{	// if it is already in the workset
-						assert(false);     // fail gracefully
-					}
-				}
-
-				NodeType node;
-				NodeToStateDict::ConstIteratorBwd itNode;
-				if ((itNode = nodes_.FindBwd(state)) != nodes_.EndBwd())
-				{
-					node = itNode->second;
-				}
-				else
-				{
-					node = graph_.AddNode();
-					nodes_.insert(std::make_pair(node, state));
-				}
-
-				for (const StateType& tupState : tuple_)
-				{
-					NodeToStateDict::ConstIteratorBwd itOtherNode;
-					if ((itOtherNode = nodes_.FindBwd(tupState)) == nodes_.end())
-					{
-						assert(false);      // fail gracefully
-					}
-
-					graph_.AddEdge(node, itOtherNode->second);
+			if (reachable_.insert(state).second)
+			{	// if the value was inserted
+				if (!workset_.insert(state).second)
+				{	// if it is already in the workset
+					assert(false);     // fail gracefully
 				}
 			}
-		}
-	};
-}
 
+			NodeType node;
+			NodeToStateDict::ConstIteratorBwd itNode;
+			if ((itNode = nodes_.FindBwd(state)) != nodes_.EndBwd())
+			{
+				node = itNode->second;
+			}
+			else
+			{
+				node = graph_.AddNode();
+				nodes_.insert(std::make_pair(node, state));
+			}
+
+			for (const StateType& tupState : tuple_)
+			{
+				NodeToStateDict::ConstIteratorBwd itOtherNode;
+				if ((itOtherNode = nodes_.FindBwd(tupState)) == nodes_.end())
+				{
+					assert(false);      // fail gracefully
+				}
+
+				graph_.AddEdge(node, itOtherNode->second);
+			}
+		}
+	}
+};
 
 GCC_DIAG_OFF(effc++)
 class UsefulCheckerFctor :
@@ -141,8 +138,11 @@ public:   // methods
 
 };
 
+} // namespace
 
-BDDBottomUpTreeAut VATA::RemoveUselessStates(const BDDBottomUpTreeAut& aut)
+
+
+BDDBottomUpTreeAut BDDBottomUpTreeAut::RemoveUselessStates() const
 {
 	BDDBottomUpTreeAut result;
 
@@ -153,7 +153,7 @@ BDDBottomUpTreeAut VATA::RemoveUselessStates(const BDDBottomUpTreeAut& aut)
 
 	TupleHT tuples;
 
-	for (auto tupleBddPair : aut.GetTransTable())
+	for (auto tupleBddPair : this->GetTransTable())
 	{
 		tuples.insert(tupleBddPair);
 	}
@@ -163,7 +163,7 @@ BDDBottomUpTreeAut VATA::RemoveUselessStates(const BDDBottomUpTreeAut& aut)
 
 	ReachableCollectorFctor reachFunc(reachable, workset, tuple, nodes, graph);
 
-	const TransMTBDD& nullaryBdd = aut.GetMtbdd(StateTuple());
+	const TransMTBDD& nullaryBdd = this->GetMtbdd(StateTuple());
 	reachFunc(nullaryBdd);
 
 	while (!workset.empty())
@@ -207,7 +207,7 @@ BDDBottomUpTreeAut VATA::RemoveUselessStates(const BDDBottomUpTreeAut& aut)
 	NodeWorkSet nodeWorkset;
 	StateHT useful;
 
-	for (const StateType& fst : aut.GetFinalStates())
+	for (const StateType& fst : this->GetFinalStates())
 	{
 		NodeToStateDict::ConstIteratorBwd itNodes;
 		if ((itNodes = nodes.FindBwd(fst)) != nodes.EndBwd())
@@ -249,7 +249,7 @@ BDDBottomUpTreeAut VATA::RemoveUselessStates(const BDDBottomUpTreeAut& aut)
 
 	UsefulCheckerFctor usefulFunc(useful);
 
-	for (auto tupleBddPair : aut.GetTransTable())
+	for (auto tupleBddPair : this->GetTransTable())
 	{
 		const StateTuple& tuple = tupleBddPair.first;
 		const TransMTBDD& bdd = tupleBddPair.second;

@@ -15,27 +15,17 @@
 #include <vata/vata.hh>
 #include <vata/finite_aut/explicit_finite_aut.hh>
 
-namespace VATA {
 template <class SymbolType>
-	ExplicitFiniteAut<SymbolType> Reverse(
-		const ExplicitFiniteAut<SymbolType> &aut,
-		AutBase::ProductTranslMap* pTranslMap = nullptr);
-}
-
-template <class SymbolType>
-VATA::ExplicitFiniteAut<SymbolType> VATA::Reverse(
-	const VATA::ExplicitFiniteAut<SymbolType> &aut,
-	AutBase::ProductTranslMap* /*pTranslMap*/) {
-
+VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::Reverse(
+	AutBase::StateToStateMap* /*pTranslMap*/) const
+{
 	typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
-
-	auto transitions_ = aut.transitions_;
 
 	ExplicitFA res;
 
-	res.finalStates_ = aut.startStates_; // set final states
-	res.startStates_ = aut.finalStates_; // set start states
-	res.startStateToSymbols_ = aut.startStateToSymbols_; // start symbols
+	res.finalStates_ = startStates_; // set final states
+	res.startStates_ = finalStates_; // set start states
+	res.startStateToSymbols_ = startStateToSymbols_; // start symbols
 
 	// Changing the order of left and right in each transition
 	for (auto stateToCluster : *transitions_) {
