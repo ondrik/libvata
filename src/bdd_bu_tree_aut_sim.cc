@@ -240,7 +240,12 @@ StateBinaryRelation VATA::ComputeDownwardSimulation(
 	const BDDBottomUpTreeAut& aut)
 {
 	BDDBottomUpTreeAut newAut = aut;
-	StateType states = AutBase::SanitizeAutForSimulation(newAut);
+	StateType stateCnt = 0;
+	AutBase::StateToStateMap translMap;
+	StateToStateTranslator stateTrans(translMap,
+		[&stateCnt](const StateType&){return stateCnt++;});
+
+	StateType states = AutBase::SanitizeAutForSimulation(newAut,stateCnt,stateTrans);
 
 	return ComputeDownwardSimulation(newAut, states);
 }

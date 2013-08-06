@@ -341,7 +341,6 @@ public:
 		// Load final states
 		for (auto s : desc.finalStates) { // Finale states extraction
 			this->finalStates_.insert(stateTranslator(s));
-			std::cout << s << " " << stateTranslator(s) << std::endl;
 		}
 
 		// Load transitions
@@ -352,7 +351,6 @@ public:
 			// Check whether there are no start states
 			if (t.first.empty()) {
 				StateType translatedState = stateTranslator(rightState);
-				std::cout << translatedState << " " << stateTranslator(rightState) << std::endl;
 
 				SymbolType translatedSymbol = symbolTranslator(symbol);
 
@@ -368,12 +366,9 @@ public:
 			// load here because t could be empty
 			const State& leftState = t.first[0];
 
-			std::cout << leftState << " " << stateTranslator(leftState) << std::endl;
-			std::cout << rightState << " " << stateTranslator(rightState) << std::endl;
 			this->AddTransition(stateTranslator(leftState),symbolTranslator(symbol),
 															stateTranslator(rightState));
 		}
-		std::cout << "Loaded" << std::endl;
 	}
 
 	/*
@@ -451,8 +446,9 @@ public:
 	}
 
 	template <class TranslIndex, class SanitizeIndex>
-	void PrintSimulationMapping (TranslIndex index, SanitizeIndex& sanitizeIndex) {
-		std::cout << "Jsem tady spravne" << std::endl;
+	std::string PrintSimulationMapping (TranslIndex index, SanitizeIndex sanitizeIndex) {
+		std::string res = "";
+		std::unordered_set<StateType> translatedStates;
 
 		for (auto& ls : *(this->transitions_)) 
 		{
@@ -460,13 +456,23 @@ public:
 			{
 				for (auto& rs : s.second) 
 				{
-					std::cout << index(ls.first) << " -> " << sanitizeIndex[ls.first] << std::endl;
+					if (!translatedStates.count(ls.first))
+					{
+						res = res + VATA::Util::Convert::ToString(index(ls.first)) + " -> " +
+							VATA::Util::Convert::ToString(sanitizeIndex[ls.first]) + "\n";
+						translatedStates.insert(ls.first);
+					}
 
-					std::cout << index(rs) << " -> " << sanitizeIndex[rs] << std::endl;
+					if (!translatedStates.count(rs))
+					{
+						res = res + VATA::Util::Convert::ToString(index(rs)) + " -> " +
+							VATA::Util::Convert::ToString(sanitizeIndex[rs]) + "\n";
+						translatedStates.insert(rs);
+					}
 				}
 			}
 		}
-		std::cout << "Konec vypisu" << std::endl;
+		return res;
 	}
 
 	/*
@@ -476,18 +482,15 @@ public:
 	template <class Index>
 	void ReindexStates(ExplicitFiniteAut& dst, Index& index) const {
 
-		std::cout << "Reindexace" << std::endl;
 		// Converts the final states
 		for (auto& state : this->finalStates_)
 		{
 			dst.SetStateFinal(index[state]);
-			std::cout << state << " " << index[state] << std::endl;
 		}
 
 		// Converts the start states
 		for( auto& state : this->startStates_) {
 			dst.SetExistingStateStart(index[state],GetStartSymbols(state));
-			std::cout << state << " " << index[state] << std::endl;
 		}
 
 		auto clusterMap = dst.uniqueClusterMap();
@@ -501,7 +504,6 @@ public:
 			//assert(stateClusterPair.second);
 
 			auto cluster = clusterMap->uniqueCluster(index[stateClusterPair.first]);
-			std::cout << stateClusterPair.first << " " << index[stateClusterPair.first] << std::endl;
 
 			for (auto& symbolRStateSetPair : *stateClusterPair.second) {
 
@@ -511,7 +513,6 @@ public:
 
 				for (auto& rState : symbolRStateSetPair.second) {
 					rstatesSet.insert(index[rState]);
-					std::cout << rState << " " << index[rState] << std::endl;
 				}
 			}
 		}

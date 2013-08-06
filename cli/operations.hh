@@ -171,11 +171,12 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	return VATA::CheckInclusion(smaller, bigger, ip);
 }
 
-template <class Automaton,class StringToStateMap>
+template <class Automaton,class StringToStateMap, class StateToStateMap>
 VATA::AutBase::StateBinaryRelation ComputeSimulation(
 	Automaton            aut,
 	const Arguments&     args,
-	const StringToStateMap& index)
+	const StringToStateMap index,
+	StateToStateMap& translMap)
 {
 	if (!args.pruneUseless)
 	{
@@ -184,7 +185,6 @@ VATA::AutBase::StateBinaryRelation ComputeSimulation(
 	}
 
 	typedef AutBase::StateType StateType;
-	typedef std::unordered_map<StateType, StateType> StateToStateMap;
 	typedef VATA::Util::TranslatorWeak<StateToStateMap> StateToStateTranslator;
 
 	typedef VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>
@@ -195,16 +195,14 @@ VATA::AutBase::StateBinaryRelation ComputeSimulation(
 	options.insert(std::make_pair("dir", "down"));
 
 	StateType stateCnt = 0;
-	StateToStateMap stateMap;
-	StateToStateTranslator stateTrans(stateMap,
+	StateToStateTranslator stateTrans(translMap,
 		[&stateCnt](const StateType&){return stateCnt++;});
 
-	AutBase::StateType states = AutBase::SanitizeAutForSimulationWithIndex(aut,
+	AutBase::StateType states = AutBase::SanitizeAutForSimulation(aut,
 			stateCnt,stateTrans);
 
 	if (options["dir"] == "up")
 	{
-		aut.PrintSimulationMapping(StateBackTranslatorStrict(index.GetReverseMap()),stateTrans);
 		return VATA::ComputeUpwardSimulation(aut, states);
 	}
 	else if (options["dir"] == "down")

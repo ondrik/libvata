@@ -635,8 +635,8 @@ public:   // methods
 	}
 
 	template <class TranslIndex, class SanitizeIndex>
-	void PrintSimulationMapping (TranslIndex index, SanitizeIndex& sanitizeIndex) {
-		throw std::runtime_error("unimplemented");
+	std::string PrintSimulationMapping (TranslIndex index, SanitizeIndex sanitizeIndex) {
+		return "";
 	}
 
 	BDDTopDownTreeAut GetTopDownAut() const;
