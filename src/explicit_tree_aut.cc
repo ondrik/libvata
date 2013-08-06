@@ -11,8 +11,9 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/ta_expl/explicit_tree_aut.hh>
-#include <vata/ta_expl/explicit_tree_unreach.hh>
-#include <vata/ta_expl/explicit_tree_sim.hh>
+
+#include "explicit_tree_sim.hh"
+#include "explicit_tree_unreach.hh"
 
 // global tuple cache definition
 VATA::Explicit::TupleCache VATA::Explicit::tupleCache;
