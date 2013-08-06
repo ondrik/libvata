@@ -18,9 +18,11 @@
 #include <vector>
 #include <unordered_set>
 
+using VATA::ExplicitTreeAut;
+using VATA::AutBase;
 
-VATA::ExplicitTreeAut VATA::ExplicitTreeAut::RemoveUnreachableStates(
-	VATA::AutBase::StateToStateMap*            pTranslMap)
+ExplicitTreeAut ExplicitTreeAut::RemoveUnreachableStates(
+	AutBase::StateToStateMap*            pTranslMap) const
 {
 	typedef ExplicitTreeAut::StateToTransitionClusterMapPtr
 		StateToTransitionClusterMapPtr;

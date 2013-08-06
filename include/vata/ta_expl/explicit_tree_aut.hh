@@ -562,25 +562,30 @@ private:  // data members
 
 public:   // public methods
 
-	ExplicitTreeAut(Explicit::TupleCache& tupleCache = Explicit::tupleCache) :
+	explicit ExplicitTreeAut(
+		Explicit::TupleCache&     tupleCache = Explicit::tupleCache) :
 		cache_(tupleCache),
 		finalStates_(),
 		transitions_(StateToTransitionClusterMapPtr(new StateToTransitionClusterMap()))
 	{ }
 
-	ExplicitTreeAut(const ExplicitTreeAut& aut) :
+	ExplicitTreeAut(
+		const ExplicitTreeAut&    aut) :
 		cache_(aut.cache_),
 		finalStates_(aut.finalStates_),
 		transitions_(aut.transitions_)
 	{ }
 
-	ExplicitTreeAut(const ExplicitTreeAut& aut, Explicit::TupleCache& tupleCache) :
+	ExplicitTreeAut(
+		const ExplicitTreeAut&    aut,
+		Explicit::TupleCache&     tupleCache) :
 		cache_(tupleCache),
 		finalStates_(aut.finalStates_),
 		transitions_(aut.transitions_)
 	{ }
 
-	ExplicitTreeAut& operator=(const ExplicitTreeAut& rhs)
+	ExplicitTreeAut& operator=(
+		const ExplicitTreeAut&    rhs)
 	{
 		if (this != &rhs)
 		{
@@ -591,17 +596,21 @@ public:   // public methods
 		return *this;
 	}
 
-	~ExplicitTreeAut() {}
+	~ExplicitTreeAut()
+	{ }
 
-	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
-		StringToStateDict& stateDict)
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&       parser,
+		const std::string&                str,
+		StringToStateDict&                stateDict)
 	{
 		LoadFromAutDesc(parser.ParseString(str), stateDict);
 	}
 
-	void LoadFromAutDesc(const AutDescription& desc, StringToStateDict& stateDict)
+	void LoadFromAutDesc(
+		const AutDescription&             desc,
+		StringToStateDict&                stateDict)
 	{
-
 		typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
 			StateTranslator;
 		typedef VATA::Util::TranslatorWeak<StringToSymbolDict>
@@ -609,22 +618,33 @@ public:   // public methods
 
 		StateType stateCnt = 0;
 
-		LoadFromAutDesc(desc,
-			StateTranslator(stateDict,
+		LoadFromAutDesc(
+			/* automaton description */ desc,
+			/* state translator */ StateTranslator(stateDict,
 				[&stateCnt](const std::string&){return stateCnt++;}),
-			SymbolTranslator(GetSymbolDict(),
-				[this](const StringRank&){return this->AddSymbol();}));
+			/* symbol translator */ SymbolTranslator(GetSymbolDict(),
+				[this](const StringRank&){return this->AddSymbol();})
+			);
 	}
 
-	template <class StateTransFunc, class SymbolTransFunc>
-	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
-		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator,
-		const std::string& params = "") {
-
+	template <
+		class StateTransFunc,
+		class SymbolTransFunc
+		>
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&       parser,
+		const std::string&                str,
+		StateTransFunc                    stateTranslator,
+		SymbolTransFunc                   symbolTranslator,
+		const std::string&                params = "")
+	{
 		LoadFromAutDesc(parser.ParseString(str), stateTranslator, symbolTranslator, params);
 	}
 
-	template <class StateTransFunc, class SymbolTransFunc>
+	template <
+		class StateTransFunc,
+		class SymbolTransFunc
+		>
 	void LoadFromAutDesc(
 		const AutDescription&          desc,
 		StateTransFunc                 stateTranslator,
@@ -632,13 +652,17 @@ public:   // public methods
 		const std::string&             /* params */ = "")
 	{
 		for (auto symbolRankPair : desc.symbols)
+		{
 			symbolTranslator(StringRank(symbolRankPair.first, symbolRankPair.second));
+		}
 
-		for (auto s : desc.finalStates)
-			this->finalStates_.insert(stateTranslator(s));
+		for (const AutDescription::State& s : desc.finalStates)
+		{
+			finalStates_.insert(stateTranslator(s));
+		}
 
-		for (auto t : desc.transitions) {
-
+		for (const AutDescription::Transition& t : desc.transitions)
+		{
 			// traverse the transitions
 			const AutDescription::StateTuple& childrenStr = t.first;
 			const std::string& symbolStr = t.second;
@@ -646,8 +670,8 @@ public:   // public methods
 
 			// translate children
 			StateTuple children;
-			for (auto c : childrenStr) {
-				// for all children states
+			for (const AutDescription::State& c : childrenStr)
+			{ // for all children states
 				children.push_back(stateTranslator(c));
 			}
 
@@ -658,18 +682,22 @@ public:   // public methods
 		}
 	}
 
+
 	template <class SymbolTransFunc>
-	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
-		SymbolTransFunc symbolTranslator,
-		const std::string& params = "") const
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&     serializer,
+		SymbolTransFunc                           symbolTranslator,
+		const std::string&                        params = "") const
 	{
 		return DumpToString(serializer,
 			[](const StateType& state){return Convert::ToString(state);},
 			symbolTranslator, params);
 	}
 
-	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
-		const StringToStateDict& stateDict) const
+
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&     serializer,
+		const StringToStateDict&                  stateDict) const
 	{
 		struct SymbolTranslatorPrinter
 		{
@@ -693,7 +721,10 @@ public:   // public methods
 			printer);
 	}
 
-	template <class StatePrintFunc, class SymbolPrintFunc>
+	template <
+		class StatePrintFunc,
+		class SymbolPrintFunc
+		>
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&     serializer,
 		StatePrintFunc                            statePrinter,
@@ -1078,7 +1109,7 @@ public:
 	ExplicitTreeAut Reduce() const;
 
 	ExplicitTreeAut RemoveUnreachableStates(
-		AutBase::StateToStateMap*            pTranslMap = nullptr);
+		AutBase::StateToStateMap*            pTranslMap = nullptr) const;
 
 	template <
 		class Rel,
@@ -1086,10 +1117,11 @@ public:
 	>
 	ExplicitTreeAut RemoveUnreachableStates(
 		const Rel&                           rel,
-		const Index&                         index = Index());
+		const Index&                         index = Index()) const;
 
 	ExplicitTreeAut RemoveUselessStates(
 		AutBase::StateToStateMap*          pTranslMap = nullptr) const;
+
 
 	ExplicitTreeAut GetCandidateTree() const;
 

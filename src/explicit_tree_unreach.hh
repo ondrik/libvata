@@ -21,7 +21,7 @@ template <
 >
 VATA::ExplicitTreeAut VATA::ExplicitTreeAut::RemoveUnreachableStates(
 	const Rel&                                 rel,
-	const Index&                               index)
+	const Index&                               index) const
 {
 	typedef ExplicitTreeAut::StateToTransitionClusterMap
 		StateToTransitionClusterMap;
@@ -67,10 +67,12 @@ VATA::ExplicitTreeAut VATA::ExplicitTreeAut::RemoveUnreachableStates(
 
 	rel.buildIndex(ind, inv);
 
-	for (auto& state : this->GetFinalStates())
+	for (const StateType& state : this->GetFinalStates())
 	{
 		if (finalStates.contains(ind[state]))
+		{
 			continue;
+		}
 
 		finalStates.refine(inv[state]);
 		finalStates.insert(state);
@@ -97,7 +99,9 @@ VATA::ExplicitTreeAut VATA::ExplicitTreeAut::RemoveUnreachableStates(
 		auto stateClusterIter = transitions_->find(state);
 
 		if (stateClusterIter == transitions_->end())
+		{
 			continue;
+		}
 
 		bool clusterModified = false;
 
@@ -118,7 +122,7 @@ VATA::ExplicitTreeAut VATA::ExplicitTreeAut::RemoveUnreachableStates(
 
 			for (auto& stateTuple : tuples.data())
 			{
-				for (auto& state : *stateTuple)
+				for (const StateType& state : *stateTuple)
 				{
 					if (reachableStates.insert(state).second)
 						newStates.push_back(state);
@@ -145,7 +149,6 @@ VATA::ExplicitTreeAut VATA::ExplicitTreeAut::RemoveUnreachableStates(
 		if (!clusterModified)
 		{
 			newTransitions->insert(std::make_pair(state, stateClusterIter->second));
-
 			continue;
 		}
 
@@ -156,7 +159,9 @@ VATA::ExplicitTreeAut VATA::ExplicitTreeAut::RemoveUnreachableStates(
 
 	if (!transitionsModified && (reachableStates.size() == transitions_->size()) &&
 		(finalStates.data().size() == finalStates_.size()))
+	{
 		return *this;
+	}
 
 	ExplicitTreeAut result(cache_);
 
