@@ -412,6 +412,11 @@ public:   // public methods
 			symbolTranslator, params);
 	}
 
+	template <class TranslIndex, class SanitizeIndex>
+	std::string PrintSimulationMapping (TranslIndex index, SanitizeIndex sanitizeIndex) {
+		return "";
+	}
+
 	inline const TransMTBDD& GetMtbdd(const StateType& state) const
 	{
 		return transTable_->GetMtbdd(state);

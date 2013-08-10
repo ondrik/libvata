@@ -634,8 +634,9 @@ public:   // public methods
 		for (auto symbolRankPair : desc.symbols)
 			symbolTranslator(StringRank(symbolRankPair.first, symbolRankPair.second));
 
-		for (auto s : desc.finalStates)
+		for (auto s : desc.finalStates) {
 			this->finalStates_.insert(stateTranslator(s));
+		}
 
 		for (auto t : desc.transitions) {
 
@@ -656,6 +657,7 @@ public:   // public methods
 				symbolTranslator(StringRank(symbolStr, children.size())),
 				stateTranslator(parentStr));
 		}
+
 	}
 
 	template <class SymbolTransFunc>
@@ -747,6 +749,34 @@ public:   // public methods
 		return finalStates_;
 	}
 
+	template <class TranslIndex, class SanitizeIndex>
+	std::string PrintSimulationMapping (TranslIndex index, SanitizeIndex sanitizeIndex) {
+		std::string res = "";
+		std::unordered_set<StateType> translatedStates;
+		
+		for (auto t : *this)
+		{
+
+			for (auto& s : t.children())
+			{
+				if (!translatedStates.count(s))
+				{
+					res = res + VATA::Util::Convert::ToString(index(s)) + " -> " +
+						VATA::Util::Convert::ToString(sanitizeIndex[s]) + "\n";
+					translatedStates.insert(s);
+				}
+			}
+
+			if (!translatedStates.count(t.state()))
+			{
+				res = res + VATA::Util::Convert::ToString(index(t.state())) + " -> " +
+					VATA::Util::Convert::ToString(sanitizeIndex[t.state()]) + "\n";
+				translatedStates.insert(t.state());
+			}
+		}
+		return res;
+	}
+
 	void SetStateFinal(
 		const StateType&          state)
 	{
@@ -821,12 +851,18 @@ public:   // public methods
 	}
 
 	template <class Index>
+<<<<<<< HEAD:include/vata/ta_expl/explicit_tree_aut.hh
 	void ReindexStates(
 		ExplicitTreeAut&          dst,
 		Index&                    index) const
 	{
 		for (const StateType& state : finalStates_)
 		{
+=======
+	void ReindexStates(ExplicitTreeAut& dst, Index& index) const {
+
+		for (auto& state : this->finalStates_) {
+>>>>>>> improve_sim_output:include/vata/explicit_tree_aut.hh
 			dst.SetStateFinal(index[state]);
 		}
 
@@ -850,8 +886,12 @@ public:   // public methods
 
 					StateTuple newTuple;
 
+<<<<<<< HEAD:include/vata/ta_expl/explicit_tree_aut.hh
 					for (const StateType& s : *tuple)
 					{
+=======
+					for (auto& s : *tuple) {
+>>>>>>> improve_sim_output:include/vata/explicit_tree_aut.hh
 						newTuple.push_back(index[s]);
 					}
 

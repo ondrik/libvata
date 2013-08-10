@@ -127,6 +127,11 @@ namespace VATA
 			| FLAG_MASK_ALGORITHM
 			;
 
+		static const unsigned CONGR_DEPTH_SIM = 0
+			| FLAG_MASK_ALGORITHM
+			| FLAG_MASK_SIMULATION
+			;
+
 		static const unsigned CONGR_BREADTH_NOSIM = 0
 			| FLAG_MASK_ALGORITHM
 			| FLAG_MASK_SEARCH_ORDER

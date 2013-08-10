@@ -629,6 +629,11 @@ public:   // methods
 		return TransMTBDD::DumpToDot(tupleVec);
 	}
 
+	template <class TranslIndex, class SanitizeIndex>
+	std::string PrintSimulationMapping (TranslIndex index, SanitizeIndex sanitizeIndex) {
+		return "";
+	}
+
 	BDDTopDownTreeAut GetTopDownAut() const;
 
 	template <class OperationFunc>

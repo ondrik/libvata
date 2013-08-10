@@ -55,6 +55,8 @@ typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
 	StateTranslatorWeak;
 typedef VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>
 	StateBackTranslatorStrict;
+typedef VATA::Util::TranslatorStrict<VATA::AutBase::StateToStateMap>
+		StateToStateTranslator;
 
 typedef VATA::Util::TranslatorWeak<BDDTopDownTreeAut::StringToSymbolDict>
 	SymbolTranslatorWeak;
@@ -162,7 +164,7 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	AbstrSerializer& serializer)
 {
 	typedef typename Aut::SymbolBackTranslatorStrict SymbolBackTranslatorStrict;
-
+	
 	Aut autInput1;
 	Aut autInput2;
 	Aut autResult;
@@ -258,7 +260,7 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	}
 	else if (args.command == COMMAND_SIM)
 	{
-		relResult = ComputeSimulation(autInput1, args);
+		relResult = ComputeSimulation(autInput1, args,stateDict1,translMap1);
 	}
 	else if (args.command == COMMAND_RED)
 	{
@@ -332,6 +334,11 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 
 		if (args.command == COMMAND_SIM)
 		{
+
+			std::cout << autInput1.PrintSimulationMapping(
+					StateBackTranslatorStrict(stateDict1.GetReverseMap()),
+					StateToStateTranslator(translMap1))
+				<< std::endl;
 			std::cout << relResult << "\n";
 		}
 	}

@@ -56,6 +56,10 @@ case "${OPERATION}" in
     ${VATA} -r expl_fa -t incl -o alg=congr "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"
     ;;
+  explfa-congr-sim)
+    ${VATA} -r expl_fa -t incl -o alg=congr,sim=yes,dir=up,timeS=yes "${FILE_LHS}" "${FILE_RHS}"
+    RETVAL="$?"
+    ;;
   expldown-rec)
     ${VATA} -r expl -t incl -o dir=down,sim=no,optC=no,rec=yes "${FILE_LHS}" "${FILE_RHS}"
     RETVAL="$?"

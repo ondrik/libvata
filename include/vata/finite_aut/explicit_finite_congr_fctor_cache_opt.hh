@@ -22,11 +22,11 @@
 #include <vata/finite_aut/util/macrostate_cache.hh>
 
 namespace VATA {
-	template <class SymbolType, class Rel, class ProductSet> class ExplicitFACongrFunctorCacheOpt;
+	template <class SymbolType, class Rel, class ProductSet, class NormalFormRel> class ExplicitFACongrFunctorCacheOpt;
 }
 
 GCC_DIAG_OFF(effc++)
-template <class SymbolType, class Rel, class ProductSet>
+template <class SymbolType, class Rel, class ProductSet, class NormalFormRel>
 class VATA::ExplicitFACongrFunctorCacheOpt :
 	public ExplicitFAAbstractFunctor <SymbolType,Rel> {
 GCC_DIAG_ON(effc++)
@@ -94,7 +94,7 @@ private: // Private data members
 	IndexType& index_;
 	IndexType& inv_;
 
-	Rel preorder_; // Simulation or identity
+	NormalFormRel normalFormRel_;
 
 	MacroStateCache cache_;
 	MacroStatePtrPair visitedPairs_;
@@ -115,7 +115,7 @@ public:
 		bigger_(bigger),
 		index_(index),
 		inv_(inv),
-		preorder_(preorder),
+		normalFormRel_(preorder),
 		cache_(),
 		visitedPairs_(),
 		usedRules_()
@@ -201,6 +201,8 @@ public: // public functions
 		// Compute congruence closure of bigger nfa
 		StateSet congrBigger(bigger);
 
+		normalFormRel_.applyRule(congrBigger);
+
 		// Checks whether smaller macrostate is subset of congr. clusure of bigger
 		if (GetCongrClosure(b,congrBigger,isCongrClosureSet) ||
 			isSubSet(s,congrBigger)) {
@@ -238,7 +240,10 @@ private:
 	}
 
 	void AddSubSet(StateSet& mainset, StateSet& subset) {
-		mainset.insert(subset.begin(),subset.end());
+		StateSet temp = StateSet(subset);
+		normalFormRel_.applyRule(temp);
+		mainset.insert(temp.begin(),temp.end());
+		//mainset.insert(subset.begin(),subset.end());
 	}
 
 	/*

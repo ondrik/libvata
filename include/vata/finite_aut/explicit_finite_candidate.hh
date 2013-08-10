@@ -62,8 +62,7 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::GetCand
 					newStates.push_back(stateInSet);
 				}
 
-				if (this->IsStateFinal(stateInSet)) { // Set final state and return
-					std::cout	 <<	 "jsem tady"	<<	std::endl;
+				if (aut.IsStateFinal(stateInSet)) { // Set final state and return
 					res.SetStateFinal(stateInSet);
 					res.transitions_->insert(std::make_pair(actState,transitionsCluster->second));
 					//res.internalAddTransition(actState,symbolToState.first,stateInSet);

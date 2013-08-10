@@ -237,8 +237,13 @@ public:   // methods
 
 StateBinaryRelation BDDBottomUpTreeAut::ComputeDownwardSimulation() const
 {
-	BDDBottomUpTreeAut newAut = *this;
-	StateType states = AutBase::SanitizeAutForSimulation(newAut);
+	BDDBottomUpTreeAut newAut = aut;
+	StateType stateCnt = 0;
+	AutBase::StateToStateMap translMap;
+	StateToStateTranslator stateTrans(translMap,
+		[&stateCnt](const StateType&){return stateCnt++;});
+
+	StateType states = AutBase::SanitizeAutForSimulation(newAut,stateCnt,stateTrans);
 
 	return newAut.ComputeDownwardSimulation(states);
 }

@@ -97,7 +97,7 @@ GCC_DIAG_ON(effc++)
 	friend class ExplicitFACongrFunctor;
 	template<class SymbolType, class Rel>
 	friend class ExplicitFACongrFunctorOpt;
-	template<class SymbolType, class Rel, class ProductSet>
+	template<class SymbolType, class Rel, class ProductSet, class NormalFormRel>
 	friend class ExplicitFACongrFunctorCacheOpt;
 	template<class SymbolType, class Rel, class ProductSet>
 	friend class ExplicitFACongrEquivFunctor;
@@ -108,6 +108,11 @@ GCC_DIAG_ON(effc++)
 	friend class ExplicitFAStateSetComparatorIdentity;
 	template<class SymbolType, class Rel>
 	friend class ExplicitFAStateSetComparatorSimulation;
+
+	template<class SymbolType, class Rel>
+	friend class NormalFormRelPreorder;
+	template<class SymbolType, class Rel>
+	friend class NormalFormRelSimulation;
 
 	template<class Key, class Value>
 	friend class MapToList;
@@ -311,6 +316,7 @@ public:
 			// Check whether there are no start states
 			if (t.first.empty()) {
 				StateType translatedState = stateTranslator(rightState);
+
 				SymbolType translatedSymbol = symbolTranslator(symbol);
 
 				SetStateStart(translatedState, translatedSymbol);
@@ -345,26 +351,31 @@ public:
 			AutDescription desc;
 
 			// Dump the final states
-			for (auto& s : this->finalStates_) {
+			for (auto& s : this->finalStates_)
+			{
 				desc.finalStates.insert(statePrinter(s));
 			}
 
 			// Dump start states
 			std::string x("x"); // initial input symbol
 			std::vector<std::string> leftStateAsTuple;
-			for (auto &s : this->startStates_) {
+			for (auto &s : this->startStates_)
+			{
 
 				SymbolSet symset = this->GetStartSymbols(s);
 
-				if (!symset.size()) { // No start symbols are defined,
+				if (!symset.size()) 
+				{ // No start symbols are defined,
 					AutDescription::Transition trans(
 							leftStateAsTuple,
 							x,
 							statePrinter(s));
 					desc.transitions.insert(trans);
 				}
-				else { // print all starts symbols
-					for (auto &sym : symset) {
+				else 
+				{ // print all starts symbols
+					for (auto &sym : symset) 
+					{
 					 AutDescription::Transition trans(
 							leftStateAsTuple,
 							symbolPrinter(sym),
@@ -378,9 +389,12 @@ public:
 			/*
 			 * Converts transitions to data structure for serializer
 			 */
-			for (auto& ls : *(this->transitions_)) {
-				for (auto& s : *ls.second){
-					for (auto& rs : s.second) {
+			for (auto& ls : *(this->transitions_)) 
+			{
+				for (auto& s : *ls.second)
+				{
+					for (auto& rs : s.second) 
+					{
 						std::vector<std::string> leftStateAsTuple;
 						leftStateAsTuple.push_back(statePrinter(ls.first));
 
@@ -396,6 +410,36 @@ public:
 			return serializer.Serialize(desc);
 	}
 
+	template <class TranslIndex, class SanitizeIndex>
+	std::string PrintSimulationMapping (TranslIndex index, SanitizeIndex sanitizeIndex) {
+		std::string res = "";
+		std::unordered_set<StateType> translatedStates;
+
+		for (auto& ls : *(this->transitions_)) 
+		{
+			for (auto& s : *ls.second)
+			{
+				for (auto& rs : s.second) 
+				{
+					if (!translatedStates.count(ls.first))
+					{
+						res = res + VATA::Util::Convert::ToString(index(ls.first)) + " -> " +
+							VATA::Util::Convert::ToString(sanitizeIndex[ls.first]) + "\n";
+						translatedStates.insert(ls.first);
+					}
+
+					if (!translatedStates.count(rs))
+					{
+						res = res + VATA::Util::Convert::ToString(index(rs)) + " -> " +
+							VATA::Util::Convert::ToString(sanitizeIndex[rs]) + "\n";
+						translatedStates.insert(rs);
+					}
+				}
+			}
+		}
+		return res;
+	}
+
 	/*
 	 * The current indexes for states are transform to the new ones,
 	 * and stored to the new automaton
@@ -405,7 +449,9 @@ public:
 
 		// Converts the final states
 		for (auto& state : this->finalStates_)
+		{
 			dst.SetStateFinal(index[state]);
+		}
 
 		// Converts the start states
 		for( auto& state : this->startStates_) {

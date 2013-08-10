@@ -25,6 +25,7 @@
 #include <vata/finite_aut/explicit_finite_incl_fctor_cache.hh>
 
 #include <vata/finite_aut/util/comparators.hh>
+#include <vata/finite_aut/util/normal_form_rel.hh>
 #include <vata/finite_aut/util/map_to_list.hh>
 #include <vata/finite_aut/util/macrostate_cache.hh>
 #include <vata/finite_aut/util/congr_product.hh>
@@ -67,7 +68,8 @@ bool VATA::ExplicitFiniteAut<SymbolType>::CheckInclusion(
 		states = VATA::AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
 	}
 
-	if (params.GetAlgorithm() == InclParam::e_algorithm::congruences)
+	// if a simulation is used, a union has been already done before the simulation
+	if (params.GetAlgorithm() == InclParam::e_algorithm::congruences && !params.GetUseSimulation())
 	{
 		newSmaller = UnionDisjointStates(smaller, bigger);
 	}
@@ -93,7 +95,7 @@ bool VATA::ExplicitFiniteAut<SymbolType>::CheckInclusion(
 			typedef VATA::ExplicitFAStateSetComparatorSimulation<SymbolType,Rel> Comparator;
 			typedef VATA::ExplicitFAInclusionFunctorCache<SymbolType,Rel,Comparator> FunctorType;
 
-			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller, newBigger, params.GetSimulation());
+			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, params.GetSimulation());
 		}
 		case InclParam::CONGR_BREADTH_NOSIM:
 		{
@@ -103,7 +105,8 @@ bool VATA::ExplicitFiniteAut<SymbolType>::CheckInclusion(
 			typedef typename VATA::ExplicitFiniteAut<SymbolType>::StateSet StateSet;
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;
 			typedef VATA::ProductStateSetBreadth<StateSet,ProductState> ProductSet;
-			typedef VATA::ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
+			typedef VATA::NormalFormRelPreorder<SymbolType,Rel> NormalFormRel;
+			typedef VATA::ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet,NormalFormRel> FunctorType;
 
 			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller, newBigger, VATA::Util::Identity(states));
 		}
@@ -115,9 +118,22 @@ bool VATA::ExplicitFiniteAut<SymbolType>::CheckInclusion(
 			typedef typename VATA::ExplicitFiniteAut<SymbolType>::StateSet StateSet;
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;
 			typedef VATA::ProductStateSetDepth<StateSet,ProductState> ProductSet;
-			typedef VATA::ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet> FunctorType;
+			typedef VATA::NormalFormRelPreorder<SymbolType,Rel> NormalFormRel;
+			typedef VATA::ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet,NormalFormRel> FunctorType;
 
 			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(newSmaller, newBigger, VATA::Util::Identity(states));
+		}
+		case InclParam::CONGR_DEPTH_SIM:
+		{
+			typedef VATA::AutBase::StateBinaryRelation Rel;
+			typedef typename VATA::ExplicitFiniteAut<SymbolType>::StateSet StateSet;
+			typedef typename std::pair<StateSet*,StateSet*> ProductState;
+			typedef VATA::ProductStateSetDepth<StateSet,ProductState> ProductSet;
+			typedef VATA::NormalFormRelSimulation<SymbolType,Rel> NormalFormRel;
+
+			typedef VATA::ExplicitFACongrFunctorCacheOpt<SymbolType,Rel,ProductSet,NormalFormRel> FunctorType;
+
+			return VATA::CheckFiniteAutInclusion<SymbolType,Rel,FunctorType>(smaller, bigger, params.GetSimulation());
 		}
 		case InclParam::CONGR_DEPTH_EQUIV_NOSIM:
 		{

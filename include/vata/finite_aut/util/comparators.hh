@@ -82,6 +82,16 @@ public: // public methods
 			Antichain1Type& /*antichain*/) {
 		candidates.push_back(state);
 	}
+
+	inline void getCandidateRev(std::vector<StateType>& candidates, StateType state,
+			Antichain1Type& /*antichain*/) {
+		candidates.push_back(state);
+	}
+
+	inline bool checkSmallerInBigger(const StateType& smaller, const StateSet& biggerSet)
+	{
+		return false;
+	}
 };
 
 /*
@@ -132,10 +142,29 @@ public: // public methods
 	inline void getCandidate(std::vector<StateType>& candidates, StateType state,
 			Antichain1Type& antichain) {
 		for (StateType candidate : antichain.data()) {
+			if (preorder_.get(state,candidate)) {
+				candidates.push_back(candidate);
+			}
+		}
+	}
+
+	inline void getCandidateRev(std::vector<StateType>& candidates, StateType state,
+			Antichain1Type& antichain) {
+		for (StateType candidate : antichain.data()) {
 			if (preorder_.get(candidate,state)) {
 				candidates.push_back(candidate);
 			}
 		}
+	}
+
+	inline bool checkSmallerInBigger(const StateType& smaller, const StateSet& biggerSet)
+	{
+		for (const StateType& s : biggerSet) {
+			if (preorder_.get(smaller,s)) {
+				return true;
+			}
+		}
+		return false;
 	}
 };
 
