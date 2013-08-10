@@ -30,6 +30,7 @@ def getSim(fileToLoad):
 					sim1[dic1[str(line)]].extend([dic1[str(ind)]])
 				except KeyError:
 					sim1[dic1[str(line)]]=[dic1[str(ind)]]
+			sim1[dic1[str(line)]].sort()
 			line=line+1
 
 	return sim1
@@ -48,6 +49,8 @@ try:
 	secondFile = open(sys.argv[2],'r')
 	sim2 = getSim(secondFile)
 	if sim1 == sim2:
-		print "ahoj"
+		print "Simulations "+sys.argv[1]+" "+sys.argv[2]+" are identical"
+	else:
+		print "Simulations "+sys.argv[1]+" "+sys.argv[2]+" are not identical"
 except KeyError:
 	sys.stderr.write("Bad format of a simulation output\n")
