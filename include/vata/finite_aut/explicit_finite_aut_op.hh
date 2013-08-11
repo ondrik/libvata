@@ -23,19 +23,6 @@
 #include <vata/finite_aut/explicit_finite_aut.hh>
 #include <vata/finite_aut/explicit_finite_transl.hh>
 
-#include <vata/finite_aut/explicit_finite_incl.hh>
-
-#include <vata/finite_aut/explicit_finite_incl_fctor.hh>
-#include <vata/finite_aut/explicit_finite_incl_fctor_opt.hh>
-
-#include <vata/finite_aut/explicit_finite_congr_fctor.hh>
-#include <vata/finite_aut/explicit_finite_congr_fctor_opt.hh>
-#include <vata/finite_aut/explicit_finite_congr_equiv_fctor.hh>
-#include <vata/finite_aut/explicit_finite_congr_fctor_cache_opt.hh>
-
-#include <vata/finite_aut/util/map_to_list.hh>
-#include <vata/finite_aut/util/macrostate_cache.hh>
-#include <vata/finite_aut/util/congr_product.hh>
 
 namespace VATA {
 	template <class Rel,

@@ -62,6 +62,7 @@ add_library(libvata STATIC
   explicit_finite_aut.cc
   explicit_finite_union.cc
   explicit_finite_isect.cc
+  explicit_finite_incl.cc
   explicit_finite_reverse.cc
   explicit_finite_useless.cc
   explicit_finite_unreach.cc
