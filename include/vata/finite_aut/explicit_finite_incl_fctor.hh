@@ -24,17 +24,17 @@
 #include <vector>
 
 namespace VATA {
-	template <class SymbolType, class Rel> class ExplicitFAInclusionFunctor;
-	template <class SymbolType,class Rel> class ExplicitFAStateSetComparator;
+	template <class Rel> class ExplicitFAInclusionFunctor;
+	template <class Rel> class ExplicitFAStateSetComparator;
 }
 
 GCC_DIAG_OFF(effc++) // non virtual destructors warnings supress
-template<class SymbolType, class Rel>
+template<class Rel>
 class VATA::ExplicitFAStateSetComparator {
 GCC_DIAG_ON(effc++)
 
 public:
-	typedef ExplicitFiniteAut<SymbolType> ExplicitFA;
+	typedef ExplicitFiniteAut ExplicitFA;
 	typedef typename ExplicitFA::StateSet StateSet;
 
 private: // private data members
@@ -74,12 +74,12 @@ public: // public methods
 	}
 };
 
-template <class SymbolType, class Rel>
+template <class Rel>
 class VATA::ExplicitFAInclusionFunctor :
-	public ExplicitFAAbstractFunctor <SymbolType,Rel> {
+	public ExplicitFAAbstractFunctor <Rel> {
 
 public : // data types
-	typedef ExplicitFAAbstractFunctor<SymbolType,Rel> AbstractFunctor;
+	typedef ExplicitFAAbstractFunctor<Rel> AbstractFunctor;
 	typedef typename AbstractFunctor::ExplicitFA ExplicitFA;
 
 	typedef typename AbstractFunctor::StateType StateType;
@@ -98,7 +98,7 @@ public : // data types
 
 	typedef typename AbstractFunctor::IndexType IndexType;
 
-	typedef ExplicitFAStateSetComparator<SymbolType,Rel> Comparator;
+	typedef ExplicitFAStateSetComparator<Rel> Comparator;
 
 private: // data memebers
 	AntichainType& antichain_;

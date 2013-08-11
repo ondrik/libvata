@@ -767,11 +767,11 @@ public:   // public methods
 				}
 			}
 
-			if (!translatedStates.count(t.state()))
+			if (!translatedStates.count(t.parent()))
 			{
-				res = res + VATA::Util::Convert::ToString(index(t.state())) + " -> " +
-					VATA::Util::Convert::ToString(sanitizeIndex[t.state()]) + "\n";
-				translatedStates.insert(t.state());
+				res = res + VATA::Util::Convert::ToString(index(t.parent())) + " -> " +
+					VATA::Util::Convert::ToString(sanitizeIndex[t.parent()]) + "\n";
+				translatedStates.insert(t.parent());
 			}
 		}
 		return res;
@@ -851,18 +851,12 @@ public:   // public methods
 	}
 
 	template <class Index>
-<<<<<<< HEAD:include/vata/ta_expl/explicit_tree_aut.hh
 	void ReindexStates(
 		ExplicitTreeAut&          dst,
 		Index&                    index) const
 	{
 		for (const StateType& state : finalStates_)
 		{
-=======
-	void ReindexStates(ExplicitTreeAut& dst, Index& index) const {
-
-		for (auto& state : this->finalStates_) {
->>>>>>> improve_sim_output:include/vata/explicit_tree_aut.hh
 			dst.SetStateFinal(index[state]);
 		}
 
@@ -886,12 +880,8 @@ public:   // public methods
 
 					StateTuple newTuple;
 
-<<<<<<< HEAD:include/vata/ta_expl/explicit_tree_aut.hh
 					for (const StateType& s : *tuple)
 					{
-=======
-					for (auto& s : *tuple) {
->>>>>>> improve_sim_output:include/vata/explicit_tree_aut.hh
 						newTuple.push_back(index[s]);
 					}
 

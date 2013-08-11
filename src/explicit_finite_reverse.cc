@@ -8,18 +8,14 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_EXPLICIT_FINITE_AUT_REVERSE_HH_
-#define _VATA_EXPLICIT_FINITE_AUT_REVERSE_HH_
-
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/finite_aut/explicit_finite_aut.hh>
 
-template <class SymbolType>
-VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::Reverse(
+VATA::ExplicitFiniteAut VATA::ExplicitFiniteAut::Reverse(
 	AutBase::StateToStateMap* /*pTranslMap*/) const
 {
-	typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
+	typedef VATA::ExplicitFiniteAut ExplicitFA;
 
 	ExplicitFA res;
 
@@ -39,5 +35,3 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::Reverse
 
 	return res;
 }
-
-#endif

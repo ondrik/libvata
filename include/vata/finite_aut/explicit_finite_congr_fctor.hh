@@ -21,22 +21,23 @@
 #include <vata/finite_aut/explicit_finite_abstract_fctor.hh>
 
 namespace VATA {
-	template <class SymbolType, class Rel> class ExplicitFACongrFunctor;
+	template <class Rel> class ExplicitFACongrFunctor;
 }
 
 GCC_DIAG_OFF(effc++) // non virtual destructors warnings supress
-template <class SymbolType, class Rel>
+template <class Rel>
 class VATA::ExplicitFACongrFunctor :
-	public ExplicitFAAbstractFunctor <SymbolType,Rel> {
+	public ExplicitFAAbstractFunctor <Rel> {
 GCC_DIAG_ON(effc++)
 
 public : // data types
-	typedef typename VATA::ExplicitFAAbstractFunctor<SymbolType,Rel>
+	typedef typename VATA::ExplicitFAAbstractFunctor<Rel>
 		AbstractFunctor;
 	typedef typename AbstractFunctor::ExplicitFA ExplicitFA;
 
 	typedef typename AbstractFunctor::StateType StateType;
 	typedef typename AbstractFunctor::StateSet StateSet;
+	typedef typename AbstractFunctor::SymbolType SymbolType;
 
 	typedef typename AbstractFunctor::Antichain1Type Antichain1Type;
 

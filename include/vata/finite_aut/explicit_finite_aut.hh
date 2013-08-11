@@ -24,7 +24,7 @@
 #include <unordered_set>
 
 namespace VATA {
-	template <class Symbol> class ExplicitFiniteAut;
+	class ExplicitFiniteAut;
 }
 
 /*
@@ -32,7 +32,6 @@ namespace VATA {
  * symbol is not ranked
  */
 GCC_DIAG_OFF(effc++) // non virtual destructors warnings suppress
-template <class Symbol>
 class VATA::ExplicitFiniteAut : public AutBase
 {
 GCC_DIAG_ON(effc++)
@@ -42,76 +41,48 @@ GCC_DIAG_ON(effc++)
 	 */
 
 	template <class SymbolType, class Dict>
-	friend ExplicitFiniteAut<SymbolType> Complement(
-			const ExplicitFiniteAut<SymbolType> &,
+	friend ExplicitFiniteAut Complement(
+			const ExplicitFiniteAut &,
 			const Dict &);
 
-	template <class SymbolType, class Rel, class Index>
-	friend ExplicitFiniteAut<SymbolType> CollapseStates(
-			const ExplicitFiniteAut<SymbolType> &,
-			const Rel &,
-			const Index &);
-
-	// Translator for simulation
-	template <class SymbolType, class Index>
-	friend ExplicitLTS Translate(const ExplicitFiniteAut<SymbolType>& aut,
-		std::vector<std::vector<size_t>>& partition,
-		Util::BinaryRelation& relation,
-		const Index& stateIndex);
-
-	// Checking inclusion
-	template <class SymbolType>
-	friend bool CheckInclusion(
-			 const ExplicitFiniteAut<SymbolType>& smaller,
-			 const ExplicitFiniteAut<SymbolType>& bigger,
-			 const InclParam& params);
-
-	template <class SymbolType>
 	friend bool CheckEquivalence(
-			 const ExplicitFiniteAut<SymbolType>& smaller,
-			 const ExplicitFiniteAut<SymbolType>& bigger,
+			 const ExplicitFiniteAut& smaller,
+			 const ExplicitFiniteAut& bigger,
 			 const InclParam& params);
-
-	// Checking inclusion
-	template<class SymbolType, class Rel, class Functor>
-	friend bool CheckFiniteAutInclusion (
-		const ExplicitFiniteAut<SymbolType>& smaller,
-		const ExplicitFiniteAut<SymbolType>& bigger,
-		const Rel& preorder);
 
 	/*
 	 * Functors for inclusion checking functions
 	 */
-	template<class SymbolType, class Rel>
+	template<class Rel>
 	friend class ExplicitFAAbstractFunctor;
 
-	template<class SymbolType, class Rel>
+	template<class Rel>
 	friend class ExplicitFAInclusionFunctor;
-	template<class SymbolType, class Rel, class Comparator>
+	template<class Rel, class Comparator>
 	friend class ExplicitFAInclusionFunctorOpt;
 
-	template<class SymbolType, class Rel, class Comparator>
+	template<class Rel, class Comparator>
 	friend class ExplicitFAInclusionFunctorCache;
 
-	template<class SymbolType, class Rel>
+	template<class Rel>
 	friend class ExplicitFACongrFunctor;
-	template<class SymbolType, class Rel>
+	template<class Rel>
 	friend class ExplicitFACongrFunctorOpt;
-	template<class SymbolType, class Rel, class ProductSet, class NormalFormRel>
+	template<class Rel, class ProductSet, class NormalFormRel>
 	friend class ExplicitFACongrFunctorCacheOpt;
-	template<class SymbolType, class Rel, class ProductSet>
+	template<class Rel, class ProductSet>
 	friend class ExplicitFACongrEquivFunctor;
 
-	template<class SymbolType, class Rel>
+	template<class Rel>
 	friend class ExplicitFAStateSetComparator;
-	template<class SymbolType, class Rel>
+	template<class Rel>
 	friend class ExplicitFAStateSetComparatorIdentity;
-	template<class SymbolType, class Rel>
+	template<class Rel>
 	friend class ExplicitFAStateSetComparatorSimulation;
 
-	template<class SymbolType, class Rel>
+	template<class Rel>
 	friend class NormalFormRelPreorder;
-	template<class SymbolType, class Rel>
+	template<class Rel>
 	friend class NormalFormRelSimulation;
 
 	template<class Key, class Value>
@@ -120,7 +91,7 @@ GCC_DIAG_ON(effc++)
 	friend class MacroStateCache;
 
 public:
-	typedef Symbol SymbolType;
+	typedef uintptr_t SymbolType;
 
 private: // private type definitions
 	typedef AutBase::StateType StateType;
@@ -614,15 +585,21 @@ protected:
 
 public:   // methods
 
-	ExplicitFiniteAut<SymbolType> RemoveUnreachableStates(
+	ExplicitFiniteAut RemoveUnreachableStates(
 			VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
 
 
-	ExplicitFiniteAut<SymbolType> RemoveUselessStates(
+	ExplicitFiniteAut RemoveUselessStates(
 			VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
 
-	ExplicitFiniteAut<SymbolType> GetCandidateTree() const;
+	ExplicitFiniteAut GetCandidateTree() const;
 
+	template <class Index = Util::IdentityTranslator<AutBase::StateType>>
+	VATA::ExplicitLTS Translate(
+		const ExplicitFiniteAut& aut,
+		std::vector<std::vector<size_t>>& partition,
+		VATA::Util::BinaryRelation& relation,
+		const Index& stateIndex = Index());
 
 	/*
 	 * Creates union of two automata. It just reindexs
@@ -630,28 +607,35 @@ public:   // methods
 	 * Reindexing of states is not done in this function, this
 	 * function just prepares translators.
 	 */
-	static ExplicitFiniteAut<SymbolType> Union(
-		const ExplicitFiniteAut<SymbolType>& lhs,
-		const ExplicitFiniteAut<SymbolType>& rhs,
+	static ExplicitFiniteAut Union(
+		const ExplicitFiniteAut& lhs,
+		const ExplicitFiniteAut& rhs,
 		AutBase::StateToStateMap* pTranslMapLhs = nullptr,
 		AutBase::StateToStateMap* pTranslMapRhs = nullptr);
 
-	static ExplicitFiniteAut<SymbolType> UnionDisjointStates(
-		const ExplicitFiniteAut<SymbolType>& lhs,
-		const ExplicitFiniteAut<SymbolType>& rhs);
+	static ExplicitFiniteAut UnionDisjointStates(
+		const ExplicitFiniteAut& lhs,
+		const ExplicitFiniteAut& rhs);
 
-	static VATA::ExplicitFiniteAut<SymbolType> Intersection(
-			const VATA::ExplicitFiniteAut<SymbolType> &lhs,
-			const VATA::ExplicitFiniteAut<SymbolType> &rhs,
+	static VATA::ExplicitFiniteAut Intersection(
+			const VATA::ExplicitFiniteAut &lhs,
+			const VATA::ExplicitFiniteAut &rhs,
 			AutBase::ProductTranslMap* pTranslMap = nullptr);
 
 
 	static bool CheckInclusion(
-		const VATA::ExplicitFiniteAut<SymbolType>&    smaller,
-		const VATA::ExplicitFiniteAut<SymbolType>&    bigger,
-		const VATA::InclParam&												params);
+		const VATA::ExplicitFiniteAut&    smaller,
+		const VATA::ExplicitFiniteAut&    bigger,
+		const VATA::InclParam&						params);
 
-	ExplicitFiniteAut<SymbolType> Reverse(
+	// Checking inclusion
+	template<class Rel, class Functor>
+	static bool CheckFiniteAutInclusion (
+		const ExplicitFiniteAut& smaller,
+		const ExplicitFiniteAut& bigger,
+		const Rel& preorder);
+
+	ExplicitFiniteAut Reverse(
 			AutBase::StateToStateMap* pTranslMap = nullptr) const;
 
 	/***************************************************
@@ -674,13 +658,14 @@ public:   // methods
 	{
 		AutBase::StateBinaryRelation relation;
 		std::vector<std::vector<size_t>> partition(1);
+
 		return Translate(*this, partition, relation).computeSimulation(partition,relation,size);
 	}
 
 #if 0
 	// Automaton has not been sanitized
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const ExplicitFiniteAut<SymbolType>& aut) {
+		const ExplicitFiniteAut& aut) {
 
 		return ComputeDownwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
 	}
@@ -708,12 +693,4 @@ public:   // methods
 		throw NotImplementedException(__func__);
 	}
 };
-
-template <class Symbol>
-typename VATA::ExplicitFiniteAut<Symbol>::StringToSymbolDict*
-	VATA::ExplicitFiniteAut<Symbol>::pSymbolDict_ = nullptr;
-
-template <class Symbol>
-typename VATA::ExplicitFiniteAut<Symbol>::SymbolType*
-	VATA::ExplicitFiniteAut<Symbol>::pNextSymbol_ = nullptr;
 #endif

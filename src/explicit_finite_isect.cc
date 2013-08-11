@@ -8,25 +8,19 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_EXPLICIT_FINITE_ISECT_HH_
-#define _VATA_EXPLICIT_FINITE_ISECT_HH_
-
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/finite_aut/explicit_finite_aut.hh>
-#include <vata/finite_aut/explicit_finite_useless.hh>
 
 // Standard library headers
 #include <vector>
 
-
-template <class SymbolType>
-VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::Intersection(
-		const VATA::ExplicitFiniteAut<SymbolType> &lhs,
-		const VATA::ExplicitFiniteAut<SymbolType> &rhs,
+VATA::ExplicitFiniteAut VATA::ExplicitFiniteAut::Intersection(
+		const VATA::ExplicitFiniteAut &lhs,
+		const VATA::ExplicitFiniteAut &rhs,
 		AutBase::ProductTranslMap* pTranslMap) {
 
-	typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
+	typedef VATA::ExplicitFiniteAut ExplicitFA;
 	typedef typename ExplicitFA::StateSet StateSet;
 
 	AutBase::ProductTranslMap translMap;
@@ -36,7 +30,7 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::Interse
 		pTranslMap = &translMap;
 	}
 
-	VATA::ExplicitFiniteAut<SymbolType> res;
+	VATA::ExplicitFiniteAut res;
 
 	std::vector<const AutBase::ProductTranslMap::value_type*> stack;
 
@@ -135,5 +129,3 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::Interse
 
 	return res.RemoveUselessStates();
 }
-
-#endif

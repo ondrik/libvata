@@ -21,8 +21,8 @@
 #include <vata/finite_aut/explicit_finite_aut.hh>
 
 namespace VATA {
-	template <class SymbolType,class Rel> class ExplicitFAStateSetComparatorIdentity;
-	template <class SymbolType,class Rel> class ExplicitFAStateSetComparatorSimulation;
+	template <class Rel> class ExplicitFAStateSetComparatorIdentity;
+	template <class Rel> class ExplicitFAStateSetComparatorSimulation;
 }
 
 /**
@@ -32,11 +32,11 @@ namespace VATA {
  * @note	is it necessary to reference to VATA::ExplicitFA?
  *
  */
-template<class SymbolType, class Rel>
+template<class Rel>
 class VATA::ExplicitFAStateSetComparatorIdentity {
 
 public:
-	typedef ExplicitFiniteAut<SymbolType> ExplicitFA;
+	typedef ExplicitFiniteAut ExplicitFA;
 	typedef typename ExplicitFA::StateType StateType;
 	typedef typename ExplicitFA::StateSet StateSet;
 	typedef VATA::Util::Antichain1C<StateType> Antichain1Type;
@@ -98,11 +98,11 @@ public: // public methods
  * Class for comparing macrostates during inclusion checking
  * using simulation
  */
-template<class SymbolType, class Rel>
+template<class Rel>
 class VATA::ExplicitFAStateSetComparatorSimulation {
 
 public:
-	typedef ExplicitFiniteAut<SymbolType> ExplicitFA;
+	typedef ExplicitFiniteAut ExplicitFA;
 	typedef typename ExplicitFA::StateSet StateSet;
 	typedef typename ExplicitFA::StateType StateType;
 	typedef VATA::Util::Antichain1C<StateType> Antichain1Type;

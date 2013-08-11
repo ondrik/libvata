@@ -19,10 +19,6 @@
 #include <vata/ta_expl/explicit_tree_aut_op.hh>
 #include <vata/finite_aut/explicit_finite_aut.hh>
 #include <vata/finite_aut/explicit_finite_aut_op.hh>
-#include <vata/finite_aut/explicit_finite_union.hh>
-#include <vata/finite_aut/explicit_finite_unreach.hh>
-#include <vata/finite_aut/explicit_finite_useless.hh>
-#include <vata/finite_aut/explicit_finite_incl.hh>
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
 #include <vata/util/convert.hh>
@@ -49,7 +45,7 @@ using VATA::Serialization::TimbukSerializer;
 using VATA::Util::Convert;
 
 
-typedef VATA::ExplicitFiniteAut<size_t> ExplicitFiniteAut;
+typedef VATA::ExplicitFiniteAut ExplicitFiniteAut;
 
 typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
 	StateTranslatorWeak;

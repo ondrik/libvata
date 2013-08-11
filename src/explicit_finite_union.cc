@@ -8,16 +8,14 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_EXPLICIT_FINITE_UNION_HH_
-#define _VATA_EXPLICIT_FINITE_UNION_HH_
-
 // VATA headers
 #include <vata/finite_aut/explicit_finite_aut.hh>
 
-template <class SymbolType>
-VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::Union(
-	const ExplicitFiniteAut<SymbolType>& lhs,
-	const ExplicitFiniteAut<SymbolType>& rhs,
+using VATA::ExplicitTreeAut;
+
+VATA::ExplicitFiniteAut VATA::ExplicitFiniteAut::Union(
+	const ExplicitFiniteAut& lhs,
+	const ExplicitFiniteAut& rhs,
 	AutBase::StateToStateMap* pTranslMapLhs,
 	AutBase::StateToStateMap* pTranslMapRhs)
 {
@@ -46,7 +44,7 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::Union(
 	StateToStateTranslator stateTransLhs(*pTranslMapLhs, translFunc);
 	StateToStateTranslator stateTransRhs(*pTranslMapRhs, translFunc);
 
-	ExplicitFiniteAut<SymbolType> res;
+	ExplicitFiniteAut res;
 
 	lhs.ReindexStates(res, stateTransLhs);
 	rhs.ReindexStates(res, stateTransRhs);
@@ -56,12 +54,11 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::Union(
 }
 
 
-template <class SymbolType>
-VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::UnionDisjointStates(
-		const ExplicitFiniteAut<SymbolType> &lhs,
-		const ExplicitFiniteAut<SymbolType> &rhs)
+VATA::ExplicitFiniteAut VATA::ExplicitFiniteAut::UnionDisjointStates(
+		const ExplicitFiniteAut &lhs,
+		const ExplicitFiniteAut &rhs)
 {
-	ExplicitFiniteAut<SymbolType> res(lhs);
+	ExplicitFiniteAut res(lhs);
 
 	// Use uniqueCluster function, not explicitly transitions_,
 	// because of the possibility of the need of creating the
@@ -80,6 +77,3 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::UnionDi
 		rhs.finalStates_.end());
 	return res;
 }
-
-
-#endif

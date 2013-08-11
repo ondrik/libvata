@@ -25,17 +25,17 @@
 #include <vector>
 
 namespace VATA {
-	template <class SymbolType, class Rel, class Comparator> class ExplicitFAInclusionFunctorOpt;
+	template <class Rel, class Comparator> class ExplicitFAInclusionFunctorOpt;
 }
 
 GCC_DIAG_OFF(effc++)
-template <class SymbolType, class Rel, class Comparator>
+template <class Rel, class Comparator>
 class VATA::ExplicitFAInclusionFunctorOpt :
-	public ExplicitFAAbstractFunctor <SymbolType,Rel> {
+	public ExplicitFAAbstractFunctor <Rel> {
 GCC_DIAG_ON(effc++)
 
 public : // data types
-	typedef ExplicitFAAbstractFunctor<SymbolType,Rel> AbstractFunctor;
+	typedef ExplicitFAAbstractFunctor<Rel> AbstractFunctor;
 	typedef typename AbstractFunctor::ExplicitFA ExplicitFA;
 
 	typedef typename AbstractFunctor::StateType StateType;

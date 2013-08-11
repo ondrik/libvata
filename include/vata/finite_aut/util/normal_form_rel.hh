@@ -13,8 +13,8 @@
 #define _VATA_UTIL_NORMAL_FOR_REL_HH__
 
 namespace VATA {
-	template <class SymbolType, class Rel> class NormalFormRelPreorder;
-	template <class SymbolType, class Rel> class NormalFormRelSimulation;
+	template <class Rel> class NormalFormRelPreorder;
+	template <class Rel> class NormalFormRelSimulation;
 }
 
 /*
@@ -22,11 +22,11 @@ namespace VATA {
  * and servers for keeping the performance because no other
  * rules can be applied in this case.
  */
-template <class SymbolType, class Rel>
+template <class Rel>
 class VATA::NormalFormRelPreorder {
 
 private: // private data types
-	typedef ExplicitFiniteAut<SymbolType> ExplicitFA;
+	typedef ExplicitFiniteAut ExplicitFA;
 	typedef typename ExplicitFA::StateSet StateSet;
 	typedef typename ExplicitFA::StateType StateType;
 
@@ -51,11 +51,11 @@ public: // public functions
  * Class is used for application of a rule for computation
  * of a normal form based on simulation preorder.
  */
-template <class SymbolType, class Rel>
+template <class Rel>
 class VATA::NormalFormRelSimulation {
 
 private: // private data types
-	typedef ExplicitFiniteAut<SymbolType> ExplicitFA;
+	typedef ExplicitFiniteAut ExplicitFA;
 	typedef typename ExplicitFA::StateSet StateSet;
 	typedef typename ExplicitFA::StateType StateType;
 

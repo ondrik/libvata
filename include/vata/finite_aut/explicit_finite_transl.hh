@@ -18,24 +18,15 @@
 #include <vata/explicit_lts.hh>
 #include <vata/util/transl_weak.hh>
 
-namespace VATA {
-	template <class SymbolType,
-	class Index = Util::IdentityTranslator<AutBase::StateType>>
-		ExplicitLTS Translate(const ExplicitFiniteAut<SymbolType>& aut,
-		std::vector<std::vector<size_t>>& partition,
-		Util::BinaryRelation& relation,
-		const Index& stateIndex = Index());
-}
-
 /*
  * Function translates given nfa to lts and
  * creates partition and set relation
  */
-template <class SymbolType, class Index>
-VATA::ExplicitLTS VATA::Translate(
-	const VATA::ExplicitFiniteAut<SymbolType>& aut,
+template <class Index>
+VATA::ExplicitLTS VATA::ExplicitFiniteAut::Translate(
+	const VATA::ExplicitFiniteAut& aut,
 	std::vector<std::vector<size_t>>& partition,
-	VATA::Util::BinaryRelation& relation,
+	Util::BinaryRelation& relation,
 	const Index& stateIndex) {
 
 	VATA::ExplicitLTS res;
