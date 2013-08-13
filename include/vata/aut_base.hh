@@ -121,13 +121,11 @@ public:   // methods
 			[&stateCnt](const StateType&){return stateCnt++;});
 
 		Automaton tmpAut = smaller.RemoveUselessStates();
-		Automaton newSmaller;
-		tmpAut.ReindexStates(newSmaller, stateTrans);
+		Automaton newSmaller = tmpAut.ReindexStates(stateTrans);
 
 		tmpAut = bigger.RemoveUselessStates();
 		stateMap.clear();
-		Automaton newBigger;
-		tmpAut.ReindexStates(newBigger, stateTrans);
+		Automaton newBigger = tmpAut.ReindexStates(stateTrans);
 
 		smaller = newSmaller;
 		bigger = newBigger;
@@ -144,8 +142,7 @@ public:   // methods
 			[&stateCnt](const StateType&){return stateCnt++;});
 
 		Automaton newAut = aut.RemoveUselessStates();
-		Automaton reindexedAut;
-		newAut.ReindexStates(reindexedAut, stateTrans);
+		Automaton reindexedAut = newAut.ReindexStates(stateTrans);
 
 		aut = reindexedAut;
 

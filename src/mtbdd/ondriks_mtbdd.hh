@@ -13,9 +13,10 @@
 
 // VATA headers
 #include	<vata/vata.hh>
-#include	<vata/mtbdd/mtbdd_node.hh>
-#include	<vata/mtbdd/var_asgn.hh>
+#include	<vata/var_asgn.hh>
 #include	<vata/util/triple.hh>
+
+#include	"mtbdd_node.hh"
 
 // Standard library headers
 #include	<cassert>

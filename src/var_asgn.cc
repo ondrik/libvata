@@ -10,7 +10,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/mtbdd/var_asgn.hh>
+#include <vata/var_asgn.hh>
 
 using VATA::MTBDDPkg::VarAsgn;
 

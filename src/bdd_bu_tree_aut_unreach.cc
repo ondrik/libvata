@@ -13,18 +13,19 @@
 #include <vata/vata.hh>
 #include <vata/bdd_bu_tree_aut.hh>
 
+#include "bdd_bu_tree_aut_core.hh"
+
 using VATA::AutBase;
-using VATA::BDDBottomUpTreeAut;
+using VATA::BDDBUTreeAutCore;
 using VATA::Util::Convert;
 
-typedef VATA::AutBase::StateType StateType;
-typedef VATA::BDDBottomUpTreeAut::StateSet StateSet;
-typedef VATA::BDDBottomUpTreeAut::StateHT StateHT;
-typedef VATA::BDDBottomUpTreeAut::StateTuple StateTuple;
-typedef VATA::BDDBottomUpTreeAut::TransMTBDD TransMTBDD;
+using StateType   = BDDBUTreeAutCore::StateType;
+using StateSet    = BDDBUTreeAutCore::StateSet;
+using StateHT     = BDDBUTreeAutCore::StateHT;
+using StateTuple  = BDDBUTreeAutCore::StateTuple;
+using TransMTBDD  = BDDBUTreeAutCore::TransMTBDD;
 
-typedef std::unordered_map<StateTuple, TransMTBDD, boost::hash<StateTuple>>
-	TupleHT;
+using TupleHT = std::unordered_map<StateTuple, TransMTBDD, boost::hash<StateTuple>>;
 
 
 namespace
@@ -65,9 +66,9 @@ public:   // methods
 } // namespace
 
 
-BDDBottomUpTreeAut BDDBottomUpTreeAut::RemoveUnreachableStates() const
+BDDBUTreeAutCore BDDBUTreeAutCore::RemoveUnreachableStates() const
 {
-	BDDBottomUpTreeAut result;
+	BDDBUTreeAutCore result;
 
 	StateHT reachable;
 	StateHT workset;

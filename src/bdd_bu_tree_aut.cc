@@ -11,7 +11,8 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_bu_tree_aut.hh>
-#include <vata/mtbdd/void_apply2func.hh>
+
+#include "bdd_bu_tree_aut_core.hh"
 
 
 using VATA::BDDBottomUpTreeAut;
@@ -20,80 +21,244 @@ using VATA::Parsing::AbstrParser;
 using VATA::Util::AutDescription;
 using VATA::Util::Convert;
 
+using StateBinaryRelation = VATA::BDDBottomUpTreeAut::StateBinaryRelation;
+
+BDDBottomUpTreeAut::BDDBottomUpTreeAut(
+	BDDBUTreeAutCore&&             core) :
+	core_(new BDDBUTreeAutCore(std::move(core)))
+{ }
+
+BDDBottomUpTreeAut::BDDBottomUpTreeAut() :
+	core_(new BDDBUTreeAutCore())
+{ }
+
+BDDBottomUpTreeAut::BDDBottomUpTreeAut(
+	const BDDBottomUpTreeAut&         aut) :
+	core_(new BDDBUTreeAutCore(*aut.core_))
+{ }
+
+BDDBottomUpTreeAut& BDDBottomUpTreeAut::operator=(
+	const BDDBottomUpTreeAut&         aut)
+{
+	if (this != &aut)
+	{
+		assert(nullptr != core_);
+
+		*core_ = *aut.core_;
+	}
+
+	return *this;
+}
+
+BDDBottomUpTreeAut::BDDBottomUpTreeAut(
+	BDDBottomUpTreeAut&&              aut) :
+	core_(std::move(aut.core_))
+{
+	aut.core_ = nullptr;
+}
+
+BDDBottomUpTreeAut& BDDBottomUpTreeAut::operator=(
+	BDDBottomUpTreeAut&&         aut)
+{
+	assert(this != &aut);
+
+	assert(nullptr != core_);
+	assert(nullptr != aut.core_);
+
+	core_ = std::move(aut.core_);
+	aut.core_ = nullptr;
+
+	return *this;
+}
+
+BDDBottomUpTreeAut::~BDDBottomUpTreeAut()
+{
+	assert(nullptr != core_);
+}
+
+
+
+void BDDBottomUpTreeAut::SetStateFinal(
+	const StateType&               state)
+{
+	assert(nullptr != core_);
+
+	core_->SetStateFinal(state);
+}
+
+
+bool BDDBottomUpTreeAut::IsStateFinal(
+	const StateType&               state) const
+{
+	assert(nullptr != core_);
+
+	return core_->IsStateFinal(state);
+}
+
+
+void BDDBottomUpTreeAut::LoadFromString(
+	VATA::Parsing::AbstrParser&     parser,
+	const std::string&              str,
+	StringToStateDict&              stateDict)
+{
+	assert(nullptr != core_);
+
+	core_->LoadFromString(parser, str, stateDict);
+}
+
+
+void BDDBottomUpTreeAut::LoadFromAutDesc(
+	const AutDescription&         desc,
+	StringToStateDict&            stateDict)
+{
+	assert(nullptr != core_);
+
+	core_->LoadFromAutDesc(desc, stateDict);
+}
+
+
+std::string BDDBottomUpTreeAut::DumpToString(
+	VATA::Serialization::AbstrSerializer&      serializer) const
+{
+	assert(nullptr != core_);
+
+	return core_->DumpToString(serializer);
+}
+
+
+std::string BDDBottomUpTreeAut::DumpToString(
+	VATA::Serialization::AbstrSerializer&      serializer,
+	const StringToStateDict&                   stateDict) const
+{
+	assert(nullptr != core_);
+
+	return core_->DumpToString(serializer, stateDict);
+}
+
+
+std::string BDDBottomUpTreeAut::DumpToString(
+	VATA::Serialization::AbstrSerializer&      serializer,
+	const StateBackTranslatorStrict&           stateTrans,
+	const SymbolBackTranslatorStrict&          symbolTrans) const
+{
+	assert(nullptr != core_);
+
+	return core_->DumpToString(serializer, stateTrans, symbolTrans);
+}
+
+
+BDDBottomUpTreeAut BDDBottomUpTreeAut::RemoveUselessStates() const
+{
+	assert(nullptr != core_);
+
+	return BDDBottomUpTreeAut(core_->RemoveUselessStates());
+}
+
+
+BDDBottomUpTreeAut BDDBottomUpTreeAut::RemoveUnreachableStates() const
+{
+	assert(nullptr != core_);
+
+	return BDDBottomUpTreeAut(core_->RemoveUnreachableStates());
+}
+
+
+StateBinaryRelation BDDBottomUpTreeAut::ComputeDownwardSimulation() const
+{
+	assert(nullptr != core_);
+
+	return core_->ComputeDownwardSimulation();
+}
+
+
+StateBinaryRelation BDDBottomUpTreeAut::ComputeDownwardSimulation(
+	size_t                    size) const
+{
+	assert(nullptr != core_);
+
+	return core_->ComputeDownwardSimulation(size);
+}
+
+
+StateBinaryRelation BDDBottomUpTreeAut::ComputeUpwardSimulation() const
+{
+	assert(nullptr != core_);
+
+	return core_->ComputeUpwardSimulation();
+}
+
+
+StateBinaryRelation BDDBottomUpTreeAut::ComputeUpwardSimulation(
+	size_t                    size) const
+{
+	assert(nullptr != core_);
+
+	return core_->ComputeUpwardSimulation(size);
+}
+
+
+BDDBottomUpTreeAut BDDBottomUpTreeAut::ReindexStates(
+	StateToStateTranslator&       trans)
+{
+	assert(nullptr != core_);
+
+	return BDDBottomUpTreeAut(core_->ReindexStates(trans));
+}
+
+bool BDDBottomUpTreeAut::CheckInclusion(
+	const BDDBottomUpTreeAut&    smaller,
+	const BDDBottomUpTreeAut&    bigger,
+	const VATA::InclParam&       params)
+{
+	assert(nullptr != smaller.core_);
+	assert(nullptr != bigger.core_);
+
+	return BDDBUTreeAutCore::CheckInclusion(*smaller.core_, *bigger.core_, params);
+}
+
+
+BDDBottomUpTreeAut BDDBottomUpTreeAut::Union(
+	const BDDBottomUpTreeAut&         lhs,
+	const BDDBottomUpTreeAut&         rhs,
+	AutBase::StateToStateMap*         pTranslMapLhs,
+	AutBase::StateToStateMap*         pTranslMapRhs)
+{
+	assert(nullptr != lhs.core_);
+	assert(nullptr != rhs.core_);
+
+	return BDDBottomUpTreeAut(
+		BDDBUTreeAutCore::Union(*lhs.core_, *rhs.core_, pTranslMapLhs, pTranslMapRhs));
+}
+
+
+BDDBottomUpTreeAut BDDBottomUpTreeAut::UnionDisjointStates(
+	const BDDBottomUpTreeAut&         lhs,
+	const BDDBottomUpTreeAut&         rhs)
+{
+	assert(nullptr != lhs.core_);
+	assert(nullptr != rhs.core_);
+
+	return BDDBottomUpTreeAut(
+		BDDBUTreeAutCore::UnionDisjointStates(*lhs.core_, *rhs.core_));
+}
+
+
+BDDBottomUpTreeAut BDDBottomUpTreeAut::Intersection(
+	const BDDBottomUpTreeAut&         lhs,
+	const BDDBottomUpTreeAut&         rhs,
+	AutBase::ProductTranslMap*        pTranslMap)
+{
+	assert(nullptr != lhs.core_);
+	assert(nullptr != rhs.core_);
+
+	return BDDBottomUpTreeAut(
+		BDDBUTreeAutCore::Intersection(*lhs.core_, *rhs.core_, pTranslMap));
+}
+
 
 BDDTopDownTreeAut BDDBottomUpTreeAut::GetTopDownAut() const
 {
-	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
-	class InverterApplyFunctor :
-		public VATA::MTBDDPkg::Apply2Functor<InverterApplyFunctor, StateSet,
-		StateTupleSet, StateTupleSet>
-	{
-	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
-	private:  // data members
+	assert(nullptr != core_);
 
-		const StateType& soughtState_;
-		const StateTuple& checkedTuple_;
-
-	public:   // methods
-
-		InverterApplyFunctor(const StateType& soughtState,
-			const StateTuple& checkedTuple) :
-			soughtState_(soughtState),
-			checkedTuple_(checkedTuple)
-		{ }
-
-		inline StateTupleSet ApplyOperation(const StateSet& lhs,
-			const StateTupleSet& rhs)
-		{
-			StateTupleSet result = rhs;
-			if (lhs.find(soughtState_) != lhs.end())
-			{
-				result.insert(checkedTuple_);
-			}
-
-			return result;
-		}
-	};
-
-	BDDTopDownTreeAut result;
-
-	StateType soughtState;
-	StateTuple checkedTuple;
-	InverterApplyFunctor invertFunc(soughtState, checkedTuple);
-
-	StateHT states;
-	for (const StateType& fst : GetFinalStates())
-	{
-		result.finalStates_.insert(fst);
-		states.insert(fst);
-	}
-
-	for (auto tupleBddPair : transTable_)
-	{	// collect states
-		for (const StateType& state : tupleBddPair.first)
-		{
-			states.insert(state);
-		}
-	}
-
-	for (const StateType& state : states)
-	{
-		soughtState = state;
-
-		for (auto tupleBddPair : transTable_)
-		{
-			checkedTuple = tupleBddPair.first;
-
-			// TODO: it is necessary to somehow process arity
-			SymbolType prefix(BDDTopDownTreeAut::SYMBOL_ARITY_LENGTH,
-				checkedTuple.size());
-			TransMTBDD extendedBdd = tupleBddPair.second.ExtendWith(prefix,
-				VATA::SymbolicAutBase::SYMBOL_SIZE);
-
-			result.SetMtbdd(state, invertFunc(
-				extendedBdd, result.GetMtbdd(state)));
-		}
-	}
-
-	return result;
+	return core_->GetTopDownAut();
 }

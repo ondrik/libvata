@@ -129,9 +129,7 @@ protected:// methods
 		const Automaton&           aut,
 		const StringToStateDict&   stateDict)
 	{
-		return aut.DumpToString(serializer_,
-			StateBackTranslatorStrict(stateDict.GetReverseMap()),
-			SymbolBackTranslatorStrict(Automaton::GetSymbolDict().GetReverseMap()));
+		return aut.DumpToString(serializer_, stateDict);
 	}
 
 	void testInclusion(VATA::InclParam& ip)
@@ -224,8 +222,7 @@ protected:// methods
 				[&stateCnt](const StateType&){return stateCnt++;});
 
 			aut = aut.RemoveUselessStates();
-			AutType reindexedAut;
-			aut.ReindexStates(reindexedAut, stateTrans);
+			AutType reindexedAut = aut.ReindexStates(stateTrans);
 
 			stateDict = RebindMap(stateDict, stateMap);
 

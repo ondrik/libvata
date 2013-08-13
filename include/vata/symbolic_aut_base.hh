@@ -14,7 +14,7 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/aut_base.hh>
-#include <vata/mtbdd/var_asgn.hh>
+#include <vata/var_asgn.hh>
 
 
 namespace VATA
@@ -50,7 +50,7 @@ protected:// methods
 
 public:   // methods
 
-	static inline SymbolType AddSymbol()
+	static SymbolType AddSymbol()
 	{
 		// Assertions
 		assert(pNextSymbol_ != nullptr);
@@ -58,7 +58,7 @@ public:   // methods
 		return (*pNextSymbol_)++;
 	}
 
-	inline static void SetNextSymbolPtr(SymbolType* pNextSymbol)
+	static void SetNextSymbolPtr(SymbolType* pNextSymbol)
 	{
 		// Assertions
 		assert(pNextSymbol != nullptr);
@@ -66,7 +66,7 @@ public:   // methods
 		pNextSymbol_ = pNextSymbol;
 	}
 
-	static inline void SetSymbolDictPtr(StringToSymbolDict* pSymbolDict)
+	static void SetSymbolDictPtr(StringToSymbolDict* pSymbolDict)
 	{
 		// Assertions
 		assert(pSymbolDict != nullptr);
@@ -74,7 +74,7 @@ public:   // methods
 		pSymbolDict_ = pSymbolDict;
 	}
 
-	static inline StringToSymbolDict& GetSymbolDict()
+	static StringToSymbolDict& GetSymbolDict()
 	{
 		// Assertions
 		assert(pSymbolDict_ != nullptr);

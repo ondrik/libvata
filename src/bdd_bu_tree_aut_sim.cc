@@ -11,13 +11,15 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_bu_tree_aut.hh>
-#include <vata/mtbdd/apply3func.hh>
 
 // Standard library headers
 #include <stack>
 
-using VATA::BDDBottomUpTreeAut;
+#include "bdd_bu_tree_aut_core.hh"
+#include <vata/mtbdd/apply3func.hh>
+
+
+using VATA::BDDBUTreeAutCore;
 using VATA::BDDTopDownTreeAut;
 using VATA::Util::Convert;
 
@@ -29,7 +31,7 @@ typedef VATA::AutBase::StateToStateTranslator StateToStateTranslator;
 typedef BDDTopDownTreeAut::StateTuple StateTuple;
 typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
 
-typedef BDDBottomUpTreeAut::StateSet StateSet;
+typedef BDDBUTreeAutCore::StateSet StateSet;
 
 typedef std::vector<size_t> CounterElementMap;
 typedef VATA::MTBDDPkg::OndriksMTBDD<CounterElementMap> CounterMTBDD;
@@ -41,7 +43,7 @@ typedef BDDTopDownTreeAut::TransMTBDD TopDownMTBDD;
 typedef std::pair<StateTuple, StateTuple> RemoveElement;
 typedef std::unordered_set<RemoveElement, boost::hash<RemoveElement>> RemoveSet;
 
-typedef BDDBottomUpTreeAut::TransTable BUTransTable;
+typedef BDDBUTreeAutCore::TransTable BUTransTable;
 
 namespace
 {	// anonymous namespace
@@ -235,15 +237,15 @@ public:   // methods
 } // namespace
 
 
-StateBinaryRelation BDDBottomUpTreeAut::ComputeDownwardSimulation() const
+StateBinaryRelation BDDBUTreeAutCore::ComputeDownwardSimulation() const
 {
-	BDDBottomUpTreeAut newAut = *this;
+	BDDBUTreeAutCore newAut = *this;
 	StateType states = AutBase::SanitizeAutForSimulation(newAut);
 
 	return newAut.ComputeDownwardSimulation(states);
 }
 
-StateBinaryRelation BDDBottomUpTreeAut::ComputeDownwardSimulation(
+StateBinaryRelation BDDBUTreeAutCore::ComputeDownwardSimulation(
 	size_t               size) const
 {
 	StateBinaryRelation sim(size);
@@ -320,12 +322,12 @@ StateBinaryRelation BDDBottomUpTreeAut::ComputeDownwardSimulation(
 	return sim;
 }
 
-StateBinaryRelation BDDBottomUpTreeAut::ComputeUpwardSimulation() const
+StateBinaryRelation BDDBUTreeAutCore::ComputeUpwardSimulation() const
 {
 	throw NotImplementedException(__func__);
 }
 
-StateBinaryRelation BDDBottomUpTreeAut::ComputeUpwardSimulation(
+StateBinaryRelation BDDBUTreeAutCore::ComputeUpwardSimulation(
 	size_t             /* size */) const
 {
 	throw NotImplementedException(__func__);

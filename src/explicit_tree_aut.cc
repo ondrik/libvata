@@ -24,8 +24,9 @@ VATA::ExplicitTreeAut::StringToSymbolDict* VATA::ExplicitTreeAut::pSymbolDict_ =
 // pointer to next symbol counter
 VATA::ExplicitTreeAut::SymbolType* VATA::ExplicitTreeAut::pNextSymbol_ = nullptr;
 
+using ExplicitTreeAut = VATA::ExplicitTreeAut;
 
-VATA::ExplicitTreeAut VATA::ExplicitTreeAut::Reduce() const
+ExplicitTreeAut ExplicitTreeAut::Reduce() const
 {
 	typedef AutBase::StateType StateType;
 
@@ -53,4 +54,40 @@ VATA::ExplicitTreeAut VATA::ExplicitTreeAut::Reduce() const
 			sim, Util::TranslatorStrict<StateDict::MapBwdType>(stateDict.GetReverseMap())
 		).RemoveUnreachableStates(sim, Util::TranslatorStrict<StateDict>(stateDict)
 	);
+}
+
+
+std::string ExplicitTreeAut::DumpToString(
+	VATA::Serialization::AbstrSerializer&     serializer) const
+{
+	return this->DumpToString(serializer,
+		[](const StateType& state){return Convert::ToString(state);},
+		SymbolBackTranslatorStrict(this->GetSymbolDict().GetReverseMap()));
+}
+
+
+std::string ExplicitTreeAut::DumpToString(
+	VATA::Serialization::AbstrSerializer&     serializer,
+	const StringToStateDict&                  stateDict) const
+{
+	struct SymbolTranslatorPrinter
+	{
+		const SymbolBackTranslatorStrict& translator;
+
+		explicit SymbolTranslatorPrinter(const SymbolBackTranslatorStrict& transl) :
+			translator(transl)
+		{ }
+
+		const StringRank& operator()(const SymbolType& /* sym */) const
+		{
+			throw NotImplementedException(__func__);
+		}
+	};
+
+	SymbolTranslatorPrinter printer(
+		SymbolBackTranslatorStrict(GetSymbolDict().GetReverseMap()));
+
+	return this->DumpToString(serializer,
+		StateBackTranslatorStrict(stateDict.GetReverseMap()),
+		printer);
 }

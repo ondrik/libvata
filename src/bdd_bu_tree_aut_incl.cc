@@ -10,25 +10,27 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_bu_tree_aut.hh>
-#include <vata/bdd_bu_tree_aut_incl.hh>
 #include <vata/bdd_td_tree_aut_incl.hh>
+
+#include "bdd_bu_tree_aut_core.hh"
+#include "bdd_bu_tree_aut_incl.hh"
+
 #include "tree_incl_up.hh"
 #include "up_tree_incl_fctor.hh"
 
 using VATA::AutBase;
-using VATA::BDDBottomUpTreeAut;
+using VATA::BDDBUTreeAutCore;
 using VATA::BDDTopDownTreeAut;
 using VATA::Util::Convert;
 
 
-bool BDDBottomUpTreeAut::CheckInclusion(
-	const BDDBottomUpTreeAut&   smaller,
-	const BDDBottomUpTreeAut&   bigger,
+bool BDDBUTreeAutCore::CheckInclusion(
+	const BDDBUTreeAutCore&     smaller,
+	const BDDBUTreeAutCore&     bigger,
 	const VATA::InclParam&      params)
 {
-	BDDBottomUpTreeAut newSmaller;
-	BDDBottomUpTreeAut newBigger;
+	BDDBUTreeAutCore newSmaller;
+	BDDBUTreeAutCore newBigger;
 	typename AutBase::StateType states = static_cast<typename AutBase::StateType>(-1);
 
 	if (InclParam::e_direction::downward == params.GetDirection())
@@ -50,7 +52,7 @@ bool BDDBottomUpTreeAut::CheckInclusion(
 		{
 			assert(static_cast<typename AutBase::StateType>(-1) != states);
 
-			return CheckUpwardTreeInclusion<BDDBottomUpTreeAut,
+			return CheckUpwardTreeInclusion<BDDBUTreeAutCore,
 				VATA::UpwardInclusionFunctor>(newSmaller, newBigger,
 					Util::Identity(states));
 		}
@@ -59,7 +61,7 @@ bool BDDBottomUpTreeAut::CheckInclusion(
 		{
 			assert(static_cast<typename AutBase::StateType>(-1) == states);
 
-			return CheckUpwardTreeInclusion<BDDBottomUpTreeAut,
+			return CheckUpwardTreeInclusion<BDDBUTreeAutCore,
 				VATA::UpwardInclusionFunctor>(smaller, bigger,
 					params.GetSimulation());
 		}

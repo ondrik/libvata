@@ -10,22 +10,23 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_bu_tree_aut.hh>
 #include <vata/util/graph.hh>
+
+#include "bdd_bu_tree_aut_core.hh"
 
 // Standard library headers
 #include <stack>
 
 using VATA::AutBase;
-using VATA::BDDBottomUpTreeAut;
+using VATA::BDDBUTreeAutCore;
 using VATA::Util::Convert;
 using VATA::Util::Graph;
 
 typedef VATA::AutBase::StateType StateType;
-typedef VATA::BDDBottomUpTreeAut::StateSet StateSet;
-typedef VATA::BDDBottomUpTreeAut::StateHT StateHT;
-typedef VATA::BDDBottomUpTreeAut::StateTuple StateTuple;
-typedef VATA::BDDBottomUpTreeAut::TransMTBDD TransMTBDD;
+typedef VATA::BDDBUTreeAutCore::StateSet StateSet;
+typedef VATA::BDDBUTreeAutCore::StateHT StateHT;
+typedef VATA::BDDBUTreeAutCore::StateTuple StateTuple;
+typedef VATA::BDDBUTreeAutCore::TransMTBDD TransMTBDD;
 
 typedef std::unordered_map<StateTuple, TransMTBDD, boost::hash<StateTuple>>
 	TupleHT;
@@ -142,9 +143,9 @@ public:   // methods
 
 
 
-BDDBottomUpTreeAut BDDBottomUpTreeAut::RemoveUselessStates() const
+BDDBUTreeAutCore BDDBUTreeAutCore::RemoveUselessStates() const
 {
-	BDDBottomUpTreeAut result;
+	BDDBUTreeAutCore result;
 
 	StateHT reachable;
 	StateHT workset;

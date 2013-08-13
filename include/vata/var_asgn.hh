@@ -8,8 +8,8 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_VARIABLE_ASSIGNMENT_HH_
-#define _VATA_VARIABLE_ASSIGNMENT_HH_
+#ifndef _VATA_VAR_ASGN_HH_
+#define _VATA_VAR_ASGN_HH_
 
 // VATA headers
 #include <vata/vata.hh>

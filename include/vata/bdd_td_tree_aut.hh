@@ -89,7 +89,7 @@ public:   // data types
 	GCC_DIAG_ON(effc++)
 	public:   // methods
 
-		inline StateTupleSet ApplyOperation(const StateTupleSet& lhs,
+		StateTupleSet ApplyOperation(const StateTupleSet& lhs,
 			const StateTupleSet& rhs)
 		{
 			return lhs.Union(rhs);
@@ -111,9 +111,12 @@ private:  // data types
 	typedef VATA::Util::Convert Convert;
 
 
-private:  // constants
+public:   // constants
 
 	static const size_t SYMBOL_ARITY_LENGTH = 6;
+
+private:  // constants
+
 	static const size_t MAX_SYMBOL_ARITY =
 		VATA::Util::IntExp2(SYMBOL_ARITY_LENGTH) - 1;
 
@@ -191,17 +194,17 @@ private:  // methods
 				accumulator_()
 			{ }
 
-			inline const AccumulatorType& GetAccumulator() const
+			const AccumulatorType& GetAccumulator() const
 			{
 				return accumulator_;
 			}
 
-			inline void Clear()
+			void Clear()
 			{
 				accumulator_.clear();
 			}
 
-			inline void ApplyOperation(const StateTupleSet& lhs, const bool& rhs)
+			void ApplyOperation(const StateTupleSet& lhs, const bool& rhs)
 			{
 				if (rhs)
 				{
@@ -277,43 +280,28 @@ private:  // methods
 
 public:   // public methods
 
-	BDDTopDownTreeAut() :
-		finalStates_(),
-		transTable_(new TransTable)
-	{ }
+	BDDTopDownTreeAut();
 
-	BDDTopDownTreeAut(TransTablePtr transTable) :
-		finalStates_(),
-		transTable_(transTable)
-	{ }
+	BDDTopDownTreeAut(
+		TransTablePtr                      transTable);
 
-	BDDTopDownTreeAut(const BDDTopDownTreeAut& aut) :
-		finalStates_(aut.finalStates_),
-		transTable_(aut.transTable_)
-	{ }
+	BDDTopDownTreeAut(
+		const BDDTopDownTreeAut&           aut);
 
-	BDDTopDownTreeAut& operator=(const BDDTopDownTreeAut& rhs)
-	{
-		if (this != &rhs)
-		{
-			transTable_ = rhs.transTable_;
-			finalStates_ = rhs.finalStates_;
-		}
+	BDDTopDownTreeAut& operator=(
+		const BDDTopDownTreeAut&           rhs);
 
-		return *this;
-	}
-
-	inline const StateMap& GetStates() const
+	const StateMap& GetStates() const
 	{
 		return transTable_->GetStateMap();
 	}
 
-	inline const StateSet& GetFinalStates() const
+	const StateSet& GetFinalStates() const
 	{
 		return finalStates_;
 	}
 
-	inline TransTablePtr& GetTransTable() const
+	TransTablePtr& GetTransTable() const
 	{
 		return const_cast<TransTablePtr&>(transTable_);
 	}
@@ -376,8 +364,12 @@ public:   // public methods
 		}
 	}
 
-	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
-		const StringToStateDict& stateDict) const
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&      serializer) const;
+
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&      serializer,
+		const StringToStateDict&                   stateDict) const
 	{
 		return DumpToString(serializer,
 			StateBackTranslatorStrict(stateDict.GetReverseMap()),
@@ -412,22 +404,22 @@ public:   // public methods
 			symbolTranslator, params);
 	}
 
-	inline const TransMTBDD& GetMtbdd(const StateType& state) const
+	const TransMTBDD& GetMtbdd(const StateType& state) const
 	{
 		return transTable_->GetMtbdd(state);
 	}
 
-	inline void SetMtbdd(const StateType& state, const TransMTBDD& mtbdd)
+	void SetMtbdd(const StateType& state, const TransMTBDD& mtbdd)
 	{
 		transTable_->SetMtbdd(state, mtbdd);
 	}
 
-	inline void SetStateFinal(const StateType& state)
+	void SetStateFinal(const StateType& state)
 	{
 		finalStates_.insert(state);
 	}
 
-	inline bool IsStateFinal(const StateType& state) const
+	bool IsStateFinal(const StateType& state) const
 	{
 		return finalStates_.find(state) != finalStates_.end();
 	}
@@ -481,7 +473,7 @@ public:   // public methods
 				opFunc_(opFunc)
 			{ }
 
-			inline void ApplyOperation(const StateTupleSet& lhs,
+			void ApplyOperation(const StateTupleSet& lhs,
 				const StateTupleSet& rhs)
 			{
 				auto AccessElementF = [](const StateTuple& tuple){return tuple;};
@@ -521,14 +513,15 @@ public:   // public methods
 		return TransMTBDD::DumpToDot(stateVec);
 	}
 
-	inline static DownInclStateTupleVector StateTupleSetToVector(
-		const DownInclStateTupleSet& tupleSet)
+	static DownInclStateTupleVector StateTupleSetToVector(
+		const DownInclStateTupleSet&        tupleSet)
 	{
 		return tupleSet.ToVector();
 	}
 
-	inline void ReindexStates(BDDTopDownTreeAut& dstAut,
-		StateToStateTranslator& stateTrans) const
+	void ReindexStates(
+		BDDTopDownTreeAut&          dstAut,
+		StateToStateTranslator&     stateTrans) const
 	{
 		GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 		class RewriteApplyFunctor :
@@ -546,7 +539,7 @@ public:   // public methods
 				trans_(trans)
 			{ }
 
-			inline StateTupleSet ApplyOperation(const StateTupleSet& value)
+			StateTupleSet ApplyOperation(const StateTupleSet& value)
 			{
 				StateTupleSet result;
 
@@ -579,6 +572,17 @@ public:   // public methods
 		}
 	}
 
+
+	BDDTopDownTreeAut ReindexStates(
+		StateToStateTranslator&     stateTrans) const
+	{
+		BDDTopDownTreeAut res;
+		this->ReindexStates(res, stateTrans);
+
+		return res;
+	}
+
+
 	template <class MTBDD>
 	static MTBDD GetMtbddForArity(const MTBDD& mtbdd, const size_t& arity)
 	{
@@ -590,13 +594,13 @@ public:   // public methods
 		return mtbdd.GetMtbddForPrefix(arityAsgn, SYMBOL_SIZE);
 	}
 
-	static inline bool ShareTransTable(const BDDTopDownTreeAut& lhs,
+	static bool ShareTransTable(const BDDTopDownTreeAut& lhs,
 		const BDDTopDownTreeAut& rhs)
 	{
 		return lhs.transTable_ == rhs.transTable_;
 	}
 
-	static inline AlphabetType GetAlphabet()
+	static AlphabetType GetAlphabet()
 	{
 		throw NotImplementedException(__func__);
 	}

@@ -11,7 +11,6 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_bu_tree_aut.hh>
-#include <vata/bdd_bu_tree_aut_incl.hh>
 #include <vata/bdd_td_tree_aut.hh>
 #include <vata/bdd_td_tree_aut_op.hh>
 #include <vata/bdd_td_tree_aut_incl.hh>
@@ -158,10 +157,12 @@ void printHelp(bool full = false)
 
 
 template <class Aut>
-int performOperation(const Arguments& args, AbstrParser& parser,
-	AbstrSerializer& serializer)
+int performOperation(
+	const Arguments&        args,
+	AbstrParser&            parser,
+	AbstrSerializer&        serializer)
 {
-	typedef typename Aut::SymbolBackTranslatorStrict SymbolBackTranslatorStrict;
+	using SymbolBackTranslatorStrict = typename Aut::SymbolBackTranslatorStrict;
 
 	Aut autInput1;
 	Aut autInput2;
@@ -295,9 +296,7 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 
 		if (args.command == COMMAND_COMPLEMENT && args.representation != REPRESENTATION_EXPLICIT_FA)
 		{
-			std::cout << autResult.DumpToString(serializer,
-				[](const AutBase::StateType& state){ return "q" + Convert::ToString(state); },
-				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
+			std::cout << autResult.DumpToString(serializer);
 		}
 		else if (args.command == COMMAND_COMPLEMENT)
 		{

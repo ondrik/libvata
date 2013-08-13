@@ -64,7 +64,7 @@ public:   // methods
 		container_(container)
 	{ }
 
-	inline ResultType operator()(const InputType& value) const
+	ResultType operator()(const InputType& value) const
 	{
 		typename Container::const_iterator itCont;
 		if ((itCont = container_.find(value)) != container_.end())
@@ -77,11 +77,10 @@ public:   // methods
 		}
 	}
 
-	inline ResultType operator[](const InputType& value) const
+	ResultType operator[](const InputType& value) const
 	{
 		return this->operator()(value);
 	}
-	
 };
 
 /**

@@ -683,6 +683,15 @@ public:   // public methods
 	}
 
 
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&     serializer) const;
+
+
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&     serializer,
+		const StringToStateDict&                  stateDict) const;
+
+
 	template <class SymbolTransFunc>
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&     serializer,
@@ -694,32 +703,6 @@ public:   // public methods
 			symbolTranslator, params);
 	}
 
-
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&     serializer,
-		const StringToStateDict&                  stateDict) const
-	{
-		struct SymbolTranslatorPrinter
-		{
-			const SymbolBackTranslatorStrict& translator;
-
-			explicit SymbolTranslatorPrinter(const SymbolBackTranslatorStrict& transl) :
-				translator(transl)
-			{ }
-
-			const StringRank& operator()(const SymbolType& /* sym */) const
-			{
-				throw NotImplementedException(__func__);
-			}
-		};
-
-		SymbolTranslatorPrinter printer(
-			SymbolBackTranslatorStrict(GetSymbolDict().GetReverseMap()));
-
-		return DumpToString(serializer,
-			StateBackTranslatorStrict(stateDict.GetReverseMap()),
-			printer);
-	}
 
 	template <
 		class StatePrintFunc,
@@ -748,12 +731,12 @@ public:   // public methods
 
 		AutDescription desc;
 
-		for (auto& s : this->finalStates_)
+		for (const StateType& s : this->finalStates_)
 		{
 			desc.finalStates.insert(statePrinter(s));
 		}
 
-		for (auto t : *this)
+		for (const Transition& t : *this)
 		{
 			std::vector<std::string> tupleStr;
 
@@ -890,6 +873,16 @@ public:   // public methods
 				}
 			}
 		}
+	}
+
+	template <class Index>
+	ExplicitTreeAut ReindexStates(
+		Index&                    index) const
+	{
+		ExplicitTreeAut res;
+		this->ReindexStates(res, index);
+
+		return res;
 	}
 
 	template <class OperationFunc>
@@ -1108,8 +1101,10 @@ public:
 
 	ExplicitTreeAut Reduce() const;
 
+
 	ExplicitTreeAut RemoveUnreachableStates(
 		AutBase::StateToStateMap*            pTranslMap = nullptr) const;
+
 
 	template <
 		class Rel,
@@ -1118,6 +1113,7 @@ public:
 	ExplicitTreeAut RemoveUnreachableStates(
 		const Rel&                           rel,
 		const Index&                         index = Index()) const;
+
 
 	ExplicitTreeAut RemoveUselessStates(
 		AutBase::StateToStateMap*          pTranslMap = nullptr) const;

@@ -14,7 +14,7 @@
 #include <vata/mtbdd/apply2func.hh>
 #include <vata/mtbdd/apply3func.hh>
 #include <vata/mtbdd/ondriks_mtbdd.hh>
-#include <vata/mtbdd/var_asgn.hh>
+#include <vata/var_asgn.hh>
 #include <vata/util/convert.hh>
 
 using VATA::MTBDDPkg::OndriksMTBDD;

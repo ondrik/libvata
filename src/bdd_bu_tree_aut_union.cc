@@ -10,33 +10,34 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_bu_tree_aut.hh>
 
-using VATA::BDDBottomUpTreeAut;
-using VATA::Util::Convert;
+#include "bdd_bu_tree_aut_core.hh"
 
 // Standard library headers
 #include <unordered_map>
 
+using VATA::BDDBUTreeAutCore;
+using VATA::Util::Convert;
 
-BDDBottomUpTreeAut BDDBottomUpTreeAut::Union(
-	const BDDBottomUpTreeAut&      lhs,
-	const BDDBottomUpTreeAut&      rhs,
+
+BDDBUTreeAutCore BDDBUTreeAutCore::Union(
+	const BDDBUTreeAutCore&        lhs,
+	const BDDBUTreeAutCore&        rhs,
 	AutBase::StateToStateMap*      pTranslMapLhs,
 	AutBase::StateToStateMap*      pTranslMapRhs)
 {
-	typedef BDDBottomUpTreeAut::StateType StateType;
-	typedef BDDBottomUpTreeAut::StateTuple StateTuple;
-	typedef BDDBottomUpTreeAut::TransMTBDD TransMTBDD;
+	typedef BDDBUTreeAutCore::StateType StateType;
+	typedef BDDBUTreeAutCore::StateTuple StateTuple;
+	typedef BDDBUTreeAutCore::TransMTBDD TransMTBDD;
 	typedef VATA::AutBase::StateToStateMap StateToStateMap;
-	typedef BDDBottomUpTreeAut::StateToStateTranslator StateToStateTranslator;
+	typedef BDDBUTreeAutCore::StateToStateTranslator StateToStateTranslator;
 
 
-	BDDBottomUpTreeAut::UnionApplyFunctor unionFunc;
+	BDDBUTreeAutCore::UnionApplyFunctor unionFunc;
 
-	if (BDDBottomUpTreeAut::ShareTransTable(lhs, rhs))
+	if (BDDBUTreeAutCore::ShareTransTable(lhs, rhs))
 	{	// in case the automata share their transition table
-		BDDBottomUpTreeAut result = lhs;
+		BDDBUTreeAutCore result = lhs;
 
 		StateTuple tuple;
 		const TransMTBDD& lhsMTBDD = lhs.GetMtbdd(tuple);
@@ -60,7 +61,7 @@ BDDBottomUpTreeAut BDDBottomUpTreeAut::Union(
 			pTranslMapRhs = &translMapRhs;
 		}
 
-		BDDBottomUpTreeAut result;
+		BDDBUTreeAutCore result;
 
 		StateType stateCnt = 0;
 		auto translFunc = [&stateCnt](const StateType&){return stateCnt++;};

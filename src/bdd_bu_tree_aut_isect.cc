@@ -10,24 +10,25 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_bu_tree_aut.hh>
+
+#include "bdd_bu_tree_aut_core.hh"
 
 using VATA::AutBase;
-using VATA::BDDBottomUpTreeAut;
+using VATA::BDDBUTreeAutCore;
 using VATA::Util::Convert;
 
-BDDBottomUpTreeAut BDDBottomUpTreeAut::Intersection(
-	const BDDBottomUpTreeAut&        lhs,
-	const BDDBottomUpTreeAut&        rhs,
-	AutBase::ProductTranslMap*       pTranslMap)
+BDDBUTreeAutCore BDDBUTreeAutCore::Intersection(
+	const BDDBUTreeAutCore&        lhs,
+	const BDDBUTreeAutCore&        rhs,
+	AutBase::ProductTranslMap*     pTranslMap)
 {
-	typedef BDDBottomUpTreeAut::StateType StateType;
-	typedef BDDBottomUpTreeAut::StateTuple StateTuple;
-	typedef BDDBottomUpTreeAut::StateSet StateSet;
+	typedef BDDBUTreeAutCore::StateType StateType;
+	typedef BDDBUTreeAutCore::StateTuple StateTuple;
+	typedef BDDBUTreeAutCore::StateSet StateSet;
 	typedef std::pair<StateType, StateType> StatePair;
 	typedef std::map<StateType, StatePair> WorkSetType;
 	typedef AutBase::ProductTranslMap IntersectionTranslMap;
-	typedef BDDBottomUpTreeAut::TransMTBDD MTBDD;
+	typedef BDDBUTreeAutCore::TransMTBDD MTBDD;
 	typedef VATA::Util::TranslatorWeak<IntersectionTranslMap> StateTranslator;
 
 	GCC_DIAG_OFF(effc++)
@@ -50,9 +51,9 @@ BDDBottomUpTreeAut BDDBottomUpTreeAut::Intersection(
 		{
 			StateSet result;
 
-			for (auto lhsState : lhs)
+			for (const StateType& lhsState : lhs)
 			{
-				for (auto rhsState : rhs)
+				for (const StateType& rhsState : rhs)
 				{
 					result.insert(transl_(std::make_pair(lhsState, rhsState)));
 				}
@@ -68,7 +69,7 @@ BDDBottomUpTreeAut BDDBottomUpTreeAut::Intersection(
 		pTranslMap = &translMap;
 	}
 
-	BDDBottomUpTreeAut result;
+	BDDBUTreeAutCore result;
 	WorkSetType workset;
 	StateType stateCnt;
 

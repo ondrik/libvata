@@ -8,10 +8,11 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_INCP_PARAM_
-#define _VATA_INCP_PARAM_
+#ifndef _VATA_INCL_PARAM_
+#define _VATA_INCL_PARAM_
 
-#include <vata/util/convert.hh>
+// VATA headers
+#include <vata/aut_base.hh>
 
 namespace VATA
 {
@@ -43,8 +44,6 @@ namespace VATA
 		};
 
 		typedef unsigned TOptions;
-
-		typedef VATA::Util::Convert Convert;
 
 	private: // constants
 
@@ -320,39 +319,7 @@ namespace VATA
 			}
 		}
 
-		std::string toString() const
-		{
-			std::string result;
-
-			result += "Algorithm: ";
-			switch (this->GetAlgorithm())
-			{
-				case e_algorithm::antichains:  result += "Antichains"; break;
-				case e_algorithm::congruences: result += "Congruence"; break;
-				default: assert(false);
-			}
-
-			result += "\n";
-			result += "Direction: ";
-			switch (this->GetDirection())
-			{
-				case e_direction::downward: result += "Downward"; break;
-				case e_direction::upward:   result += "Upward";   break;
-				default: assert(false);
-			}
-
-			result += "\n";
-			result += "Downward inclusion caching implications: ";
-			result += Convert::ToString(this->GetUseDownwardCacheImpl()) + "\n";
-
-			result += "Recursive algorithm: ";
-			result += Convert::ToString(this->GetUseRecursion()) + "\n";
-
-			result += "Use simulation: ";
-			result += Convert::ToString(this->GetUseSimulation()) + "\n";
-
-			return result;
-		}
+		std::string toString() const;
 	};
 }
 

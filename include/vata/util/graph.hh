@@ -11,6 +11,8 @@
 #ifndef _VATA_GRAPH_HH_
 #define _VATA_GRAPH_HH_
 
+#include <set>
+
 namespace VATA
 {
 	namespace Util

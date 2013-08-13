@@ -14,6 +14,7 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/aut_base.hh>
+#include <vata/util/convert.hh>
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/ta_expl/explicit_tree_aut.hh>
 #include <vata/serialization/abstr_serializer.hh>
@@ -122,6 +123,8 @@ private: // private type definitions
 	typedef std::vector<SymbolType> AlphabetType;
 
 	typedef std::string string;
+
+	using Convert = VATA::Util::Convert;
 
 	// Stateset is unordered_set with operation for checking subset
 	GCC_DIAG_OFF(effc++)
@@ -330,6 +333,16 @@ public:
 		}
 	}
 
+
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&			serializer) const
+	{
+		return this->DumpToString(serializer,
+			[](const StateType& state){return Convert::ToString(state);},
+			SymbolBackTranslatorStrict(this->GetSymbolDict().GetReverseMap()));
+	}
+
+
 	/*
 	 * Function converts the internal automaton description
 	 * to a string.
@@ -394,6 +407,15 @@ public:
 			}
 
 			return serializer.Serialize(desc);
+	}
+
+	ExplicitFiniteAut ReindexStates(
+		StateToStateTranslator&    stateTrans) const
+	{
+		ExplicitFiniteAut res;
+		this->ReindexStates(res, stateTrans);
+
+		return res;
 	}
 
 	/*

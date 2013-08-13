@@ -11,6 +11,8 @@
 #ifndef _VATA_BDD_TD_TREE_AUT_INCL_
 #define _VATA_BDD_TD_TREE_AUT_INCL_
 
+// VATA headers
+#include <vata/bdd_td_tree_aut.hh>
 #include <vata/incl_param.hh>
 
 namespace VATA
