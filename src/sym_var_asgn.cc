@@ -10,12 +10,14 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/var_asgn.hh>
-
-using VATA::MTBDDPkg::VarAsgn;
+#include <vata/sym_var_asgn.hh>
 
 
-VarAsgn::VarAsgn(const std::string& value) :
+using VATA::SymbolicVarAsgn;
+
+
+SymbolicVarAsgn::SymbolicVarAsgn(
+	const std::string&                      value) :
 	variablesCount_(value.length()),
 	vars_(numberOfChars(value.length()))
 {
@@ -46,7 +48,10 @@ VarAsgn::VarAsgn(const std::string& value) :
 }
 
 
-void VarAsgn::getAllSymbols(VarAsgn& var, std::vector<VarAsgn>& vec, size_t pos)
+void SymbolicVarAsgn::getAllSymbols(
+	SymbolicVarAsgn&                    var,
+	std::vector<SymbolicVarAsgn>&       vec,
+	size_t                              pos)
 {
 	if (pos == var.length())
 	{
@@ -69,7 +74,7 @@ void VarAsgn::getAllSymbols(VarAsgn& var, std::vector<VarAsgn>& vec, size_t pos)
 }
 
 
-void VarAsgn::AddVariablesUpTo(size_t maxVariableIndex)
+void SymbolicVarAsgn::AddVariablesUpTo(size_t maxVariableIndex)
 {
 	size_t newVariablesCount = maxVariableIndex + 1;
 	if (newVariablesCount > length())
@@ -86,7 +91,7 @@ void VarAsgn::AddVariablesUpTo(size_t maxVariableIndex)
 }
 
 
-std::string VarAsgn::ToString() const
+std::string SymbolicVarAsgn::ToString() const
 {
 	std::string result;
 
@@ -105,7 +110,7 @@ std::string VarAsgn::ToString() const
 }
 
 
-VarAsgn::AssignmentList VarAsgn::GetAllAssignments(size_t variablesCount)
+SymbolicVarAsgn::AssignmentList SymbolicVarAsgn::GetAllAssignments(size_t variablesCount)
 {
 	std::string str;
 	for (size_t i = 0; i < variablesCount; ++i)
@@ -114,12 +119,12 @@ VarAsgn::AssignmentList VarAsgn::GetAllAssignments(size_t variablesCount)
 	}
 
 	AssignmentList lst;
-	lst.push_back(VarAsgn(str));
+	lst.push_back(SymbolicVarAsgn(str));
 	return lst;
 }
 
 
-VarAsgn& VarAsgn::operator++()
+SymbolicVarAsgn& SymbolicVarAsgn::operator++()
 {
 	for (size_t i = 0; i < length(); ++i)
 	{	// for each variable
@@ -143,11 +148,11 @@ VarAsgn& VarAsgn::operator++()
 }
 
 
-std::vector<VarAsgn> VarAsgn::GetVectorOfConcreteSymbols() const
+std::vector<SymbolicVarAsgn> SymbolicVarAsgn::GetVectorOfConcreteSymbols() const
 {
-	std::vector<VarAsgn> result;
+	std::vector<SymbolicVarAsgn> result;
 
-	VarAsgn newVar = *this;
+	SymbolicVarAsgn newVar = *this;
 
 	getAllSymbols(newVar, result, 0);
 

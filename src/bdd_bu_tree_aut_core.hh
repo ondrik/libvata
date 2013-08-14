@@ -39,7 +39,7 @@ public:   // data types
 	using StateSet        = VATA::Util::OrdVector<StateType>;
 	using StateTuple      = VATA::BDDBottomUpTreeAut::StateTuple;
 	using StateTupleSet   = VATA::Util::OrdVector<StateTuple>;
-	using StateHT         = VATA::BDDBottomUpTreeAut::StateHT;
+	using StateHT         = std::unordered_set<StateType>;
 
 	using MTBDDHandle     = size_t;
 	using TransTable      = VATA::Util::TransTableWrapper<MTBDDHandle, StateSet>;

@@ -24,10 +24,7 @@
 // insert class into correct namespace
 namespace VATA
 {
-	namespace MTBDDPkg
-	{
-		struct VarAsgn;
-	}
+	struct SymbolicVarAsgn;
 }
 
 
@@ -38,7 +35,7 @@ namespace VATA
  * Assigned values can be one of '0', '1' and 'X', where 'X' means <em>don't
  * care</em>.
  */
-struct VATA::MTBDDPkg::VarAsgn
+struct VATA::SymbolicVarAsgn
 {
 public:   // Public data types
 
@@ -49,7 +46,7 @@ public:   // Public data types
 		DONT_CARE = 0x03
 	};
 
-	typedef std::vector<VarAsgn> AssignmentList;
+	typedef std::vector<SymbolicVarAsgn> AssignmentList;
 
 private:  // Private data types
 
@@ -93,7 +90,7 @@ private:  // Private data members
 
 private:  // Private methods
 
-	static inline size_t numberOfChars(size_t varCount)
+	static size_t numberOfChars(size_t varCount)
 	{
 		if (varCount == 0)
 		{
@@ -117,7 +114,7 @@ private:  // Private methods
 	 *
 	 * @returns  Index of the @c char in which the variable has value
 	 */
-	static inline size_t getIndexOfChar(size_t index)
+	static size_t getIndexOfChar(size_t index)
 	{
 		return (index * BitsPerVariable) / BitsInChar;
 	}
@@ -135,17 +132,19 @@ private:  // Private methods
 	 *
 	 * @returns  Index of the bit that holds the value of the variable
 	 */
-	static inline size_t getIndexInsideChar(size_t index)
+	static size_t getIndexInsideChar(size_t index)
 	{
 		return (index * BitsPerVariable) % BitsInChar;
 	}
 
-	static void getAllSymbols(VarAsgn& var,
-		std::vector<VarAsgn>& vec, size_t pos);
+	static void getAllSymbols(
+		SymbolicVarAsgn&                  var,
+		std::vector<SymbolicVarAsgn>&     vec,
+		size_t                            pos);
 
 public:   // Public methods
 
-	explicit VarAsgn(size_t size) :
+	explicit SymbolicVarAsgn(size_t size) :
 		variablesCount_(size),
 		vars_(numberOfChars(size))
 	{
@@ -155,7 +154,7 @@ public:   // Public methods
 		}
 	}
 
-	VarAsgn(size_t size, size_t n) :
+	SymbolicVarAsgn(size_t size, size_t n) :
 		variablesCount_(size),
 		vars_(numberOfChars(size))
 	{
@@ -174,7 +173,7 @@ public:   // Public methods
 	 *
 	 * @param[in]  value  The string with the value of variables
 	 */
-	explicit VarAsgn(const std::string& value);
+	explicit SymbolicVarAsgn(const std::string& value);
 
 
 	/**
@@ -257,18 +256,18 @@ public:   // Public methods
 	static AssignmentList GetAllAssignments(size_t variablesCount);
 
 
-	VarAsgn& operator++();
+	SymbolicVarAsgn& operator++();
 
-	inline VarAsgn operator++(int)
+	SymbolicVarAsgn operator++(int)
 	{
-		VarAsgn result(*this);
+		SymbolicVarAsgn result(*this);
 
 		++(*this);
 
 		return result;
 	}
 
-	inline void append(const VarAsgn& prefix)
+	void append(const SymbolicVarAsgn& prefix)
 	{
 		size_t offset = variablesCount_;
 		variablesCount_ += prefix.length();
@@ -281,7 +280,7 @@ public:   // Public methods
 	}
 
 
-	std::vector<VarAsgn> GetVectorOfConcreteSymbols() const;
+	std::vector<SymbolicVarAsgn> GetVectorOfConcreteSymbols() const;
 
 
 	/**
@@ -296,14 +295,17 @@ public:   // Public methods
 	 *
 	 * @returns  Modified output stream
 	 */
-	friend std::ostream& operator<<(std::ostream& os,
-		const VarAsgn& asgn)
+	friend std::ostream& operator<<(
+		std::ostream&                    os,
+		const SymbolicVarAsgn&           asgn)
 	{
 		return (os << asgn.ToString());
 	}
 
-	friend bool operator<(const VarAsgn& lhs,
-		const VarAsgn& rhs)
+
+	friend bool operator<(
+		const SymbolicVarAsgn&     lhs,
+		const SymbolicVarAsgn&     rhs)
 	{
 		if ((lhs.length() < rhs.length()) || rhs.length() < lhs.length())
 		{
@@ -317,32 +319,32 @@ public:   // Public methods
 
 			switch (lhsIthValue)
 			{
-				case ZERO:
+				case SymbolicVarAsgn::ZERO:
 					switch (rhsIthValue)
 					{
-						case ZERO: continue; break;
-						case ONE: return true; break;
-						case DONT_CARE: return true; break;
+						case SymbolicVarAsgn::ZERO:       continue;     break;
+						case SymbolicVarAsgn::ONE:        return true;  break;
+						case SymbolicVarAsgn::DONT_CARE:  return true;  break;
 						default: assert(false); break;   // fail gracefully
 					}
 					break;
 
-				case ONE:
+				case SymbolicVarAsgn::ONE:
 					switch (rhsIthValue)
 					{
-						case ZERO: return false; break;
-						case ONE: continue; break;
-						case DONT_CARE: return false; break;
+						case SymbolicVarAsgn::ZERO:       return false;  break;
+						case SymbolicVarAsgn::ONE:        continue;      break;
+						case SymbolicVarAsgn::DONT_CARE:  return false;  break;
 						default: assert(false); break;   // fail gracefully
 					}
 					break;
 
-				case DONT_CARE:
+				case SymbolicVarAsgn::DONT_CARE:
 					switch (rhsIthValue)
 					{
-						case ZERO: return false; break;
-						case ONE: return true; break;
-						case DONT_CARE: continue; break;
+						case SymbolicVarAsgn::ZERO:       return false;  break;
+						case SymbolicVarAsgn::ONE:        return true;   break;
+						case SymbolicVarAsgn::DONT_CARE:  continue;      break;
 						default: assert(false); break;   // fail gracefully
 					}
 					break;
@@ -354,11 +356,12 @@ public:   // Public methods
 		return false;
 	}
 
+
 public:   // Public static methods
 
-	static VarAsgn GetUniversalSymbol()
+	static SymbolicVarAsgn GetUniversalSymbol()
 	{
-		return VarAsgn(0);
+		return SymbolicVarAsgn(0);
 	}
 };
 

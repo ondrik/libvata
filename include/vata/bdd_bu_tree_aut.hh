@@ -31,20 +31,20 @@ namespace VATA
 }
 
 GCC_DIAG_OFF(effc++)
-class VATA::BDDBottomUpTreeAut
-	: public SymbolicAutBase
+class VATA::BDDBottomUpTreeAut : public SymbolicAutBase
 {
 GCC_DIAG_ON(effc++)
 
 public:   // data types
 
+	using SymbolType = VATA::SymbolicVarAsgn;
+
 	using StateBackTranslatorStrict =
 		VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>;
 
-	using SymbolBackTranslatorStrict  =
+	using SymbolBackTranslatorStrict =
 		VATA::Util::TranslatorStrict<StringToSymbolDict::MapBwdType>;
 
-	typedef std::unordered_set<StateType> StateHT;
 	typedef std::vector<StateType> StateTuple;
 
 	typedef VATA::Util::TranslatorStrict<StringToSymbolDict> SymbolTranslatorStrict;
@@ -55,10 +55,6 @@ public:   // data types
 private:  // data types
 
 	typedef VATA::Util::AutDescription AutDescription;
-
-
-	typedef VATA::Util::Convert Convert;
-
 
 private:  // methods
 

@@ -14,7 +14,7 @@
 #include <vata/mtbdd/apply2func.hh>
 #include <vata/mtbdd/apply3func.hh>
 #include <vata/mtbdd/ondriks_mtbdd.hh>
-#include <vata/var_asgn.hh>
+#include <vata/sym_var_asgn.hh>
 #include <vata/util/convert.hh>
 
 using VATA::MTBDDPkg::OndriksMTBDD;
@@ -166,7 +166,7 @@ public:   // public types
 	 *
 	 * Type for variable assignment used in the test.
 	 */
-	typedef VATA::MTBDDPkg::VarAsgn VarAsgn;
+	typedef VATA::SymbolicVarAsgn VarAsgn;
 
 	/**
 	 * @brief  Ondrik's MTBDD type

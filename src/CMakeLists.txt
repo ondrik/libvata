@@ -79,7 +79,7 @@ add_library(libvata STATIC
   timbuk_parser.cc
   timbuk_serializer.cc
   util.cc
-  var_asgn.cc
+  sym_var_asgn.cc
   ${FLEX_timbuk_scanner_OUTPUTS}
   ${BISON_timbuk_parser_OUTPUTS}
 )

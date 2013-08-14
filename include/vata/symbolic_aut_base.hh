@@ -14,7 +14,7 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/aut_base.hh>
-#include <vata/var_asgn.hh>
+#include <vata/sym_var_asgn.hh>
 
 
 namespace VATA
@@ -24,14 +24,13 @@ namespace VATA
 
 
 GCC_DIAG_OFF(effc++)
-class VATA::SymbolicAutBase :
-	public AutBase
+class VATA::SymbolicAutBase : public AutBase
 {
 GCC_DIAG_ON(effc++)
 
 public:   // data types
 
-	typedef VATA::MTBDDPkg::VarAsgn SymbolType;
+	typedef VATA::SymbolicVarAsgn SymbolType;
 
 	typedef VATA::Util::TwoWayDict<std::string, SymbolType> StringToSymbolDict;
 

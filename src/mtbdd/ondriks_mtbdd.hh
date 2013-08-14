@@ -13,7 +13,7 @@
 
 // VATA headers
 #include	<vata/vata.hh>
-#include	<vata/var_asgn.hh>
+#include	<vata/sym_var_asgn.hh>
 #include	<vata/util/triple.hh>
 
 #include	"mtbdd_node.hh"
@@ -146,17 +146,21 @@ private:  // private methods
 	 *
 	 * @return  The constructed MTBDD
 	 */
-	static inline NodePtrType constructMTBDD(const VarAsgn& asgn,
-		const DataType& value, const DataType& defaultValue)
+	static NodePtrType constructMTBDD(
+		const SymbolicVarAsgn&      asgn,
+		const DataType&             value,
+		const DataType&             defaultValue)
 	{
 		return constructMTBDD(asgn, spawnLeaf(value), defaultValue,
 			[](const VarType& var){return var;});
 	}
 
 	template <class VariableTranslation>
-	static NodePtrType constructMTBDD(const VarAsgn& asgn,
-		NodePtrType node, const DataType& defaultValue,
-		VariableTranslation varTrans)
+	static NodePtrType constructMTBDD(
+		const SymbolicVarAsgn&            asgn,
+		NodePtrType                       node,
+		const DataType&                   defaultValue,
+		VariableTranslation               varTrans)
 	{
 		if (IsLeaf(node) && (GetDataFromLeaf(node) == defaultValue))
 		{	// in case an MTBDD with a single leaf is processed
@@ -173,11 +177,11 @@ private:  // private methods
 		for (size_t i = 0; i < asgn.length(); ++i)
 		{	// construct the MTBDD according to the variable ordering
 			VarType var =	i;
-			if (asgn.GetIthVariableValue(var) == VarAsgn::ONE)
+			if (asgn.GetIthVariableValue(var) == SymbolicVarAsgn::ONE)
 			{	// in case the variable is 1
 				procNode = spawnInternal(sink, procNode, varTrans(var));
 			}
-			else if (asgn.GetIthVariableValue(var) == VarAsgn::ZERO)
+			else if (asgn.GetIthVariableValue(var) == SymbolicVarAsgn::ZERO)
 			{	// in case the variable is 0
 				procNode = spawnInternal(procNode, sink, varTrans(var));
 			}
@@ -196,7 +200,9 @@ private:  // private methods
 		return procNode;
 	}
 
-	OndriksMTBDD(NodePtrType root, const DataType& defaultValue) :
+	OndriksMTBDD(
+		NodePtrType                   root,
+		const DataType&               defaultValue) :
 		root_(root),
 		defaultValue_(defaultValue)
 	{
@@ -362,8 +368,10 @@ public:   // public methods
 	 * @param  defaultValue  Value to be set for all assignments other than @p
 	 *                       asgn
 	 */
-	OndriksMTBDD(const VarAsgn& asgn, const DataType& value,
-		const DataType& defaultValue) :
+	OndriksMTBDD(
+		const SymbolicVarAsgn&            asgn,
+		const DataType&                   value,
+		const DataType&                   defaultValue) :
 		root_(static_cast<uintptr_t>(0)),
 		defaultValue_(defaultValue)
 	{
@@ -411,12 +419,14 @@ public:   // public methods
 		return *this;
 	}
 
-	inline const DataType& GetDefaultValue() const
+	const DataType& GetDefaultValue() const
 	{
 		return defaultValue_;
 	}
 
-	inline OndriksMTBDD ExtendWith(const VarAsgn& asgn, const size_t& offset) const
+	OndriksMTBDD ExtendWith(
+		const SymbolicVarAsgn&         asgn,
+		const size_t&                  offset) const
 	{
 		return OndriksMTBDD(constructMTBDD(asgn, root_, GetDefaultValue(),
 			[&offset](const VarType& var){return var + offset;}), GetDefaultValue());
@@ -436,7 +446,8 @@ public:   // public methods
 	 *
 	 * @return  Value corresponding to variable assignment @p asgn
 	 */
-	const DataType& GetValue(const VarAsgn& asgn) const
+	const DataType& GetValue(
+		const SymbolicVarAsgn&           asgn) const
 	{
 		NodePtrType node = root_;
 
@@ -444,7 +455,7 @@ public:   // public methods
 		{	// try to proceed according to the assignment
 			const VarType& var = GetVarFromInternal(node);
 
-			if (asgn.GetIthVariableValue(var) == VarAsgn::ONE)
+			if (asgn.GetIthVariableValue(var) == SymbolicVarAsgn::ONE)
 			{	// if one
 				node = GetHighFromInternal(node);
 			}
@@ -457,7 +468,8 @@ public:   // public methods
 		return GetDataFromLeaf(node);
 	}
 
-	static std::string DumpToDot(const std::vector<const OndriksMTBDD*>& mtbdds)
+	static std::string DumpToDot(
+		const std::vector<const OndriksMTBDD*>&           mtbdds)
 	{
 		std::string result = "digraph mtbdd {\n";
 
@@ -473,7 +485,9 @@ public:   // public methods
 		return result + "}";
 	}
 
-	OndriksMTBDD GetMtbddForPrefix(const VarAsgn& asgn, const size_t& offset) const
+	OndriksMTBDD GetMtbddForPrefix(
+		const SymbolicVarAsgn&           asgn,
+		const size_t&                    offset) const
 	{
 		NodePtrType newRoot = root_;
 
@@ -485,7 +499,7 @@ public:   // public methods
 				break;
 			}
 
-			if (asgn.GetIthVariableValue(var - offset) == VarAsgn::ONE)
+			if (asgn.GetIthVariableValue(var - offset) == SymbolicVarAsgn::ONE)
 			{	// if one
 				newRoot = GetHighFromInternal(newRoot);
 			}
@@ -500,7 +514,7 @@ public:   // public methods
 	}
 
 
-	inline ~OndriksMTBDD()
+	~OndriksMTBDD()
 	{
 		deleteMTBDD();
 	}
