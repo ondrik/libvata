@@ -39,24 +39,28 @@
 #include <cstdint>
 #include <unordered_set>
 
-namespace VATA { class BDDTopDownTreeAut; }
+namespace VATA
+{
+	class BDDTopDownTreeAut;
+
+	class BDDTDTreeAutCore;
+}
 
 GCC_DIAG_OFF(effc++)
-class VATA::BDDTopDownTreeAut
-	: public SymbolicAutBase
+class VATA::BDDTopDownTreeAut : public SymbolicAutBase
 {
 GCC_DIAG_ON(effc++)
 
-	friend BDDTopDownTreeAut Union(const BDDTopDownTreeAut&,
-		const BDDTopDownTreeAut&, AutBase::StateToStateMap*,
-		AutBase::StateToStateMap*);
-
-	friend BDDTopDownTreeAut Intersection(const BDDTopDownTreeAut&,
-		const BDDTopDownTreeAut&, AutBase::ProductTranslMap*);
-
-	friend BDDTopDownTreeAut RemoveUnreachableStates(const BDDTopDownTreeAut&);
-
-	friend BDDTopDownTreeAut RemoveUselessStates(const BDDTopDownTreeAut&);
+//	friend BDDTopDownTreeAut Union(const BDDTopDownTreeAut&,
+//		const BDDTopDownTreeAut&, AutBase::StateToStateMap*,
+//		AutBase::StateToStateMap*);
+//
+//	friend BDDTopDownTreeAut Intersection(const BDDTopDownTreeAut&,
+//		const BDDTopDownTreeAut&, AutBase::ProductTranslMap*);
+//
+//	friend BDDTopDownTreeAut RemoveUnreachableStates(const BDDTopDownTreeAut&);
+//
+//	friend BDDTopDownTreeAut RemoveUselessStates(const BDDTopDownTreeAut&);
 
 	friend class BDDBottomUpTreeAut;
 
@@ -130,11 +134,15 @@ private:  // data members
 
 private:  // methods
 
-	template <class StateTransFunc, class SymbolTransFunc>
-	void loadFromAutDescExplicit(const AutDescription& desc,
-		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator)
+	template <
+		class StateTransFunc,
+		class SymbolTransFunc>
+	void loadFromAutDescExplicit(
+		const AutDescription&       desc,
+		StateTransFunc              stateTranslator,
+		SymbolTransFunc             symbolTranslator)
 	{
-		for (auto fst : desc.finalStates)
+		for (const AutDescription::State& fst : desc.finalStates)
 		{	// traverse final states
 			finalStates_.insert(stateTranslator(fst));
 		}
@@ -150,7 +158,7 @@ private:  // methods
 
 			// translate children
 			StateTuple children;
-			for (auto tupSt : childrenStr)
+			for (const AutDescription::State& tupSt : childrenStr)
 			{	// for all children states
 				children.push_back(stateTranslator(tupSt));
 			}
@@ -162,16 +170,23 @@ private:  // methods
 		}
 	}
 
-	template <class StateTransFunc, class SymbolTransFunc>
-	void loadFromAutDescSymbolic(const AutDescription&/* desc */,
-		StateTransFunc /* stateTranslator */, SymbolTransFunc /* symbolTranslator */)
+	template <
+		class StateTransFunc,
+		class SymbolTransFunc>
+	void loadFromAutDescSymbolic(
+		const AutDescription&      /* desc */,
+		StateTransFunc             /* stateTranslator */,
+		SymbolTransFunc            /* symbolTranslator */)
 	{
 		assert(false);
 	}
 
-	template <class StateBackTransFunc, class SymbolBackTransFunc>
-	AutDescription dumpToAutDescExplicit(StateBackTransFunc stateBackTranslator,
-		SymbolBackTransFunc /* symbolTranslator */) const
+	template <
+		class StateBackTransFunc,
+		class SymbolBackTransFunc>
+	AutDescription dumpToAutDescExplicit(
+		StateBackTransFunc          stateBackTranslator,
+		SymbolBackTransFunc         /* symbolTranslator */) const
 	{
 		GCC_DIAG_OFF(effc++)
 		class CondColApplyFunctor :
@@ -216,7 +231,7 @@ private:  // methods
 		AutDescription desc;
 
 		// copy final states
-		for (auto fst : finalStates_)
+		for (const StateType& fst : finalStates_)
 		{	// copy final states
 			desc.finalStates.insert(stateBackTranslator(fst));
 		}
@@ -259,15 +274,19 @@ private:  // methods
 		return desc;
 	}
 
-	template <class StateBackTransFunc, class SymbolTransFunc>
+	template <
+		class StateBackTransFunc,
+		class SymbolTransFunc>
 	AutDescription dumpToAutDescSymbolic(
-		StateBackTransFunc /* stateBackTranslator */,
-		SymbolTransFunc /* symbolTranslator */) const
+		StateBackTransFunc           /* stateBackTranslator */,
+		SymbolTransFunc              /* symbolTranslator */) const
 	{
 		throw NotImplementedException(__func__);
 	}
 
-	inline void addArityToSymbol(SymbolType& symbol, size_t arity) const
+	void addArityToSymbol(
+		SymbolType&                 symbol,
+		size_t                      arity) const
 	{
 		// Assertions
 		assert(arity <= MAX_SYMBOL_ARITY);
@@ -306,22 +325,31 @@ public:   // public methods
 		return const_cast<TransTablePtr&>(transTable_);
 	}
 
-	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
-		StringToStateDict& stateDict)
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&      parser,
+		const std::string&               str,
+		StringToStateDict&               stateDict)
 	{
 		LoadFromAutDesc(parser.ParseString(str), stateDict);
 	}
 
-	template <class StateTransFunc, class SymbolTransFunc>
-	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
-		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator,
-		const std::string& params = "")
+	template <
+		class StateTransFunc,
+		class SymbolTransFunc>
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&       parser,
+		const std::string&                str,
+		StateTransFunc                    stateTranslator,
+		SymbolTransFunc                   symbolTranslator,
+		const std::string&                params = "")
 	{
 		LoadFromAutDesc(parser.ParseString(str), stateTranslator,
 				symbolTranslator, params);
 	}
 
-	void LoadFromAutDesc(const AutDescription& desc, StringToStateDict& stateDict)
+	void LoadFromAutDesc(
+		const AutDescription&         desc,
+		StringToStateDict&            stateDict)
 	{
 		typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
 			StateTranslator;
@@ -338,8 +366,10 @@ public:   // public methods
 	}
 
 	template <class SymbolTransFunc>
-	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
-		SymbolTransFunc symbolTranslator)
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&      parser,
+		const std::string&               str,
+		SymbolTransFunc                  symbolTranslator)
 	{
 		typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
 			StateTranslator;
@@ -349,10 +379,14 @@ public:   // public methods
 		LoadFromString(parser, str, StateTranslator(dict, *this), symbolTranslator);
 	}
 
-	template <class StateTransFunc, class SymbolTransFunc>
-	void LoadFromAutDesc(const AutDescription& desc,
-		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator,
-		const std::string& params = "")
+	template <
+		class StateTransFunc,
+		class SymbolTransFunc>
+	void LoadFromAutDesc(
+		const AutDescription&      desc,
+		StateTransFunc             stateTranslator,
+		SymbolTransFunc            symbolTranslator,
+		const std::string&         params = "")
 	{
 		if (params == "symbolic")
 		{
@@ -376,10 +410,14 @@ public:   // public methods
 			SymbolBackTranslatorStrict(GetSymbolDict().GetReverseMap()));
 	}
 
-	template <class StateBackTransFunc, class SymbolTransFunc>
-	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
-		StateBackTransFunc stateBackTranslator, SymbolTransFunc symbolTranslator,
-		const std::string& params = "") const
+	template <
+		class StateBackTransFunc,
+		class SymbolTransFunc>
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&    serializer,
+		StateBackTransFunc                       stateBackTranslator,
+		SymbolTransFunc                          symbolTranslator,
+		const std::string&                       params = "") const
 	{
 		AutDescription desc;
 		if (params == "symbolic")
@@ -395,9 +433,10 @@ public:   // public methods
 	}
 
 	template <class SymbolTransFunc>
-	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
-		SymbolTransFunc symbolTranslator,
-		const std::string& params = "") const
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&      serializer,
+		SymbolTransFunc                            symbolTranslator,
+		const std::string&                         params = "") const
 	{
 		return DumpToString(serializer,
 			[](const StateType& state){return Convert::ToString(state);},
@@ -424,8 +463,10 @@ public:   // public methods
 		return finalStates_.find(state) != finalStates_.end();
 	}
 
-	void AddTransition(const StateTuple& children, SymbolType symbol,
-		const StateType& parent)
+	void AddTransition(
+		const StateTuple&       children,
+		SymbolType              symbol,
+		const StateType&        parent)
 	{
 		// Assertions
 		assert(symbol.length() == SYMBOL_SIZE);
@@ -447,14 +488,18 @@ public:   // public methods
 		}
 	}
 
-	void AddSimplyTransition(const StateTuple& children, SymbolType symbol,
-		const StateType& parent);
+	void AddSimplyTransition(
+		const StateTuple&     children,
+		SymbolType            symbol,
+		const StateType&      parent);
 
 	template <class OperationFunc>
 	static void ForeachDownSymbolFromStateAndStateSetDo(
-		const BDDTopDownTreeAut& lhs, const BDDTopDownTreeAut& rhs,
-		const StateType& lhsState, const StateSetLight& rhsSet,
-		OperationFunc& opFunc)
+		const BDDTopDownTreeAut&         lhs,
+		const BDDTopDownTreeAut&         rhs,
+		const StateType&                 lhsState,
+		const StateSetLight&             rhsSet,
+		OperationFunc&                   opFunc)
 	{
 		GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 		class OperationApplyFunctor :
@@ -584,7 +629,9 @@ public:   // public methods
 
 
 	template <class MTBDD>
-	static MTBDD GetMtbddForArity(const MTBDD& mtbdd, const size_t& arity)
+	static MTBDD GetMtbddForArity(
+		const MTBDD&                 mtbdd,
+		size_t                       arity)
 	{
 		// Assertions
 		assert(arity <= MAX_SYMBOL_ARITY);
@@ -594,8 +641,9 @@ public:   // public methods
 		return mtbdd.GetMtbddForPrefix(arityAsgn, SYMBOL_SIZE);
 	}
 
-	static bool ShareTransTable(const BDDTopDownTreeAut& lhs,
-		const BDDTopDownTreeAut& rhs)
+	static bool ShareTransTable(
+		const BDDTopDownTreeAut&     lhs,
+		const BDDTopDownTreeAut&     rhs)
 	{
 		return lhs.transTable_ == rhs.transTable_;
 	}

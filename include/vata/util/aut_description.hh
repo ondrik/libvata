@@ -54,7 +54,7 @@ public:   // methods
 		transitions()
 	{ }
 
-	inline bool operator==(const AutDescription& rhs) const
+	bool operator==(const AutDescription& rhs) const
 	{
 		return (finalStates == rhs.finalStates) && (transitions == rhs.transitions);
 	}
