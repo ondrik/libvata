@@ -66,16 +66,14 @@ BDDBottomUpTreeAut& BDDBottomUpTreeAut::operator=(
 	assert(nullptr != aut.core_);
 
 	core_ = std::move(aut.core_);
-	aut.core_ = nullptr;
+	// aut.core_ set to nullptr in std::move()
 
 	return *this;
 }
 
-BDDBottomUpTreeAut::~BDDBottomUpTreeAut()
-{
-	assert(nullptr != core_);
-}
 
+BDDBottomUpTreeAut::~BDDBottomUpTreeAut()
+{ }
 
 
 void BDDBottomUpTreeAut::SetStateFinal(

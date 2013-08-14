@@ -74,13 +74,15 @@ std::string ExplicitTreeAut::DumpToString(
 	{
 		const SymbolBackTranslatorStrict& translator;
 
-		explicit SymbolTranslatorPrinter(const SymbolBackTranslatorStrict& transl) :
+		explicit SymbolTranslatorPrinter(
+			const SymbolBackTranslatorStrict&       transl) :
 			translator(transl)
 		{ }
 
-		const StringRank& operator()(const SymbolType& /* sym */) const
+		const StringRank& operator()(
+			const SymbolType&                       sym) const
 		{
-			throw NotImplementedException(__func__);
+			return translator[sym];
 		}
 	};
 
