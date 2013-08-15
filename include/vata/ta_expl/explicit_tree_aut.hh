@@ -4,7 +4,7 @@
  *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
  *  Description:
- *    Header file for a explicitly represented tree automaton.
+ *    Header file for an explicitly represented tree automaton.
  *
  *****************************************************************************/
 
@@ -36,6 +36,8 @@ namespace VATA
 {
 	class ExplicitTreeAut;
 
+	class ExplicitTreeAutCore;
+
 	struct Explicit
 	{
 		typedef AutBase::StateType StateType;
@@ -50,7 +52,6 @@ namespace VATA
 		static TupleCache tupleCache;
 
 	};
-
 }
 
 GCC_DIAG_OFF(effc++)
@@ -111,61 +112,57 @@ private:  // private data types
 	typedef VATA::Util::Convert Convert;
 
 	GCC_DIAG_OFF(effc++)
-	class TransitionCluster : public std::unordered_map<SymbolType, TuplePtrSetPtr> {
+	class TransitionCluster : public std::unordered_map<SymbolType, TuplePtrSetPtr>
+	{
 	GCC_DIAG_ON(effc++)
 
 	public:
 
-		const TuplePtrSetPtr& uniqueTuplePtrSet(const SymbolType& symbol) {
-
+		const TuplePtrSetPtr& uniqueTuplePtrSet(const SymbolType& symbol)
+		{
 			auto& tupleSet = this->insert(
 				std::make_pair(symbol, TuplePtrSetPtr(nullptr))
 			).first->second;
 
-			if (!tupleSet) {
-
+			if (!tupleSet)
+			{
 				tupleSet = TuplePtrSetPtr(new TuplePtrSet());
-
-			} else if (!tupleSet.unique()) {
-
+			}
+			else if (!tupleSet.unique())
+			{
 				tupleSet = TuplePtrSetPtr(new TuplePtrSet(*tupleSet));
-
 			}
 
 			return tupleSet;
-
 		}
-
 	};
 
 	typedef std::shared_ptr<TransitionCluster> TransitionClusterPtr;
 
 	GCC_DIAG_OFF(effc++)
-	class StateToTransitionClusterMap : public std::unordered_map<StateType, TransitionClusterPtr> {
+	class StateToTransitionClusterMap : public std::unordered_map<StateType, TransitionClusterPtr>
+	{
 	GCC_DIAG_ON(effc++)
 
 	public:
 
-		const TransitionClusterPtr& uniqueCluster(const StateType& state) {
-
+		const TransitionClusterPtr& uniqueCluster(const StateType& state)
+		{
 			auto& cluster = this->insert(
 				std::make_pair(state, TransitionClusterPtr(nullptr))
 			).first->second;
 
-			if (!cluster) {
-
+			if (!cluster)
+			{
 				cluster = TransitionClusterPtr(new TransitionCluster());
-
-			} else if (!cluster.unique()) {
-
+			}
+			else if (!cluster.unique())
+			{
 				cluster = TransitionClusterPtr(new TransitionCluster(*cluster));
-
 			}
 
 			return cluster;
-
 		}
-
 	};
 
 	typedef std::shared_ptr<StateToTransitionClusterMap> StateToTransitionClusterMapPtr;
@@ -622,7 +619,7 @@ public:   // public methods
 			/* automaton description */ desc,
 			/* state translator */ StateTranslator(stateDict,
 				[&stateCnt](const std::string&){return stateCnt++;}),
-			/* symbol translator */ SymbolTranslator(GetSymbolDict(),
+			/* symbol translator */ SymbolTranslator(this->GetSymbolDict(),
 				[this](const StringRank&){return this->AddSymbol();})
 			);
 	}
@@ -948,17 +945,7 @@ public:   // public methods
 
 public:
 
-#if 0
-	inline StateType AddState()
-	{
-		// Assertions
-		assert(pNextState_ != nullptr);
-
-		return (*pNextState_)++;
-	}
-#endif
-
-	static inline SymbolType AddSymbol()
+	static SymbolType AddSymbol()
 	{
 		// Assertions
 		assert(pNextSymbol_ != nullptr);
@@ -966,7 +953,7 @@ public:
 		return (*pNextSymbol_)++;
 	}
 
-	static inline StringToSymbolDict& GetSymbolDict()
+	static StringToSymbolDict& GetSymbolDict()
 	{
 		// Assertions
 		assert(pSymbolDict_ != nullptr);
@@ -974,7 +961,7 @@ public:
 		return *pSymbolDict_;
 	}
 
-	inline static void SetSymbolDictPtr(StringToSymbolDict* pSymbolDict)
+	static void SetSymbolDictPtr(StringToSymbolDict* pSymbolDict)
 	{
 		// Assertions
 		assert(pSymbolDict != nullptr);
@@ -982,7 +969,7 @@ public:
 		pSymbolDict_ = pSymbolDict;
 	}
 
-	inline static void SetNextSymbolPtr(SymbolType* pNextSymbol)
+	static void SetNextSymbolPtr(SymbolType* pNextSymbol)
 	{
 		// Assertions
 		assert(pNextSymbol != nullptr);
@@ -990,7 +977,7 @@ public:
 		pNextSymbol_ = pNextSymbol;
 	}
 
-	inline static DownInclStateTupleVector StateTupleSetToVector(
+	static DownInclStateTupleVector StateTupleSetToVector(
 		const DownInclStateTupleSet& tupleSet)
 	{
 		return DownInclStateTupleVector(tupleSet.begin(), tupleSet.end());
