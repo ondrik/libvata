@@ -54,6 +54,7 @@ add_library(libvata STATIC
   bdd_bu_tree_aut_unreach.cc
   bdd_bu_tree_aut_useless.cc
   bdd_td_tree_aut.cc
+	bdd_td_tree_aut_core.cc
   bdd_td_tree_aut_sim.cc
   bdd_td_tree_aut_incl.cc
   bdd_td_tree_aut_isect.cc

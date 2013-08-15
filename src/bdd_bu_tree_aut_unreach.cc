@@ -11,7 +11,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_bu_tree_aut.hh>
+#include <vata/mtbdd/void_apply1func.hh>
 
 #include "bdd_bu_tree_aut_core.hh"
 
@@ -31,8 +31,8 @@ using TupleHT = std::unordered_map<StateTuple, TransMTBDD, boost::hash<StateTupl
 namespace
 {	// anonymous namespace
 GCC_DIAG_OFF(effc++)
-class ReachableCollectorFctor :
-	public VATA::MTBDDPkg::VoidApply1Functor<ReachableCollectorFctor,
+class ReachableCollectorFctor : public VATA::MTBDDPkg::VoidApply1Functor<
+	ReachableCollectorFctor,
 	StateSet>
 {
 GCC_DIAG_ON(effc++)

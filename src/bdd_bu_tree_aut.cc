@@ -13,10 +13,13 @@
 #include <vata/bdd_bu_tree_aut.hh>
 
 #include "bdd_bu_tree_aut_core.hh"
+#include "bdd_td_tree_aut_core.hh"
 
 
 using VATA::BDDBottomUpTreeAut;
 using VATA::BDDTopDownTreeAut;
+using VATA::BDDTDTreeAutCore;
+
 using VATA::Parsing::AbstrParser;
 using VATA::Util::AutDescription;
 using VATA::Util::Convert;
@@ -258,5 +261,5 @@ BDDTopDownTreeAut BDDBottomUpTreeAut::GetTopDownAut() const
 {
 	assert(nullptr != core_);
 
-	return core_->GetTopDownAut();
+	return BDDTopDownTreeAut(core_->GetTopDownAut());
 }

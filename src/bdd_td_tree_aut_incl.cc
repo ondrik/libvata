@@ -10,26 +10,25 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_td_tree_aut.hh>
-#include <vata/bdd_td_tree_aut_op.hh>
-#include <vata/bdd_td_tree_aut_incl.hh>
+
+#include "bdd_td_tree_aut_core.hh"
 
 #include "down_tree_incl_fctor.hh"
 #include "down_tree_opt_incl_fctor.hh"
 #include "tree_incl_down.hh"
 
-using VATA::BDDTopDownTreeAut;
+using VATA::BDDTDTreeAutCore;
 
 typedef VATA::AutBase::StateType StateType;
 
 
-bool BDDTopDownTreeAut::CheckInclusion(
-	const BDDTopDownTreeAut&    smaller,
-	const BDDTopDownTreeAut&    bigger,
+bool BDDTDTreeAutCore::CheckInclusion(
+	const BDDTDTreeAutCore&     smaller,
+	const BDDTDTreeAutCore&     bigger,
 	const VATA::InclParam&      params)
 {
-	BDDTopDownTreeAut newSmaller;
-	BDDTopDownTreeAut newBigger;
+	BDDTDTreeAutCore newSmaller;
+	BDDTDTreeAutCore newBigger;
 	typename AutBase::StateType states = static_cast<typename AutBase::StateType>(-1);
 
 	if (!params.GetUseSimulation())
@@ -46,7 +45,7 @@ bool BDDTopDownTreeAut::CheckInclusion(
 		{
 			assert(static_cast<typename AutBase::StateType>(-1) != states);
 
-			return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
+			return CheckDownwardTreeInclusion<BDDTDTreeAutCore,
 				VATA::DownwardInclusionFunctor>(newSmaller, newBigger,
 					Util::Identity(states));
 		}
@@ -55,7 +54,7 @@ bool BDDTopDownTreeAut::CheckInclusion(
 		{
 			assert(static_cast<typename AutBase::StateType>(-1) != states);
 
-			return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
+			return CheckDownwardTreeInclusion<BDDTDTreeAutCore,
 				VATA::OptDownwardInclusionFunctor>(newSmaller, newBigger,
 					Util::Identity(states));
 		}
@@ -64,7 +63,7 @@ bool BDDTopDownTreeAut::CheckInclusion(
 		{
 			assert(static_cast<typename AutBase::StateType>(-1) == states);
 
-			return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
+			return CheckDownwardTreeInclusion<BDDTDTreeAutCore,
 				VATA::DownwardInclusionFunctor>(smaller, bigger,
 					params.GetSimulation());
 		}
@@ -73,7 +72,7 @@ bool BDDTopDownTreeAut::CheckInclusion(
 		{
 			assert(static_cast<typename AutBase::StateType>(-1) == states);
 
-			return CheckDownwardTreeInclusion<BDDTopDownTreeAut,
+			return CheckDownwardTreeInclusion<BDDTDTreeAutCore,
 				VATA::OptDownwardInclusionFunctor>(smaller, bigger,
 					params.GetSimulation());
 		}

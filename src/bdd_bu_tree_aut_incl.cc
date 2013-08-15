@@ -10,17 +10,18 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_td_tree_aut_incl.hh>
 
 #include "bdd_bu_tree_aut_core.hh"
 #include "bdd_bu_tree_aut_incl.hh"
+
+#include "bdd_td_tree_aut_core.hh"
 
 #include "tree_incl_up.hh"
 #include "up_tree_incl_fctor.hh"
 
 using VATA::AutBase;
 using VATA::BDDBUTreeAutCore;
-using VATA::BDDTopDownTreeAut;
+using VATA::BDDTDTreeAutCore;
 using VATA::Util::Convert;
 
 
@@ -35,7 +36,7 @@ bool BDDBUTreeAutCore::CheckInclusion(
 
 	if (InclParam::e_direction::downward == params.GetDirection())
 	{	// for the other direction translate the automaton to the top-down encoding
-		return BDDTopDownTreeAut::CheckInclusion(smaller.GetTopDownAut(), bigger.GetTopDownAut(), params);
+		return BDDTDTreeAutCore::CheckInclusion(smaller.GetTopDownAut(), bigger.GetTopDownAut(), params);
 	}
 
 	if (!params.GetUseSimulation())

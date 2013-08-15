@@ -11,11 +11,12 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_td_tree_aut_op.hh>
 #include <vata/mtbdd/apply1func.hh>
 
+#include "bdd_td_tree_aut_core.hh"
+
 using VATA::AutBase;
-using VATA::BDDTopDownTreeAut;
+using VATA::BDDTDTreeAutCore;
 using VATA::Util::Convert;
 
 // Standard library headers
@@ -23,19 +24,20 @@ using VATA::Util::Convert;
 #include <unordered_map>
 
 
-BDDTopDownTreeAut BDDTopDownTreeAut::RemoveUnreachableStates() const
+BDDTDTreeAutCore BDDTDTreeAutCore::RemoveUnreachableStates() const
 {
-	typedef BDDTopDownTreeAut::StateType StateType;
-	typedef BDDTopDownTreeAut::StateTuple StateTuple;
-	typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
+	typedef BDDTDTreeAutCore::StateType StateType;
+	typedef BDDTDTreeAutCore::StateTuple StateTuple;
+	typedef BDDTDTreeAutCore::StateTupleSet StateTupleSet;
 	typedef std::stack<StateType, std::list<StateType>> WorkSetType;
-	typedef BDDTopDownTreeAut::StateSet StateHT;
+	typedef BDDTDTreeAutCore::StateSet StateHT;
 
 
 	GCC_DIAG_OFF(effc++)   // suppress missing virtual destructor warning
-	class UnreachableApplyFunctor :
-		public VATA::MTBDDPkg::Apply1Functor<UnreachableApplyFunctor,
-		StateTupleSet, StateTupleSet>
+	class UnreachableApplyFunctor : public VATA::MTBDDPkg::Apply1Functor<
+		UnreachableApplyFunctor,
+		StateTupleSet,
+		StateTupleSet>
 	{
 	GCC_DIAG_OFF(effc++)
 	private:  // data members
@@ -45,7 +47,9 @@ BDDTopDownTreeAut BDDTopDownTreeAut::RemoveUnreachableStates() const
 
 	public:   // methods
 
-		UnreachableApplyFunctor(WorkSetType& workset, StateHT& processed) :
+		UnreachableApplyFunctor(
+			WorkSetType&           workset,
+			StateHT&               processed) :
 			workset_(workset),
 			processed_(processed)
 		{ }
@@ -67,7 +71,7 @@ BDDTopDownTreeAut BDDTopDownTreeAut::RemoveUnreachableStates() const
 		}
 	};
 
-	BDDTopDownTreeAut result;
+	BDDTDTreeAutCore result;
 	WorkSetType workset;
 	StateHT processed;
 

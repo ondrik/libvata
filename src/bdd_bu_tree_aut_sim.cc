@@ -11,16 +11,17 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/mtbdd/apply3func.hh>
 
 // Standard library headers
 #include <stack>
 
 #include "bdd_bu_tree_aut_core.hh"
-#include <vata/mtbdd/apply3func.hh>
+#include "bdd_td_tree_aut_core.hh"
 
 
 using VATA::BDDBUTreeAutCore;
-using VATA::BDDTopDownTreeAut;
+using VATA::BDDTDTreeAutCore;
 using VATA::Util::Convert;
 
 typedef VATA::AutBase::StateBinaryRelation StateBinaryRelation;
@@ -28,8 +29,8 @@ typedef VATA::AutBase::StateType StateType;
 typedef VATA::AutBase::StateToStateMap StateToStateMap;
 typedef VATA::AutBase::StateToStateTranslator StateToStateTranslator;
 
-typedef BDDTopDownTreeAut::StateTuple StateTuple;
-typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
+typedef BDDTDTreeAutCore::StateTuple StateTuple;
+typedef BDDTDTreeAutCore::StateTupleSet StateTupleSet;
 
 typedef BDDBUTreeAutCore::StateSet StateSet;
 
@@ -38,7 +39,7 @@ typedef VATA::MTBDDPkg::OndriksMTBDD<CounterElementMap> CounterMTBDD;
 typedef std::unordered_map<StateTuple, CounterMTBDD, boost::hash<StateTuple>>
 	CounterHT;
 
-typedef BDDTopDownTreeAut::TransMTBDD TopDownMTBDD;
+typedef BDDTDTreeAutCore::TransMTBDD TopDownMTBDD;
 
 typedef std::pair<StateTuple, StateTuple> RemoveElement;
 typedef std::unordered_set<RemoveElement, boost::hash<RemoveElement>> RemoveSet;
@@ -192,8 +193,10 @@ public:   // methods
 		remove_(remove)
 	{ }
 
-	CounterElementMap ApplyOperation(const StateSet& upR, const StateSet& upQ,
-		const CounterElementMap& cntQ)
+	CounterElementMap ApplyOperation(
+		const StateSet&            upR,
+		const StateSet&            upQ,
+		const CounterElementMap&   cntQ)
 	{
 		if (upR.empty())
 		{
@@ -250,7 +253,7 @@ StateBinaryRelation BDDBUTreeAutCore::ComputeDownwardSimulation(
 {
 	StateBinaryRelation sim(size);
 
-	BDDTopDownTreeAut topDownAut = this->GetTopDownAut();
+	BDDTDTreeAutCore topDownAut = this->GetTopDownAut();
 
 	CounterMTBDD initCnt((CounterElementMap(size)));
 
@@ -282,7 +285,9 @@ StateBinaryRelation BDDBUTreeAutCore::ComputeDownwardSimulation(
 			else
 			{	// prune
 				forAllTuplesWithMatchingStatesDo(
-					this->GetTransTable(), firstState, secondState,
+					this->GetTransTable(),
+					firstState,
+					secondState,
 					[&remove](const StateTuple& firstTuple, const StateTuple& secondTuple){
 						remove.insert(std::make_pair(firstTuple, secondTuple));}
 					);
@@ -316,7 +321,7 @@ StateBinaryRelation BDDBUTreeAutCore::ComputeDownwardSimulation(
 
 		itCnt->second = refineFctor(this->GetMtbdd(elem.second),
 			this->GetMtbdd(elem.first),
-			BDDTopDownTreeAut::GetMtbddForArity(itCnt->second, elem.first.size()));
+			BDDTDTreeAutCore::GetMtbddForArity(itCnt->second, elem.first.size()));
 	}
 
 	return sim;

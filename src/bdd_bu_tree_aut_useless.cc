@@ -11,6 +11,7 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/util/graph.hh>
+#include <vata/mtbdd/void_apply1func.hh>
 
 #include "bdd_bu_tree_aut_core.hh"
 
@@ -42,8 +43,8 @@ typedef std::stack<NodeType, std::list<NodeType>> NodeWorkSet;
 namespace
 {	// anonymous namespace
 GCC_DIAG_OFF(effc++)
-class ReachableCollectorFctor :
-	public VATA::MTBDDPkg::VoidApply1Functor<ReachableCollectorFctor,
+class ReachableCollectorFctor : public VATA::MTBDDPkg::VoidApply1Functor<
+	ReachableCollectorFctor,
 	StateSet>
 {
 GCC_DIAG_ON(effc++)
@@ -58,8 +59,12 @@ private:  // data members
 
 public:   // methods
 
-	ReachableCollectorFctor(StateHT& reachable, StateHT& workset,
-		const StateTuple& tuple, NodeToStateDict& nodes, Graph& graph) :
+	ReachableCollectorFctor(
+		StateHT&              reachable,
+		StateHT&              workset,
+		const StateTuple&     tuple,
+		NodeToStateDict&      nodes,
+		Graph&                graph) :
 		reachable_(reachable),
 		workset_(workset),
 		tuple_(tuple),
@@ -67,7 +72,7 @@ public:   // methods
 		graph_(graph)
 	{ }
 
-	inline void ApplyOperation(const StateSet& value)
+	void ApplyOperation(const StateSet& value)
 	{
 		for (const StateType& state : value)
 		{
@@ -106,8 +111,8 @@ public:   // methods
 };
 
 GCC_DIAG_OFF(effc++)
-class UsefulCheckerFctor :
-	public VATA::MTBDDPkg::Apply1Functor<UsefulCheckerFctor,
+class UsefulCheckerFctor : public VATA::MTBDDPkg::Apply1Functor<
+	UsefulCheckerFctor,
 	StateSet, StateSet>
 {
 GCC_DIAG_ON(effc++)
@@ -122,7 +127,7 @@ public:   // methods
 		useful_(useful)
 	{ }
 
-	inline StateSet ApplyOperation(const StateSet& value)
+	StateSet ApplyOperation(const StateSet& value)
 	{
 		StateSet result;
 

@@ -41,8 +41,10 @@ template
 	template <class, class> class DownwardInclFctor,
 	class Rel
 >
-bool VATA::CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger,
-	const Rel& preorder)
+bool VATA::CheckDownwardTreeInclusion(
+	const Aut&     smaller,
+	const Aut&     bigger,
+	const Rel&     preorder)
 {
 	typedef DownwardInclFctor<Aut, Rel> InclFctor;
 

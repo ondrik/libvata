@@ -462,7 +462,7 @@ public:   // methods
 		const VATA::InclParam&      params);
 
 
-	BDDTopDownTreeAut GetTopDownAut() const;
+	BDDTDTreeAutCore GetTopDownAut() const;
 
 	StateBinaryRelation ComputeDownwardSimulation() const;
 

@@ -8,13 +8,12 @@
  *
  *****************************************************************************/
 
-// VATA headers
-#include <vata/bdd_td_tree_aut.hh>
-
 #include "bdd_bu_tree_aut_core.hh"
+#include "bdd_td_tree_aut_core.hh"
+
 
 using VATA::BDDBUTreeAutCore;
-using VATA::BDDTopDownTreeAut;
+using VATA::BDDTDTreeAutCore;
 
 
 BDDBUTreeAutCore::BDDBUTreeAutCore(
@@ -176,7 +175,7 @@ BDDBUTreeAutCore BDDBUTreeAutCore::ReindexStates(
 }
 
 
-BDDTopDownTreeAut BDDBUTreeAutCore::GetTopDownAut() const
+BDDTDTreeAutCore BDDBUTreeAutCore::GetTopDownAut() const
 {
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class InverterApplyFunctor :
@@ -212,7 +211,7 @@ BDDTopDownTreeAut BDDBUTreeAutCore::GetTopDownAut() const
 		}
 	};
 
-	BDDTopDownTreeAut result;
+	BDDTDTreeAutCore result;
 
 	StateType soughtState;
 	StateTuple checkedTuple;
@@ -242,7 +241,7 @@ BDDTopDownTreeAut BDDBUTreeAutCore::GetTopDownAut() const
 			checkedTuple = tupleBddPair.first;
 
 			// TODO: it is necessary to somehow process arity
-			SymbolType prefix(BDDTopDownTreeAut::SYMBOL_ARITY_LENGTH,
+			SymbolType prefix(BDDTDTreeAutCore::SYMBOL_ARITY_LENGTH,
 				checkedTuple.size());
 			TransMTBDD extendedBdd = tupleBddPair.second.ExtendWith(prefix,
 				VATA::SymbolicAutBase::SYMBOL_SIZE);

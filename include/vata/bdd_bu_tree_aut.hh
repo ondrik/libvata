@@ -15,7 +15,9 @@
 #include <vata/vata.hh>
 #include <vata/aut_base.hh>
 #include <vata/bdd_td_tree_aut.hh>
+#include <vata/symbolic_aut_base.hh>
 #include <vata/notimpl_except.hh>
+#include <vata/incl_param.hh>
 
 // utilities
 #include <vata/util/ord_vector.hh>
@@ -26,6 +28,8 @@
 namespace VATA
 {
 	class BDDBottomUpTreeAut;
+
+	class BDDTopDownTreeAut;
 
 	class BDDBUTreeAutCore;
 }
@@ -45,7 +49,7 @@ public:   // data types
 	using SymbolBackTranslatorStrict =
 		VATA::Util::TranslatorStrict<StringToSymbolDict::MapBwdType>;
 
-	typedef std::vector<StateType> StateTuple;
+	using  StateTuple = std::vector<StateType>;
 
 	typedef VATA::Util::TranslatorStrict<StringToSymbolDict> SymbolTranslatorStrict;
 

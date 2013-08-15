@@ -10,22 +10,23 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_td_tree_aut_op.hh>
+
+#include "bdd_td_tree_aut_core.hh"
 
 using VATA::AutBase;
-using VATA::BDDTopDownTreeAut;
+using VATA::BDDTDTreeAutCore;
 
 // Standard library headers
 #include <unordered_map>
 
-BDDTopDownTreeAut BDDTopDownTreeAut::Intersection(
-	const BDDTopDownTreeAut&      lhs,
-	const BDDTopDownTreeAut&      rhs,
+BDDTDTreeAutCore BDDTDTreeAutCore::Intersection(
+	const BDDTDTreeAutCore&       lhs,
+	const BDDTDTreeAutCore&       rhs,
 	AutBase::ProductTranslMap*    pTranslMap)
 {
-	typedef BDDTopDownTreeAut::StateType StateType;
-	typedef BDDTopDownTreeAut::StateTuple StateTuple;
-	typedef BDDTopDownTreeAut::StateTupleSet StateTupleSet;
+	typedef BDDTDTreeAutCore::StateType StateType;
+	typedef BDDTDTreeAutCore::StateTuple StateTuple;
+	typedef BDDTDTreeAutCore::StateTupleSet StateTupleSet;
 	typedef std::pair<StateType, StateType> StatePair;
 	typedef std::map<StateType, StatePair> WorkSetType;
 	typedef VATA::Util::TranslatorWeak<AutBase::ProductTranslMap> StateTranslator;
@@ -78,7 +79,7 @@ BDDTopDownTreeAut BDDTopDownTreeAut::Intersection(
 		pTranslMap = &translMap;
 	}
 
-	BDDTopDownTreeAut result;
+	BDDTDTreeAutCore result;
 	WorkSetType workset;
 	StateType stateCnt;
 
@@ -108,7 +109,7 @@ BDDTopDownTreeAut BDDTopDownTreeAut::Intersection(
 		const StatePair& procPair  = itWs->second;
 		const StateType& procState = itWs->first;
 
-		BDDTopDownTreeAut::TransMTBDD mtbdd = isect(lhs.GetMtbdd(procPair.first),
+		BDDTDTreeAutCore::TransMTBDD mtbdd = isect(lhs.GetMtbdd(procPair.first),
 			rhs.GetMtbdd(procPair.second));
 
 		result.SetMtbdd(procState, mtbdd);

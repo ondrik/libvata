@@ -11,46 +11,187 @@
 // VATA headers
 #include <vata/bdd_td_tree_aut.hh>
 
+#include "bdd_td_tree_aut_core.hh"
+
 using VATA::BDDTopDownTreeAut;
 
 
+BDDTopDownTreeAut::BDDTopDownTreeAut(
+	BDDTDTreeAutCore&&             core) :
+	core_(new BDDTDTreeAutCore(std::move(core)))
+{ }
+
 BDDTopDownTreeAut::BDDTopDownTreeAut() :
-	finalStates_(),
-	transTable_(new TransTable)
+	core_(new BDDTDTreeAutCore())
 { }
-
 
 BDDTopDownTreeAut::BDDTopDownTreeAut(
-	TransTablePtr                    transTable) :
-	finalStates_(),
-	transTable_(transTable)
+	const BDDTopDownTreeAut&         aut) :
+	core_(new BDDTDTreeAutCore(*aut.core_))
 { }
-
-
-BDDTopDownTreeAut::BDDTopDownTreeAut(
-	const BDDTopDownTreeAut&           aut) :
-	finalStates_(aut.finalStates_),
-	transTable_(aut.transTable_)
-{ }
-
 
 BDDTopDownTreeAut& BDDTopDownTreeAut::operator=(
-	const BDDTopDownTreeAut&           rhs)
+	const BDDTopDownTreeAut&         aut)
 {
-	if (this != &rhs)
+	if (this != &aut)
 	{
-		transTable_ = rhs.transTable_;
-		finalStates_ = rhs.finalStates_;
+		assert(nullptr != core_);
+
+		*core_ = *aut.core_;
 	}
 
 	return *this;
+}
+
+BDDTopDownTreeAut::BDDTopDownTreeAut(
+	BDDTopDownTreeAut&&              aut) :
+	core_(std::move(aut.core_))
+{
+	aut.core_ = nullptr;
+}
+
+BDDTopDownTreeAut& BDDTopDownTreeAut::operator=(
+	BDDTopDownTreeAut&&         aut)
+{
+	assert(this != &aut);
+
+	assert(nullptr != core_);
+	assert(nullptr != aut.core_);
+
+	core_ = std::move(aut.core_);
+	// aut.core_ set to nullptr in std::move()
+
+	return *this;
+}
+
+
+BDDTopDownTreeAut::~BDDTopDownTreeAut()
+{ }
+
+
+void BDDTopDownTreeAut::SetStateFinal(
+	const StateType&               state)
+{
+	assert(nullptr != core_);
+
+	core_->SetStateFinal(state);
+}
+
+
+BDDTopDownTreeAut BDDTopDownTreeAut::ReindexStates(
+	StateToStateTranslator&     stateTrans) const
+{
+	assert(nullptr != core_);
+
+	return BDDTopDownTreeAut(core_->ReindexStates(stateTrans));
+}
+
+
+BDDTopDownTreeAut BDDTopDownTreeAut::Union(
+	const BDDTopDownTreeAut&      lhs,
+	const BDDTopDownTreeAut&      rhs,
+	AutBase::StateToStateMap*     pTranslMapLhs,
+	AutBase::StateToStateMap*     pTranslMapRhs)
+{
+	assert(nullptr != lhs.core_);
+	assert(nullptr != rhs.core_);
+
+	return BDDTopDownTreeAut(
+		BDDTDTreeAutCore::Union(*lhs.core_, *rhs.core_, pTranslMapLhs, pTranslMapRhs));
+}
+
+
+BDDTopDownTreeAut BDDTopDownTreeAut::UnionDisjointStates(
+	const BDDTopDownTreeAut&      lhs,
+	const BDDTopDownTreeAut&      rhs)
+{
+	assert(nullptr != lhs.core_);
+	assert(nullptr != rhs.core_);
+
+	return BDDTopDownTreeAut(
+		BDDTDTreeAutCore::UnionDisjointStates(*lhs.core_, *rhs.core_));
+}
+
+
+BDDTopDownTreeAut BDDTopDownTreeAut::Intersection(
+	const BDDTopDownTreeAut&      lhs,
+	const BDDTopDownTreeAut&      rhs,
+	AutBase::ProductTranslMap*    pTranslMap)
+{
+	assert(nullptr != lhs.core_);
+	assert(nullptr != rhs.core_);
+
+	return BDDTopDownTreeAut(
+		BDDTDTreeAutCore::Intersection(*lhs.core_, *rhs.core_, pTranslMap));
+}
+
+
+BDDTopDownTreeAut BDDTopDownTreeAut::RemoveUnreachableStates() const
+{
+	assert(nullptr != core_);
+
+	return BDDTopDownTreeAut(core_->RemoveUnreachableStates());
+}
+
+
+BDDTopDownTreeAut BDDTopDownTreeAut::RemoveUselessStates() const
+{
+	assert(nullptr != core_);
+
+	return BDDTopDownTreeAut(core_->RemoveUselessStates());
+}
+
+
+bool BDDTopDownTreeAut::CheckInclusion(
+	const BDDTopDownTreeAut&    smaller,
+	const BDDTopDownTreeAut&    bigger,
+	const VATA::InclParam&      params)
+{
+	assert(nullptr != smaller.core_);
+	assert(nullptr != bigger.core_);
+
+	return BDDTDTreeAutCore::CheckInclusion(*smaller.core_, *bigger.core_, params);
+}
+
+
+void BDDTopDownTreeAut::LoadFromString(
+	VATA::Parsing::AbstrParser&      parser,
+	const std::string&               str,
+	StringToStateDict&               stateDict)
+{
+	assert(nullptr != core_);
+
+	core_->LoadFromString(parser, str, stateDict);
 }
 
 
 std::string BDDTopDownTreeAut::DumpToString(
 	VATA::Serialization::AbstrSerializer&      serializer) const
 {
-	return this->DumpToString(serializer,
-		[](const StateType& state){return Convert::ToString(state);},
-		SymbolBackTranslatorStrict(this->GetSymbolDict().GetReverseMap()));
+	assert(nullptr != core_);
+
+	return core_->DumpToString(serializer);
 }
+
+
+std::string BDDTopDownTreeAut::DumpToString(
+	VATA::Serialization::AbstrSerializer&      serializer,
+	const StringToStateDict&                   stateDict) const
+{
+	assert(nullptr != core_);
+
+	return core_->DumpToString(serializer, stateDict);
+}
+
+
+std::string BDDTopDownTreeAut::DumpToString(
+	VATA::Serialization::AbstrSerializer&      serializer,
+	const StateBackTranslatorStrict&           stateTrans,
+	const SymbolBackTranslatorStrict&          symbolTrans) const
+{
+	assert(nullptr != core_);
+
+	return core_->DumpToString(serializer, stateTrans, symbolTrans);
+}
+
+
