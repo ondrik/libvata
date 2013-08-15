@@ -11,8 +11,6 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_td_tree_aut.hh>
-#include <vata/bdd_td_tree_aut_op.hh>
-#include <vata/bdd_td_tree_aut_incl.hh>
 
 // testing headers
 #include "log_fixture.hh"
