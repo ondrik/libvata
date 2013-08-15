@@ -11,14 +11,16 @@
 // VATA headers
 #include <vata/vata.hh>
 
+// Standard library headers
+#include <unordered_map>
+
+
 #include "bdd_td_tree_aut_core.hh"
-#include <vata/mtbdd/apply1func.hh>
+#include "mtbdd/apply1func.hh"
 
 using VATA::BDDTDTreeAutCore;
 using VATA::Util::Convert;
 
-// Standard library headers
-#include <unordered_map>
 
 
 BDDTDTreeAutCore BDDTDTreeAutCore::Union(

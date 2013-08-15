@@ -11,9 +11,9 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/mtbdd/void_apply1func.hh>
 
 #include "bdd_bu_tree_aut_core.hh"
+#include "mtbdd/void_apply1func.hh"
 
 using VATA::AutBase;
 using VATA::BDDBUTreeAutCore;

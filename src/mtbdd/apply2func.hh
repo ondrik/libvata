@@ -13,8 +13,6 @@
 
 // VATA headers
 #include	<vata/vata.hh>
-#include	<vata/mtbdd/ondriks_mtbdd.hh>
-#include	<vata/mtbdd/classify_case.hh>
 
 // Standard library headers
 #include  <unordered_set>
@@ -22,6 +20,8 @@
 // Boost library headers
 #include <boost/functional/hash.hpp>
 
+#include "ondriks_mtbdd.hh"
+#include "classify_case.hh"
 
 namespace VATA
 {

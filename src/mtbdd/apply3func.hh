@@ -12,16 +12,16 @@
 #define _VATA_APPLY3FUNC_HH_
 
 // VATA headers
-#include	<vata/vata.hh>
-#include	<vata/mtbdd/ondriks_mtbdd.hh>
-#include	<vata/util/triple.hh>
+#include <vata/vata.hh>
+#include <vata/util/triple.hh>
 
 // Standard library headers
-#include  <unordered_set>
+#include <unordered_set>
 
 // Boost library headers
 #include <boost/functional/hash.hpp>
 
+#include "ondriks_mtbdd.hh"
 
 namespace VATA
 {

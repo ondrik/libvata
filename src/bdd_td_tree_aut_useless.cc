@@ -10,12 +10,12 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/mtbdd/apply1func.hh>
-#include <vata/mtbdd/void_apply1func.hh>
-#include <vata/util/graph.hh>
 
 #include "bdd_td_tree_aut_core.hh"
 
+#include "mtbdd/apply1func.hh"
+#include "mtbdd/void_apply1func.hh"
+#include "util/graph.hh"
 
 // Standard library headers
 #include <stack>

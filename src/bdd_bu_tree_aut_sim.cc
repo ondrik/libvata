@@ -11,7 +11,6 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/mtbdd/apply3func.hh>
 
 // Standard library headers
 #include <stack>
@@ -19,6 +18,7 @@
 #include "bdd_bu_tree_aut_core.hh"
 #include "bdd_td_tree_aut_core.hh"
 
+#include "mtbdd/apply3func.hh"
 
 using VATA::BDDBUTreeAutCore;
 using VATA::BDDTDTreeAutCore;

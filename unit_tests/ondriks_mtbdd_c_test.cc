@@ -10,12 +10,13 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/mtbdd/apply1func.hh>
-#include <vata/mtbdd/apply2func.hh>
-#include <vata/mtbdd/apply3func.hh>
-#include <vata/mtbdd/ondriks_mtbdd.hh>
 #include <vata/sym_var_asgn.hh>
 #include <vata/util/convert.hh>
+
+#include "../src/mtbdd/apply1func.hh"
+#include "../src/mtbdd/apply2func.hh"
+#include "../src/mtbdd/apply3func.hh"
+#include "../src/mtbdd/ondriks_mtbdd.hh"
 
 using VATA::MTBDDPkg::OndriksMTBDD;
 using VATA::MTBDDPkg::Apply1Functor;

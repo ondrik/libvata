@@ -12,8 +12,9 @@
 #define _VATA_VOID_APPLY1FUNC_HH_
 
 // VATA headers
-#include	<vata/vata.hh>
-#include	<vata/mtbdd/ondriks_mtbdd.hh>
+#include <vata/vata.hh>
+
+#include "ondriks_mtbdd.hh"
 
 
 namespace VATA

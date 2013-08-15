@@ -19,11 +19,11 @@
 #include <vata/incl_param.hh>
 
 // MTBDD
-#include <vata/mtbdd/apply1func.hh>
-#include <vata/mtbdd/apply2func.hh>
-#include <vata/mtbdd/ondriks_mtbdd.hh>
-#include <vata/mtbdd/void_apply1func.hh>
-#include <vata/mtbdd/void_apply2func.hh>
+#include "mtbdd/apply1func.hh"
+#include "mtbdd/apply2func.hh"
+#include "mtbdd/ondriks_mtbdd.hh"
+#include "mtbdd/void_apply1func.hh"
+#include "mtbdd/void_apply2func.hh"
 
 #include "util/bdd_td_trans_table.hh"
 #include "bdd_bu_tree_aut_core.hh"
