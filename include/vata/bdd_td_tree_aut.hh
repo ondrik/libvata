@@ -51,19 +51,6 @@ class VATA::BDDTopDownTreeAut : public SymbolicAutBase
 {
 GCC_DIAG_ON(effc++)
 
-//	friend BDDTopDownTreeAut Union(const BDDTopDownTreeAut&,
-//		const BDDTopDownTreeAut&, AutBase::StateToStateMap*,
-//		AutBase::StateToStateMap*);
-//
-//	friend BDDTopDownTreeAut Intersection(const BDDTopDownTreeAut&,
-//		const BDDTopDownTreeAut&, AutBase::ProductTranslMap*);
-//
-//	friend BDDTopDownTreeAut RemoveUnreachableStates(const BDDTopDownTreeAut&);
-//
-//	friend BDDTopDownTreeAut RemoveUselessStates(const BDDTopDownTreeAut&);
-
-	friend class BDDBottomUpTreeAut;
-
 public:   // data types
 
 	typedef typename SymbolicAutBase::SymbolType SymbolType;
