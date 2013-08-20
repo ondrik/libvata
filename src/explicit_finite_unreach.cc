@@ -8,9 +8,6 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_EXPLICIT_FINITE_UNREACH_HH_
-#define _VATA_EXPLICIT_FINITE_UNREACH_HH_
-
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/finite_aut/explicit_finite_aut.hh>
@@ -22,11 +19,10 @@
 #include <utility>
 
 
-template <class SymbolType>
-VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::RemoveUnreachableStates(
+VATA::ExplicitFiniteAut VATA::ExplicitFiniteAut::RemoveUnreachableStates(
 	VATA::AutBase::StateToStateMap* pTranslMap) {
 
-	typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
+	typedef VATA::ExplicitFiniteAut ExplicitFA;
 	typedef typename ExplicitFA::StateToTransitionClusterMapPtr
 		StateToTransitionClusterMapPtr;
 
@@ -88,5 +84,3 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::RemoveU
 
 	return res;
 }
-
-#endif

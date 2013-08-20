@@ -8,9 +8,6 @@
  *
  *****************************************************************************/
 
-#ifndef _VATA_EXPLICIT_FINITE_AUT_CANDIDATE_
-#define _VATA_EXPLICIT_FINITE_AUT_CANDIDATE_
-
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/finite_aut/explicit_finite_aut.hh>
@@ -23,10 +20,9 @@
  * Get candidate nfa. It is the smallest nfa which
  * has language which is subset of the input nfa
  */
-template <class SymbolType>
-VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::GetCandidateTree() const {
+VATA::ExplicitFiniteAut VATA::ExplicitFiniteAut::GetCandidateTree() const {
 
-	typedef ExplicitFiniteAut<SymbolType> ExplicitFA;
+	typedef ExplicitFiniteAut ExplicitFA;
 	typedef typename ExplicitFA::StateType StateType;
 
 	std::unordered_set<StateType> reachableStates;
@@ -63,7 +59,6 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::GetCand
 				}
 
 				if (this->IsStateFinal(stateInSet)) { // Set final state and return
-					std::cout	 <<	 "jsem tady"	<<	std::endl;
 					res.SetStateFinal(stateInSet);
 					res.transitions_->insert(std::make_pair(actState,transitionsCluster->second));
 					//res.internalAddTransition(actState,symbolToState.first,stateInSet);
@@ -78,5 +73,3 @@ VATA::ExplicitFiniteAut<SymbolType> VATA::ExplicitFiniteAut<SymbolType>::GetCand
 
 	return res.RemoveUselessStates();
 }
-
-#endif

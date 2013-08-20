@@ -10,34 +10,35 @@
  *
  *****************************************************************************/
 
-#ifndef EXPLICIT_FINITE_AUT_CONGR_FCTOR_CACHE_OPT_
-#define EXPLICIT_FINITE_AUT_CONGR_FCTOR_CACHE_OPT_
+#ifndef EXPLICIT_FINITE_AUT_CONGR_INCL_HH_
+#define EXPLICIT_FINITE_AUT_CONGR_INCL_HH_
 
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/util/antichain2c_v2.hh>
 
-#include <vata/finite_aut/explicit_finite_abstract_fctor.hh>
+#include "explicit_finite_abstract_fctor.hh"
 #include <vata/finite_aut/util/map_to_list.hh>
 #include <vata/finite_aut/util/macrostate_cache.hh>
 
 namespace VATA {
-	template <class SymbolType, class Rel, class ProductSet> class ExplicitFACongrFunctorCacheOpt;
+	template <class Rel, class ProductSet, class NormalFormRel> class ExplicitFACongrFunctorCacheOpt;
 }
 
 GCC_DIAG_OFF(effc++)
-template <class SymbolType, class Rel, class ProductSet>
+template <class Rel, class ProductSet, class NormalFormRel>
 class VATA::ExplicitFACongrFunctorCacheOpt :
-	public ExplicitFAAbstractFunctor <SymbolType,Rel> {
+	public ExplicitFAAbstractFunctor <Rel> {
 GCC_DIAG_ON(effc++)
 
 public : // data types
-	typedef typename VATA::ExplicitFAAbstractFunctor<SymbolType,Rel>
+	typedef typename VATA::ExplicitFAAbstractFunctor<Rel>
 		AbstractFunctor;
 	typedef typename AbstractFunctor::ExplicitFA ExplicitFA;
 
 	typedef typename AbstractFunctor::StateType StateType;
 	typedef typename AbstractFunctor::StateSet StateSet;
+	typedef typename AbstractFunctor::SymbolType SymbolType;
 
 	typedef typename AbstractFunctor::Antichain1Type Antichain1Type;
 
@@ -94,7 +95,7 @@ private: // Private data members
 	IndexType& index_;
 	IndexType& inv_;
 
-	Rel preorder_; // Simulation or identity
+	NormalFormRel normalFormRel_;
 
 	MacroStateCache cache_;
 	MacroStatePtrPair visitedPairs_;
@@ -115,7 +116,7 @@ public:
 		bigger_(bigger),
 		index_(index),
 		inv_(inv),
-		preorder_(preorder),
+		normalFormRel_(preorder),
 		cache_(),
 		visitedPairs_(),
 		usedRules_()
@@ -201,6 +202,8 @@ public: // public functions
 		// Compute congruence closure of bigger nfa
 		StateSet congrBigger(bigger);
 
+		normalFormRel_.applyRule(congrBigger);
+
 		// Checks whether smaller macrostate is subset of congr. clusure of bigger
 		if (GetCongrClosure(b,congrBigger,isCongrClosureSet) ||
 			isSubSet(s,congrBigger)) {
@@ -238,7 +241,10 @@ private:
 	}
 
 	void AddSubSet(StateSet& mainset, StateSet& subset) {
-		mainset.insert(subset.begin(),subset.end());
+		StateSet temp = StateSet(subset);
+		normalFormRel_.applyRule(temp);
+		mainset.insert(temp.begin(),temp.end());
+		//mainset.insert(subset.begin(),subset.end());
 	}
 
 	/*
@@ -425,5 +431,4 @@ private:
 		}
 	}
 };
-
 #endif

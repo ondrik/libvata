@@ -20,7 +20,7 @@
 #include <vata/util/antichain1c.hh>
 #include <vata/finite_aut/explicit_finite_aut.hh>
 
-#include <vata/finite_aut/explicit_finite_abstract_fctor.hh>
+#include "explicit_finite_abstract_fctor.hh"
 
 #include <vata/finite_aut/util/map_to_list.hh>
 #include <vata/finite_aut/util/macrostate_cache.hh>
@@ -30,17 +30,17 @@
 #include <utility>
 
 namespace VATA {
-	template <class SymbolType, class Rel, class Comparator> class ExplicitFAInclusionFunctorCache;
+	template <class Rel, class Comparator> class ExplicitFAInclusionFunctorCache;
 }
 
 GCC_DIAG_OFF(effc++)
-template <class SymbolType, class Rel, class Comparator>
+template <class Rel, class Comparator>
 class VATA::ExplicitFAInclusionFunctorCache :
-	public ExplicitFAAbstractFunctor <SymbolType,Rel> {
+	public ExplicitFAAbstractFunctor <Rel> {
 GCC_DIAG_ON(effc++)
 
 public : // data types
-	typedef ExplicitFAAbstractFunctor<SymbolType,Rel> AbstractFunctor;
+	typedef ExplicitFAAbstractFunctor<Rel> AbstractFunctor;
 	typedef typename AbstractFunctor::ExplicitFA ExplicitFA;
 
 	typedef typename AbstractFunctor::StateType StateType;
@@ -146,7 +146,6 @@ public: // public functions
 	 */
 	void MakePost(StateType procState, BiggerElementType& procMacroState) {
 
-
 		auto sum = [](StateSet& set, size_t& sum) {for (auto& state : set) sum+=state;};
 
 		auto iteratorSmallerSymbolToState = smaller_.transitions_->find(procState);
@@ -174,7 +173,9 @@ public: // public functions
 					return;
 				}
 
-				this->AddNewPairToAntichain(newSmallerState,newCachedMacro);
+				if (!comparator_.checkSmallerInBigger(newSmallerState,newCachedMacro)) {
+					this->AddNewPairToAntichain(newSmallerState,newCachedMacro);
+				}
 			}
 		}
 	}
@@ -240,6 +241,8 @@ private: // private functions
 		// Get candidates for given state
 		comparator_.getCandidate(candidates,state,singleAntichain_);
 		if (!antichain_.contains(candidates,&set,lte)) {
+			std::vector<StateType> candidates;
+			comparator_.getCandidateRev(candidates,state,singleAntichain_);
 			antichain_.refine(candidates,&set,gte);
 			antichain_.insert(state,&set);
 			AddToSingleAC(state);
@@ -310,8 +313,12 @@ private: // private functions
 			}
 			return res;
 		};
-		std::vector<StateType> tempStateSet = {state};
+
+		std::vector<StateType> tempStateSet;// = {state};
+		comparator_.getCandidate(tempStateSet,state,singleAntichain_);
 		if (!next_.contains(tempStateSet,&set,lte)) {
+			std::vector<StateType> tempStateSet;// = {state};
+			comparator_.getCandidateRev(tempStateSet,state,singleAntichain_);
 			next_.refine(tempStateSet,&set,gte);
 			next_.insert(state,&set);
 		}

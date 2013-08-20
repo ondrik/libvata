@@ -137,6 +137,17 @@ public:   // methods
 		const StringToStateDict&                   stateDict) const;
 
 
+	template <
+		class TranslIndex,
+		class SanitizeIndex>
+	std::string PrintSimulationMapping(
+		TranslIndex          /*index*/,
+		SanitizeIndex        /*sanitizeIndex*/)
+	{
+		throw NotImplementedException(__func__);
+	}
+
+
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&      serializer,
 		const StateBackTranslatorStrict&           stateTrans,

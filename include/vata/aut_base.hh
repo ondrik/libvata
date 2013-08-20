@@ -124,6 +124,7 @@ public:   // methods
 		return stateCnt;
 	}
 
+	/*
 	template <class Automaton>
 	static StateType SanitizeAutForSimulation(Automaton& aut)
 	{
@@ -136,6 +137,21 @@ public:   // methods
 		Automaton reindexedAut = newAut.ReindexStates(stateTrans);
 
 		aut = reindexedAut;
+
+		return stateCnt;
+	}
+	*/
+
+	template <
+		class Automaton,
+		class Index>
+	static StateType SanitizeAutForSimulation(
+		Automaton&       aut,
+		StateType&       stateCnt,
+		Index&           index)
+	{
+		Automaton newAut = aut.RemoveUselessStates();
+		aut = newAut.ReindexStates(index);
 
 		return stateCnt;
 	}

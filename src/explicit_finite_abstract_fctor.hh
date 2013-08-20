@@ -20,19 +20,20 @@
 #include <vata/util/antichain1c.hh>
 
 namespace VATA {
-	template <class SymbolType, class Rel> class ExplicitFAAbstractFunctor;
+	template <class Rel> class ExplicitFAAbstractFunctor;
 }
 
 
 GCC_DIAG_OFF(effc++)
-template <class SymbolType, class Rel>
+template <class Rel>
 class VATA::ExplicitFAAbstractFunctor {
 GCC_DIAG_ON(effc++)
 public: // data types
-	typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
+	typedef VATA::ExplicitFiniteAut ExplicitFA;
 
 	typedef typename ExplicitFA::StateType StateType;
 	typedef typename ExplicitFA::StateSet StateSet;
+	typedef typename ExplicitFA::SymbolType SymbolType;
 
 	// Define single antichain
 	typedef VATA::Util::Antichain1C<StateType> Antichain1Type;

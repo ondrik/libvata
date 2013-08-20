@@ -73,7 +73,8 @@ public:   // methods
 		}
 		else
 		{	// in case there is no translation for the value
-			throw std::runtime_error("No translation for " + Convert::ToString(value));
+			throw std::runtime_error("No translation for " +
+				VATA::Util::Convert::ToString(value));
 		}
 	}
 

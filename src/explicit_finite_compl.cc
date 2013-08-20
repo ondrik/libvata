@@ -9,18 +9,14 @@
  *
  *****************************************************************************/
 
-
-#ifndef _VATA_EXPLICIT_FINITE_AUT_COMPL_HH_
-#define _VATA_EXPLICIT_FINITE_AUT_COMPL_HH_
-
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/finite_aut/explicit_finite_aut.hh>
 
 namespace VATA {
 	template <class SymbolType, class Dict>
-	ExplicitFiniteAut<SymbolType> Complement(
-			const ExplicitFiniteAut<SymbolType> &aut,
+	ExplicitFiniteAut Complement(
+			const ExplicitFiniteAut &aut,
 			const Dict &alphabet);
 }
 
@@ -35,13 +31,13 @@ namespace VATA {
 	 * @todo	Finish? Add check for determinism?
 	 */
  template <class SymbolType, class Dict>
- VATA::ExplicitFiniteAut<SymbolType> VATA::Complement(
-			const VATA::ExplicitFiniteAut<SymbolType> &aut,
+ VATA::ExplicitFiniteAut VATA::Complement(
+			const VATA::ExplicitFiniteAut &aut,
 			const Dict &/*alphabet*/) {
 
 	VATA_WARN("Calling " << __func__);
 
-	typedef VATA::ExplicitFiniteAut<SymbolType> ExplicitFA;
+	typedef VATA::ExplicitFiniteAut ExplicitFA;
 
 	ExplicitFA res;
 	res.transitions_ = aut.transitions_;
@@ -65,5 +61,3 @@ namespace VATA {
 
 	return res;
 }
-
-#endif

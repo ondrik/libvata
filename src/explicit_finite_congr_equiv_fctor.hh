@@ -9,35 +9,36 @@
  *
  *****************************************************************************/
 
-#ifndef EXPLICIT_FINITE_AUT_CONGR_FCTOR_CACHE_
-#define EXPLICIT_FINITE_AUT_CONGR_FCTOR_CACHE_
+#ifndef EXPLICIT_FINITE_AUT_CONGR_EQUIV_HH_
+#define EXPLICIT_FINITE_AUT_CONGR_EQUIV_HH_
 
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/util/antichain2c_v2.hh>
 
 #include <vata/finite_aut/explicit_finite_aut.hh>
-#include <vata/finite_aut/explicit_finite_abstract_fctor.hh>
+#include "explicit_finite_abstract_fctor.hh"
 #include <vata/finite_aut/util/map_to_list.hh>
 #include <vata/finite_aut/util/macrostate_cache.hh>
 
 namespace VATA {
-	template <class SymbolType, class Rel, class ProductSet> class ExplicitFACongrEquivFunctor;
+	template <class Rel, class ProductSet> class ExplicitFACongrEquivFunctor;
 }
 
 GCC_DIAG_OFF(effc++)
-template <class SymbolType, class Rel, class ProductSet>
+template <class Rel, class ProductSet>
 class VATA::ExplicitFACongrEquivFunctor :
-	public ExplicitFAAbstractFunctor <SymbolType,Rel> {
+	public ExplicitFAAbstractFunctor <Rel> {
 GCC_DIAG_ON(effc++)
 
 public : // data types
-	typedef typename VATA::ExplicitFAAbstractFunctor<SymbolType,Rel>
+	typedef typename VATA::ExplicitFAAbstractFunctor<Rel>
 		AbstractFunctor;
 	typedef typename AbstractFunctor::ExplicitFA ExplicitFA;
 
 	typedef typename AbstractFunctor::StateType StateType;
 	typedef typename AbstractFunctor::StateSet StateSet;
+	typedef typename AbstractFunctor::SymbolType SymbolType;
 
 	typedef typename AbstractFunctor::Antichain1Type Antichain1Type;
 
@@ -344,5 +345,4 @@ private:
 		}
 	}
 };
-
 #endif

@@ -17,21 +17,21 @@ SCRIPTPATH=`dirname $SCRIPT`
 #METHODS=("explup" "explup-sim" "expldown" "expldown-sim" "expldown-optC" "expldown-sim-optC" "symup" "symdown" "symdown-sim" "symdown-optC" "symdown-sim-optC")
 
 METHODS=( 
-  "expldown-rec"
-  "expldown-rec-optC"
-  "expldown-nonrec"
+#  "expldown-rec"
+#  "expldown-rec-optC"
+#  "expldown-nonrec"
 
-  "expldown-rec-sim"
-  "expldown-rec-sim-optC"
-  "expldown-nonrec-sim"
+#  "expldown-rec-sim"
+#  "expldown-rec-sim-optC"
+#  "expldown-nonrec-sim"
 
-  "expldown-rec-sim-nosimtime"
-  "expldown-rec-sim-optC-nosimtime"
-  "expldown-nonrec-sim-nosimtime"
+#  "expldown-rec-sim-nosimtime"
+#  "expldown-rec-sim-optC-nosimtime"
+#  "expldown-nonrec-sim-nosimtime"
 
   "explup"
   "explup-sim"
-  "explup-sim-nosimtime"
+#  "explup-sim-nosimtime"
 
 #  "old-expldown"
 #  "old-expldown-sim"
@@ -49,7 +49,8 @@ METHODS=(
 
 #  "explfa-ac"
 #  "explfa-ac-sim"
-#  "explfa-congr"
+  "explfa-congr"
+  "explfa-congr-sim"
 )
 
 ################################# FUNCTIONS ##################################

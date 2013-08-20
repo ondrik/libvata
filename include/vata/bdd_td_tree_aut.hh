@@ -134,6 +134,17 @@ public:   // public methods
 		const VATA::InclParam&      params);
 
 
+	template <
+		class TranslIndex,
+		class SanitizeIndex>
+	std::string PrintSimulationMapping(
+		TranslIndex       /*index*/,
+		SanitizeIndex     /*sanitizeIndex*/)
+	{
+		throw NotImplementedException(__func__);
+	}
+
+
 	AutBase::StateBinaryRelation ComputeDownwardSimulation() const;
 
 

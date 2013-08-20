@@ -135,16 +135,22 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 
 	if (ip.GetUseSimulation())
 	{	// if simulation is desired, then compute it here!
-		Automaton unionAut = Automaton::UnionDisjointStates(smaller, bigger);
+		//Automaton unionAut = Automaton::UnionDisjointStates(smaller, bigger);
+		Automaton unionAut;
 
-		// the relation
-		AutBase::StateBinaryRelation sim;
+		if (ip.GetAlgorithm() == InclParam::e_algorithm::congruences)
+		{
+			smaller = Automaton::UnionDisjointStates(smaller, bigger);
+		}
+		else
+		{
+			unionAut = Automaton::UnionDisjointStates(smaller, bigger);
+		}
 
 		if (InclParam::e_direction::upward == ip.GetDirection())
 		{	// for upward algorithm compute the upward simulation
 			sim = unionAut.ComputeUpwardSimulation(states);
 			ip.SetSimulation(&sim);
-
 		}
 		else if (InclParam::e_direction::downward == ip.GetDirection())
 		{	// for downward algorithm, compute the downward simualation
@@ -166,10 +172,15 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	return Automaton::CheckInclusion(smaller, bigger, ip);
 }
 
-template <class Automaton>
+template <
+	class Automaton,
+	class StringToStateMap,
+	class StateToStateMap>
 VATA::AutBase::StateBinaryRelation ComputeSimulation(
-	Automaton            aut,
-	const Arguments&     args)
+	Automaton                aut,
+	const Arguments&         args,
+	const StringToStateMap   /* index */,    // TODO: why is this here?
+	StateToStateMap&         translMap)
 {
 	if (!args.pruneUseless)
 	{
@@ -177,11 +188,19 @@ VATA::AutBase::StateBinaryRelation ComputeSimulation(
 			"automata with pruned useless states!");
 	}
 
+	typedef AutBase::StateType StateType;
+	typedef VATA::Util::TranslatorWeak<StateToStateMap> StateToStateTranslator;
+
 	// insert default values
 	Options options = args.options;
 	options.insert(std::make_pair("dir", "down"));
 
-	AutBase::StateType states = AutBase::SanitizeAutForSimulation(aut);
+	StateType stateCnt = 0;
+	StateToStateTranslator stateTrans(translMap,
+		[&stateCnt](const StateType&){return stateCnt++;});
+
+	AutBase::StateType states = AutBase::SanitizeAutForSimulation(aut,
+			stateCnt,stateTrans);
 
 	if (options["dir"] == "up")
 	{

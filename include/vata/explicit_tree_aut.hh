@@ -378,6 +378,44 @@ public:   // methods
 		const SymbolBackTranslatorStrict&          symbolTrans) const;
 
 
+	template <
+		class TranslIndex,
+		class SanitizeIndex>
+	std::string PrintSimulationMapping(
+		TranslIndex            /*index*/,
+		SanitizeIndex          /*sanitizeIndex*/)
+	{
+		throw NotImplementedException(__func__);
+
+#if 0
+		std::string res;
+		std::unordered_set<StateType> translatedStates;
+
+		for (auto trans : *this)
+		{
+			for (auto& s : trans.children())
+			{
+				if (!translatedStates.count(s))
+				{
+					res = res + VATA::Util::Convert::ToString(index(s)) + " -> " +
+						VATA::Util::Convert::ToString(sanitizeIndex[s]) + "\n";
+					translatedStates.insert(s);
+				}
+			}
+
+			if (!translatedStates.count(trans.parent()))
+			{
+				res = res + VATA::Util::Convert::ToString(index(trans.parent())) + " -> " +
+					VATA::Util::Convert::ToString(sanitizeIndex[trans.parent()]) + "\n";
+				translatedStates.insert(trans.parent());
+			}
+		}
+
+		return res;
+#endif
+	}
+
+
 	static StringToSymbolDict& GetSymbolDict()
 	{
 		throw NotImplementedException(__func__);

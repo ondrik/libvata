@@ -15,10 +15,6 @@
 #include <vata/explicit_tree_aut.hh>
 #include <vata/finite_aut/explicit_finite_aut.hh>
 #include <vata/finite_aut/explicit_finite_aut_op.hh>
-#include <vata/finite_aut/explicit_finite_union.hh>
-#include <vata/finite_aut/explicit_finite_unreach.hh>
-#include <vata/finite_aut/explicit_finite_useless.hh>
-#include <vata/finite_aut/explicit_finite_incl.hh>
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
 #include <vata/util/convert.hh>
@@ -45,12 +41,14 @@ using VATA::Serialization::TimbukSerializer;
 using VATA::Util::Convert;
 
 
-typedef VATA::ExplicitFiniteAut<size_t> ExplicitFiniteAut;
+typedef VATA::ExplicitFiniteAut ExplicitFiniteAut;
 
 typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
 	StateTranslatorWeak;
 typedef VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>
 	StateBackTranslatorStrict;
+typedef VATA::Util::TranslatorStrict<VATA::AutBase::StateToStateMap>
+		StateToStateTranslator;
 
 typedef VATA::Util::TranslatorWeak<BDDTopDownTreeAut::StringToSymbolDict>
 	SymbolTranslatorWeak;
@@ -256,7 +254,7 @@ int performOperation(
 	}
 	else if (args.command == COMMAND_SIM)
 	{
-		relResult = ComputeSimulation(autInput1, args);
+		relResult = ComputeSimulation(autInput1, args,stateDict1,translMap1);
 	}
 	else if (args.command == COMMAND_RED)
 	{
@@ -328,6 +326,11 @@ int performOperation(
 
 		if (args.command == COMMAND_SIM)
 		{
+
+			std::cout << autInput1.PrintSimulationMapping(
+					StateBackTranslatorStrict(stateDict1.GetReverseMap()),
+					StateToStateTranslator(translMap1))
+				<< std::endl;
 			std::cout << relResult << "\n";
 		}
 	}
