@@ -10,7 +10,6 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/ta_expl/explicit_tree_aut.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/antichain1c.hh>
 
@@ -18,26 +17,28 @@
 #include <vector>
 #include <unordered_set>
 
-using VATA::ExplicitTreeAut;
+
+#include "explicit_tree_aut_core.hh"
+
+using VATA::ExplicitTreeAutCore;
 using VATA::AutBase;
 
-ExplicitTreeAut ExplicitTreeAut::RemoveUnreachableStates(
+ExplicitTreeAutCore ExplicitTreeAutCore::RemoveUnreachableStates(
 	AutBase::StateToStateMap*            pTranslMap) const
 {
-	typedef ExplicitTreeAut::StateToTransitionClusterMapPtr
-		StateToTransitionClusterMapPtr;
-
-	std::unordered_set<AutBase::StateType> reachableStates(this->GetFinalStates());
-	std::vector<AutBase::StateType> newStates(reachableStates.begin(), reachableStates.end());
+	std::unordered_set<StateType> reachableStates(this->GetFinalStates());
+	std::vector<StateType> newStates(reachableStates.begin(), reachableStates.end());
 
 	while (!newStates.empty())
 	{
-		auto cluster = ExplicitTreeAut::genericLookup(*transitions_, newStates.back());
+		auto cluster = ExplicitTreeAutCore::genericLookup(*transitions_, newStates.back());
 
 		newStates.pop_back();
 
 		if (!cluster)
+		{
 			continue;
+		}
 
 		for (auto& symbolStateTupleSetPtr : *cluster)
 		{
@@ -47,10 +48,12 @@ ExplicitTreeAut ExplicitTreeAut::RemoveUnreachableStates(
 			{
 				assert(stateTuple);
 
-				for (auto& state : *stateTuple)
+				for (const StateType& state : *stateTuple)
 				{
 					if (reachableStates.insert(state).second)
+					{
 						newStates.push_back(state);
+					}
 				}
 			}
 		}
@@ -58,30 +61,35 @@ ExplicitTreeAut ExplicitTreeAut::RemoveUnreachableStates(
 
 	if (pTranslMap)
 	{
-		for (auto& state : reachableStates)
+		for (const StateType& state : reachableStates)
+		{
 			pTranslMap->insert(std::make_pair(state, state));
+		}
 	}
 
 	if (reachableStates.size() == transitions_->size())
+	{
 		return *this;
+	}
 
-	ExplicitTreeAut result(cache_);
+	ExplicitTreeAutCore result(cache_);
 
 	result.finalStates_ = finalStates_;
 	result.transitions_ = StateToTransitionClusterMapPtr(
-		new ExplicitTreeAut::StateToTransitionClusterMap()
+		new ExplicitTreeAutCore::StateToTransitionClusterMap()
 	);
 
-	for (auto& state : reachableStates)
+	for (const StateType& state : reachableStates)
 	{
 		auto iter = transitions_->find(state);
 
 		if (iter == transitions_->end())
+		{
 			continue;
+		}
 
 		result.transitions_->insert(std::make_pair(state, iter->second));
 	}
 
 	return result;
 }
-

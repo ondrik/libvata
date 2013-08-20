@@ -10,16 +10,18 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/ta_expl/explicit_tree_aut.hh>
 
 // Standard library headers
 #include <vector>
 
-using VATA::ExplicitTreeAut;
 
-ExplicitTreeAut ExplicitTreeAut::Intersection(
-	const ExplicitTreeAut&               lhs,
-	const ExplicitTreeAut&               rhs,
+#include "explicit_tree_aut_core.hh"
+
+using VATA::ExplicitTreeAutCore;
+
+ExplicitTreeAutCore ExplicitTreeAutCore::Intersection(
+	const ExplicitTreeAutCore&           lhs,
+	const ExplicitTreeAutCore&           rhs,
 	VATA::AutBase::ProductTranslMap*     pTranslMap)
 {
 	VATA::AutBase::ProductTranslMap translMap;
@@ -29,14 +31,14 @@ ExplicitTreeAut ExplicitTreeAut::Intersection(
 		pTranslMap = &translMap;
 	}
 
-	ExplicitTreeAut res(lhs.cache_);
+	ExplicitTreeAutCore res(lhs.cache_);
 
 	std::vector<const VATA::AutBase::ProductTranslMap::value_type*> stack;
 
-	for (auto& s : lhs.finalStates_) {
-
-		for (auto& t : rhs.finalStates_) {
-
+	for (const StateType& s : lhs.finalStates_)
+	{
+		for (const StateType& t : rhs.finalStates_)
+		{
 			auto u = pTranslMap->insert(
 				std::make_pair(std::make_pair(s, t), pTranslMap->size())
 			).first;
@@ -44,56 +46,65 @@ ExplicitTreeAut ExplicitTreeAut::Intersection(
 			res.SetStateFinal(u->second);
 
 			stack.push_back(&*u);
-
 		}
-
 	}
 
 	auto transitions = res.transitions_;
 
-	while (!stack.empty()) {
-
+	while (!stack.empty())
+	{
 		auto p = stack.back();
 
 		stack.pop_back();
 
-		auto leftCluster = ExplicitTreeAut::genericLookup(*lhs.transitions_, p->first.first);
+		auto leftCluster = ExplicitTreeAutCore::genericLookup(
+			*lhs.transitions_, p->first.first);
 
 		if (!leftCluster)
+		{
 			continue;
+		}
 
-		auto rightCluster = ExplicitTreeAut::genericLookup(*rhs.transitions_, p->first.second);
+		auto rightCluster = ExplicitTreeAutCore::genericLookup(
+			*rhs.transitions_, p->first.second);
 
 		if (!rightCluster)
+		{
 			continue;
+		}
 
 		assert(leftCluster);
 
-		ExplicitTreeAut::TransitionClusterPtr cluster(nullptr);
+		ExplicitTreeAutCore::TransitionClusterPtr cluster(nullptr);
 
-		for (auto& leftSymbolStateTupleSetPtr : *leftCluster) {
-
+		for (auto& leftSymbolStateTupleSetPtr : *leftCluster)
+		{
 			auto rightTupleSet =
-				ExplicitTreeAut::genericLookup(*rightCluster, leftSymbolStateTupleSetPtr.first);
+				ExplicitTreeAutCore::genericLookup(
+					*rightCluster, leftSymbolStateTupleSetPtr.first);
 
 			if (!rightTupleSet)
+			{
 				continue;
+			}
 
 			if (!cluster)
+			{
 				cluster = transitions->uniqueCluster(p->second);
+			}
 
 			auto tuplePtrSet = cluster->uniqueTuplePtrSet(leftSymbolStateTupleSetPtr.first);
 
-			for (auto& leftTuplePtr : *leftSymbolStateTupleSetPtr.second) {
-
-				for (auto& rightTuplePtr : *rightTupleSet) {
-
+			for (auto& leftTuplePtr : *leftSymbolStateTupleSetPtr.second)
+			{
+				for (auto& rightTuplePtr : *rightTupleSet)
+				{
 					assert(leftTuplePtr->size() == rightTuplePtr->size());
 
-					ExplicitTreeAut::StateTuple children;
+					ExplicitTreeAutCore::StateTuple children;
 
-					for (size_t i = 0; i < leftTuplePtr->size(); ++i) {
-
+					for (size_t i = 0; i < leftTuplePtr->size(); ++i)
+					{
 						auto u = pTranslMap->insert(
 							std::make_pair(
 								std::make_pair((*leftTuplePtr)[i], (*rightTuplePtr)[i]),
@@ -102,23 +113,19 @@ ExplicitTreeAut ExplicitTreeAut::Intersection(
 						);
 
 						if (u.second)
+						{
 							stack.push_back(&*u.first);
+						}
 
 						children.push_back(u.first->second);
-
 					}
 
 //					res.AddTransition(children, leftSymbolStateTupleSetPtr.first, p->second);
 					tuplePtrSet->insert(res.tupleLookup(children));
-
 				}
-
 			}
-
 		}
-
 	}
 
 	return res;
-
 }

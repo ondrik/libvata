@@ -8,47 +8,50 @@
  *
  *****************************************************************************/
 
+// VATA headers
+#include <vata/vata.hh>
+
 // Standard library headers
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
 
-// VATA headers
-#include <vata/vata.hh>
-#include <vata/ta_expl/explicit_tree_aut.hh>
+#include "explicit_tree_aut_core.hh"
 
-using VATA::ExplicitTreeAut;
 
-ExplicitTreeAut ExplicitTreeAut::RemoveUselessStates(
-	VATA::AutBase::StateToStateMap* pTranslMap) const
+using VATA::ExplicitTreeAutCore;
+
+using StateToStateMap    = VATA::AutBase::StateToStateMap;
+
+ExplicitTreeAutCore ExplicitTreeAutCore::RemoveUselessStates(
+	StateToStateMap*            pTranslMap) const
 {
-	typedef ExplicitTreeAut::StateType StateType;
-	typedef ExplicitTreeAut::TuplePtr TuplePtr;
-	typedef ExplicitTreeAut::SymbolType SymbolType;
-
-	struct TransitionInfo {
-
+	struct TransitionInfo
+	{
 		TuplePtr children_;
 		SymbolType symbol_;
 		StateType state_;
 
 		std::set<StateType> childrenSet_;
 
-		TransitionInfo(const TuplePtr& children, const SymbolType& symbol, const StateType& state)
-			: children_(children), symbol_(symbol), state_(state),
-			childrenSet_(children->begin(), children->end()) {
+		TransitionInfo(
+			const TuplePtr&      children,
+			const SymbolType&    symbol,
+			const StateType&     state) :
+			children_(children),
+			symbol_(symbol),
+			state_(state),
+			childrenSet_(children->begin(), children->end())
+		{ }
+
+		bool reachedBy(const StateType& state)
+		{
+			assert(childrenSet_.count(state));
+
+			childrenSet_.erase(state);
+
+			return childrenSet_.empty();
 		}
-
-		bool reachedBy(const StateType& state) {
-
-			assert(this->childrenSet_.count(state));
-
-			this->childrenSet_.erase(state);
-
-			return this->childrenSet_.empty();
-
-		}
-
 	};
 
 	typedef std::shared_ptr<TransitionInfo> TransitionInfoPtr;
@@ -139,7 +142,7 @@ ExplicitTreeAut ExplicitTreeAut::RemoveUselessStates(
 
 	}
 */
-	ExplicitTreeAut result(cache_);
+	ExplicitTreeAutCore result(cache_);
 
 	for (auto& state : finalStates_) {
 

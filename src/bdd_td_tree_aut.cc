@@ -16,11 +16,6 @@
 using VATA::BDDTopDownTreeAut;
 
 
-BDDTopDownTreeAut::BDDTopDownTreeAut(
-	BDDTDTreeAutCore&&             core) :
-	core_(new BDDTDTreeAutCore(std::move(core)))
-{ }
-
 BDDTopDownTreeAut::BDDTopDownTreeAut() :
 	core_(new BDDTDTreeAutCore())
 { }
@@ -28,6 +23,11 @@ BDDTopDownTreeAut::BDDTopDownTreeAut() :
 BDDTopDownTreeAut::BDDTopDownTreeAut(
 	const BDDTopDownTreeAut&         aut) :
 	core_(new BDDTDTreeAutCore(*aut.core_))
+{ }
+
+BDDTopDownTreeAut::BDDTopDownTreeAut(
+	BDDTDTreeAutCore&&             core) :
+	core_(new BDDTDTreeAutCore(std::move(core)))
 { }
 
 BDDTopDownTreeAut& BDDTopDownTreeAut::operator=(

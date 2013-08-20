@@ -8,14 +8,13 @@
  *
  *****************************************************************************/
 
-// VATA headers
-#include <vata/ta_expl/explicit_tree_aut.hh>
+#include "explicit_tree_aut_core.hh"
 
-using VATA::ExplicitTreeAut;
+using VATA::ExplicitTreeAutCore;
 
-ExplicitTreeAut ExplicitTreeAut::Union(
-	const ExplicitTreeAut&                lhs,
-	const ExplicitTreeAut&                rhs,
+ExplicitTreeAutCore ExplicitTreeAutCore::Union(
+	const ExplicitTreeAutCore&            lhs,
+	const ExplicitTreeAutCore&            rhs,
 	AutBase::StateToStateMap*             pTranslMapLhs,
 	AutBase::StateToStateMap*             pTranslMapRhs)
 {
@@ -41,7 +40,7 @@ ExplicitTreeAut ExplicitTreeAut::Union(
 	StateToStateTranslator stateTransLhs(*pTranslMapLhs, translFunc);
 	StateToStateTranslator stateTransRhs(*pTranslMapRhs, translFunc);
 
-	ExplicitTreeAut res(lhs.cache_);
+	ExplicitTreeAutCore res(lhs.cache_);
 
 	lhs.ReindexStates(res, stateTransLhs);
 	rhs.ReindexStates(res, stateTransRhs);
@@ -50,11 +49,11 @@ ExplicitTreeAut ExplicitTreeAut::Union(
 }
 
 
-ExplicitTreeAut ExplicitTreeAut::UnionDisjointStates(
-	const ExplicitTreeAut&           lhs,
-	const ExplicitTreeAut&           rhs)
+ExplicitTreeAutCore ExplicitTreeAutCore::UnionDisjointStates(
+	const ExplicitTreeAutCore&        lhs,
+	const ExplicitTreeAutCore&        rhs)
 {
-	ExplicitTreeAut res(lhs);
+	ExplicitTreeAutCore res(lhs);
 
 	assert(rhs.transitions_);
 

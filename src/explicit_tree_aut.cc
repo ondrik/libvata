@@ -12,57 +12,98 @@
 #include <vata/vata.hh>
 #include <vata/ta_expl/explicit_tree_aut.hh>
 
-#include "explicit_tree_sim.hh"
-#include "explicit_tree_unreach.hh"
+#include "explicit_tree_aut_core.hh"
 
-// global tuple cache definition
-VATA::Explicit::TupleCache VATA::Explicit::tupleCache;
+using VATA::AutBase;
+using VATA::ExplicitTreeAut;
+using VATA::ExplicitTreeAutCore;
 
-// pointer to symbol dictionary
-VATA::ExplicitTreeAut::StringToSymbolDict* VATA::ExplicitTreeAut::pSymbolDict_ = nullptr;
 
-// pointer to next symbol counter
-VATA::ExplicitTreeAut::SymbolType* VATA::ExplicitTreeAut::pNextSymbol_ = nullptr;
-
-using ExplicitTreeAut = VATA::ExplicitTreeAut;
-
-ExplicitTreeAut ExplicitTreeAut::Reduce() const
+void ExplicitTreeAut::SetSymbolDictPtr(StringToSymbolDict* pSymbolDict)
 {
-	typedef AutBase::StateType StateType;
+	ExplicitTreeAutCore::SetSymbolDictPtr(pSymbolDict);
+}
 
-	typedef Util::TwoWayDict<
-		StateType,
-		StateType,
-		std::unordered_map<StateType, StateType>,
-		std::unordered_map<StateType, StateType>
-	> StateDict;
 
-	size_t stateCnt = 0;
+void ExplicitTreeAut::SetNextSymbolPtr(SymbolType* pNextSymbol)
+{
+	ExplicitTreeAutCore::SetNextSymbolPtr(pNextSymbol);
+}
 
-	StateDict stateDict;
-	Util::TranslatorWeak<StateDict> stateTranslator(
-		stateDict, [&stateCnt](const StateType&){ return stateCnt++; }
-	);
 
-	this->BuildStateIndex(stateTranslator);
+ExplicitTreeAut::ExplicitTreeAut() :
+	core_(new ExplicitTreeAutCore())
+{ }
 
-	AutBase::StateBinaryRelation sim = this->ComputeDownwardSimulation(
-		stateDict.size(), Util::TranslatorStrict<StateDict>(stateDict)
-	);
 
-	return this->CollapseStates(
-			sim, Util::TranslatorStrict<StateDict::MapBwdType>(stateDict.GetReverseMap())
-		).RemoveUnreachableStates(sim, Util::TranslatorStrict<StateDict>(stateDict)
-	);
+ExplicitTreeAut::ExplicitTreeAut(
+	ExplicitTreeAutCore&&             core) :
+	core_(new ExplicitTreeAutCore(std::move(core)))
+{ }
+
+
+ExplicitTreeAut::ExplicitTreeAut(
+	const ExplicitTreeAut&         aut) :
+	core_(new ExplicitTreeAutCore(*aut.core_))
+{ }
+
+
+ExplicitTreeAut& ExplicitTreeAut::operator=(
+	const ExplicitTreeAut&         aut)
+{
+	if (this != &aut)
+	{
+		assert(nullptr != core_);
+
+		*core_ = *aut.core_;
+	}
+
+	return *this;
+}
+
+ExplicitTreeAut::ExplicitTreeAut(
+	ExplicitTreeAut&&              aut) :
+	core_(std::move(aut.core_))
+{
+	aut.core_ = nullptr;
+}
+
+ExplicitTreeAut& ExplicitTreeAut::operator=(
+	ExplicitTreeAut&&         aut)
+{
+	assert(this != &aut);
+
+	assert(nullptr != core_);
+	assert(nullptr != aut.core_);
+
+	core_ = std::move(aut.core_);
+	// aut.core_ set to nullptr in std::move()
+
+	return *this;
+}
+
+
+ExplicitTreeAut::~ExplicitTreeAut()
+{ }
+
+
+void ExplicitTreeAut::LoadFromString(
+	VATA::Parsing::AbstrParser&       parser,
+	const std::string&                str,
+	StringToStateDict&                stateDict)
+{
+	assert(nullptr != core_);
+
+	core_->LoadFromString(parser, str, stateDict);
 }
 
 
 std::string ExplicitTreeAut::DumpToString(
 	VATA::Serialization::AbstrSerializer&     serializer) const
 {
-	return this->DumpToString(serializer,
-		[](const StateType& state){return Convert::ToString(state);},
-		SymbolBackTranslatorStrict(this->GetSymbolDict().GetReverseMap()));
+	assert(nullptr != core_);
+
+	return core_->DumpToString(serializer);
 }
 
 
@@ -70,26 +111,122 @@ std::string ExplicitTreeAut::DumpToString(
 	VATA::Serialization::AbstrSerializer&     serializer,
 	const StringToStateDict&                  stateDict) const
 {
-	struct SymbolTranslatorPrinter
-	{
-		const SymbolBackTranslatorStrict& translator;
+	assert(nullptr != core_);
 
-		explicit SymbolTranslatorPrinter(
-			const SymbolBackTranslatorStrict&       transl) :
-			translator(transl)
-		{ }
+	return core_->DumpToString(serializer, stateDict);
+}
 
-		const StringRank& operator()(
-			const SymbolType&                       sym) const
-		{
-			return translator[sym];
-		}
-	};
 
-	SymbolTranslatorPrinter printer(
-		SymbolBackTranslatorStrict(GetSymbolDict().GetReverseMap()));
+std::string ExplicitTreeAut::DumpToString(
+	VATA::Serialization::AbstrSerializer&      serializer,
+	const StateBackTranslatorStrict&           stateTrans,
+	const SymbolBackTranslatorStrict&          symbolTrans) const
+{
+	assert(nullptr != core_);
 
-	return this->DumpToString(serializer,
-		StateBackTranslatorStrict(stateDict.GetReverseMap()),
-		printer);
+	return core_->DumpToString(serializer, stateTrans, symbolTrans);
+}
+
+
+ExplicitTreeAut ExplicitTreeAut::ReindexStates(
+	StateToStateTranslator&     stateTrans) const
+{
+	assert(nullptr != core_);
+
+	return ExplicitTreeAut(core_->ReindexStates(stateTrans));
+}
+
+
+ExplicitTreeAut ExplicitTreeAut::RemoveUnreachableStates(
+	AutBase::StateToStateMap*             pTranslMap) const
+{
+	assert(nullptr != core_);
+
+	return ExplicitTreeAut(core_->RemoveUnreachableStates(pTranslMap));
+}
+
+
+ExplicitTreeAut ExplicitTreeAut::RemoveUselessStates(
+	AutBase::StateToStateMap*             pTranslMap) const
+{
+	assert(nullptr != core_);
+
+	return ExplicitTreeAut(core_->RemoveUselessStates(pTranslMap));
+}
+
+
+ExplicitTreeAut ExplicitTreeAut::GetCandidateTree() const
+{
+	assert(nullptr != core_);
+
+	return ExplicitTreeAut(core_->GetCandidateTree());
+}
+
+
+ExplicitTreeAut ExplicitTreeAut::Union(
+	const ExplicitTreeAut&                lhs,
+	const ExplicitTreeAut&                rhs,
+	AutBase::StateToStateMap*             pTranslMapLhs,
+	AutBase::StateToStateMap*             pTranslMapRhs)
+{
+	assert(nullptr != lhs.core_);
+	assert(nullptr != rhs.core_);
+
+	return ExplicitTreeAut(
+		ExplicitTreeAutCore::Union(*lhs.core_, *rhs.core_, pTranslMapLhs, pTranslMapRhs));
+}
+
+
+ExplicitTreeAut ExplicitTreeAut::UnionDisjointStates(
+	const ExplicitTreeAut&                lhs,
+	const ExplicitTreeAut&                rhs)
+{
+	assert(nullptr != lhs.core_);
+	assert(nullptr != rhs.core_);
+
+	return ExplicitTreeAut(
+		ExplicitTreeAutCore::UnionDisjointStates(*lhs.core_, *rhs.core_));
+}
+
+
+ExplicitTreeAut ExplicitTreeAut::Intersection(
+	const ExplicitTreeAut&            lhs,
+	const ExplicitTreeAut&            rhs,
+	AutBase::ProductTranslMap*        pTranslMap)
+{
+	assert(nullptr != lhs.core_);
+	assert(nullptr != rhs.core_);
+
+	return ExplicitTreeAut(
+		ExplicitTreeAutCore::Intersection(*lhs.core_, *rhs.core_, pTranslMap));
+}
+
+
+AutBase::StateBinaryRelation ExplicitTreeAut::ComputeDownwardSimulation(
+	size_t            size) const
+{
+	assert(nullptr != core_);
+
+	return core_->ComputeDownwardSimulation(size);
+}
+
+
+AutBase::StateBinaryRelation ExplicitTreeAut::ComputeUpwardSimulation(
+	size_t            size) const
+{
+	assert(nullptr != core_);
+
+	return core_->ComputeUpwardSimulation(size);
+}
+
+
+bool ExplicitTreeAut::CheckInclusion(
+	const ExplicitTreeAut&                 smaller,
+	const ExplicitTreeAut&                 bigger,
+	const VATA::InclParam&                 params)
+{
+	assert(nullptr != smaller.core_);
+	assert(nullptr != bigger.core_);
+
+	return ExplicitTreeAutCore::CheckInclusion(*smaller.core_, *bigger.core_, params);
 }

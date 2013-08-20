@@ -263,3 +263,9 @@ BDDTopDownTreeAut BDDBottomUpTreeAut::GetTopDownAut() const
 
 	return BDDTopDownTreeAut(core_->GetTopDownAut());
 }
+
+
+BDDBottomUpTreeAut BDDBottomUpTreeAut::GetCandidateTree() const
+{
+	throw NotImplementedException(__func__);
+}

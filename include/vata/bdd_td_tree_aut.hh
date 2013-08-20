@@ -41,6 +41,9 @@ namespace VATA
 	class BDDTDTreeAutCore;
 }
 
+
+// TODO: both BDDTopDownTreeAut and BDDTDTreeAutCore should not be derived from
+//SymbolicAutBase. And the same for BDDBottomUpTreeAut and BDDBUTreeAutCore.
 GCC_DIAG_OFF(effc++)
 class VATA::BDDTopDownTreeAut : public SymbolicAutBase
 {
@@ -147,6 +150,14 @@ public:   // public methods
 
 
 	BDDTopDownTreeAut RemoveUselessStates() const;
+
+
+	template <class Dict>
+	BDDTopDownTreeAut Complement(
+		const Dict&                     /*alphabet*/) const
+	{
+		throw NotImplementedException(__func__);
+	}
 
 
 	BDDTopDownTreeAut ReindexStates(

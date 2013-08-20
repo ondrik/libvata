@@ -13,7 +13,6 @@
 #include <vata/bdd_bu_tree_aut.hh>
 #include <vata/bdd_td_tree_aut.hh>
 #include <vata/ta_expl/explicit_tree_aut.hh>
-#include <vata/ta_expl/explicit_tree_aut_op.hh>
 #include <vata/finite_aut/explicit_finite_aut.hh>
 #include <vata/finite_aut/explicit_finite_aut_op.hh>
 #include <vata/finite_aut/explicit_finite_union.hh>
@@ -237,7 +236,7 @@ int performOperation(
 	}
 	else if (args.command == COMMAND_COMPLEMENT)
 	{
-		autResult = Complement(autInput1, autInput1.GetAlphabet());
+		autResult = autInput1.Complement(autInput1.GetAlphabet());
 	}
 	else if (args.command == COMMAND_UNION)
 	{

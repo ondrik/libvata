@@ -15,40 +15,39 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/ta_expl/explicit_tree_aut.hh>
 
-using VATA::ExplicitTreeAut;
+#include "explicit_tree_aut_core.hh"
 
-ExplicitTreeAut ExplicitTreeAut::GetCandidateTree() const
+using VATA::ExplicitTreeAutCore;
+
+ExplicitTreeAutCore ExplicitTreeAutCore::GetCandidateTree() const
 {
-	typedef ExplicitTreeAut::StateType StateType;
-	typedef ExplicitTreeAut::TuplePtr TuplePtr;
-	typedef ExplicitTreeAut::SymbolType SymbolType;
-
-
-	struct TransitionInfo {
-
+	struct TransitionInfo
+	{
 		TuplePtr children_;
 		SymbolType symbol_;
 		StateType state_;
 
 		std::set<StateType> childrenSet_;
 
-		TransitionInfo(const TuplePtr& children, const SymbolType& symbol, const StateType& state)
-			: children_(children), symbol_(symbol), state_(state),
-			childrenSet_(children->begin(), children->end()) {
+		TransitionInfo(
+			const TuplePtr&      children,
+			const SymbolType&    symbol,
+			const StateType&     state) :
+			children_(children),
+			symbol_(symbol),
+			state_(state),
+			childrenSet_(children->begin(), children->end())
+		{ }
+
+		bool reachedBy(const StateType& state)
+		{
+			assert(childrenSet_.count(state));
+
+			childrenSet_.erase(state);
+
+			return childrenSet_.empty();
 		}
-
-		bool reachedBy(const StateType& state) {
-
-			assert(this->childrenSet_.count(state));
-
-			this->childrenSet_.erase(state);
-
-			return this->childrenSet_.empty();
-
-		}
-
 	};
 
 	typedef std::shared_ptr<TransitionInfo> TransitionInfoPtr;
@@ -64,112 +63,112 @@ ExplicitTreeAut ExplicitTreeAut::GetCandidateTree() const
 
 	// Cycle builds information structure about transitions and also
 	// saves the reachable transitions (start states)
-	for (auto& stateClusterPair : *transitions_) {
-
+	for (auto& stateClusterPair : *transitions_)
+	{
 		assert(stateClusterPair.second);
 
-		for (auto& symbolTupleSetPair : *stateClusterPair.second) {
-
+		for (auto& symbolTupleSetPair : *stateClusterPair.second)
+		{
 			assert(symbolTupleSetPair.second);
 
-			for (auto& tuple : *symbolTupleSetPair.second) {
-
+			for (auto& tuple : *symbolTupleSetPair.second)
+			{
 				assert(tuple);
 
 				auto transitionInfoPtr = TransitionInfoPtr(
 					new TransitionInfo(tuple, symbolTupleSetPair.first, stateClusterPair.first)
 				);
 
-				if (tuple->empty()) {
-
+				if (tuple->empty())
+				{
 					reachableTransitions.push_back(transitionInfoPtr);
 
 					if (reachableStates.insert(stateClusterPair.first).second)
+					{
 						newStates.push_back(stateClusterPair.first);
+					}
 
 					continue;
-
 				}
 
-				for (auto& s : transitionInfoPtr->childrenSet_) {
-
-          // Add a new pair to stateMap and also add the transitionInfor 
-          // ptr to the second item of the pair in one step
-					stateMap.insert( 
+				for (auto& s : transitionInfoPtr->childrenSet_)
+				{
+					// Add a new pair to stateMap and also add the transitionInfor 
+					// ptr to the second item of the pair in one step
+					stateMap.insert(
 						std::make_pair(s, std::vector<TransitionInfoPtr>())
 					).first->second.push_back(transitionInfoPtr);
 
 					++remaining;
-
 				}
-
 			}
-
 		}
-
 	}
 
-	while (!newStates.empty()) {
-
-    // find transition which leads from the chosen state from newStates
+	while (!newStates.empty())
+	{
+		// find transition which leads from the chosen state from newStates
 		auto i = stateMap.find(newStates.front());
 
 		newStates.pop_front();
 
 		if (i == stateMap.end())
+		{
 			continue;
+		}
 
 		// iterate through all transitions
-		for (auto& info : i->second) {
-
+		for (auto& info : i->second)
+		{
 			assert(info);
 
 			// All states of tuple of transition was used
 			if (!info->reachedBy(i->first))
+			{
 				continue;
+			}
 
 			--remaining;
 
 			// Insert state, which is accessible from currently chosen transition 
-			if (reachableStates.insert(info->state_).second) {
-
+			if (reachableStates.insert(info->state_).second)
+			{
 				reachableTransitions.push_back(info);
 
 				newStates.push_back(info->state_);
 				if (this->IsFinalState(info->state_))
+				{
 					goto found_;
-
+				}
 			}
-
 		}
-
 	}
+
 found_:
-	ExplicitTreeAut result(cache_);
 
-	for (auto& state : finalStates_) {
+	ExplicitTreeAutCore result(cache_);
 
+	for (const StateType& state : finalStates_)
+	{
 		if (reachableStates.count(state))
+		{
 			result.SetStateFinal(state);
-
+		}
 	}
 
-	if (!remaining) {
-
+	if (!remaining)
+	{
 		result.transitions_ = transitions_;
 
 		return result.RemoveUnreachableStates();
-
 	}
 
-	for (auto& info : reachableTransitions) {
-
+	for (auto& info : reachableTransitions)
+	{
 		assert(info);
 
 		result.internalAddTransition(info->children_, info->symbol_, info->state_);
-
 	}
 
 	return result.RemoveUnreachableStates();
-
 }

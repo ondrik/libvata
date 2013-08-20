@@ -150,7 +150,7 @@ public:   // methods
 	std::string DumpToDot() const;
 
 
-	static inline AlphabetType GetAlphabet()
+	static AlphabetType GetAlphabet()
 	{
 		throw NotImplementedException(__func__);
 	}
@@ -164,10 +164,16 @@ public:   // methods
 
 	BDDBottomUpTreeAut RemoveUselessStates() const;
 
-	BDDBottomUpTreeAut GetCandidateTree() const
+	BDDBottomUpTreeAut GetCandidateTree() const;
+
+
+	template <class Dict>
+	BDDBottomUpTreeAut Complement(
+		const Dict&                  /*alphabet*/) const
 	{
 		throw NotImplementedException(__func__);
 	}
+
 
 	static BDDBottomUpTreeAut Union(
 		const BDDBottomUpTreeAut&         lhs,

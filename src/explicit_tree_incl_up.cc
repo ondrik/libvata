@@ -8,6 +8,7 @@
  *
  *****************************************************************************/
 
+// Standard library headers
 #include <set>
 #include <algorithm>
 
@@ -18,8 +19,27 @@
 #include <vata/util/antichain1c.hh>
 #include <vata/util/antichain2c_v2.hh>
 
-#include <vata/ta_expl/explicit_tree_aut.hh>
+#include "explicit_tree_aut_core.hh"
 #include "explicit_tree_incl_up.hh"
+
+
+typedef VATA::ExplicitTreeAutCore::StateType SmallerType;
+typedef std::vector<VATA::ExplicitTreeAutCore::StateType> StateSet;
+
+typedef size_t SymbolType;
+
+typedef typename VATA::Util::Cache<StateSet> BiggerTypeCache;
+
+typedef typename BiggerTypeCache::TPtr BiggerType;
+
+typedef typename VATA::Util::Antichain1C<SmallerType> Antichain1C;
+typedef typename VATA::Util::Antichain2Cv2<SmallerType, BiggerType> Antichain2C;
+
+typedef std::pair<SmallerType, Antichain2C::TList::iterator> SmallerBiggerPair;
+
+
+namespace
+{	// anonymous namespace
 
 template <class T1, class T2>
 bool checkIntersection(const T1& s1, const T2& s2)
@@ -36,6 +56,7 @@ bool checkIntersection(const T1& s1, const T2& s2)
 	return false;
 }
 
+
 template <class T1, class T2>
 void intersectionByLookup(T1& d, const T2& s)
 {
@@ -48,19 +69,6 @@ void intersectionByLookup(T1& d, const T2& s)
 	}
 }
 
-typedef VATA::Explicit::StateType SmallerType;
-typedef std::vector<VATA::Explicit::StateType> StateSet;
-
-typedef size_t SymbolType;
-
-typedef typename VATA::Util::Cache<StateSet> BiggerTypeCache;
-
-typedef typename BiggerTypeCache::TPtr BiggerType;
-
-typedef typename VATA::Util::Antichain1C<SmallerType> Antichain1C;
-typedef typename VATA::Util::Antichain2Cv2<SmallerType, BiggerType> Antichain2C;
-
-typedef std::pair<SmallerType, Antichain2C::TList::iterator> SmallerBiggerPair;
 
 struct less
 {
@@ -92,6 +100,7 @@ struct Eraser
 	}
 };
 
+
 GCC_DIAG_OFF(effc++)
 struct Choice
 {
@@ -103,28 +112,32 @@ GCC_DIAG_ON(effc++)
 	bool init(const Antichain2C::TList* biggerList)
 	{
 		if (!biggerList)
+		{
 			return false;
+		}
 
-		this->biggerList_ = biggerList;
-		this->current_ = biggerList->begin();
+		biggerList_ = biggerList;
+		current_ = biggerList->begin();
 
 		return true;
 	}
 
 	bool next()
 	{
-		if (++this->current_ != this->biggerList_->end())
+		if (++current_ != biggerList_->end())
+		{
 			return true;
+		}
 
-		this->current_ = this->biggerList_->begin();
+		current_ = biggerList_->begin();
 		return false;
 	}
 
 	const BiggerType& get() const { return *this->current_; }
 };
 
-struct ChoiceVector {
-
+struct ChoiceVector
+{
 	const Antichain2C& processed_;
 	const Antichain2C::TList& fixed_;
 	std::vector<Choice> state_;
@@ -139,25 +152,31 @@ public:
 		state_()
 	{ }
 
-	bool build(const VATA::Explicit::StateTuple& children, size_t index)
+	bool build(
+		const VATA::ExplicitTreeAutCore::StateTuple&    children,
+		size_t                                          index)
 	{
 		assert(index < children.size());
 
-		this->state_.resize(children.size());
+		state_.resize(children.size());
 
 		for (size_t i = 0; i < index; ++i)
 		{
-			if (!this->state_[i].init(this->processed_.lookup(children[i])))
+			if (!state_[i].init(processed_.lookup(children[i])))
+			{
 				return false;
+			}
 		}
 
-		this->state_[index].biggerList_ = &this->fixed_;
-		this->state_[index].current_ = this->fixed_.begin();
+		state_[index].biggerList_ = &fixed_;
+		state_[index].current_ = fixed_.begin();
 
 		for (size_t i = index + 1; i < children.size(); ++i)
 		{
-			if (!this->state_[i].init(this->processed_.lookup(children[i])))
+			if (!state_[i].init(processed_.lookup(children[i])))
+			{
 				return false;
+			}
 		}
 
 		return true;
@@ -165,10 +184,12 @@ public:
 
 	bool next()
 	{
-		for (auto& choice : this->state_)
+		for (auto& choice : state_)
 		{
 			if (choice.next())
+			{
 				return true;
+			}
 		}
 
 		return false;
@@ -176,22 +197,24 @@ public:
 
 	const BiggerType& operator()(size_t index) const
 	{
-		return this->state_[index].get();
+		return state_[index].get();
 	}
 
 	size_t size() const
 	{
-		return this->state_.size();
+		return state_.size();
 	}
 };
+} // namespace
+
 
 bool VATA::ExplicitUpwardInclusion::checkInternal(
 	const SymbolToTransitionListMap&                  smallerLeaves,
 	const IndexedSymbolToIndexedTransitionListMap&    smallerIndex,
-	const Explicit::StateSet&                         smallerFinalStates,
+	const ExplicitTreeAutCore::StateSet&              smallerFinalStates,
 	const SymbolToTransitionListMap&                  biggerLeaves,
 	const SymbolToDoubleIndexedTransitionListMap&     biggerIndex,
-	const Explicit::StateSet&                         biggerFinalStates,
+	const ExplicitTreeAutCore::StateSet&              biggerFinalStates,
 	const std::vector<std::vector<size_t>>&           ind,
 	const std::vector<std::vector<size_t>>&           inv)
 {
@@ -204,7 +227,9 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 			assert(s1 < ind.size());
 
 			if (!checkIntersection(ind[s1], *y))
+			{
 				return false;
+			}
 		}
 
 		return true;
@@ -233,22 +258,30 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 		TransitionSetPtr result = TransitionSetPtr(new TransitionSet());
 
 		if (biggerIndex.size() <= key.first)
+		{
 			return result;
+		}
 
 		auto& iter = biggerIndex[key.first];
 
 		if (iter.size() <= key.second)
+		{
 			return result;
+		}
 
 		auto& indexedTransitionList = iter[key.second];
 
 		for (auto& state: *states)
 		{
 			if (state >= indexedTransitionList.size())
+			{
 				continue;
+			}
 
 			for (auto& transition : indexedTransitionList[state])
+			{
 				result->insert(transition.get());
+			}
 		}
 
 		return result;
@@ -289,7 +322,9 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 	// Post(\emptyset)
 
 	if (biggerLeaves.size() < smallerLeaves.size())
+	{
 		return false;
+	}
 
 	for (size_t symbol = 0; symbol < smallerLeaves.size(); ++symbol)
 	{
@@ -303,7 +338,9 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 			assert(transition->state() < ind.size());
 
 			if (post.contains(ind[transition->state()]))
+			{
 				continue;
+			}
 
 			assert(transition->state() < inv.size());
 
@@ -324,15 +361,21 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 			assert(transition);
 
 			if (!isAccepting && smallerFinalStates.count(transition->state()))
+			{
 				return false;
+			}
 
 			assert(transition->state() < ind.size());
 
 			if (checkIntersection(ind[transition->state()], tmp))
+			{
 				continue;
+			}
 
 			if (processed.contains(ind[transition->state()], ptr, lte))
+			{
 				continue;
+			}
 
 			assert(transition->state() < inv.size());
 
@@ -376,7 +419,9 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 					assert(smallerTransition);
 
 					if (!choiceVector.build(smallerTransition->children(), j))
+					{
 						continue;
+					}
 
 					do
 					{
@@ -412,7 +457,9 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 							assert(biggerTransition->state() < ind.size());
 
 							if (post.contains(ind[biggerTransition->state()]))
+							{
 								continue;
+							}
 
 							assert(biggerTransition->state() < inv.size());
 
@@ -424,10 +471,14 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 						}
 
 						if (post.data().empty())
+						{
 							return false;
+						}
 
 						if (!isAccepting && smallerFinalStates.count(smallerTransition->state()))
+						{
 							return false;
+						}
 
 						StateSet tmp(post.data().begin(), post.data().end());
 
@@ -436,12 +487,16 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 						assert(smallerTransition->state() < ind.size());
 
 						if (checkIntersection(ind[smallerTransition->state()], tmp))
+						{
 							continue;
+						}
 
 						auto ptr = biggerTypeCache.lookup(tmp);
 
 						if (temporary.contains(ind[smallerTransition->state()], ptr, lte))
+						{
 							continue;
+						}
 
 						assert(smallerTransition->state() < inv.size());
 
@@ -457,7 +512,9 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 							assert(smallerBiggerListPair.first < ind.size());
 
 							if (processed.contains(ind[smallerBiggerListPair.first], bigger, lte))
+							{
 								continue;
+							}
 
 							assert(smallerBiggerListPair.first < inv.size());
 

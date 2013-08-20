@@ -11,7 +11,6 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/ta_expl/explicit_tree_aut.hh>
-#include <vata/ta_expl/explicit_tree_aut_op.hh>
 
 // testing headers
 #include "log_fixture.hh"

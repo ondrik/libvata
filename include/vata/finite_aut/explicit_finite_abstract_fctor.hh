@@ -13,8 +13,11 @@
 #ifndef EXPLICIT_FINITE_AUT_ABSTRACT_FCTOR_HH_
 #define EXPLICIT_FINITE_AUT_ABSTRACT_FCTOR_HH_
 
+// VATA headers
 #include <vata/vata.hh>
 #include <vata/finite_aut/explicit_finite_aut.hh>
+
+#include <vata/util/antichain1c.hh>
 
 namespace VATA {
 	template <class SymbolType, class Rel> class ExplicitFAAbstractFunctor;
@@ -37,9 +40,11 @@ public: // data types
 	typedef typename Rel::IndexType IndexType;
 
 protected: // data memebers
+
 	bool inclNotHold_;
 
 public:
+
 	ExplicitFAAbstractFunctor() : inclNotHold_(false) {}
 
 protected:

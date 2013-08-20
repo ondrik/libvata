@@ -21,16 +21,12 @@ namespace VATA
 {
 	namespace Util
 	{
-		template
-		<
-			class Cont
-		>
+		template <
+			class Cont>
 		class TranslatorWeak;
 
-		template
-		<
-			class Cont
-		>
+		template <
+			class Cont>
 		class TranslatorWeak2;
 	}
 }
@@ -39,13 +35,10 @@ namespace VATA
  * @brief  Weak translator
  * 
  */
-template
-<
-	class Cont
->
+template <
+	class Cont>
 class VATA::Util::TranslatorWeak
 {
-
 private:  // data types
 
 	typedef Cont Container;
@@ -61,12 +54,14 @@ private:  // data members
 
 public:   // methods
 
-	TranslatorWeak(Container& container, ResultAllocFuncType resultAllocFunc) :
+	TranslatorWeak(
+		Container&               container,
+		ResultAllocFuncType      resultAllocFunc) :
 		container_(container),
 		resultAllocFunc_(resultAllocFunc)
 	{ }
 
-	inline ResultType operator()(const InputType& value)
+	ResultType operator()(const InputType& value)
 	{
 		typename Container::const_iterator itCont;
 		if ((itCont = container_.find(value)) != container_.end())
@@ -82,7 +77,7 @@ public:   // methods
 		}
 	}
 
-	inline ResultType operator[](const InputType& value)
+	ResultType operator[](const InputType& value)
 	{
 		return this->operator()(value);
 	}
@@ -115,12 +110,14 @@ private:  // data members
 
 public:   // methods
 
-	TranslatorWeak2(Container& container, ResultAllocFuncType resultAllocFunc) :
+	TranslatorWeak2(
+		Container&               container,
+		ResultAllocFuncType      resultAllocFunc) :
 		container_(container),
 		resultAllocFunc_(resultAllocFunc)
 	{ }
 
-	inline const ResultType& operator()(const InputType& value)
+	const ResultType& operator()(const InputType& value)
 	{
 		auto p = container_.insert(std::make_pair(value, ResultType()));
 
@@ -132,7 +129,7 @@ public:   // methods
 		return p.first->second;
 	}
 
-	inline const ResultType& operator[](const InputType& value)
+	const ResultType& operator[](const InputType& value)
 	{
 		return this->operator()(value);
 	}

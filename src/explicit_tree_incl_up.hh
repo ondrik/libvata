@@ -11,38 +11,42 @@
 #ifndef _VATA_EXPLICIT_TREE_INCL_UP_HH_
 #define _VATA_EXPLICIT_TREE_INCL_UP_HH_
 
-#include <vata/ta_expl/explicit_tree_aut.hh>
+#include "explicit_tree_aut_core.hh"
 
-namespace VATA {
+namespace VATA { class ExplicitUpwardInclusion; }
 
-	class ExplicitUpwardInclusion;
 
-}
+class VATA::ExplicitUpwardInclusion
+{
+	using StateType      = ExplicitTreeAutCore::StateType;
 
-class VATA::ExplicitUpwardInclusion {
+	class Transition
+	{
+	private:  // data members
 
-	class Transition {
-
-		Explicit::TuplePtr children_;
+		ExplicitTreeAutCore::TuplePtr children_;
 		size_t symbol_;
-		Explicit::StateType state_;
+		ExplicitTreeAutCore::StateType state_;
 
 	public:
 
-		Transition(const Explicit::TuplePtr& children, const size_t& symbol,
-			const Explicit::StateType& state) : children_(children), symbol_(symbol), state_(state)
-			{}
+		Transition(
+			const ExplicitTreeAutCore::TuplePtr&    children,
+			size_t                                  symbol,
+			const ExplicitTreeAutCore::StateType&   state) :
+			children_(children),
+			symbol_(symbol),
+			state_(state)
+		{ }
 
-		const Explicit::StateTuple& children() const { return *this->children_; }
-		const size_t& symbol() const { return this->symbol_; }
-		const Explicit::StateType& state() const { return this->state_; }
+		const ExplicitTreeAutCore::StateTuple& children() const { return *children_; }
+		const size_t& symbol() const { return symbol_; }
+		const ExplicitTreeAutCore::StateType& state() const { return state_; }
 
-		friend std::ostream& operator<<(std::ostream& os, const Transition& t) {
-
+		friend std::ostream& operator<<(std::ostream& os, const Transition& t)
+		{
 			return os << t.symbol_ << Util::Convert::ToString(*t.children_) << "->" << t.state_;
-
 		}
-
 	};
 
 	typedef std::shared_ptr<Transition> TransitionPtr;
@@ -55,16 +59,18 @@ class VATA::ExplicitUpwardInclusion {
 	typedef std::vector<SymbolToIndexedTransitionListMap> IndexedSymbolToIndexedTransitionListMap;
 
 	template <class Aut, class SymbolIndex>
-	static void bottomUpIndex(const Aut& aut,
-		IndexedSymbolToIndexedTransitionListMap& bottomUpIndex,
-		SymbolToTransitionListMap& leaves, SymbolIndex& symbolIndex) {
-
-		for (auto& stateClusterPair : *aut.transitions_) {
-
+	static void bottomUpIndex(
+		const Aut&                                  aut,
+		IndexedSymbolToIndexedTransitionListMap&    bottomUpIndex,
+		SymbolToTransitionListMap&                  leaves,
+		SymbolIndex&                                symbolIndex)
+	{
+		for (auto& stateClusterPair : *aut.transitions_)
+		{
 			assert(stateClusterPair.second);
 
-			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
-
+			for (auto& symbolTupleSetPair : *stateClusterPair.second)
+			{
 				assert(symbolTupleSetPair.second);
 				assert(symbolTupleSetPair.second->size());
 
@@ -74,30 +80,30 @@ class VATA::ExplicitUpwardInclusion {
 
 				assert(first);
 
-				if (first->empty()) {
-
+				if (first->empty())
+				{
 					if (leaves.size() <= symbol)
+					{
 						leaves.resize(symbol + 1);
+					}
 
 					auto& transitionList = leaves[symbol];
 
-					for (auto& tuple : *symbolTupleSetPair.second) {
-
+					for (auto& tuple : *symbolTupleSetPair.second)
+					{
 						assert(tuple);
 						assert(tuple->empty());
 
 						transitionList.push_back(
 							TransitionPtr(new Transition(tuple, symbol, stateClusterPair.first))
 						);
-
 					}
 
 					continue;
-
 				}
 
-				for (auto& tuple : *symbolTupleSetPair.second) {
-
+				for (auto& tuple : *symbolTupleSetPair.second)
+				{
 					assert(tuple);
 					assert(tuple->size());
 
@@ -107,46 +113,49 @@ class VATA::ExplicitUpwardInclusion {
 
 					size_t i = 0;
 
-					for (auto& state : *tuple) {
-
+					for (const StateType& state : *tuple)
+					{
 						if (bottomUpIndex.size() <= state)
+						{
 							bottomUpIndex.resize(state + 1);
+						}
 
 						auto& symbolIndexedTransitionList = bottomUpIndex[state];
 
 						if (symbolIndexedTransitionList.size() <= symbol)
+						{
 							symbolIndexedTransitionList.resize(symbol + 1);
+						}
 
 						auto& indexedTransitionList = symbolIndexedTransitionList[symbol];
 
 						if (indexedTransitionList.size() <= i)
+						{
 							indexedTransitionList.resize(i + 1);
+						}
 
 						indexedTransitionList[i].push_back(transition);
 
 						++i;
-
 					}
-
 				}
-
 			}
-
 		}
-
 	}
 
 	template <class Aut, class SymbolIndex>
-	static void bottomUpIndex2(const Aut& aut,
-		SymbolToDoubleIndexedTransitionListMap& bottomUpIndex,
-		SymbolToTransitionListMap& leaves, SymbolIndex& symbolIndex) {
-
-		for (auto& stateClusterPair : *aut.transitions_) {
-
+	static void bottomUpIndex2(
+		const Aut&                                  aut,
+		SymbolToDoubleIndexedTransitionListMap&     bottomUpIndex,
+		SymbolToTransitionListMap&                  leaves,
+		SymbolIndex&                                symbolIndex)
+	{
+		for (auto& stateClusterPair : *aut.transitions_)
+		{
 			assert(stateClusterPair.second);
 
-			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
-
+			for (auto& symbolTupleSetPair : *stateClusterPair.second)
+			{
 				assert(symbolTupleSetPair.second);
 				assert(symbolTupleSetPair.second->size());
 
@@ -156,38 +165,42 @@ class VATA::ExplicitUpwardInclusion {
 
 				assert(first);
 
-				if (first->empty()) {
-
+				if (first->empty())
+				{
 					if (leaves.size() <= symbol)
+					{
 						leaves.resize(symbol + 1);
+					}
 
 					auto& transitionList = leaves[symbol];
 
-					for (auto& tuple : *symbolTupleSetPair.second) {
-
+					for (auto& tuple : *symbolTupleSetPair.second)
+					{
 						assert(tuple);
 						assert(tuple->empty());
 
 						transitionList.push_back(
 							TransitionPtr(new Transition(tuple, symbol, stateClusterPair.first))
 						);
-
 					}
 
 					continue;
-
 				}
 
 				if (bottomUpIndex.size() <= symbol)
+				{
 					bottomUpIndex.resize(symbol + 1);
+				}
 
 				auto& doubleIndexedTransitionList = bottomUpIndex[symbol];
 
 				if (doubleIndexedTransitionList.size() < first->size())
+				{
 					doubleIndexedTransitionList.resize(first->size());
+				}
 
-				for (auto& tuple : *symbolTupleSetPair.second) {
-
+				for (auto& tuple : *symbolTupleSetPair.second)
+				{
 					assert(tuple);
 					assert(tuple->size());
 
@@ -197,32 +210,35 @@ class VATA::ExplicitUpwardInclusion {
 
 					size_t i = 0;
 
-					for (auto& state : *tuple) {
-
+					for (const StateType& state : *tuple)
+					{
 						assert(i < doubleIndexedTransitionList.size());
 
 						if (doubleIndexedTransitionList[i].size() <= state)
+						{
 							doubleIndexedTransitionList[i].resize(state + 1);
+						}
 
 						doubleIndexedTransitionList[i][state].push_back(transition);
 
 						++i;
-
 					}
-
 				}
-
 			}
-
 		}
-
 	}
 
 public:
 
-	template <class Aut, class Rel>
-	static bool Check(const Aut& smaller, const Aut& bigger, const Rel& preorder) {
 
+	template <
+		class Aut,
+		class Rel>
+	static bool Check(
+		const Aut&        smaller,
+		const Aut&        bigger,
+		const Rel&        preorder)
+	{
 		IndexedSymbolToIndexedTransitionListMap smallerIndex;
 		SymbolToDoubleIndexedTransitionListMap biggerIndex;
 		SymbolToTransitionListMap smallerLeaves, biggerLeaves;
@@ -257,22 +273,20 @@ public:
 			ind,
 			inv
 		);
-
 	}
 
 private:
 
 	static bool checkInternal(
-		const SymbolToTransitionListMap& smallerLeaves,
-		const IndexedSymbolToIndexedTransitionListMap& smallerIndex,
-		const Explicit::StateSet& smallerFinalStates,
-		const SymbolToTransitionListMap& biggerLeaves,
-		const SymbolToDoubleIndexedTransitionListMap& biggerIndex,
-		const Explicit::StateSet& biggerFinalStates,
-		const std::vector<std::vector<size_t>>& ind,
-		const std::vector<std::vector<size_t>>& inv
+		const SymbolToTransitionListMap&                  smallerLeaves,
+		const IndexedSymbolToIndexedTransitionListMap&    smallerIndex,
+		const ExplicitTreeAutCore::StateSet&              smallerFinalStates,
+		const SymbolToTransitionListMap&                  biggerLeaves,
+		const SymbolToDoubleIndexedTransitionListMap&     biggerIndex,
+		const ExplicitTreeAutCore::StateSet&              biggerFinalStates,
+		const std::vector<std::vector<size_t>>&           ind,
+		const std::vector<std::vector<size_t>>&           inv
 	);
-
 };
 
 #endif

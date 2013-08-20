@@ -40,15 +40,6 @@ namespace VATA
 		throw NotImplementedException(__func__);
 	}
 
-	template <class Automaton, class Dict>
-	Automaton Complement(const Automaton& aut, const Dict& alphabet)
-	{
-		if ((nullptr == &aut) && (nullptr == &alphabet))
-		{ }
-
-		throw NotImplementedException(__func__);
-	}
-
 	/**
 	 * @brief  Generic procedure for checking equivalence of automata
 	 *

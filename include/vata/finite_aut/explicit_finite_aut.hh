@@ -599,6 +599,12 @@ public:   // methods
 
 	ExplicitFiniteAut<SymbolType> GetCandidateTree() const;
 
+	template <class Dict>
+	ExplicitFiniteAut<SymbolType> Complement(
+		const                     Dict&) const
+	{
+		throw NotImplementedException(__func__);
+	}
 
 	/*
 	 * Creates union of two automata. It just reindexs

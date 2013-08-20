@@ -17,19 +17,16 @@
 
 #include <vata/vata.hh>
 #include <vata/explicit_lts.hh>
-#include <vata/ta_expl/explicit_tree_aut.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
 #include <vata/util/convert.hh>
 
+#include "explicit_tree_aut_core.hh"
 
 template <class Index>
-VATA::ExplicitLTS VATA::ExplicitTreeAut::TranslateDownward(
+VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateDownward(
 	const Index&        stateIndex) const
 {
-	typedef Explicit::StateTuple StateTuple;
-	typedef ExplicitTreeAut::SymbolType SymbolType;
-
 	std::unordered_map<SymbolType, size_t> symbolMap;
 	std::unordered_map<const StateTuple*, size_t> lhsMap;
 
@@ -99,95 +96,96 @@ VATA::ExplicitLTS VATA::ExplicitTreeAut::TranslateDownward(
 
 }
 
-template <class Rel, class Index>
-VATA::ExplicitLTS VATA::ExplicitTreeAut::TranslateUpward(
+template <
+	class Rel,
+	class Index>
+VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateUpward(
 	std::vector<std::vector<size_t>>&       partition,
 	Util::BinaryRelation&                   relation,
 	const Rel&                              param,
 	const Index&                            stateIndex) const
 {
-	typedef Explicit::StateTuple StateTuple;
-	typedef ExplicitTreeAut::SymbolType SymbolType;
-
-	struct Env {
-
+	struct Env
+	{
 		StateTuple children_;
 		size_t index_;
 		size_t symbol_;
 		size_t state_;
 
-		Env(const StateTuple& children, size_t index, size_t symbol, size_t state)
-			: children_(), index_(index), symbol_(symbol), state_(state) {
-
-			this->children_.insert(
-				this->children_.end(), children.begin(), children.begin() + index
-			);
-
-			this->children_.insert(
-				this->children_.end(), children.begin() + index + 1, children.end()
-			);
-
+		Env(
+			const StateTuple&     children,
+			size_t                index,
+			size_t                symbol,
+			size_t                state) :
+			children_(),
+			index_(index),
+			symbol_(symbol),
+			state_(state)
+		{
+			children_.insert(children_.end(), children.begin(), children.begin() + index);
+			children_.insert(children_.end(), children.begin() + index + 1, children.end());
 		}
 
-		bool lessThan(const Env& env, const Rel& rel) const {
+		bool lessThan(
+			const Env&      env,
+			const Rel&      rel) const
+		{
+			if (children_.size() != env.children_.size()) return false;
+			if (index_ != env.index_) return false;
+			if (symbol_ != env.symbol_) return false;
 
-			if (this->children_.size() != env.children_.size()) return false;
-			if (this->index_ != env.index_) return false;
-			if (this->symbol_ != env.symbol_) return false;
-
-			for (size_t i = 0; i < this->children_.size(); ++i) {
-
-				if (!rel.get(this->children_[i], env.children_[i]))
+			for (size_t i = 0; i < children_.size(); ++i)
+			{
+				if (!rel.get(children_[i], env.children_[i]))
+				{
 					return false;
-
+				}
 			}
 
 			return true;
-
 		}
 
-		bool equal(const Env& env, const Rel& rel) const {
+		bool equal(
+			const Env&      env,
+			const Rel&      rel) const
+		{
+			if (children_.size() != env.children_.size()) return false;
+			if (index_ != env.index_) return false;
+			if (symbol_ != env.symbol_) return false;
 
-			if (this->children_.size() != env.children_.size()) return false;
-			if (this->index_ != env.index_) return false;
-			if (this->symbol_ != env.symbol_) return false;
-
-			for (size_t i = 0; i < this->children_.size(); ++i) {
-
-				if (!rel.sym(this->children_[i], env.children_[i]))
+			for (size_t i = 0; i < children_.size(); ++i)
+			{
+				if (!rel.sym(children_[i], env.children_[i]))
+				{
 					return false;
-
+				}
 			}
 
 			return true;
-
 		}
 
-		bool operator==(const Env& rhs) const {
-
-			return (this->children_.size() == rhs.children_.size()) &&
-				(this->index_ == rhs.index_) && (this->symbol_ == rhs.symbol_) &&
-				(this->children_ == rhs.children_);
+		bool operator==(const Env& rhs) const
+		{
+			return (children_.size() == rhs.children_.size()) &&
+				(index_ == rhs.index_) &&
+				(symbol_ == rhs.symbol_) &&
+				(children_ == rhs.children_);
 
 		}
-
 	};
 
-	struct env_hash {
-
-		size_t operator()(const Env& env) const {
-
+	struct env_hash
+	{
+		size_t operator()(const Env& env) const
+		{
 			size_t seed = 0;
 			boost::hash_combine(seed, env.children_);
 			boost::hash_combine(seed, env.index_);
 			boost::hash_combine(seed, env.symbol_);
 			boost::hash_combine(seed, env.state_);
 			return seed;
-
 		}
-
 	};
-
 
 	assert(nullptr != transitions_);
 //	assert(aut.transitions_->size() == param.size());
@@ -212,19 +210,20 @@ VATA::ExplicitLTS VATA::ExplicitTreeAut::TranslateUpward(
 	VATA::Util::TranslatorWeak2<std::unordered_map<Env, size_t, env_hash>>
 		envTranslator(
 			envMap,
-			[&base, &stateCnt, &head, &partition, &param](const Env& env) -> size_t {
-
-				for (size_t i = 0; i < head.size(); ++i) {
-
+			[&base, &stateCnt, &head, &partition, &param](const Env& env) -> size_t
+			{
+				for (size_t i = 0; i < head.size(); ++i)
+				{
 					assert(head[i]);
 
 					if (!head[i]->equal(env, param))
+					{
 						continue;
+					}
 
 					partition[base + i].push_back(stateCnt);
 
 					return stateCnt++;
-
 				}
 
 				head.push_back(&env);
@@ -232,12 +231,11 @@ VATA::ExplicitLTS VATA::ExplicitTreeAut::TranslateUpward(
 				partition.push_back(std::vector<size_t>(1, stateCnt));
 
 				return stateCnt++;
-
 			}
 	);
 
-	for (auto& stateClusterPair : *transitions_) {
-
+	for (auto& stateClusterPair : *transitions_)
+	{
 		assert(stateClusterPair.second);
 		assert(stateIndex[stateClusterPair.first] < transitions_->size());
 
@@ -245,70 +243,65 @@ VATA::ExplicitLTS VATA::ExplicitTreeAut::TranslateUpward(
 			this->IsFinalState(stateClusterPair.first)?(0):(base - 2)
 		].push_back(stateIndex[stateClusterPair.first]);
 
-		for (auto& symbolTupleSetPair : *stateClusterPair.second) {
-
+		for (auto& symbolTupleSetPair : *stateClusterPair.second)
+		{
 			assert(symbolTupleSetPair.second);
 
 			symbolTranslator(symbolTupleSetPair.first);
-
 		}
-
 	}
 
 	partition[base - 1].push_back(transitions_->size()); // leaf state
 
 	ExplicitLTS result;
 
-	for (auto& stateClusterPair : *transitions_) {
-
+	for (auto& stateClusterPair : *transitions_)
+	{
 		assert(stateClusterPair.second);
 
 		size_t state = stateIndex[stateClusterPair.first];
 
-		for (auto& symbolTupleSetPair : *stateClusterPair.second) {
-
+		for (auto& symbolTupleSetPair : *stateClusterPair.second)
+		{
 			assert(symbolTupleSetPair.second);
 
 			size_t symbol = symbolTranslator(symbolTupleSetPair.first);
 
-			for (auto& tuple : *symbolTupleSetPair.second) {
-
+			for (auto& tuple : *symbolTupleSetPair.second)
+			{
 				assert(tuple);
 
-				if (tuple->empty()) {
+				if (tuple->empty())
+				{
 					// take care of leaves
 					result.addTransition(transitions_->size(), symbol, state);
 					continue;
 				}
 
-				if (tuple->size() == 1) {
+				if (tuple->size() == 1)
+				{
 					// inline lhs of size 1 >:-)
 					result.addTransition(stateIndex[(*tuple)[0]], symbol, state);
 					continue;
 				}
 
-				for (size_t i = 0; i < tuple->size(); ++i) {
-
+				for (size_t i = 0; i < tuple->size(); ++i)
+				{
 					result.addTransition(
 						stateIndex[(*tuple)[i]],
 						symbolCnt,
 						envTranslator(Env(*tuple, i, symbol, state))
 					);
-
 				}
-
 			}
-
 		}
-
 	}
 
-	for (auto& envIndexPair : envMap) {
-
+	for (auto& envIndexPair : envMap)
+	{
 		result.addTransition(
 			envIndexPair.second, envIndexPair.first.symbol_, stateIndex[envIndexPair.first.state_]
 		);
-
 	}
 
 	relation.resize(partition.size());
@@ -317,34 +310,32 @@ VATA::ExplicitLTS VATA::ExplicitTreeAut::TranslateUpward(
 	// 0 accepting, 1 non-accepting, 2 .. environments
 	relation.set(0, 0, true);
 
-	if (base == 3) {
-
+	if (base == 3)
+	{
 		relation.set(1, 0, true);
 		relation.set(1, 1, true);
-
 	}
 
 	relation.set(base - 1, base - 1, true); // reflexivity of leaf state
 
-	for (size_t i = 0; i < head.size(); ++i) {
-
+	for (size_t i = 0; i < head.size(); ++i)
+	{
 		assert(head[i]);
 		assert(head[i]->lessThan(*head[i], param));
 
-		for (size_t j = 0; j < head.size(); ++j) {
-
+		for (size_t j = 0; j < head.size(); ++j)
+		{
 			assert(head[j]);
 			if (head[i]->lessThan(*head[j], param))
+			{
 				relation.set(base + i, base + j, true);
-
+			}
 		}
-
 	}
 
 	result.init();
 
 	return result;
-
 }
 
 #endif

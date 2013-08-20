@@ -11,13 +11,16 @@
 
 // VATA headers
 #include <vata/aut_base.hh>
-#include <vata/ta_expl/explicit_tree_aut.hh>
-#include <vata/ta_expl/explicit_tree_transl.hh>
+
+#include "explicit_tree_aut_core.hh"
+#include "explicit_tree_transl.hh"
 
 using VATA::AutBase;
-using VATA::ExplicitTreeAut;
+using VATA::ExplicitTreeAutCore;
 
-AutBase::StateBinaryRelation ExplicitTreeAut::ComputeDownwardSimulation(
+using StateBinaryRelation  = AutBase::StateBinaryRelation;
+
+StateBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
 	size_t            size) const
 {
 	return this->TranslateDownward().computeSimulation(size);

@@ -12,10 +12,10 @@
 #ifndef _VATA_EXPLICIT_TREE_SIM_HH_
 #define _VATA_EXPLICIT_TREE_SIM_HH_
 
-#include <vata/ta_expl/explicit_tree_transl.hh>
+#include "explicit_tree_transl.hh"
 
 template <class Index>
-VATA::AutBase::StateBinaryRelation VATA::ExplicitTreeAut::ComputeDownwardSimulation(
+VATA::AutBase::StateBinaryRelation VATA::ExplicitTreeAutCore::ComputeDownwardSimulation(
 	size_t            size,
 	const Index&      index) const
 {

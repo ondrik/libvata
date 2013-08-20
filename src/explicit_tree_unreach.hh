@@ -19,29 +19,36 @@ template <
 	class Rel,
 	class Index
 >
-VATA::ExplicitTreeAut VATA::ExplicitTreeAut::RemoveUnreachableStates(
+VATA::ExplicitTreeAutCore VATA::ExplicitTreeAutCore::RemoveUnreachableStates(
 	const Rel&                                 rel,
 	const Index&                               index) const
 {
-	typedef ExplicitTreeAut::StateToTransitionClusterMap
+	typedef ExplicitTreeAutCore::StateToTransitionClusterMap
 		StateToTransitionClusterMap;
-	typedef ExplicitTreeAut::StateToTransitionClusterMapPtr
+	typedef ExplicitTreeAutCore::StateToTransitionClusterMapPtr
 		StateToTransitionClusterMapPtr;
-	typedef ExplicitTreeAut::TransitionCluster TransitionCluster;
-	typedef ExplicitTreeAut::TransitionClusterPtr TransitionClusterPtr;
-	typedef ExplicitTreeAut::TuplePtrSet TuplePtrSet;
-	typedef ExplicitTreeAut::TuplePtrSetPtr TuplePtrSetPtr;
-	typedef ExplicitTreeAut::TuplePtr TuplePtr;
-	typedef ExplicitTreeAut::StateTuple StateTuple;
+	typedef ExplicitTreeAutCore::TransitionCluster TransitionCluster;
+	typedef ExplicitTreeAutCore::TransitionClusterPtr TransitionClusterPtr;
+	typedef ExplicitTreeAutCore::TuplePtrSet TuplePtrSet;
+	typedef ExplicitTreeAutCore::TuplePtrSetPtr TuplePtrSetPtr;
+	typedef ExplicitTreeAutCore::TuplePtr TuplePtr;
+	typedef ExplicitTreeAutCore::StateTuple StateTuple;
 
 	struct TupleCmp
 	{
 		const Rel& rel_;
 		const Index& index_;
 
-		TupleCmp(const Rel& rel, const Index& index) : rel_(rel), index_(index) {}
+		TupleCmp(
+			const Rel&      rel,
+			const Index&    index) :
+			rel_(rel),
+			index_(index)
+		{ }
 
-		bool operator()(const TuplePtr& lhsPtr, const TuplePtr& rhsPtr) const
+		bool operator()(
+			const TuplePtr&    lhsPtr,
+			const TuplePtr&    rhsPtr) const
 		{
 			assert(lhsPtr);
 			assert(rhsPtr);
@@ -53,8 +60,10 @@ VATA::ExplicitTreeAut VATA::ExplicitTreeAut::RemoveUnreachableStates(
 
 			for (size_t i = 0; i < lhs.size(); ++i)
 			{
-				if (!this->rel_.get(this->index_[lhs[i]], this->index_[rhs[i]]))
+				if (!rel_.get(index_[lhs[i]], index_[rhs[i]]))
+				{
 					return false;
+				}
 			}
 
 			return true;
@@ -125,7 +134,9 @@ VATA::ExplicitTreeAut VATA::ExplicitTreeAut::RemoveUnreachableStates(
 				for (const StateType& state : *stateTuple)
 				{
 					if (reachableStates.insert(state).second)
+					{
 						newStates.push_back(state);
+					}
 				}
 			}
 
@@ -141,7 +152,9 @@ VATA::ExplicitTreeAut VATA::ExplicitTreeAut::RemoveUnreachableStates(
 			auto tupleSet = TuplePtrSetPtr(new TuplePtrSet());
 
 			for (auto& stateTuple : tuples.data())
+			{
 				tupleSet->insert(stateTuple);
+			}
 
 			transitionCluster->insert(std::make_pair(symbolStateTupleSetPtr.first, tupleSet));
 		}
@@ -163,7 +176,7 @@ VATA::ExplicitTreeAut VATA::ExplicitTreeAut::RemoveUnreachableStates(
 		return *this;
 	}
 
-	ExplicitTreeAut result(cache_);
+	ExplicitTreeAutCore result(cache_);
 
 	result.finalStates_.insert(finalStates.data().begin(), finalStates.data().end());
 

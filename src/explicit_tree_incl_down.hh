@@ -11,68 +11,74 @@
 #ifndef _VATA_EXPLICIT_TREE_INCL_DOWN_HH_
 #define _VATA_EXPLICIT_TREE_INCL_DOWN_HH_
 
-#include <vata/ta_expl/explicit_tree_aut.hh>
+#include "explicit_tree_aut_core.hh"
 
-namespace VATA {
+namespace VATA { class ExplicitDownwardInclusion; }
 
-	class ExplicitDownwardInclusion;
 
-}
-
-class VATA::ExplicitDownwardInclusion {
-
+class VATA::ExplicitDownwardInclusion
+{
 public:
 
-	typedef std::vector<const Explicit::StateTuple*> TupleList;
+	typedef std::vector<const ExplicitTreeAutCore::StateTuple*> TupleList;
 	typedef std::vector<TupleList> IndexedTupleList;
 	typedef std::vector<IndexedTupleList> DoubleIndexedTupleList;
 
 private:
 
-	template <class Aut, class SymbolIndex>
-	static void topDownIndex(const Aut& aut, DoubleIndexedTupleList& topDownIndex,
-		SymbolIndex& symbolIndex) {
-
-		for (auto& stateClusterPair : *aut.transitions_) {
-
+	template <
+		class Aut,
+		class SymbolIndex>
+	static void topDownIndex(
+		const Aut&                  aut,
+		DoubleIndexedTupleList&     topDownIndex,
+		SymbolIndex&                symbolIndex)
+	{
+		for (auto& stateClusterPair : *aut.transitions_)
+		{
 			assert(stateClusterPair.second);
 
 			if (stateClusterPair.first >= topDownIndex.size())
+			{
 				topDownIndex.resize(stateClusterPair.first + 1);
+			}
 
 			auto& indexedTupleList = topDownIndex[stateClusterPair.first];
 
-			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
-
+			for (auto& symbolTupleSetPair : *stateClusterPair.second)
+			{
 				assert(symbolTupleSetPair.second);
 				assert(symbolTupleSetPair.second->size());
 
 				auto& symbol = symbolIndex[symbolTupleSetPair.first];
 
 				if (symbol >= indexedTupleList.size())
+				{
 					indexedTupleList.resize(symbol + 1);
+				}
 
 				auto& tupleList = indexedTupleList[symbol];
 
-				for (auto& tuple : *symbolTupleSetPair.second) {
-
+				for (auto& tuple : *symbolTupleSetPair.second)
+				{
 					assert(tuple);
 
 					tupleList.push_back(tuple.get());
-
 				}
-
 			}
-
 		}
-
 	}
 
 public:
 
-	template <class Aut, class Rel>
-	static bool Check(const Aut& smaller, const Aut& bigger, const Rel& preorder) {
-
+	template <
+		class Aut,
+		class Rel>
+	static bool Check(
+		const Aut&            smaller,
+		const Aut&            bigger,
+		const Rel&            preorder)
+	{
 		DoubleIndexedTupleList smallerIndex, biggerIndex;
 
 		size_t symbolCnt = 0;
@@ -93,8 +99,8 @@ public:
 		return ExplicitDownwardInclusion::checkInternal(
 			smallerIndex, smaller.GetFinalStates(), biggerIndex, bigger.GetFinalStates(), ind, inv
 		);
-
 	}
+
 /*
 	template <class Aut, class Rel>
 	static bool CheckOpt(const Aut& smaller, const Aut& bigger, const Rel& preorder) {
@@ -139,13 +145,14 @@ public:
 private:
 
 	static bool checkInternal(
-		const DoubleIndexedTupleList& smallerIndex,
-		const Explicit::StateSet& smallerFinalStates,
-		const DoubleIndexedTupleList& biggerIndex,
-		const Explicit::StateSet& biggerFinalStates,
-		const std::vector<std::vector<size_t>>& ind,
-		const std::vector<std::vector<size_t>>& inv
+		const DoubleIndexedTupleList&                smallerIndex,
+		const ExplicitTreeAutCore::StateSet&         smallerFinalStates,
+		const DoubleIndexedTupleList&                biggerIndex,
+		const ExplicitTreeAutCore::StateSet&         biggerFinalStates,
+		const std::vector<std::vector<size_t>>&      ind,
+		const std::vector<std::vector<size_t>>&      inv
 	);
+
 /*
 	static bool checkInternalOpt(
 		const SymbolToTransitionListMap& smallerLeaves,

@@ -9,24 +9,25 @@
  *****************************************************************************/
 
 // VATA headers
-#include <vata/ta_expl/explicit_tree_aut.hh>
+#include <vata/incl_param.hh>
 
+#include "explicit_tree_aut_core.hh"
 #include "explicit_tree_incl_up.hh"
 #include "explicit_tree_incl_down.hh"
 #include "tree_incl_down.hh"
 #include "down_tree_incl_fctor.hh"
 #include "down_tree_opt_incl_fctor.hh"
 
-using VATA::ExplicitTreeAut;
+using VATA::ExplicitTreeAutCore;
 using VATA::ExplicitUpwardInclusion;
 
-bool ExplicitTreeAut::CheckInclusion(
-	const ExplicitTreeAut&                 smaller,
-	const ExplicitTreeAut&                 bigger,
+bool ExplicitTreeAutCore::CheckInclusion(
+	const ExplicitTreeAutCore&             smaller,
+	const ExplicitTreeAutCore&             bigger,
 	const VATA::InclParam&                 params)
 {
-	ExplicitTreeAut newSmaller;
-	ExplicitTreeAut newBigger;
+	ExplicitTreeAutCore newSmaller;
+	ExplicitTreeAutCore newBigger;
 	typename AutBase::StateType states = static_cast<typename AutBase::StateType>(-1);
 
 	if (!params.GetUseSimulation())
@@ -75,7 +76,7 @@ bool ExplicitTreeAut::CheckInclusion(
 		{
 			assert(static_cast<typename AutBase::StateType>(-1) != states);
 
-			return CheckDownwardTreeInclusion<ExplicitTreeAut,
+			return CheckDownwardTreeInclusion<ExplicitTreeAutCore,
 				VATA::DownwardInclusionFunctor>(newSmaller, newBigger,
 					Util::Identity(states));
 		}
@@ -84,7 +85,7 @@ bool ExplicitTreeAut::CheckInclusion(
 		{
 			assert(static_cast<typename AutBase::StateType>(-1) != states);
 
-			return CheckDownwardTreeInclusion<ExplicitTreeAut,
+			return CheckDownwardTreeInclusion<ExplicitTreeAutCore,
 				VATA::OptDownwardInclusionFunctor>(newSmaller, newBigger,
 					Util::Identity(states));
 		}
@@ -93,7 +94,7 @@ bool ExplicitTreeAut::CheckInclusion(
 		{
 			assert(static_cast<typename AutBase::StateType>(-1) == states);
 
-			return CheckDownwardTreeInclusion<ExplicitTreeAut,
+			return CheckDownwardTreeInclusion<ExplicitTreeAutCore,
 				VATA::DownwardInclusionFunctor>(smaller, bigger,
 					params.GetSimulation());
 		}
@@ -102,7 +103,7 @@ bool ExplicitTreeAut::CheckInclusion(
 		{
 			assert(static_cast<typename AutBase::StateType>(-1) == states);
 
-			return CheckDownwardTreeInclusion<ExplicitTreeAut,
+			return CheckDownwardTreeInclusion<ExplicitTreeAutCore,
 				VATA::OptDownwardInclusionFunctor>(smaller, bigger,
 					params.GetSimulation());
 		}

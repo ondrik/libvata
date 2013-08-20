@@ -23,6 +23,10 @@
 #include <vata/ta_expl/explicit_tree_aut.hh>
 #include "explicit_tree_incl_down.hh"
 
+// TODO: a lot in common with src/explicit_tree_incl_up.cc
+
+namespace
+{	// anonymous namespace
 template <class T1, class T2>
 bool checkIntersection(const T1& s1, const T2& s2)
 {
@@ -50,8 +54,8 @@ void intersectionByLookup(T1& d, const T2& s)
 	}
 }
 
-typedef VATA::Explicit::StateType SmallerType;
-typedef std::vector<VATA::Explicit::StateType> StateSet;
+typedef VATA::ExplicitTreeAutCore::StateType SmallerType;
+typedef std::vector<VATA::ExplicitTreeAutCore::StateType> StateSet;
 
 typedef size_t SymbolType;
 
@@ -65,7 +69,7 @@ typedef typename VATA::Util::Antichain2Cv2<SmallerType, BiggerType> Antichain2C;
 typedef std::pair<SmallerType, BiggerType> SmallerBiggerPair;
 typedef std::pair<SmallerType, Antichain2C::TList::iterator> SmallerBiggerPairAC;
 
-typedef VATA::Explicit::StateTuple StateTuple;
+typedef VATA::ExplicitTreeAutCore::StateTuple StateTuple;
 
 typedef VATA::ExplicitDownwardInclusion::DoubleIndexedTupleList DoubleIndexedTupleList;
 
@@ -528,12 +532,14 @@ _end:
 
 	return found;
 }
+} // namespace
+
 
 bool VATA::ExplicitDownwardInclusion::checkInternal(
 	const DoubleIndexedTupleList&                 smallerIndex,
-	const Explicit::StateSet&                     smallerFinalStates,
+	const ExplicitTreeAutCore::StateSet&          smallerFinalStates,
 	const DoubleIndexedTupleList&                 biggerIndex,
-	const Explicit::StateSet&                     biggerFinalStates,
+	const ExplicitTreeAutCore::StateSet&          biggerFinalStates,
 	const std::vector<std::vector<size_t>>&       ind,
 	const std::vector<std::vector<size_t>>&       inv)
 {
