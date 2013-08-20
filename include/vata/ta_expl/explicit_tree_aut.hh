@@ -14,7 +14,6 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/aut_base.hh>
-#include <vata/explicit_lts.hh>
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
 #include <vata/incl_param.hh>

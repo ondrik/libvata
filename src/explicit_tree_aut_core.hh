@@ -17,8 +17,8 @@
 
 #include <vata/util/ord_vector.hh>
 #include <vata/util/util.hh>
-#include <vata/explicit_lts.hh>
 #include <vata/util/convert.hh>
+#include <vata/explicit_lts.hh>
 #include <vata/incl_param.hh>
 
 #include "util/cache.hh"

@@ -17,16 +17,17 @@
 #include <unordered_set>
 #include <cstddef>
 
+
 // VATA headers
+#include <vata/explicit_lts.hh>
 #include <vata/util/binary_relation.hh>
 #include <vata/util/smart_set.hh>
-#include <vata/util/shared_list.hh>
 #include <vata/util/convert.hh>
-#include <vata/explicit_lts.hh>
 
 
 #include "util/caching_allocator.hh"
 #include "util/shared_counter.hh"
+#include "util/shared_list.hh"
 #include "util/splitting_relation.hh"
 
 

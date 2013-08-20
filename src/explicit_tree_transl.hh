@@ -16,12 +16,14 @@
 #include <boost/functional/hash.hpp>
 
 #include <vata/vata.hh>
-#include <vata/explicit_lts.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
 #include <vata/util/convert.hh>
+#include <vata/explicit_lts.hh>
+
 
 #include "explicit_tree_aut_core.hh"
+
 
 template <class Index>
 VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateDownward(
