@@ -13,14 +13,15 @@
 
 // VATA headers
 #include <vata/aut_base.hh>
-#include <vata/util/cache.hh>
+#include <vata/ta_expl/explicit_tree_aut.hh>
+
 #include <vata/util/ord_vector.hh>
 #include <vata/util/util.hh>
 #include <vata/explicit_lts.hh>
 #include <vata/util/convert.hh>
 #include <vata/incl_param.hh>
 
-#include <vata/ta_expl/explicit_tree_aut.hh>
+#include "util/cache.hh"
 
 namespace VATA { class ExplicitTreeAutCore; }
 

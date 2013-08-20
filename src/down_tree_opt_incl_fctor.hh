@@ -15,7 +15,8 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/util/antichain2c_v2.hh>
-#include <vata/util/cache.hh>
+
+#include "util/cache.hh"
 
 
 namespace VATA
