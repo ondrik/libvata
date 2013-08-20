@@ -16,7 +16,8 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/util/caching_allocator.hh>
+
+#include "../util/caching_allocator.hh"
 
 namespace VATA
 {

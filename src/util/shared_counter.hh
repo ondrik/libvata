@@ -14,16 +14,14 @@
 #include <cstring>
 #include <vector>
 
-#include <vata/util/caching_allocator.hh>
+#include "../util/caching_allocator.hh"
 
-namespace VATA {
-		namespace Util {
-				class SharedCounter;
-		}
-}
+namespace VATA { namespace Util {
+	class SharedCounter;
+}}
 
-class VATA::Util::SharedCounter {
-
+class VATA::Util::SharedCounter
+{
 public:
 
 	typedef CachingArrayAllocator<size_t> Allocator;

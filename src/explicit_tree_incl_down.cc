@@ -16,13 +16,13 @@
 #include <vata/vata.hh>
 #include <vata/util/antichain1c.hh>
 #include <vata/util/antichain2c_v2.hh>
-#include <vata/util/caching_allocator.hh>
 
 #include <vata/ta_expl/explicit_tree_aut.hh>
 
 #include "explicit_tree_incl_down.hh"
 #include "util/cache.hh"
 #include "util/cached_binary_op.hh"
+#include "util/caching_allocator.hh"
 
 // TODO: a lot in common with src/explicit_tree_incl_up.cc
 
