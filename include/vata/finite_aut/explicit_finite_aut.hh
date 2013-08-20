@@ -16,7 +16,6 @@
 #include <vata/aut_base.hh>
 #include <vata/util/convert.hh>
 #include <vata/parsing/abstr_parser.hh>
-#include <vata/ta_expl/explicit_tree_aut.hh>
 #include <vata/serialization/abstr_serializer.hh>
 #include <vata/util/transl_weak.hh>
 #include <vata/explicit_lts.hh>

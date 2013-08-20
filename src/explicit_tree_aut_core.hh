@@ -13,7 +13,7 @@
 
 // VATA headers
 #include <vata/aut_base.hh>
-#include <vata/ta_expl/explicit_tree_aut.hh>
+#include <vata/explicit_tree_aut.hh>
 
 #include <vata/util/ord_vector.hh>
 #include <vata/util/util.hh>

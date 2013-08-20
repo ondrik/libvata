@@ -12,7 +12,7 @@
 #define _VATA_EXPLICIT_TREE_UNREACH_HH_
 
 // VATA headers
-#include <vata/ta_expl/explicit_tree_aut.hh>
+#include <vata/explicit_tree_aut.hh>
 #include <vata/util/antichain1c.hh>
 
 template <
