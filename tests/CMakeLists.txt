@@ -8,6 +8,11 @@ set(cat_prog cat)
 # the tester
 set(tester ${CMAKE_CURRENT_BINARY_DIR}/vata-tester.sh)
 
+# timeout for each test (in seconds)
+set(test_timeout 30)
+
+set(incl_test_file "${CMAKE_CURRENT_SOURCE_DIR}/aut_timbuk_smaller_incl_td.txt")
+
 # read the content of the file with automata and results of inclusion test
 # The format is:
 #
@@ -15,8 +20,9 @@ set(tester ${CMAKE_CURRENT_BINARY_DIR}/vata-tester.sh)
 #     aut3    aut4   1
 #
 # where 0 means that the inclusion L(aut1) <= L(aut2) DOES NOT HOLD and
-# 1 means that the inclusion L(aut3) <= L(aut4) HOLDS
-exec_program(${cat_prog} ARGS ${CMAKE_CURRENT_SOURCE_DIR}/aut_timbuk_smaller_incl.txt OUTPUT_VARIABLE file_content)
+# 1 means that the inclusion L(aut3) <= L(aut4) HOLDS, where aut{1,2,3,4} are
+# files containing respective automata
+exec_program(${cat_prog} ARGS "${incl_test_file}" OUTPUT_VARIABLE file_content)
 
 string(REPLACE "\n" ";" file_lines ${file_content})
 
@@ -36,20 +42,46 @@ string(REPLACE "\n" ";" file_lines ${file_content})
 #  MATH(EXPR cnt "${cnt} + 1")
 #endforeach()
 
-foreach(triple ${file_lines})
-  string(REGEX REPLACE "\ +" ";" test_spec ${triple})
-  list(GET test_spec 0 aut1)
-  list(GET test_spec 1 aut2)
-  list(GET test_spec 2 result)
+set(incl_tests
+  "-r expl -o dir=down,sim=no,rec=yes,optC=no"
+  "-r expl -o dir=down,sim=no,rec=yes,optC=yes"
+  "-r expl -o dir=down,sim=no,rec=no"
+  "-r expl -o dir=down,sim=yes,rec=yes,optC=no"
+  "-r expl -o dir=down,sim=yes,rec=yes,optC=yes"
+  "-r expl -o dir=down,sim=yes,rec=no"
+  "-r expl -o dir=up,sim=no"
+  "-r expl -o dir=up,sim=yes"
+  "-r bdd-td -o dir=down,sim=no,rec=yes,optC=no"
+  "-r bdd-td -o dir=down,sim=no,rec=yes,optC=yes"
+  "-r bdd-bu -o dir=down,sim=no,rec=yes,optC=no"
+  "-r bdd-bu -o dir=down,sim=no,rec=yes,optC=yes"
+  "-r bdd-bu -o dir=down,sim=yes,rec=yes,optC=no"
+  "-r bdd-bu -o dir=down,sim=yes,rec=yes,optC=yes"
+  "-r bdd-bu -o dir=up,sim=no"
+)
 
-  set(test "value")
-  set(test "${test} 'incl ")
-  set(test "${test} ../../tests/aut_timbuk_smaller/${aut1}")
-  set(test "${test} ../../tests/aut_timbuk_smaller/${aut2}'")
-  set(test "${test} ${result}")
+foreach(incl_test_parm ${incl_tests})
+  foreach(triple ${file_lines})
+    string(REGEX REPLACE "\ +" ";" test_spec ${triple})
+    list(GET test_spec 0 aut1)
+    list(GET test_spec 1 aut2)
+    list(GET test_spec 2 result)
 
-  set(cmd "${tester}")
-  set(cmd "${cmd} ${test}")
+    set(test "value")
+    set(test "${test} 'incl ")
+    set(test "${test} ${incl_test_parm}")
+    set(test "${test} ../../tests/aut_timbuk_smaller/${aut1}")
+    set(test "${test} ../../tests/aut_timbuk_smaller/${aut2}'")
+    set(test "${test} ${result}")
 
-  add_test("test-${aut1}-${aut2}" bash -o pipefail -c "${cmd}")
+    set(cmd "${tester}")
+    set(cmd "${cmd} ${test}")
+
+    string(REGEX REPLACE "\ +" "_" test_parm_joined "${incl_test_parm}")
+    set(test_name "test_${aut1}_${aut2}_${test_parm_joined}")
+
+    add_test("${test_name}" bash -o pipefail -c "${cmd}")
+    set_tests_properties("${test_name}" PROPERTIES TIMEOUT "${test_timeout}")
+
+  endforeach()
 endforeach()
