@@ -39,41 +39,49 @@ namespace VATA
 
 
 GCC_DIAG_OFF(effc++)
-class VATA::ExplicitTreeAut : public AutBase
+class VATA::ExplicitTreeAut : public TreeAutBase
 {
 GCC_DIAG_ON(effc++)
 public:   // public data types
 
 	using SymbolType     = uintptr_t;
-	using StateTuple     = std::vector<StateType>;
+	using StateTuple     = TreeAutBase::StateTuple;
 
-	using AlphabetType   = std::vector<std::pair<SymbolType, size_t>>;
+	using StringSymbolType = StringRank;
+	using AlphabetType     = std::vector<std::pair<SymbolType, size_t>>;
 
-	struct StringRank
+
+	class Transition
 	{
-		std::string symbolStr;
-		size_t rank;
+	private:  // data members
 
-		StringRank(const std::string& symbolStr, size_t rank) :
-			symbolStr(symbolStr),
-			rank(rank)
+		const StateTuple&   children_;
+		const SymbolType&   symbol_;
+		const StateType&    parent_;
+
+	public:
+
+		Transition(
+			const StateTuple&        children,
+			const SymbolType&        symbol,
+			const StateType&         parent) :
+			children_(children),
+			symbol_(symbol),
+			parent_(parent)
 		{ }
 
-		bool operator<(const StringRank& rhs) const
-		{
-			return ((rank < rhs.rank) ||
-				((rank == rhs.rank) && (symbolStr < rhs.symbolStr)));
-		}
+		const StateTuple& children() const { return children_; }
+		const SymbolType& symbol()   const { return symbol_;   }
+		const StateType& parent()    const { return parent_;   }
 	};
 
-	using StringToSymbolDict   = VATA::Util::TwoWayDict<StringRank, SymbolType>;
-	using SymbolBackTranslatorStrict  =
-		VATA::Util::TranslatorStrict<typename StringToSymbolDict::MapBwdType>;
 
+	using SymbolDict                      =
+		VATA::Util::TwoWayDict<StringSymbolType, SymbolType>;
+	using StringSymbolToSymbolTranslWeak  = Util::TranslatorWeak<SymbolDict>;
+	using StringSymbolToSymbolTranslStrict= Util::TranslatorStrict<SymbolDict>;
+	using SymbolBackTranslStrict          = Util::TranslatorStrict<SymbolDict::MapBwdType>;
 
-	//typedef Explicit::StateType StateType;
-	//typedef Explicit::TuplePtr TuplePtr;
-	//typedef std::vector<TuplePtr> StateTupleSet;
 
 public:
 
@@ -324,6 +332,30 @@ public:   // methods
 	explicit ExplicitTreeAut(ExplicitTreeAutCore&& core);
 
 
+	static StringSymbolType ToStringSymbolType(const std::string& str, size_t rank)
+	{
+		return StringRank(str, rank);
+	}
+
+	static SymbolType GetZeroSymbol()
+	{
+		return 0;
+	}
+
+	/**
+	 * @brief  Sets a state as an accepting state
+	 *
+	 * @param[in]  state  The state to be set as accepting
+	 */
+	void SetStateFinal(const StateType& state);
+
+
+	void AddTransition(
+		const StateTuple&         children,
+		const SymbolType&         symbol,
+		const StateType&          state);
+
+
 	static AlphabetType GetAlphabet()
 	{
 		throw NotImplementedException(__func__);
@@ -334,7 +366,7 @@ public:   // methods
 
 
 	ExplicitTreeAut ReindexStates(
-		StateToStateTranslator&     stateTrans) const;
+		StateToStateTranslWeak&     stateTrans) const;
 
 
 	ExplicitTreeAut RemoveUnreachableStates(
@@ -357,25 +389,29 @@ public:   // methods
 	ExplicitTreeAut GetCandidateTree() const;
 
 
-	static void SetSymbolDictPtr(StringToSymbolDict* pSymbolDict);
+	static void SetSymbolDictPtr(SymbolDict* pSymbolDict);
 
 
 	static void SetNextSymbolPtr(SymbolType* pNextSymbol);
 
 
 	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&     serializer) const;
+		VATA::Serialization::AbstrSerializer&     serializer,
+		const std::string&                        params = "") const;
 
 
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&     serializer,
-		const StringToStateDict&                  stateDict) const;
+		const StateDict&                          stateDict,
+		const SymbolDict&                         symbolDict,
+		const std::string&                        params = "") const;
 
 
 	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&      serializer,
-		const StateBackTranslatorStrict&           stateTrans,
-		const SymbolBackTranslatorStrict&          symbolTrans) const;
+		VATA::Serialization::AbstrSerializer&  serializer,
+		const StateBackTranslStrict&           stateTrans,
+		const SymbolBackTranslStrict&          symbolTrans,
+		const std::string&                     params = "") const;
 
 
 	template <
@@ -416,7 +452,7 @@ public:   // methods
 	}
 
 
-	static StringToSymbolDict& GetSymbolDict()
+	static SymbolDict& GetSymbolDict()
 	{
 		throw NotImplementedException(__func__);
 	}
@@ -425,7 +461,17 @@ public:   // methods
 	void LoadFromString(
 		VATA::Parsing::AbstrParser&       parser,
 		const std::string&                str,
-		StringToStateDict&                stateDict);
+		StateDict&                        stateDict,
+		SymbolDict&                       symbolDict,
+		const std::string&                params = "");
+
+
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&       parser,
+		const std::string&                str,
+		StringToStateTranslWeak&          stateTransl,
+		StringSymbolToSymbolTranslWeak&   symbolTransl,
+		const std::string&                params = "");
 
 
 	/**

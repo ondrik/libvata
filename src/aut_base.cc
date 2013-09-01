@@ -13,8 +13,7 @@
 #include <vata/aut_base.hh>
 
 using VATA::AutBase;
+using VATA::TreeAutBase;
+using VATA::SymbolicTreeAutBase;
 
-#if 0
-AutBase::StateType* AutBase::pNextState_ = nullptr;
-#endif
-
+SymbolicTreeAutBase::SymbolDict* SymbolicTreeAutBase::pSymbolDict_ = nullptr;

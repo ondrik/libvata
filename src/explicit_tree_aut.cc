@@ -19,7 +19,7 @@ using VATA::ExplicitTreeAut;
 using VATA::ExplicitTreeAutCore;
 
 
-void ExplicitTreeAut::SetSymbolDictPtr(StringToSymbolDict* pSymbolDict)
+void ExplicitTreeAut::SetSymbolDictPtr(SymbolDict* pSymbolDict)
 {
 	ExplicitTreeAutCore::SetSymbolDictPtr(pSymbolDict);
 }
@@ -87,53 +87,92 @@ ExplicitTreeAut::~ExplicitTreeAut()
 { }
 
 
-void ExplicitTreeAut::LoadFromString(
-	VATA::Parsing::AbstrParser&       parser,
-	const std::string&                str,
-	StringToStateDict&                stateDict)
+void ExplicitTreeAut::SetStateFinal(const StateType& state)
 {
 	assert(nullptr != core_);
 
-	core_->LoadFromString(parser, str, stateDict);
+	core_->SetStateFinal(state);
 }
 
 
-std::string ExplicitTreeAut::DumpToString(
-	VATA::Serialization::AbstrSerializer&     serializer) const
+void ExplicitTreeAut::AddTransition(
+	const StateTuple&         children,
+	const SymbolType&         symbol,
+	const StateType&          state)
 {
 	assert(nullptr != core_);
 
-	return core_->DumpToString(serializer);
+	core_->AddTransition(children, symbol, state);
+}
+
+
+void ExplicitTreeAut::LoadFromString(
+	VATA::Parsing::AbstrParser&       parser,
+	const std::string&                str,
+	StateDict&                        stateDict,
+	SymbolDict&                       symbolDict,
+	const std::string&                params)
+{
+	assert(nullptr != core_);
+
+	core_->LoadFromString(parser, str, stateDict, symbolDict, params);
+}
+
+
+void ExplicitTreeAut::LoadFromString(
+	VATA::Parsing::AbstrParser&       parser,
+	const std::string&                str,
+	StringToStateTranslWeak&          stateTransl,
+	StringSymbolToSymbolTranslWeak&   symbolTransl,
+	const std::string&                params)
+{
+	assert(nullptr != core_);
+
+	core_->LoadFromStringWithStateSymbolTransl(
+		parser, str, stateTransl, symbolTransl, params);
 }
 
 
 std::string ExplicitTreeAut::DumpToString(
 	VATA::Serialization::AbstrSerializer&     serializer,
-	const StringToStateDict&                  stateDict) const
+	const std::string&                        params) const
 {
 	assert(nullptr != core_);
 
-	return core_->DumpToString(serializer, stateDict);
+	return core_->DumpToString(serializer, params);
 }
 
 
 std::string ExplicitTreeAut::DumpToString(
-	VATA::Serialization::AbstrSerializer&      serializer,
-	const StateBackTranslatorStrict&           stateTrans,
-	const SymbolBackTranslatorStrict&          symbolTrans) const
+	VATA::Serialization::AbstrSerializer&     serializer,
+	const StateDict&                          stateDict,
+	const SymbolDict&                         symbolDict,
+	const std::string&                        params) const
 {
 	assert(nullptr != core_);
 
-	return core_->DumpToString(serializer, stateTrans, symbolTrans);
+	return core_->DumpToString(serializer, stateDict, symbolDict, params);
+}
+
+
+std::string ExplicitTreeAut::DumpToString(
+	VATA::Serialization::AbstrSerializer&  serializer,
+	const StateBackTranslStrict&           stateTransl,
+	const SymbolBackTranslStrict&          symbolTransl,
+	const std::string&                     params) const
+{
+	assert(nullptr != core_);
+
+	return core_->DumpToString(serializer, stateTransl, symbolTransl, params);
 }
 
 
 ExplicitTreeAut ExplicitTreeAut::ReindexStates(
-	StateToStateTranslator&     stateTrans) const
+	StateToStateTranslWeak&     stateTransl) const
 {
 	assert(nullptr != core_);
 
-	return ExplicitTreeAut(core_->ReindexStates(stateTrans));
+	return ExplicitTreeAut(core_->ReindexStates(stateTransl));
 }
 
 

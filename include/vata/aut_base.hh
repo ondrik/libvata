@@ -16,6 +16,7 @@
 #include <vata/notimpl_except.hh>
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
+#include <vata/symbolic.hh>
 
 // Utilities
 #include <vata/util/binary_relation.hh>
@@ -27,6 +28,8 @@
 namespace VATA
 {
 	class AutBase;
+	class TreeAutBase;
+	class SymbolicTreeAutBase;
 
 	template <class Automaton>
 	Automaton Reduce(const Automaton&)
@@ -64,42 +67,30 @@ class VATA::AutBase
 {
 public:   // data types
 
-	typedef size_t StateType;
+	using StateType = size_t;
 
-	typedef VATA::Util::TwoWayDict<std::string, StateType> StringToStateDict;
-	typedef VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>
-		StateBackTranslatorStrict;
+	using StateDict                  = Util::TwoWayDict<std::string, StateType>;
+	using StringToStateTranslWeak    = Util::TranslatorWeak<StateDict>;
+	using StringToStateTranslStrict  = Util::TranslatorStrict<StateDict>;
+	using StateBackTranslStrict      = Util::TranslatorStrict<StateDict::MapBwdType>;
 
-	typedef std::unordered_map<StateType, StateType> StateToStateMap;
-	typedef VATA::Util::TranslatorWeak<StateToStateMap> StateToStateTranslator;
+	using StateToStateMap         = std::unordered_map<StateType, StateType>;
+	using StateToStateTranslWeak  = Util::TranslatorWeak<StateToStateMap>;
+	using StateToStateTranslStrict= Util::TranslatorStrict<StateToStateMap>;
+	using StateToStringConvFunc   = std::function<std::string(const StateType&)>;
 
-	typedef std::pair<StateType, StateType> StatePair;
-	typedef std::unordered_map<StatePair, StateType, boost::hash<StatePair>>
-		ProductTranslMap;
+	using StatePair = std::pair<StateType, StateType>;
 
-	typedef VATA::Util::BinaryRelation StateBinaryRelation;
+	using ProductTranslMap =
+		std::unordered_map<StatePair, StateType, boost::hash<StatePair>>;
 
-private:  // data members
-
-#if 0
-	static StateType* pNextState_;
-#endif
+	using StateBinaryRelation = Util::BinaryRelation;
 
 protected:// methods
 
 	AutBase() { }
 
 public:   // methods
-
-#if 0
-	inline static void SetNextStatePtr(StateType* pNextState)
-	{
-		// Assertions
-		assert(pNextState != nullptr);
-
-		pNextState_ = pNextState;
-	}
-#endif
 
 	template <class Automaton>
 	static StateType SanitizeAutsForInclusion(
@@ -108,7 +99,7 @@ public:   // methods
 	{
 		StateType stateCnt = 0;
 		StateToStateMap stateMap;
-		StateToStateTranslator stateTrans(stateMap,
+		StateToStateTranslWeak stateTrans(stateMap,
 			[&stateCnt](const StateType&){return stateCnt++;});
 
 		Automaton tmpAut = smaller.RemoveUselessStates();
@@ -154,6 +145,92 @@ public:   // methods
 		aut = newAut.ReindexStates(index);
 
 		return stateCnt;
+	}
+};
+
+
+GCC_DIAG_OFF(effc++)
+class VATA::TreeAutBase : public AutBase
+{
+GCC_DIAG_ON(effc++)
+
+protected:// methods
+
+	TreeAutBase() { }
+
+public:   // data types
+
+	using StateTuple     = std::vector<StateType>;
+
+
+	struct StringRank
+	{
+		std::string symbolStr;
+		size_t rank;
+
+		StringRank(const std::string& symbolStr, size_t rank) :
+			symbolStr(symbolStr),
+			rank(rank)
+		{ }
+
+		bool operator<(const StringRank& rhs) const
+		{
+			return ((rank < rhs.rank) ||
+				((rank == rhs.rank) && (symbolStr < rhs.symbolStr)));
+		}
+	};
+};
+
+
+GCC_DIAG_OFF(effc++)
+class VATA::SymbolicTreeAutBase :
+	public TreeAutBase,
+	public Symbolic
+{
+GCC_DIAG_ON(effc++)
+
+public:   // data types
+
+	using StringSymbolType = std::string;
+
+	using SymbolDict                      = Util::TwoWayDict<std::string, SymbolType>;
+	using StringSymbolToSymbolTranslStrict= Util::TranslatorStrict<SymbolDict>;
+	using StringSymbolToSymbolTranslWeak  = Util::TranslatorWeak<SymbolDict>;
+	using SymbolBackTranslStrict          =
+		Util::TranslatorStrict<typename SymbolDict::MapBwdType>;
+
+protected:// data members
+
+	static SymbolDict* pSymbolDict_;
+
+protected:// methods
+
+	SymbolicTreeAutBase() { }
+
+public:   // methods
+
+	static void SetSymbolDictPtr(SymbolDict* pSymbolDict)
+	{
+		// Assertions
+		assert(nullptr != pSymbolDict);
+
+		pSymbolDict_ = pSymbolDict;
+	}
+
+	static SymbolDict& GetSymbolDict()
+	{
+		// Assertions
+		assert(nullptr != pSymbolDict_);
+
+		return *pSymbolDict_;
+	}
+
+
+	static const StringSymbolType& ToStringSymbolType(
+		const std::string&         str,
+		size_t                     /* rank */)
+	{
+		return str;
 	}
 };
 

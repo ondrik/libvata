@@ -18,11 +18,8 @@ ExplicitTreeAutCore ExplicitTreeAutCore::Union(
 	AutBase::StateToStateMap*             pTranslMapLhs,
 	AutBase::StateToStateMap*             pTranslMapRhs)
 {
-	typedef AutBase::StateType StateType;
-	typedef AutBase::StateToStateTranslator StateToStateTranslator;
-
-	AutBase::StateToStateMap translMapLhs;
-	AutBase::StateToStateMap translMapRhs;
+	StateToStateMap translMapLhs;
+	StateToStateMap translMapRhs;
 
 	if (!pTranslMapLhs)
 	{
@@ -37,8 +34,8 @@ ExplicitTreeAutCore ExplicitTreeAutCore::Union(
 	StateType stateCnt = 0;
 	auto translFunc = [&stateCnt](const StateType&){return stateCnt++;};
 
-	StateToStateTranslator stateTransLhs(*pTranslMapLhs, translFunc);
-	StateToStateTranslator stateTransRhs(*pTranslMapRhs, translFunc);
+	StateToStateTranslWeak stateTransLhs(*pTranslMapLhs, translFunc);
+	StateToStateTranslWeak stateTransRhs(*pTranslMapRhs, translFunc);
 
 	ExplicitTreeAutCore res(lhs.cache_);
 

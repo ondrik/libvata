@@ -32,14 +32,14 @@ namespace VATA
 		template <class Container1, class T, class Translator>
 		void RebindMap2(Container1& dst, const std::vector<T>& src, const Translator& transl);
 
-		VATA::AutBase::StringToStateDict CreateProductStringToStateMap(
-			const VATA::AutBase::StringToStateDict& lhsCont,
-			const VATA::AutBase::StringToStateDict& rhsCont,
+		VATA::AutBase::StateDict CreateProductStringToStateMap(
+			const VATA::AutBase::StateDict& lhsCont,
+			const VATA::AutBase::StateDict& rhsCont,
 			const VATA::AutBase::ProductTranslMap& translMap);
 
-		VATA::AutBase::StringToStateDict CreateUnionStringToStateMap(
-			const VATA::AutBase::StringToStateDict& lhsCont,
-			const VATA::AutBase::StringToStateDict& rhsCont,
+		VATA::AutBase::StateDict CreateUnionStringToStateMap(
+			const VATA::AutBase::StateDict& lhsCont,
+			const VATA::AutBase::StateDict& rhsCont,
 			const VATA::AutBase::StateToStateMap* translMapLhs = nullptr,
 			const VATA::AutBase::StateToStateMap* translMapRhs = nullptr);
 

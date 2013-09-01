@@ -70,21 +70,22 @@ BDDTDTreeAutCore& BDDTDTreeAutCore::operator=(
 
 void BDDTDTreeAutCore::AddTransition(
 	const StateTuple&       children,
-	SymbolType              symbol,
+	const SymbolType&       symbol,
 	const StateType&        parent)
 {
 	// Assertions
 	assert(symbol.length() == SYMBOL_SIZE);
 
-	addArityToSymbol(symbol, children.size());
-	assert(symbol.length() == SYMBOL_TOTAL_SIZE);
+	SymbolType newSymbol = symbol;
+	addArityToSymbol(newSymbol, children.size());
+	assert(newSymbol.length() == SYMBOL_TOTAL_SIZE);
 
 	if (transTable_.unique())
 	{
 		UnionApplyFunctor unioner;
 
 		const TransMTBDD& oldMtbdd = GetMtbdd(parent);
-		TransMTBDD addedMtbdd(symbol, StateTupleSet(children), StateTupleSet());
+		TransMTBDD addedMtbdd(newSymbol, StateTupleSet(children), StateTupleSet());
 		SetMtbdd(parent, unioner(oldMtbdd, addedMtbdd));
 	}
 	else
@@ -108,7 +109,7 @@ std::string BDDTDTreeAutCore::DumpToDot() const
 
 void BDDTDTreeAutCore::ReindexStates(
 	BDDTDTreeAutCore&           dstAut,
-	StateToStateTranslator&     stateTrans) const
+	StateToStateTranslWeak&     stateTrans) const
 {
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class RewriteApplyFunctor :
@@ -118,11 +119,11 @@ void BDDTDTreeAutCore::ReindexStates(
 	GCC_DIAG_ON(effc++)
 	private:  // data members
 
-		StateToStateTranslator trans_;
+		StateToStateTranslWeak& trans_;
 
 	public:   // methods
 
-		RewriteApplyFunctor(StateToStateTranslator& trans) :
+		RewriteApplyFunctor(StateToStateTranslWeak& trans) :
 			trans_(trans)
 		{ }
 
@@ -147,13 +148,13 @@ void BDDTDTreeAutCore::ReindexStates(
 	};
 
 	RewriteApplyFunctor rewriter(stateTrans);
-	for (auto stateBddPair : GetStates())
+	for (auto stateBddPair : this->GetStates())
 	{
 		StateType newState = stateTrans(stateBddPair.first);
 		dstAut.SetMtbdd(newState, rewriter(stateBddPair.second));
 	}
 
-	for (const StateType& fst : GetFinalStates())
+	for (const StateType& fst : this->GetFinalStates())
 	{
 		dstAut.SetStateFinal(stateTrans(fst));
 	}
@@ -162,46 +163,94 @@ void BDDTDTreeAutCore::ReindexStates(
 
 void BDDTDTreeAutCore::LoadFromAutDesc(
 	const AutDescription&         desc,
-	StringToStateDict&            stateDict)
+	StateDict&                    stateDict,
+	const std::string&            params)
 {
-	typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
-		StateTranslator;
-	typedef VATA::Util::TranslatorWeak<StringToSymbolDict>
-		SymbolTranslator;
-
 	StateType stateCnt = 0;
 
-	this->LoadFromAutDesc(desc,
-		StateTranslator(stateDict,
+	this->LoadFromAutDescWithStateSymbolTransl(
+		desc,
+		StringToStateTranslWeak(stateDict,
 			[&stateCnt](const std::string&){return stateCnt++;}),
-		SymbolTranslator(this->GetSymbolDict(),
-			[this](const std::string&){return AddSymbol();}));
+		StringSymbolToSymbolTranslWeak(this->GetSymbolDict(),
+			[this](const std::string&){return AddSymbol();}),
+		params);
 }
 
 
 void BDDTDTreeAutCore::LoadFromString(
 	VATA::Parsing::AbstrParser&      parser,
 	const std::string&               str,
-	StringToStateDict&               stateDict)
+	StateDict&                       stateDict,
+	const std::string&               params)
 {
-	this->LoadFromAutDesc(parser.ParseString(str), stateDict);
+	this->LoadFromAutDesc(parser.ParseString(str), stateDict, params);
+}
+
+
+void BDDTDTreeAutCore::LoadFromAutDesc(
+	const AutDescription&         desc,
+	StateDict&                    stateDict,
+	SymbolDict&                   symbolDict,
+	const std::string&            params)
+{
+	StateType state(0);
+	SymbolType symbol = BDDTDTreeAutCore::GetZeroSymbol();
+
+	this->LoadFromAutDescWithStateSymbolTransl(
+		desc,
+		StringToStateTranslWeak(stateDict,
+			[&state](const std::string&){return state++;}),
+		StringSymbolToSymbolTranslWeak(symbolDict,
+			[&symbol](const std::string&){return symbol++;}),
+		params);
+}
+
+
+void BDDTDTreeAutCore::LoadFromString(
+	VATA::Parsing::AbstrParser&      parser,
+	const std::string&               str,
+	StateDict&                       stateDict,
+	SymbolDict&                      symbolDict,
+	const std::string&               params)
+{
+	this->LoadFromAutDesc(parser.ParseString(str), stateDict, symbolDict, params);
 }
 
 
 std::string BDDTDTreeAutCore::DumpToString(
 	VATA::Serialization::AbstrSerializer&      serializer,
-	const StringToStateDict&                   stateDict) const
+	const StateDict&                           stateDict,
+	const SymbolDict&                          symbolDict,
+	const std::string&                         params) const
 {
-	return this->DumpToString(serializer,
-		StateBackTranslatorStrict(stateDict.GetReverseMap()),
-		SymbolBackTranslatorStrict(this->GetSymbolDict().GetReverseMap()));
+	return this->DumpToStringWithStateTransl(
+		serializer,
+		StateBackTranslStrict(stateDict.GetReverseMap()),
+		symbolDict,
+		params);
 }
 
 
 std::string BDDTDTreeAutCore::DumpToString(
-	VATA::Serialization::AbstrSerializer&      serializer) const
+	VATA::Serialization::AbstrSerializer&      serializer,
+	const StateDict&                           stateDict,
+	const std::string&                         params) const
 {
-	return this->DumpToString(serializer,
-		[](const StateType& state){return Convert::ToString(state);},
-		SymbolBackTranslatorStrict(this->GetSymbolDict().GetReverseMap()));
+	return this->DumpToStringWithStateTransl(
+		serializer,
+		StateBackTranslStrict(stateDict.GetReverseMap()),
+		this->GetSymbolDict(),
+		params);
+}
+
+
+std::string BDDTDTreeAutCore::DumpToString(
+	VATA::Serialization::AbstrSerializer&      serializer,
+	const std::string&                         params) const
+{
+	return this->DumpToString(
+		serializer,
+		this->GetSymbolDict(),
+		params);
 }

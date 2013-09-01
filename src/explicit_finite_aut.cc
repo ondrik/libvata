@@ -13,7 +13,7 @@
 #include <vata/finite_aut/explicit_finite_aut.hh>
 
 // pointer to symbol dictionary
-VATA::ExplicitFiniteAut::StringToSymbolDict* VATA::ExplicitFiniteAut::pSymbolDict_ = nullptr;
+VATA::ExplicitFiniteAut::SymbolDict* VATA::ExplicitFiniteAut::pSymbolDict_ = nullptr;
 
 // pointer to next symbol counter
 VATA::ExplicitFiniteAut::SymbolType* VATA::ExplicitFiniteAut::pNextSymbol_ = nullptr;

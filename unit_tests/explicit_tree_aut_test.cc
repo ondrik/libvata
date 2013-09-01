@@ -12,9 +12,7 @@
 #include <vata/vata.hh>
 #include <vata/explicit_tree_aut.hh>
 
-// testing headers
 #include "log_fixture.hh"
-
 
 /******************************************************************************
  *                                  Constants                                 *
@@ -22,7 +20,6 @@
 
 const fs::path UNREACHABLE_TIMBUK_FILE =
 	AUT_DIR / "td_unreachable_removal_timbuk.txt";
-
 
 /******************************************************************************
  *                                  Fixtures                                  *
@@ -102,5 +99,28 @@ BOOST_AUTO_TEST_CASE(aut_up_inclusion_sim)
 	ip.SetUseSimulation(true);
 	testInclusion(ip);
 }
+
+BOOST_AUTO_TEST_CASE(iterators)
+{
+	auto testfileContent = ParseTestFile(LOAD_TIMBUK_FILE.string());
+	for (auto testcase : testfileContent)
+	{
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 1, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
+
+		std::string filename = (AUT_DIR / testcase[0]).string();
+		BOOST_MESSAGE("Loading automaton " + filename + "...");
+		std::string autStr = VATA::Util::ReadFile(filename);
+
+		StateDict stateDict;
+		AutType aut;
+		readAut(aut, stateDict, autStr);
+
+//		for (AutType::Transition trans : aut)
+		{
+		}
+	}
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()

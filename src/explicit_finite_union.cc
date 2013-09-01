@@ -19,15 +19,12 @@ ExplicitFiniteAut ExplicitFiniteAut::Union(
 	AutBase::StateToStateMap* pTranslMapLhs,
 	AutBase::StateToStateMap* pTranslMapRhs)
 {
-	typedef AutBase::StateType StateType;
-	typedef AutBase::StateToStateTranslator StateToStateTranslator;
-
 	/*
 	 * If the maps are not given
 	 * it creates own new maps
 	 */
-	AutBase::StateToStateMap translMapLhs;
-	AutBase::StateToStateMap translMapRhs;
+	StateToStateMap translMapLhs;
+	StateToStateMap translMapRhs;
 
 	if (!pTranslMapLhs) {
 		pTranslMapLhs = &translMapLhs;
@@ -41,8 +38,8 @@ ExplicitFiniteAut ExplicitFiniteAut::Union(
 	StateType stateCnt = 0;
 	auto translFunc = [&stateCnt](const StateType&){return stateCnt++;};
 
-	StateToStateTranslator stateTransLhs(*pTranslMapLhs, translFunc);
-	StateToStateTranslator stateTransRhs(*pTranslMapRhs, translFunc);
+	StateToStateTranslWeak stateTransLhs(*pTranslMapLhs, translFunc);
+	StateToStateTranslWeak stateTransRhs(*pTranslMapRhs, translFunc);
 
 	ExplicitFiniteAut res;
 

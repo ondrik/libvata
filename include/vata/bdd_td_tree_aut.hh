@@ -13,7 +13,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/symbolic_aut_base.hh>
+#include <vata/symbolic.hh>
 #include <vata/bdd_bu_tree_aut.hh>
 #include <vata/notimpl_except.hh>
 #include <vata/incl_param.hh>
@@ -45,7 +45,7 @@ namespace VATA
 // TODO: both BDDTopDownTreeAut and BDDTDTreeAutCore should not be derived from
 //SymbolicAutBase. And the same for BDDBottomUpTreeAut and BDDBUTreeAutCore.
 GCC_DIAG_OFF(effc++)
-class VATA::BDDTopDownTreeAut : public SymbolicAutBase
+class VATA::BDDTopDownTreeAut : public SymbolicTreeAutBase
 {
 GCC_DIAG_ON(effc++)
 
@@ -53,16 +53,8 @@ GCC_DIAG_ON(effc++)
 
 public:   // data types
 
-	using StateTuple   = std::vector<StateType>;
-
-	typedef typename SymbolicAutBase::SymbolType SymbolType;
-
-	typedef VATA::Util::TwoWayDict<std::string, SymbolType> StringToSymbolDict;
-
-	typedef VATA::Util::TranslatorStrict<StringToSymbolDict> SymbolTranslatorStrict;
-
-	using SymbolBackTranslatorStrict   =
-		VATA::Util::TranslatorStrict<typename StringToSymbolDict::MapBwdType>;
+	using StateTuple   = TreeAutBase::StateTuple;
+	using SymbolType   = Symbolic::SymbolType;
 
 	// FIXME: only stub
 	typedef std::vector<SymbolType> AlphabetType;
@@ -97,25 +89,58 @@ public:   // public methods
 
 	~BDDTopDownTreeAut();
 
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&      serializer) const;
+
+	void AddTransition(
+		const StateTuple&       children,
+		const SymbolType&       symbol,
+		const StateType&        parent);
 
 
 	void LoadFromString(
 		VATA::Parsing::AbstrParser&      parser,
 		const std::string&               str,
-		StringToStateDict&               stateDict);
+		StateDict&                       stateDict,
+		const std::string&               params = "");
+
+
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&      parser,
+		const std::string&               str,
+		StateDict&                       stateDict,
+		SymbolDict&                      symbolDict,
+		const std::string&               params = "");
+
+
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&      parser,
+		const std::string&               str,
+		StringToStateTranslWeak&         stateTransl,
+		StringSymbolToSymbolTranslWeak&  symbolTransl,
+		const std::string&               params = "");
 
 
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&      serializer,
-		const StringToStateDict&                   stateDict) const;
+		const std::string&                         params = "") const;
 
 
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&      serializer,
-		const StateBackTranslatorStrict&           stateTrans,
-		const SymbolBackTranslatorStrict&          symbolTrans) const;
+		const StateDict&                           stateDict,
+		const std::string&                         params = "") const;
+
+
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&      serializer,
+		const StateDict&                           stateDict,
+		const SymbolDict&                          symbolDict,
+		const std::string&                         params = "") const;
+
+
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&  serializer,
+		const StateBackTranslStrict&           stateTransl,
+		const std::string&                     params = "") const;
 
 
 	void SetStateFinal(
@@ -172,7 +197,7 @@ public:   // public methods
 
 
 	BDDTopDownTreeAut ReindexStates(
-		StateToStateTranslator&     stateTrans) const;
+		StateToStateTranslWeak&     stateTrans) const;
 
 
 	BDDTopDownTreeAut GetCandidateTree() const

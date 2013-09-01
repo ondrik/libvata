@@ -27,7 +27,7 @@ using VATA::Util::Convert;
 typedef VATA::AutBase::StateBinaryRelation StateBinaryRelation;
 typedef VATA::AutBase::StateType StateType;
 typedef VATA::AutBase::StateToStateMap StateToStateMap;
-typedef VATA::AutBase::StateToStateTranslator StateToStateTranslator;
+typedef VATA::AutBase::StateToStateTranslWeak StateToStateTranslWeak;
 
 typedef BDDTDTreeAutCore::StateTuple StateTuple;
 typedef BDDTDTreeAutCore::StateTupleSet StateTupleSet;
@@ -245,7 +245,7 @@ StateBinaryRelation BDDBUTreeAutCore::ComputeDownwardSimulation() const
 	BDDBottomUpTreeAut newAut;
 	StateType stateCnt = 0;
 	AutBase::StateToStateMap translMap;
-	StateToStateTranslator stateTrans(translMap,
+	StateToStateTranslWeak stateTrans(translMap,
 		[&stateCnt](const StateType&){return stateCnt++;});
 
 	StateType states = AutBase::SanitizeAutForSimulation(newAut, stateCnt, stateTrans);

@@ -31,9 +31,12 @@
 
 
 using VATA::AutBase;
+using VATA::TreeAutBase;
+using VATA::SymbolicTreeAutBase;
 using VATA::BDDBottomUpTreeAut;
 using VATA::BDDTopDownTreeAut;
 using VATA::ExplicitTreeAut;
+using VATA::ExplicitFiniteAut;
 using VATA::Parsing::AbstrParser;
 using VATA::Parsing::TimbukParser;
 using VATA::Serialization::AbstrSerializer;
@@ -41,17 +44,10 @@ using VATA::Serialization::TimbukSerializer;
 using VATA::Util::Convert;
 
 
-typedef VATA::ExplicitFiniteAut ExplicitFiniteAut;
+using StringToStateTranslWeak  = AutBase::StringToStateTranslWeak;
+using StateBackTranslStrict    = AutBase::StateBackTranslStrict;
+using StateToStateTranslStrict = AutBase::StateToStateTranslStrict;
 
-typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
-	StateTranslatorWeak;
-typedef VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>
-	StateBackTranslatorStrict;
-typedef VATA::Util::TranslatorStrict<VATA::AutBase::StateToStateMap>
-		StateToStateTranslator;
-
-typedef VATA::Util::TranslatorWeak<BDDTopDownTreeAut::StringToSymbolDict>
-	SymbolTranslatorWeak;
 
 const char VATA_USAGE_STRING[] =
 	"VATA: VATA Tree Automata library interface\n"
@@ -157,7 +153,7 @@ int performOperation(
 	AbstrParser&            parser,
 	AbstrSerializer&        serializer)
 {
-	using SymbolBackTranslatorStrict = typename Aut::SymbolBackTranslatorStrict;
+	using SymbolDict = typename Aut::SymbolDict;
 
 	Aut autInput1;
 	Aut autInput2;
@@ -165,22 +161,30 @@ int performOperation(
 	bool boolResult = false;
 	VATA::AutBase::StateBinaryRelation relResult;
 
-	VATA::AutBase::StringToStateDict stateDict1;
-	VATA::AutBase::StringToStateDict stateDict2;
+	VATA::AutBase::StateDict stateDict1;
+	VATA::AutBase::StateDict stateDict2;
+
+	SymbolDict symbolDict;
 
 	VATA::AutBase::StateToStateMap translMap1;
 	VATA::AutBase::StateToStateMap translMap2;
 
 	if (args.operands >= 1)
 	{
-		autInput1.LoadFromString(parser, VATA::Util::ReadFile(args.fileName1),
-			stateDict1);
+		autInput1.LoadFromString(
+			parser,
+			VATA::Util::ReadFile(args.fileName1),
+			stateDict1,
+			symbolDict);
 	}
 
 	if (args.operands >= 2)
 	{
-		autInput2.LoadFromString(parser, VATA::Util::ReadFile(args.fileName2),
-			stateDict2);
+		autInput2.LoadFromString(
+			parser,
+			VATA::Util::ReadFile(args.fileName2),
+			stateDict2,
+			symbolDict);
 	}
 
 	if ((args.command == COMMAND_LOAD) ||
@@ -284,9 +288,8 @@ int performOperation(
 			(args.command == COMMAND_WITNESS) ||
 			(args.command == COMMAND_RED))
 		{
-			std::cout << autResult.DumpToString(serializer,
-				StateBackTranslatorStrict(stateDict1.GetReverseMap()),
-				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
+			std::cout << autResult.DumpToString(
+				serializer, stateDict1, autResult.GetSymbolDict());
 		}
 
 		if (args.command == COMMAND_COMPLEMENT && args.representation != REPRESENTATION_EXPLICIT_FA)
@@ -295,9 +298,8 @@ int performOperation(
 		}
 		else if (args.command == COMMAND_COMPLEMENT)
 		{
-			std::cout << autResult.DumpToString(serializer,
-				StateBackTranslatorStrict(stateDict1.GetReverseMap()),
-				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
+			std::cout << autResult.DumpToString(
+				serializer, stateDict1, autResult.GetSymbolDict());
 		}
 
 		if (args.command == COMMAND_UNION)
@@ -315,9 +317,8 @@ int performOperation(
 		if ((args.command == COMMAND_UNION) ||
 			(args.command == COMMAND_INTERSECTION))
 		{
-			std::cout << autResult.DumpToString(serializer,
-				StateBackTranslatorStrict(stateDict1.GetReverseMap()),
-				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
+			std::cout << autResult.DumpToString(
+				serializer, stateDict1, autResult.GetSymbolDict());
 		}
 		if ((args.command == COMMAND_INCLUSION) || (args.command == COMMAND_EQUIV))
 		{
@@ -328,8 +329,8 @@ int performOperation(
 		{
 
 			std::cout << autInput1.PrintSimulationMapping(
-					StateBackTranslatorStrict(stateDict1.GetReverseMap()),
-					StateToStateTranslator(translMap1))
+					StateBackTranslStrict(stateDict1.GetReverseMap()),
+					StateToStateTranslStrict(translMap1))
 				<< std::endl;
 			std::cout << relResult << "\n";
 		}
@@ -405,17 +406,16 @@ int main(int argc, char* argv[])
 	}
 
 	// create the symbol directory for the BDD-based automata
-	BDDTopDownTreeAut::StringToSymbolDict bddSymbolDict;
-	BDDTopDownTreeAut::SetSymbolDictPtr(&bddSymbolDict);
-	BDDBottomUpTreeAut::SetSymbolDictPtr(&bddSymbolDict);
+	SymbolicTreeAutBase::SymbolDict bddSymbolDict;
+	SymbolicTreeAutBase::SetSymbolDictPtr(&bddSymbolDict);
+	SymbolicTreeAutBase::SetSymbolDictPtr(&bddSymbolDict);
 
 	// create the ``next symbol'' variable for the BDD-based automata
-	BDDTopDownTreeAut::SymbolType bddNextSymbol(BDD_SIZE, 0);
-	BDDTopDownTreeAut::SetNextSymbolPtr(&bddNextSymbol);
-	BDDBottomUpTreeAut::SetNextSymbolPtr(&bddNextSymbol);
+	SymbolicTreeAutBase::SymbolType bddNextSymbol(BDD_SIZE, 0);
+	SymbolicTreeAutBase::SetNextSymbolPtr(&bddNextSymbol);
 
 	// create the symbol directory for explicit automata
-	ExplicitTreeAut::StringToSymbolDict explSymbolDict;
+	ExplicitTreeAut::SymbolDict explSymbolDict;
 	ExplicitTreeAut::SetSymbolDictPtr(&explSymbolDict);
 
 	// create the ``next symbol'' variable for the explicit automaton
@@ -423,14 +423,14 @@ int main(int argc, char* argv[])
 	ExplicitTreeAut::SetNextSymbolPtr(&explNextSymbol);
 
 	// create the symbol directory for finite automata
-	ExplicitFiniteAut::StringToSymbolDict explFASymbolDict;
+	ExplicitFiniteAut::SymbolDict explFASymbolDict;
 	ExplicitFiniteAut::SetSymbolDictPtr(&explFASymbolDict);
 
 	// create the ``next symbol`` variable for the explicit finite automaton
 	ExplicitFiniteAut::SymbolType explFANextSymbol(0);
 	ExplicitFiniteAut::SetNextSymbolPtr(&explFANextSymbol);
 
-	VATA::AutBase::StringToStateDict stateDict;
+	AutBase::StateDict stateDict;
 
 	try
 	{

@@ -23,28 +23,22 @@ namespace VATA
 {
 	namespace Util
 	{
-		template
-		<
-			class Cont
-		>
+		template <
+			class Cont>
 		class TranslatorStrict;
 
-		template
-		<
-			class T
-		>
+		template <
+			class T>
 		class IdentityTranslator;
 	}
 }
 
 /**
  * @brief  Strict translator
- * 
+ *
  */
-template
-<
-	class Cont
->
+template <
+	class Cont>
 class VATA::Util::TranslatorStrict
 {
 
@@ -86,7 +80,7 @@ public:   // methods
 
 /**
  * @brief  Identity translator
- * 
+ *
  */
 template
 <
@@ -106,7 +100,6 @@ public:   // methods
 	{
 		return value;
 	}
-	
 };
 
 #endif

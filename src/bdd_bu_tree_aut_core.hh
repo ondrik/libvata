@@ -27,32 +27,27 @@
 
 
 GCC_DIAG_OFF(effc++)
-class VATA::BDDBUTreeAutCore : public SymbolicAutBase
+class VATA::BDDBUTreeAutCore : public SymbolicTreeAutBase
 {
 GCC_DIAG_ON(effc++)
 
 public:   // data types
 
-	using AutDescription  = VATA::Util::AutDescription;
+	using AutDescription  = Util::AutDescription;
 
-	using StateType       = VATA::BDDBottomUpTreeAut::StateType;
+	using StateType       = BDDBottomUpTreeAut::StateType;
 	using StateSet        = VATA::Util::OrdVector<StateType>;
-	using StateTuple      = VATA::BDDBottomUpTreeAut::StateTuple;
-	using StateTupleSet   = VATA::Util::OrdVector<StateTuple>;
+	using StateTuple      = BDDBottomUpTreeAut::StateTuple;
+	using StateTupleSet   = Util::OrdVector<StateTuple>;
 	using StateHT         = std::unordered_set<StateType>;
 
 	using MTBDDHandle     = size_t;
-	using TransTable      = VATA::Util::TransTableWrapper<MTBDDHandle, StateSet>;
+	using TransTable      = Util::TransTableWrapper<MTBDDHandle, StateSet>;
 	using TransMTBDD      = TransTable::TransMTBDD;
 
 private:  // data types
 
-	using BDD             = VATA::MTBDDPkg::OndriksMTBDD<bool>;
-
-	using StateToStateTranslator      = VATA::AutBase::StateToStateTranslator;
-	using StringToStateDict           = VATA::AutBase::StringToStateDict;
-	using SymbolBackTranslatorStrict  =
-		VATA::BDDBottomUpTreeAut::SymbolBackTranslatorStrict;
+	using BDD             = MTBDDPkg::OndriksMTBDD<bool>;
 
 	using Convert       = VATA::Util::Convert;
 
@@ -90,7 +85,8 @@ private:  // methods
 	void loadFromAutDescSymbolic(
 		const AutDescription&     /* desc */,
 		StateTransFunc            /* stateTranslator */,
-		SymbolTransFunc           /* symbolTranslator */)
+		SymbolTransFunc           /* symbolTranslator */,
+		const std::string&        /* params */)
 	{
 		throw NotImplementedException(__func__);
 	}
@@ -108,12 +104,10 @@ private:  // methods
 
 
 	template <
-		class StateBackTransFunc,
-		class SymbolBackTransFunc
-		>
+		class StateBackTranslFunc>
 	AutDescription dumpToAutDescExplicit(
-		StateBackTransFunc        stateBackTranslator,
-		SymbolBackTransFunc       /* symbolBackTranslator */) const
+		StateBackTranslFunc       stateBackTransl,
+		const SymbolDict&         symbolDict) const
 	{
 		GCC_DIAG_OFF(effc++)
 		class CondColApplyFunctor :
@@ -160,13 +154,13 @@ private:  // methods
 		// copy final states
 		for (const StateType& fst : finalStates_)
 		{	// copy final states
-			desc.finalStates.insert(stateBackTranslator(fst));
+			desc.finalStates.insert(stateBackTransl(fst));
 		}
 
 		CondColApplyFunctor collector;
 
 		// copy states, transitions and symbols
-		for (auto tupleBddPair : GetTransTable())
+		for (auto tupleBddPair : this->GetTransTable())
 		{	// for all states
 			const StateTuple& children = tupleBddPair.first;
 
@@ -174,7 +168,7 @@ private:  // methods
 
 			for (const StateType& state : children)
 			{
-				std::string stateStr = stateBackTranslator(state);
+				std::string stateStr = stateBackTransl(state);
 
 				tupleStr.push_back(stateStr);
 				desc.states.insert(stateStr);
@@ -182,17 +176,19 @@ private:  // methods
 
 			const TransMTBDD& transMtbdd = tupleBddPair.second;
 
-			for (auto sym : this->GetSymbolDict())
+			for (auto strSymbol : symbolDict)
 			{	// iterate over all known symbols
-				const std::string& symbol = sym.first;
-				BDD symbolBdd(sym.second, true, false);
+				const std::string& symbol = strSymbol.first;
+				// ignore rank
+
+				BDD symbolBdd(strSymbol.second, true, false);
 
 				collector.Clear();
 				collector(transMtbdd, symbolBdd);
 
 				for (const StateType& state : collector.GetAccumulator())
 				{	// for each state tuple for which there is a transition
-					std::string stateStr = stateBackTranslator(state);
+					std::string stateStr = stateBackTransl(state);
 
 					desc.transitions.insert(AutDescription::Transition(tupleStr, symbol,
 						stateStr));
@@ -205,17 +201,18 @@ private:  // methods
 
 
 	template <
-		class StateTransFunc,
-		class SymbolTransFunc
+		class StateTranslFunc,
+		class SymbolTranslFunc
 		>
 	void loadFromAutDescExplicit(
 		const AutDescription&      desc,
-		StateTransFunc             stateTranslator,
-		SymbolTransFunc            symbolTranslator)
+		StateTranslFunc            stateTransl,
+		SymbolTranslFunc           symbolTransl,
+		const std::string&         /* params */)
 	{
 		for (const AutDescription::State& fst : desc.finalStates)
 		{	// traverse final states
-			finalStates_.insert(stateTranslator(fst));
+			finalStates_.insert(stateTransl(fst));
 		}
 
 		for (const AutDescription::Transition& trans : desc.transitions)
@@ -225,17 +222,17 @@ private:  // methods
 			const AutDescription::State& parentStr = trans.third;
 
 			// translate the parent state
-			StateType parent = stateTranslator(parentStr);
+			StateType parent = stateTransl(parentStr);
 
 			// translate children
 			StateTuple children;
-			for (auto tupState : childrenStr)
+			for (const std::string& tupState : childrenStr)
 			{	// for all children states
-				children.push_back(stateTranslator(tupState));
+				children.push_back(stateTransl(tupState));
 			}
 
 			// translate the symbol
-			SymbolType symbol = symbolTranslator(symbolStr);
+			SymbolType symbol = symbolTransl(symbolStr);
 
 			this->AddTransition(children, symbol, parent);
 		}
@@ -351,54 +348,64 @@ public:   // methods
 
 	TransMTBDD ReindexStates(
 		BDDBUTreeAutCore&          dstAut,
-		StateToStateTranslator&    stateTrans) const;
+		StateToStateTranslWeak&    stateTrans) const;
 
 
 	BDDBUTreeAutCore ReindexStates(
-		StateToStateTranslator&    stateTrans) const;
+		StateToStateTranslWeak&    stateTrans) const;
 
 
 	template <
-		class StateBackTransFunc,
-		class SymbolTransFunc
-		>
-	std::string DumpToString(
+		class StateBackTranslFunc>
+	std::string DumpToStringWithStateTransl(
 		VATA::Serialization::AbstrSerializer&      serializer,
-		StateBackTransFunc                         stateBackTranslator,
-		SymbolTransFunc                            symbolTranslator,
+		StateBackTranslFunc                        stateBackTransl,
+		const SymbolDict&                          symbolDict,
 		const std::string&                         params = "") const
 	{
 		AutDescription desc;
 		if ("symbolic" == params)
 		{
-			desc = dumpToAutDescSymbolic(stateBackTranslator, symbolTranslator);
+			desc = dumpToAutDescSymbolic(stateBackTransl, symbolDict);
 		}
 		else
 		{
-			desc = dumpToAutDescExplicit(stateBackTranslator, symbolTranslator);
+			desc = dumpToAutDescExplicit(stateBackTransl, symbolDict);
 		}
 
 		return serializer.Serialize(desc);
 	}
 
+
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&      serializer,
-		const StringToStateDict&                   stateDict) const;
+		const std::string&                         params = "") const;
 
 
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&      serializer) const;
-
-
-	template <class SymbolTransFunc>
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&      serializer,
-		SymbolTransFunc                            symbolTranslator,
+		const StateDict&                           stateDict,
+		const std::string&                         params = "") const;
+
+
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&      serializer,
+		const StateDict&                           stateDict,
+		const SymbolDict&                          symbolDict,
+		const std::string&                         params = "") const;
+
+
+	template <class SymbolTranslFunc>
+	std::string DumpToStringWithSymbolTransl(
+		VATA::Serialization::AbstrSerializer&      serializer,
+		SymbolTranslFunc                           symbolTransl,
 		const std::string&                         params = "") const
 	{
-		return DumpToString(serializer,
+		return DumpToString(
+			serializer,
 			[](const StateType& state){return Convert::ToString(state);},
-			symbolTranslator, params);
+			symbolTransl,
+			params);
 	}
 
 
@@ -486,27 +493,49 @@ public:   // methods
 	{
 		if (params == "symbolic")
 		{
-			loadFromAutDescSymbolic(desc, stateTranslator, symbolTranslator);
+			loadFromAutDescSymbolic(desc, stateTranslator, symbolTranslator, params);
 		}
 		else
 		{
-			loadFromAutDescExplicit(desc, stateTranslator, symbolTranslator);
+			loadFromAutDescExplicit(desc, stateTranslator, symbolTranslator, params);
 		}
 	}
 
 
 	void LoadFromAutDesc(
 		const AutDescription&         desc,
-		StringToStateDict&            stateDict);
+		StateDict&                    stateDict,
+		const std::string&            params = "");
+
+
+	void LoadFromAutDesc(
+		const AutDescription&         desc,
+		StateDict&                    stateDict,
+		SymbolDict&                   symbolDict,
+		const std::string&            params = "");
 
 
 	void LoadFromString(
 		VATA::Parsing::AbstrParser&     parser,
 		const std::string&              str,
-		StringToStateDict&              stateDict)
-	{
-		this->LoadFromAutDesc(parser.ParseString(str), stateDict);
-	}
+		StateDict&                      stateDict,
+		const std::string&              params = "");
+
+
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&     parser,
+		const std::string&              str,
+		StateDict&                      stateDict,
+		SymbolDict&                     symbolDict,
+		const std::string&              params = "");
+
+
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&     parser,
+		const std::string&              str,
+		StringToStateTranslWeak&        stateTrans,
+		StringSymbolToSymbolTranslWeak& symbolTrans,
+		const std::string&              params = "");
 };
 
 #endif

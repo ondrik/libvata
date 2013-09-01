@@ -23,7 +23,7 @@ using VATA::ExplicitTreeAutCore;
 ExplicitTreeAutCore::TupleCache ExplicitTreeAutCore::globalTupleCache_;
 
 // pointer to symbol dictionary
-ExplicitTreeAutCore::StringToSymbolDict* ExplicitTreeAutCore::pSymbolDict_ = nullptr;
+ExplicitTreeAutCore::SymbolDict* ExplicitTreeAutCore::pSymbolDict_ = nullptr;
 
 // pointer to next symbol counter
 ExplicitTreeAutCore::SymbolType* ExplicitTreeAutCore::pNextSymbol_ = nullptr;
@@ -69,9 +69,7 @@ ExplicitTreeAutCore& ExplicitTreeAutCore::operator=(
 	{
 		finalStates_ = rhs.finalStates_;
 		transitions_ = rhs.transitions_;
-
 		// NOTE: we don't care about cache_
-
 	}
 
 	return *this;
@@ -93,34 +91,48 @@ ExplicitTreeAutCore& ExplicitTreeAutCore::operator=(
 
 void ExplicitTreeAutCore::LoadFromAutDesc(
 	const AutDescription&             desc,
-	StringToStateDict&                stateDict)
+	StateDict&                        stateDict,
+	SymbolDict&                       symbolDict,
+	const std::string&                params)
 {
-	typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
-		StateTranslator;
-	typedef VATA::Util::TranslatorWeak<StringToSymbolDict>
-		SymbolTranslator;
+	StateType state(0);
+	SymbolType symbol = ExplicitTreeAut::GetZeroSymbol();
 
-	StateType stateCnt = 0;
+	this->LoadFromAutDescWithStateSymbolTransl(
+		desc,
+		StringToStateTranslWeak(stateDict,
+			[&state](const std::string&){return state++;}),
+		StringSymbolToSymbolTranslWeak(symbolDict,
+			[&symbol](const StringSymbolType&){return symbol++;}),
+		params);
+}
 
-	SymbolTranslator symTrans(
-		this->GetSymbolDict(),
-		[this](const StringRank&){return this->AddSymbol();});
 
+void ExplicitTreeAutCore::LoadFromAutDesc(
+	const AutDescription&             desc,
+	StateDict&                        stateDict,
+	const std::string&                params)
+{
 	this->LoadFromAutDesc(
 		/* automaton description */ desc,
-		/* state translator */ StateTranslator(stateDict,
-			[&stateCnt](const std::string&){return stateCnt++;}),
-		/* symbol translator */ symTrans
-		);
+		/* state dictionary */ stateDict,
+		/* symbol translator */ this->GetSymbolDict(),
+		/* parameters */ params);
 }
 
 
 void ExplicitTreeAutCore::LoadFromString(
 	VATA::Parsing::AbstrParser&       parser,
 	const std::string&                str,
-	StringToStateDict&                stateDict)
+	StateDict&                        stateDict,
+	SymbolDict&                       symbolDict,
+	const std::string&                params)
 {
-	this->LoadFromAutDesc(parser.ParseString(str), stateDict);
+	this->LoadFromAutDesc(
+		parser.ParseString(str),
+		stateDict,
+		symbolDict,
+		params);
 }
 
 
@@ -145,47 +157,51 @@ ExplicitTreeAutCore ExplicitTreeAutCore::Reduce() const
 		StateType,
 		std::unordered_map<StateType, StateType>,
 		std::unordered_map<StateType, StateType>
-	> StateDict;
+	> StateMap;
 
 	size_t stateCnt = 0;
 
-	StateDict stateDict;
-	Util::TranslatorWeak<StateDict> stateTranslator(
-		stateDict, [&stateCnt](const StateType&){ return stateCnt++; }
+	StateMap stateMap;
+	Util::TranslatorWeak<StateMap> stateTranslator(
+		stateMap, [&stateCnt](const StateType&){ return stateCnt++; }
 	);
 
 	this->BuildStateIndex(stateTranslator);
 
 	AutBase::StateBinaryRelation sim = this->ComputeDownwardSimulation(
-		stateDict.size(), Util::TranslatorStrict<StateDict>(stateDict)
+		stateMap.size(), Util::TranslatorStrict<StateMap>(stateMap)
 	);
 
 	return this->CollapseStates(
-			sim, Util::TranslatorStrict<StateDict::MapBwdType>(stateDict.GetReverseMap())
-		).RemoveUnreachableStates(sim, Util::TranslatorStrict<StateDict>(stateDict)
+			sim, Util::TranslatorStrict<StateMap::MapBwdType>(stateMap.GetReverseMap())
+		).RemoveUnreachableStates(sim, Util::TranslatorStrict<StateMap>(stateMap)
 	);
-}
-
-
-std::string ExplicitTreeAutCore::DumpToString(
-	VATA::Serialization::AbstrSerializer&     serializer) const
-{
-	return this->DumpToString(serializer,
-		[](const StateType& state){return Convert::ToString(state);},
-		SymbolBackTranslatorStrict(this->GetSymbolDict().GetReverseMap()));
 }
 
 
 std::string ExplicitTreeAutCore::DumpToString(
 	VATA::Serialization::AbstrSerializer&     serializer,
-	const StringToStateDict&                  stateDict) const
+	const std::string&                        params) const
 {
-	struct SymbolTranslatorPrinter
-	{
-		const SymbolBackTranslatorStrict& translator;
+	return this->DumpToString(
+		serializer,
+		[](const StateType& state){return Convert::ToString(state);},
+		SymbolBackTranslStrict(this->GetSymbolDict().GetReverseMap()),
+		params);
+}
 
-		explicit SymbolTranslatorPrinter(
-			const SymbolBackTranslatorStrict&       transl) :
+
+std::string ExplicitTreeAutCore::DumpToString(
+	VATA::Serialization::AbstrSerializer&     serializer,
+	const StateDict&                          stateDict,
+	const std::string&                        params) const
+{
+	struct SymbolTranslPrinter
+	{
+		const SymbolBackTranslStrict& translator;
+
+		explicit SymbolTranslPrinter(
+			const SymbolBackTranslStrict&       transl) :
 			translator(transl)
 		{ }
 
@@ -196,13 +212,65 @@ std::string ExplicitTreeAutCore::DumpToString(
 		}
 	};
 
-	SymbolTranslatorPrinter printer(
-		SymbolBackTranslatorStrict(GetSymbolDict().GetReverseMap()));
+	SymbolTranslPrinter printer(
+		SymbolBackTranslStrict(GetSymbolDict().GetReverseMap()));
 
-	return this->DumpToString(serializer,
-		StateBackTranslatorStrict(stateDict.GetReverseMap()),
-		printer);
+	return this->DumpToString(
+		serializer,
+		StateBackTranslStrict(stateDict.GetReverseMap()),
+		printer,
+		params);
 }
+
+
+std::string ExplicitTreeAutCore::DumpToString(
+	VATA::Serialization::AbstrSerializer&  serializer,
+	const StateDict&                       stateDict,
+	const SymbolDict&                      symbolDict,
+	const std::string&                     params) const
+{
+	return this->DumpToString(
+		serializer,
+		StateBackTranslStrict(stateDict.GetReverseMap()),
+		SymbolBackTranslStrict(symbolDict.GetReverseMap()),
+		params);
+}
+
+
+#if 0
+std::string ExplicitTreeAutCore::DumpToString(
+	VATA::Serialization::AbstrSerializer&  serializer,
+	const StateBackTranslStrict&           stateTransl,
+	const SymbolBackTranslStrict&          symbolTransl,
+	const std::string&                     /* params */) const
+{
+	AutDescription desc;
+
+	for (const StateType& s : finalStates_)
+	{
+		desc.finalStates.insert(stateTransl(s));
+	}
+
+	for (const Transition& t : *this)
+	{
+		std::vector<std::string> tupleStr;
+
+		for (const StateType& s : t.children())
+		{
+			tupleStr.push_back(stateTrans(s));
+		}
+
+		AutDescription::Transition trans(
+			tupleStr,
+			symbolTrans(t.symbol()).symbolStr,
+			stateTrans(t.parent()));
+
+		desc.transitions.insert(trans);
+	}
+
+	return serializer.Serialize(desc);
+}
+#endif
 
 
 AutBase::StateBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(

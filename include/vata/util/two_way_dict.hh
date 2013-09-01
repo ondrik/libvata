@@ -13,6 +13,10 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/util/convert.hh>
+
+// Standard library headers
+#include <map>
 
 
 namespace VATA
@@ -79,7 +83,7 @@ public:   // Public methods
 		bwdMap_()
 	{ }
 
-	inline const Type2& TranslateFwd(const Type1& t1) const
+	const Type2& TranslateFwd(const Type1& t1) const
 	{
 		ConstIteratorFwd itFwd;
 		if ((itFwd = fwdMap_.find(t1)) == EndFwd())
@@ -90,7 +94,7 @@ public:   // Public methods
 		return itFwd->second;
 	}
 
-	inline const Type1& TranslateBwd(const Type2& t2) const
+	const Type1& TranslateBwd(const Type2& t2) const
 	{
 		ConstIteratorBwd itBwd;
 		if ((itBwd = bwdMap_.find(t2)) == EndBwd())
@@ -101,59 +105,59 @@ public:   // Public methods
 		return itBwd->second;
 	}
 
-	inline const_iterator find(const Type1& t1) const
+	const_iterator find(const Type1& t1) const
 	{
 		return FindFwd(t1);
 	}
 
-	inline ConstIteratorFwd FindFwd(const Type1& t1) const
+	ConstIteratorFwd FindFwd(const Type1& t1) const
 	{
 		return fwdMap_.find(t1);
 	}
 
-	inline ConstIteratorBwd FindBwd(const Type2& t2) const
+	ConstIteratorBwd FindBwd(const Type2& t2) const
 	{
 		return bwdMap_.find(t2);
 	}
 
-	inline const_iterator begin() const
+	const_iterator begin() const
 	{
 		return BeginFwd();
 	}
 
-	inline const_iterator end() const
+	const_iterator end() const
 	{
 		return EndFwd();
 	}
 
-	inline ConstIteratorFwd BeginFwd() const
+	ConstIteratorFwd BeginFwd() const
 	{
 		return fwdMap_.begin();
 	}
 
-	inline ConstIteratorBwd BeginBwd() const
+	ConstIteratorBwd BeginBwd() const
 	{
 		return bwdMap_.begin();
 	}
 
-	inline ConstIteratorFwd EndFwd() const
+	ConstIteratorFwd EndFwd() const
 	{
 		return fwdMap_.end();
 	}
 
-	inline ConstIteratorBwd EndBwd() const
+	ConstIteratorBwd EndBwd() const
 	{
 		return bwdMap_.end();
 	}
 
-	inline std::pair<ConstIteratorFwd, bool> insert(
+	std::pair<ConstIteratorFwd, bool> insert(
 		const std::pair<Type1, Type2>& value)
 	{
 		return Insert(value);
 	}
 
-	inline std::pair<ConstIteratorFwd, bool> Insert(
-		const std::pair<Type1, Type2>& value)
+	std::pair<ConstIteratorFwd, bool> Insert(
+		const std::pair<Type1, Type2>&    value)
 	{
 		auto resPair = fwdMap_.insert(value);
 		if (!(resPair.second))
@@ -169,7 +173,8 @@ public:   // Public methods
 		return resPair;
 	}
 
-	TwoWayDict Union(const TwoWayDict& rhs) const
+	TwoWayDict Union(
+		const TwoWayDict&         rhs) const
 	{
 		TwoWayDict result = *this;
 
@@ -188,18 +193,19 @@ public:   // Public methods
 		return result;
 	}
 
-	inline const MapBwdType& GetReverseMap() const
+	const MapBwdType& GetReverseMap() const
 	{
 		return bwdMap_;
 	}
 
-	inline size_t size() const
+	size_t size() const
 	{
 		return this->fwdMap_.size();
 	}
 
-	friend std::ostream& operator<<(std::ostream& os,
-		const TwoWayDict& dict)
+	friend std::ostream& operator<<(
+		std::ostream&         os,
+		const TwoWayDict&     dict)
 	{
 		return (os << Convert::ToString(dict.fwdMap_));
 	}

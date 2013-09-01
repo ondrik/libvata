@@ -15,7 +15,7 @@
 #include <vata/vata.hh>
 #include <vata/aut_base.hh>
 #include <vata/bdd_td_tree_aut.hh>
-#include <vata/symbolic_aut_base.hh>
+#include <vata/symbolic.hh>
 #include <vata/notimpl_except.hh>
 #include <vata/incl_param.hh>
 
@@ -35,23 +35,22 @@ namespace VATA
 }
 
 GCC_DIAG_OFF(effc++)
-class VATA::BDDBottomUpTreeAut : public SymbolicAutBase
+class VATA::BDDBottomUpTreeAut : public SymbolicTreeAutBase
 {
 GCC_DIAG_ON(effc++)
 
 public:   // data types
 
-	using SymbolType = VATA::SymbolicVarAsgn;
+	using StateTuple = TreeAutBase::StateTuple;
+	using SymbolType = Symbolic::SymbolType;
 
-	using StateBackTranslatorStrict =
-		VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>;
-
-	using SymbolBackTranslatorStrict =
-		VATA::Util::TranslatorStrict<StringToSymbolDict::MapBwdType>;
-
-	using  StateTuple = std::vector<StateType>;
-
-	typedef VATA::Util::TranslatorStrict<StringToSymbolDict> SymbolTranslatorStrict;
+//	using StateBackTranslatorStrict =
+//		VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>;
+//
+//	using SymbolBackTranslatorStrict =
+//		VATA::Util::TranslatorStrict<StringRankToSymbolDict::MapBwdType>;
+//	using SymbolTranslatorStrict     =
+//		VATA::Util::TranslatorStrict<StringRankToSymbolDict>;
 
 	// FIXME: only stub
 	typedef std::vector<SymbolType> AlphabetType;
@@ -67,14 +66,6 @@ private:  // methods
 
 	explicit BDDBottomUpTreeAut(
 		BDDBUTreeAutCore&&             core);
-
-	void SetStateFinal(
-		const StateType&               state);
-
-
-	bool IsStateFinal(
-		const StateType&               state) const;
-
 
 public:   // methods
 
@@ -95,46 +86,73 @@ public:   // methods
 	~BDDBottomUpTreeAut();
 
 
+	void SetStateFinal(
+		const StateType&               state);
+
+
+	bool IsStateFinal(
+		const StateType&               state) const;
+
+
+
 	void AddTransition(
 		const StateTuple&      children,
-		SymbolType             symbol,
+		const SymbolType&      symbol,
 		const StateType&       parent);
-
 
 
 	void LoadFromString(
 		VATA::Parsing::AbstrParser&     parser,
 		const std::string&              str,
-		StringToStateDict&              stateDict);
+		StateDict&                      stateDict,
+		const std::string&              params = "");
 
 
-	template <
-		class StateTransFunc,
-		class SymbolTransFunc
-		>
 	void LoadFromString(
-		VATA::Parsing::AbstrParser&       parser,
-		const std::string&                str,
-		StateTransFunc                    stateTranslator,
-		SymbolTransFunc                   symbolTranslator,
-		const std::string&                params = "")
-	{
-		LoadFromAutDesc(parser.ParseString(str), stateTranslator,
-				symbolTranslator, params);
-	}
+		VATA::Parsing::AbstrParser&     parser,
+		const std::string&              str,
+		StateDict&                      stateDict,
+		SymbolDict&                     symbolDict,
+		const std::string&              params = "");
+
+
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&     parser,
+		const std::string&              str,
+		StringToStateTranslWeak&        stateTrans,
+		StringSymbolToSymbolTranslWeak& symbolTrans,
+		const std::string&              params = "");
+
 
 	void LoadFromAutDesc(
 		const AutDescription&         desc,
-		StringToStateDict&            stateDict);
-
-
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&      serializer) const;
+		StateDict&                    stateDict,
+		const std::string&            params = "");
 
 
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&      serializer,
-		const StringToStateDict&                   stateDict) const;
+		const std::string&                         params = "") const;
+
+
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&      serializer,
+		const StateDict&                           stateDict,
+		const std::string&                         params = "") const;
+
+
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&      serializer,
+		const StateDict&                           stateDict,
+		const SymbolDict&                          symbolDict,
+		const std::string&                         params = "") const;
+
+
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&  serializer,
+		const StateBackTranslStrict&           stateTransl,
+		const SymbolBackTranslStrict&          symbolTransl,
+		const std::string&                     params = "") const;
 
 
 	template <
@@ -148,14 +166,8 @@ public:   // methods
 	}
 
 
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&      serializer,
-		const StateBackTranslatorStrict&           stateTrans,
-		const SymbolBackTranslatorStrict&          symbolTrans) const;
-
-
 	BDDBottomUpTreeAut ReindexStates(
-		StateToStateTranslator&       trans);
+		StateToStateTranslWeak&       trans);
 
 
 	std::string DumpToDot() const;

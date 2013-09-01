@@ -79,6 +79,17 @@ BDDBottomUpTreeAut::~BDDBottomUpTreeAut()
 { }
 
 
+void BDDBottomUpTreeAut::AddTransition(
+	const StateTuple&      children,
+	const SymbolType&      symbol,
+	const StateType&       parent)
+{
+	assert(nullptr != core_);
+
+	core_->AddTransition(children, symbol, parent);
+}
+
+
 void BDDBottomUpTreeAut::SetStateFinal(
 	const StateType&               state)
 {
@@ -100,51 +111,94 @@ bool BDDBottomUpTreeAut::IsStateFinal(
 void BDDBottomUpTreeAut::LoadFromString(
 	VATA::Parsing::AbstrParser&     parser,
 	const std::string&              str,
-	StringToStateDict&              stateDict)
+	StateDict&                      stateDict,
+	const std::string&              params)
 {
 	assert(nullptr != core_);
 
-	core_->LoadFromString(parser, str, stateDict);
+	core_->LoadFromString(parser, str, stateDict, params);
+}
+
+
+void BDDBottomUpTreeAut::LoadFromString(
+	VATA::Parsing::AbstrParser&     parser,
+	const std::string&              str,
+	StateDict&                      stateDict,
+	SymbolDict&                     symbolDict,
+	const std::string&              params)
+{
+	assert(nullptr != core_);
+
+	core_->LoadFromString(parser, str, stateDict, symbolDict, params);
+}
+
+
+void BDDBottomUpTreeAut::LoadFromString(
+	VATA::Parsing::AbstrParser&     parser,
+	const std::string&              str,
+	StringToStateTranslWeak&        stateTrans,
+	StringSymbolToSymbolTranslWeak& symbolTrans,
+	const std::string&              params)
+{
+	assert(nullptr != core_);
+
+	core_->LoadFromString(parser, str, stateTrans, symbolTrans, params);
 }
 
 
 void BDDBottomUpTreeAut::LoadFromAutDesc(
 	const AutDescription&         desc,
-	StringToStateDict&            stateDict)
+	StateDict&                    stateDict,
+	const std::string&            params)
 {
 	assert(nullptr != core_);
 
-	core_->LoadFromAutDesc(desc, stateDict);
-}
-
-
-std::string BDDBottomUpTreeAut::DumpToString(
-	VATA::Serialization::AbstrSerializer&      serializer) const
-{
-	assert(nullptr != core_);
-
-	return core_->DumpToString(serializer);
+	core_->LoadFromAutDesc(desc, stateDict, params);
 }
 
 
 std::string BDDBottomUpTreeAut::DumpToString(
 	VATA::Serialization::AbstrSerializer&      serializer,
-	const StringToStateDict&                   stateDict) const
+	const std::string&                         params) const
 {
 	assert(nullptr != core_);
 
-	return core_->DumpToString(serializer, stateDict);
+	return core_->DumpToString(serializer, params);
 }
 
 
 std::string BDDBottomUpTreeAut::DumpToString(
 	VATA::Serialization::AbstrSerializer&      serializer,
-	const StateBackTranslatorStrict&           stateTrans,
-	const SymbolBackTranslatorStrict&          symbolTrans) const
+	const StateDict&                           stateDict,
+	const std::string&                         params) const
 {
 	assert(nullptr != core_);
 
-	return core_->DumpToString(serializer, stateTrans, symbolTrans);
+	return core_->DumpToString(serializer, stateDict, params);
+}
+
+
+std::string BDDBottomUpTreeAut::DumpToString(
+	VATA::Serialization::AbstrSerializer&      serializer,
+	const StateDict&                           stateDict,
+	const SymbolDict&                          symbolDict,
+	const std::string&                         params) const
+{
+	assert(nullptr != core_);
+
+	return core_->DumpToString(serializer, stateDict, symbolDict, params);
+}
+
+
+std::string BDDBottomUpTreeAut::DumpToString(
+	VATA::Serialization::AbstrSerializer&  /* serializer */,
+	const StateBackTranslStrict&           /* stateTransl */,
+	const SymbolBackTranslStrict&          /* symbolTransl */,
+	const std::string&                     /* params */) const
+{
+	assert(nullptr != core_);
+
+	assert(false);
 }
 
 
@@ -199,7 +253,7 @@ StateBinaryRelation BDDBottomUpTreeAut::ComputeUpwardSimulation(
 
 
 BDDBottomUpTreeAut BDDBottomUpTreeAut::ReindexStates(
-	StateToStateTranslator&       trans)
+	StateToStateTranslWeak&       trans)
 {
 	assert(nullptr != core_);
 

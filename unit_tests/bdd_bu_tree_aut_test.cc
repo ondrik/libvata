@@ -39,7 +39,7 @@ protected:// data types
 	typedef VATA::BDDBottomUpTreeAut AutType;
 	typedef VATA::BDDTopDownTreeAut AutTypeInverted;
 
-	typedef AutType::StringToStateDict StringToStateDict;
+	typedef AutType::StateDict StateDict;
 
 private:  // constants
 
@@ -75,14 +75,14 @@ BOOST_AUTO_TEST_CASE(aut_inversion)
 		BOOST_MESSAGE("Inverting automaton " + filename + "...");
 		std::string autStr = VATA::Util::ReadFile(filename);
 
-		StringToStateDict stateDict;
+		StateDict stateDict;
 		AutType aut;
 		readAut(aut, stateDict, autStr);
 		aut = aut.RemoveUselessStates();
 		AutTypeInverted invertAut = aut.GetTopDownAut();
 		std::string autOut = dumpAut(invertAut, stateDict);
 
-		StringToStateDict stateDictRef;
+		StateDict stateDictRef;
 		AutTypeInverted refAut;
 		readAut(refAut, stateDictRef, autStr);
 		refAut = refAut.RemoveUselessStates();

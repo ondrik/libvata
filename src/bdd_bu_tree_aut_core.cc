@@ -88,27 +88,47 @@ void BDDBUTreeAutCore::AddTransition(
 
 
 std::string BDDBUTreeAutCore::DumpToString(
-	VATA::Serialization::AbstrSerializer&      serializer) const
+	VATA::Serialization::AbstrSerializer&      serializer,
+	const std::string&                         params) const
 {
-	return this->DumpToString(serializer,
+	return this->DumpToStringWithStateTransl(
+		serializer,
 		[](const StateType& state){return Convert::ToString(state);},
-		SymbolBackTranslatorStrict(this->GetSymbolDict().GetReverseMap()));
+		this->GetSymbolDict(),
+		params);
 }
 
 
 std::string BDDBUTreeAutCore::DumpToString(
 	VATA::Serialization::AbstrSerializer&      serializer,
-	const StringToStateDict&                   stateDict) const
+	const StateDict&                           stateDict,
+	const std::string&                         params) const
 {
-	return this->DumpToString(serializer,
-		StateBackTranslatorStrict(stateDict.GetReverseMap()),
-		SymbolBackTranslatorStrict(this->GetSymbolDict().GetReverseMap()));
+	return this->DumpToString(
+		serializer,
+		stateDict,
+		this->GetSymbolDict(),
+		params);
+}
+
+
+std::string BDDBUTreeAutCore::DumpToString(
+	VATA::Serialization::AbstrSerializer&      serializer,
+	const StateDict&                           stateDict,
+	const SymbolDict&                          symbolDict,
+	const std::string&                         params) const
+{
+	return this->DumpToStringWithStateTransl(
+		serializer,
+		StateBackTranslStrict(stateDict.GetReverseMap()),
+		symbolDict,
+		params);
 }
 
 
 BDDBUTreeAutCore::TransMTBDD BDDBUTreeAutCore::ReindexStates(
 	BDDBUTreeAutCore&          dstAut,
-	StateToStateTranslator&    stateTrans) const
+	StateToStateTranslWeak&    stateTransl) const
 {
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class RewriteApplyFunctor :
@@ -118,35 +138,35 @@ BDDBUTreeAutCore::TransMTBDD BDDBUTreeAutCore::ReindexStates(
 	GCC_DIAG_ON(effc++)
 	private:  // data members
 
-		StateToStateTranslator& trans_;
+		StateToStateTranslWeak& transl_;
 
 	public:   // methods
 
-		RewriteApplyFunctor(StateToStateTranslator& trans) :
-			trans_(trans)
+		RewriteApplyFunctor(StateToStateTranslWeak& transl) :
+			transl_(transl)
 		{ }
 
-		inline StateSet ApplyOperation(const StateSet& value)
+		StateSet ApplyOperation(const StateSet& value)
 		{
 			StateSet result;
 
 			for (const StateType& state : value)
 			{ // for every state
-				result.insert(trans_(state));
+				result.insert(transl_(state));
 			}
 
 			return result;
 		}
 	};
 
-	RewriteApplyFunctor rewriter(stateTrans);
+	RewriteApplyFunctor rewriter(stateTransl);
 	for (auto tupleBddPair : transTable_)
 	{
 		const StateTuple& oldTuple = tupleBddPair.first;
 		StateTuple newTuple;
 		for (const StateType& state : oldTuple)
 		{
-			newTuple.push_back(stateTrans(state));
+			newTuple.push_back(stateTransl(state));
 		}
 		assert(newTuple.size() == oldTuple.size());
 
@@ -155,7 +175,7 @@ BDDBUTreeAutCore::TransMTBDD BDDBUTreeAutCore::ReindexStates(
 
 	for (const StateType& fst : this->GetFinalStates())
 	{
-		dstAut.SetStateFinal(stateTrans(fst));
+		dstAut.SetStateFinal(stateTransl(fst));
 	}
 
 	TransMTBDD nullaryBdd = rewriter(this->GetMtbdd(StateTuple()));
@@ -166,10 +186,10 @@ BDDBUTreeAutCore::TransMTBDD BDDBUTreeAutCore::ReindexStates(
 
 
 BDDBUTreeAutCore BDDBUTreeAutCore::ReindexStates(
-	StateToStateTranslator&    stateTrans) const
+	StateToStateTranslWeak&    stateTransl) const
 {
 	BDDBUTreeAutCore res;
-	this->ReindexStates(res, stateTrans);
+	this->ReindexStates(res, stateTransl);
 
 	return res;
 }
@@ -244,7 +264,7 @@ BDDTDTreeAutCore BDDBUTreeAutCore::GetTopDownAut() const
 			SymbolType prefix(BDDTDTreeAutCore::SYMBOL_ARITY_LENGTH,
 				checkedTuple.size());
 			TransMTBDD extendedBdd = tupleBddPair.second.ExtendWith(prefix,
-				VATA::SymbolicAutBase::SYMBOL_SIZE);
+				Symbolic::SYMBOL_SIZE);
 
 			result.SetMtbdd(state, invertFunc(
 				extendedBdd, result.GetMtbdd(state)));
@@ -269,18 +289,62 @@ std::string BDDBUTreeAutCore::DumpToDot() const
 
 void BDDBUTreeAutCore::LoadFromAutDesc(
 	const AutDescription&         desc,
-	StringToStateDict&            stateDict)
+	StateDict&                    stateDict,
+	SymbolDict&                   symbolDict,
+	const std::string&            params)
 {
-	typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
-		StateTranslator;
-	typedef VATA::Util::TranslatorWeak<StringToSymbolDict>
-		SymbolTranslator;
-
 	StateType stateCnt = 0;
 
-	this->LoadFromAutDesc(desc,
-		StateTranslator(stateDict,
+	this->LoadFromAutDesc(
+		desc,
+		StringToStateTranslWeak(stateDict,
 			[&stateCnt](const std::string&){return stateCnt++;}),
-		SymbolTranslator(GetSymbolDict(),
-			[this](const std::string&){return AddSymbol();}));
+		StringSymbolToSymbolTranslWeak(symbolDict,
+			[this](const StringSymbolType&){return this->AddSymbol();}),
+		params);
+}
+
+
+void BDDBUTreeAutCore::LoadFromAutDesc(
+	const AutDescription&         desc,
+	StateDict&                    stateDict,
+	const std::string&            params)
+{
+	this->LoadFromAutDesc(
+		desc,
+		stateDict,
+		this->GetSymbolDict(),
+		params);
+}
+
+
+void BDDBUTreeAutCore::LoadFromString(
+	VATA::Parsing::AbstrParser&     parser,
+	const std::string&              str,
+	StringToStateTranslWeak&        stateTransl,
+	StringSymbolToSymbolTranslWeak& symbolTransl,
+	const std::string&              params)
+{
+	this->LoadFromAutDesc(parser.ParseString(str), stateTransl, symbolTransl, params);
+}
+
+
+void BDDBUTreeAutCore::LoadFromString(
+	VATA::Parsing::AbstrParser&     parser,
+	const std::string&              str,
+	StateDict&                      stateDict,
+	const std::string&              params)
+{
+	this->LoadFromAutDesc(parser.ParseString(str), stateDict, params);
+}
+
+
+void BDDBUTreeAutCore::LoadFromString(
+	VATA::Parsing::AbstrParser&     parser,
+	const std::string&              str,
+	StateDict&                      stateDict,
+	SymbolDict&                     symbolDict,
+	const std::string&              params)
+{
+	this->LoadFromAutDesc(parser.ParseString(str), stateDict, symbolDict, params);
 }
