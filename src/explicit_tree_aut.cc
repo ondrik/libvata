@@ -133,6 +133,20 @@ void ExplicitTreeAut::LoadFromString(
 }
 
 
+void ExplicitTreeAut::LoadFromString(
+	VATA::Parsing::AbstrParser&      parser,
+	const std::string&               str,
+	StateDict&                       stateDict,
+	StringSymbolToSymbolTranslWeak&  symbolTransl,
+	const std::string&               params)
+{
+	assert(nullptr != core_);
+
+	core_->LoadFromStringWithSymbolTransl(
+		parser, str, stateDict, symbolTransl, params);
+}
+
+
 std::string ExplicitTreeAut::DumpToString(
 	VATA::Serialization::AbstrSerializer&     serializer,
 	const std::string&                        params) const

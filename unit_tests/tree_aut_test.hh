@@ -94,6 +94,9 @@ protected:// data members
 
 	SymbolDict symbolDict_;
 
+	StringSymbolToSymbolTranslWeak symbolTransl_{symbolDict_,
+		[&](const StringSymbolType&){return nextSymbol_++;}};
+
 protected:// methods
 
 	TreeAutFixture() :
@@ -108,11 +111,10 @@ protected:// methods
 	template <class Automaton>
 	void readAut(
 		Automaton&                       aut,
-		StringToStateTranslWeak&         stateTrans,
-		StringSymbolToSymbolTranslWeak&  symbolTrans,
+		StringToStateTranslWeak&         stateTransl,
 		const std::string&               str)
 	{
-		aut.LoadFromString(parser_, str, stateTrans, symbolTrans);
+		aut.LoadFromString(parser_, str, stateTransl, symbolTransl_);
 	}
 
 	template <class Automaton>
@@ -121,7 +123,7 @@ protected:// methods
 		StateDict&              stateDict,
 		const std::string&      str)
 	{
-		aut.LoadFromString(parser_, str, stateDict, symbolDict_);
+		aut.LoadFromString(parser_, str, stateDict, symbolTransl_);
 	}
 
 	template <class Automaton>
@@ -356,7 +358,7 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 		StringSymbolToSymbolTranslWeak symbolTransl(
 			/* symbol dictionary */ symbolDict,
 			/* generator of new symbols*/ [&symbol](const StringSymbolType&){return symbol++;});
-		readAut(aut, stateTransl, symbolTransl, autStr);
+		readAut(aut, stateTransl, autStr);
 
 		AutDescription autDesc = parser_.ParseString(autStr);
 
@@ -390,15 +392,10 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 				children.push_back(childState);
 			}
 
-			VATA_DEBUG("Adding transition " << parState << " -> " << symbol << Convert::ToString(children));
 			aut.AddTransition(children, symbol, parState);
 		}
 
-		VATA_DEBUG("State dictionary " << stateDict);
-
 		std::string autTransStr = aut.DumpToString(serializer_, stateDict, symbolDict);
-
-		VATA_DEBUG("Dumped aut: " << autTransStr);
 
 		AutDescription descOut = parser_.ParseString(autTransStr);
 		AutDescription descCorrect = parser_.ParseString(autCorrectStr);

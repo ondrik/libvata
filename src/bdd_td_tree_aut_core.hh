@@ -569,15 +569,23 @@ public:   // methods
 	}
 
 
-	template <class SymbolTransFunc>
+	template <class SymbolTranslFunc>
 	void LoadFromStringWithSymbolTransl(
 		VATA::Parsing::AbstrParser&      parser,
 		const std::string&               str,
-		SymbolTransFunc                  symbolTranslator)
+		StateDict&                       stateDict,
+		SymbolTranslFunc                 symbolTransl,
+		const std::string&               params)
 	{
-		StateDict dict;
+		StateType state(0);
 
-		LoadFromString(parser, str, StringToStateTranslWeak(dict, *this), symbolTranslator);
+		this->LoadFromStringWithStateSymbolTransl(
+			parser,
+			str,
+			StringToStateTranslWeak(stateDict,
+				[&state](const std::string&){return state++;}),
+			symbolTransl,
+			params);
 	}
 
 

@@ -120,7 +120,15 @@ public:   // methods
 		VATA::Parsing::AbstrParser&     parser,
 		const std::string&              str,
 		StringToStateTranslWeak&        stateTrans,
-		StringSymbolToSymbolTranslWeak& symbolTrans,
+		StringSymbolToSymbolTranslWeak& symbolTransl,
+		const std::string&              params = "");
+
+
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&     parser,
+		const std::string&              str,
+		StateDict&                      stateDict,
+		StringSymbolToSymbolTranslWeak& symbolTransl,
 		const std::string&              params = "");
 
 

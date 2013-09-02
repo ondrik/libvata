@@ -482,22 +482,22 @@ public:   // methods
 		size_t                    size) const;
 
 	template <
-		class StateTransFunc,
-		class SymbolTransFunc
+		class StateTranslFunc,
+		class SymbolTranslFunc
 		>
-	void LoadFromAutDesc(
+	void LoadFromAutDescWithStateSymbolTransl(
 		const AutDescription&       desc,
-		StateTransFunc              stateTranslator,
-		SymbolTransFunc             symbolTranslator,
+		StateTranslFunc             stateTransl,
+		SymbolTranslFunc            symbolTransl,
 		const std::string&          params = "")
 	{
 		if (params == "symbolic")
 		{
-			loadFromAutDescSymbolic(desc, stateTranslator, symbolTranslator, params);
+			loadFromAutDescSymbolic(desc, stateTransl, symbolTransl, params);
 		}
 		else
 		{
-			loadFromAutDescExplicit(desc, stateTranslator, symbolTranslator, params);
+			loadFromAutDescExplicit(desc, stateTransl, symbolTransl, params);
 		}
 	}
 
@@ -530,12 +530,40 @@ public:   // methods
 		const std::string&              params = "");
 
 
-	void LoadFromString(
+	template <
+		class StateTranslFunc,
+		class SymbolTranslFunc>
+	void LoadFromStringWithStateSymbolTransl(
 		VATA::Parsing::AbstrParser&     parser,
 		const std::string&              str,
-		StringToStateTranslWeak&        stateTrans,
-		StringSymbolToSymbolTranslWeak& symbolTrans,
-		const std::string&              params = "");
+		StateTranslFunc                 stateTransl,
+		SymbolTranslFunc                symbolTransl,
+		const std::string&              params = "")
+	{
+		this->LoadFromAutDescWithStateSymbolTransl(
+			parser.ParseString(str), stateTransl, symbolTransl, params);
+	}
+
+
+	template <
+		class SymbolTranslFunc>
+	void LoadFromStringWithSymbolTransl(
+		VATA::Parsing::AbstrParser&     parser,
+		const std::string&              str,
+		StateDict&                      stateDict,
+		SymbolTranslFunc                symbolTransl,
+		const std::string&              params = "")
+	{
+		StateType state(0);
+
+		this->LoadFromStringWithStateSymbolTransl(
+			parser,
+			str,
+			StringToStateTranslWeak(stateDict,
+				[&state](const std::string&){return state++;}),
+			symbolTransl,
+			params);
+	}
 };
 
 #endif

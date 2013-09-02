@@ -136,13 +136,28 @@ void BDDBottomUpTreeAut::LoadFromString(
 void BDDBottomUpTreeAut::LoadFromString(
 	VATA::Parsing::AbstrParser&     parser,
 	const std::string&              str,
-	StringToStateTranslWeak&        stateTrans,
-	StringSymbolToSymbolTranslWeak& symbolTrans,
+	StringToStateTranslWeak&        stateTransl,
+	StringSymbolToSymbolTranslWeak& symbolTransl,
 	const std::string&              params)
 {
 	assert(nullptr != core_);
 
-	core_->LoadFromString(parser, str, stateTrans, symbolTrans, params);
+	core_->LoadFromStringWithStateSymbolTransl(
+		parser, str, stateTransl, symbolTransl, params);
+}
+
+
+void BDDBottomUpTreeAut::LoadFromString(
+	VATA::Parsing::AbstrParser&     parser,
+	const std::string&              str,
+	StateDict&                      stateDict,
+	StringSymbolToSymbolTranslWeak& symbolTransl,
+	const std::string&              params)
+{
+	assert(nullptr != core_);
+
+	core_->LoadFromStringWithSymbolTransl(
+		parser, str, stateDict, symbolTransl, params);
 }
 
 

@@ -463,6 +463,27 @@ public:   // methods
 	}
 
 
+	template <
+		class SymbolTranslFunc>
+	void LoadFromStringWithSymbolTransl(
+		VATA::Parsing::AbstrParser&       parser,
+		const std::string&                str,
+		StateDict&                        stateDict,
+		SymbolTranslFunc                  symbolTransl,
+		const std::string&                params = "")
+	{
+		StateType state(0);
+
+		return this->LoadFromStringWithStateSymbolTransl(
+			parser,
+			str,
+			StringToStateTranslWeak(stateDict,
+				[&state](const std::string&){return state++;}),
+			symbolTransl,
+			params);
+	}
+
+
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&     serializer,
 		const std::string&                        params = "") const;

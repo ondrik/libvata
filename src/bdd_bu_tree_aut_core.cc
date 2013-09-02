@@ -295,7 +295,7 @@ void BDDBUTreeAutCore::LoadFromAutDesc(
 {
 	StateType stateCnt = 0;
 
-	this->LoadFromAutDesc(
+	this->LoadFromAutDescWithStateSymbolTransl(
 		desc,
 		StringToStateTranslWeak(stateDict,
 			[&stateCnt](const std::string&){return stateCnt++;}),
@@ -315,17 +315,6 @@ void BDDBUTreeAutCore::LoadFromAutDesc(
 		stateDict,
 		this->GetSymbolDict(),
 		params);
-}
-
-
-void BDDBUTreeAutCore::LoadFromString(
-	VATA::Parsing::AbstrParser&     parser,
-	const std::string&              str,
-	StringToStateTranslWeak&        stateTransl,
-	StringSymbolToSymbolTranslWeak& symbolTransl,
-	const std::string&              params)
-{
-	this->LoadFromAutDesc(parser.ParseString(str), stateTransl, symbolTransl, params);
 }
 
 

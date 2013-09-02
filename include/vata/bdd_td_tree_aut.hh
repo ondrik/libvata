@@ -119,6 +119,14 @@ public:   // public methods
 		const std::string&               params = "");
 
 
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&      parser,
+		const std::string&               str,
+		StateDict&                       stateDict,
+		StringSymbolToSymbolTranslWeak&  symbolTransl,
+		const std::string&               params = "");
+
+
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&      serializer,
 		const std::string&                         params = "") const;
