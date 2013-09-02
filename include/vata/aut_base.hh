@@ -178,6 +178,11 @@ public:   // data types
 			return ((rank < rhs.rank) ||
 				((rank == rhs.rank) && (symbolStr < rhs.symbolStr)));
 		}
+
+		friend std::ostream& operator<<(std::ostream& os, const StringRank& strRank)
+		{
+			return os << strRank.symbolStr << ":" << strRank.rank;
+		}
 	};
 };
 

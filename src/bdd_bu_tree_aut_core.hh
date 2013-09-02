@@ -155,6 +155,7 @@ private:  // methods
 		for (const StateType& fst : finalStates_)
 		{	// copy final states
 			desc.finalStates.insert(stateBackTransl(fst));
+			desc.states.insert(stateBackTransl(fst));
 		}
 
 		CondColApplyFunctor collector;

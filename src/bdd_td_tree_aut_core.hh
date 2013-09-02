@@ -205,6 +205,7 @@ private:  // methods
 		for (const StateType& fst : finalStates_)
 		{	// copy final states
 			desc.finalStates.insert(stateBackTransl(fst));
+			desc.states.insert(stateBackTransl(fst));
 		}
 
 		CondColApplyFunctor collector;
@@ -235,7 +236,10 @@ private:  // methods
 					std::vector<std::string> tupleStr;
 					for (const StateType& tupState : tuple)
 					{	// for each element in the tuple
-						tupleStr.push_back(stateBackTransl(tupState));
+						std::string tupStateStr = stateBackTransl(tupState);
+
+						desc.states.insert(tupStateStr);
+						tupleStr.push_back(tupStateStr);
 					}
 
 					desc.transitions.insert(AutDescription::Transition(tupleStr, symbol,

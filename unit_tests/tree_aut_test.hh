@@ -354,10 +354,6 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 			/* state dictionary */ stateDict,
 			/* generator of new states */ [&state](const std::string&){return state++;});
 
-		SymbolDict symbolDict;
-		StringSymbolToSymbolTranslWeak symbolTransl(
-			/* symbol dictionary */ symbolDict,
-			/* generator of new symbols*/ [&symbol](const StringSymbolType&){return symbol++;});
 		readAut(aut, stateTransl, autStr);
 
 		AutDescription autDesc = parser_.ParseString(autStr);
@@ -377,7 +373,7 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 				aut.SetStateFinal(parState);
 			}
 
-			SymbolType symbol = symbolTransl(AutType::ToStringSymbolType(symbolStr, trans.first.size()));
+			SymbolType symbol = symbolTransl_(AutType::ToStringSymbolType(symbolStr, trans.first.size()));
 
 			StateTuple children;
 			for (const std::string& childStr : trans.first)
@@ -395,7 +391,7 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 			aut.AddTransition(children, symbol, parState);
 		}
 
-		std::string autTransStr = aut.DumpToString(serializer_, stateDict, symbolDict);
+		std::string autTransStr = aut.DumpToString(serializer_, stateDict, symbolDict_);
 
 		AutDescription descOut = parser_.ParseString(autTransStr);
 		AutDescription descCorrect = parser_.ParseString(autCorrectStr);

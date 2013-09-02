@@ -1,6 +1,6 @@
 Ops
 Automaton aut
-States
+States q p
 Final States q p
 Transitions
 a -> q
