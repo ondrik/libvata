@@ -86,7 +86,7 @@ public:   // Public methods
 	const Type2& TranslateFwd(const Type1& t1) const
 	{
 		ConstIteratorFwd itFwd;
-		if ((itFwd = fwdMap_.find(t1)) == EndFwd())
+		if ((itFwd = fwdMap_.find(t1)) == this->EndFwd())
 		{	// in case the value that should be stored there is not
 			assert(false);      // fail gracefully
 		}
@@ -107,7 +107,7 @@ public:   // Public methods
 
 	const_iterator find(const Type1& t1) const
 	{
-		return FindFwd(t1);
+		return this->FindFwd(t1);
 	}
 
 	ConstIteratorFwd FindFwd(const Type1& t1) const
@@ -122,12 +122,12 @@ public:   // Public methods
 
 	const_iterator begin() const
 	{
-		return BeginFwd();
+		return this->BeginFwd();
 	}
 
 	const_iterator end() const
 	{
-		return EndFwd();
+		return this->EndFwd();
 	}
 
 	ConstIteratorFwd BeginFwd() const
@@ -153,7 +153,7 @@ public:   // Public methods
 	std::pair<ConstIteratorFwd, bool> insert(
 		const std::pair<Type1, Type2>& value)
 	{
-		return Insert(value);
+		return this->Insert(value);
 	}
 
 	std::pair<ConstIteratorFwd, bool> Insert(
@@ -167,6 +167,11 @@ public:   // Public methods
 
 		if (!(bwdMap_.insert(std::make_pair(value.second, value.first)).second))
 		{	// in case there is already some backward mapping for given value
+			VATA_ERROR("backward mapping for "
+				<< Convert::ToString(value.second)
+				<< " already found: "
+				<< Convert::ToString(bwdMap_.find(value.second)->second));
+
 			assert(false);      // fail gracefully
 		}
 

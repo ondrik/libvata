@@ -63,7 +63,6 @@ protected:// methods
 
 BOOST_AUTO_TEST_CASE(aut_inversion)
 {
-	AutTypeInverted::SetSymbolDictPtr(&AutType::GetSymbolDict());
 	auto testfileContent = ParseTestFile(INVERT_TIMBUK_FILE.string());
 
 	for (auto testcase : testfileContent)

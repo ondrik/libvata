@@ -92,11 +92,11 @@ GCC_DIAG_ON(effc++)
 	friend class MacroStateCache;
 
 public:
-	typedef uintptr_t SymbolType;
+	using SymbolType         = uintptr_t ;
+	using StringSymbolType   = std::string;
 
 private: // private type definitions
 	typedef AutBase::StateType StateType;
-	typedef std::vector<SymbolType> AlphabetType;
 
 	typedef std::string string;
 
@@ -174,56 +174,99 @@ private: // private type definitions
 	typedef std::shared_ptr<StateToTransitionClusterMap> StateToTransitionClusterMapPtr;
 
 public: //pubic type definitions
-	typedef VATA::Util::TwoWayDict<string, SymbolType> SymbolDict;
-	typedef VATA::Util::TranslatorStrict<typename SymbolDict::MapBwdType>
-		SymbolBackTranslStrict;
 
-	using StringToSymbolTranslWeak = Util::TranslatorWeak<SymbolDict>;
+	using SymbolDict             = VATA::Util::TwoWayDict<string, SymbolType>;
+	using SymbolBackTranslStrict =
+		VATA::Util::TranslatorStrict<typename SymbolDict::MapBwdType>;
+	using StringSymbolToSymbolTranslWeak = Util::TranslatorWeak<SymbolDict>;
+
+
+	class Alphabet
+	{
+	private:  // data members
+
+		SymbolDict symbolDict_{};
+		SymbolType nextSymbol_ = 0;
+
+	public:   // methods
+
+		StringSymbolToSymbolTranslWeak GetSymbolTransl()
+		{
+			return StringSymbolToSymbolTranslWeak{symbolDict_,
+				[&](const StringSymbolType&){return nextSymbol_++;}};
+		}
+
+		SymbolBackTranslStrict GetSymbolBackTransl()
+		{
+			return SymbolBackTranslStrict(symbolDict_.GetReverseMap());
+		}
+	};
+
+
+	using AlphabetType = std::shared_ptr<Alphabet>;
+
 
 protected: // private data memebers
+
 	StateSet finalStates_;
 	StateSet startStates_;
 	// Transitions defining start states
 	StateToSymbols startStateToSymbols_;
 
 private: // private static data memebers
-	static SymbolDict* pSymbolDict_;           // Translate symbols to integers
-	static SymbolType* pNextSymbol_;
+
 	StateToTransitionClusterMapPtr transitions_;
+
+	AlphabetType alphabet_;
+
+	static AlphabetType globalAlphabet_;
 
 public:
 
-	ExplicitFiniteAut() :
+	explicit ExplicitFiniteAut(AlphabetType& alphabet = globalAlphabet_) :
 		finalStates_(),
 		startStates_(),
 		startStateToSymbols_(),
-		transitions_(StateToTransitionClusterMapPtr(new StateToTransitionClusterMap))
+		transitions_(StateToTransitionClusterMapPtr(new StateToTransitionClusterMap)),
+		alphabet_(alphabet)
 	{ }
 
 	ExplicitFiniteAut(const ExplicitFiniteAut& aut) :
 		finalStates_(aut.finalStates_),
 		startStates_(aut.startStates_),
 		startStateToSymbols_(aut.startStateToSymbols_),
-		transitions_(aut.transitions_)
+		transitions_(aut.transitions_),
+		alphabet_(aut.alphabet_)
 	{ }
 
-	ExplicitFiniteAut& operator=(const ExplicitFiniteAut& rhs) {
-
-		if (this != &rhs) {
-
-			this->finalStates_ = rhs.finalStates_;
-			this->startStates_ = rhs.startStates_;
-			this->startStateToSymbols_ = rhs.startStateToSymbols_;
-			this->transitions_ = rhs.transitions_;
-
+	ExplicitFiniteAut& operator=(const ExplicitFiniteAut& rhs)
+	{
+		if (this != &rhs)
+		{
+			finalStates_          = rhs.finalStates_;
+			startStates_          = rhs.startStates_;
+			startStateToSymbols_  = rhs.startStateToSymbols_;
+			transitions_          = rhs.transitions_;
+			alphabet_             = rhs.alphabet_;
 		}
 
 		return *this;
-
 	}
 
 
-	~ExplicitFiniteAut() {}
+	// TODO: move constructor and assignment operator
+
+
+	~ExplicitFiniteAut()
+	{ }
+
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&      parser,
+		const std::string&               str,
+		const std::string&               params = "")
+	{
+		this->LoadFromAutDesc(parser.ParseString(str), params);
+	}
 
 	/*
 	 ** Function loads automaton to the intern representation
@@ -236,9 +279,44 @@ public:
 		VATA::Parsing::AbstrParser&      parser,
 		const std::string&               str,
 		StateDict&                       stateDict,
-		SymbolDict&                      symbolDict)
+		const std::string&               params = "")
 	{
-		this->LoadFromAutDesc(parser.ParseString(str), stateDict, symbolDict);
+		this->LoadFromAutDesc(parser.ParseString(str), stateDict, params);
+	}
+
+	template <
+		class StateTranslFunc>
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&      parser,
+		const std::string&               str,
+		StateTranslFunc                  stateTransl,
+		const std::string&               params = "")
+	{
+		this->LoadFromAutDesc(parser.ParseString(str), stateTransl, params);
+	}
+
+
+	void LoadFromAutDesc(
+		const AutDescription&            desc,
+		const std::string&               params = "")
+	{
+		StateDict stateDict;
+
+		this->LoadFromAutDesc(desc, stateDict, params);
+	}
+
+	template <
+		class StateTranslFunc>
+	void LoadFromAutDesc(
+		const AutDescription&            desc,
+		StateTranslFunc                  stateTransl,
+		const std::string&               params = "")
+	{
+		this->loadFromAutDescInternal(
+			desc,
+			stateTransl,
+			this->GetAlphabet()->GetSymbolTransl(),
+			params);
 	}
 
 	/*
@@ -248,16 +326,15 @@ public:
 	void LoadFromAutDesc(
 		const AutDescription&            desc,
 		StateDict&                       stateDict,
-		SymbolDict&                      symbolDict)
+		const std::string&               params = "")
 	{
 		StateType stateCnt = 0;
-		SymbolType symbolCnt = 0;
 
-		this->LoadFromAutDesc(desc,
+		this->LoadFromAutDesc(
+			desc,
 			StringToStateTranslWeak(stateDict,
 				[&stateCnt](const std::string&){return stateCnt++;}),
-			StringToSymbolTranslWeak(symbolDict,
-				[&symbolCnt](const std::string&){return symbolCnt++;}));
+			params);
 	}
 
 
@@ -268,21 +345,23 @@ public:
 	** @param stateTranslator Translates states to internal number representation
 	** @param symbolTranslator Translates symbols to internal number representation
 	*/
-	template <class StateTransFunc, class SymbolTransFunc>
-	void LoadFromAutDesc(
+	template <
+		class StateTranslFunc,
+		class SymbolTranslFunc>
+	void loadFromAutDescInternal(
 		const AutDescription&					 desc,
-		StateTransFunc								 stateTranslator,
-		SymbolTransFunc								 symbolTranslator,
+		StateTranslFunc							   stateTransl,
+		SymbolTranslFunc							 symbolTransl,
 		const std::string&						 /* params */ = "")
 	{
 		// Load symbols
 		for (auto symbolRankPair : desc.symbols){ // Symbols translater
-			symbolTranslator(symbolRankPair.first);
+			symbolTransl(symbolRankPair.first);
 		}
 
 		// Load final states
 		for (auto s : desc.finalStates) { // Finale states extraction
-			this->finalStates_.insert(stateTranslator(s));
+			this->finalStates_.insert(stateTransl(s));
 		}
 
 		// Load transitions
@@ -292,9 +371,9 @@ public:
 
 			// Check whether there are no start states
 			if (t.first.empty()) {
-				StateType translatedState = stateTranslator(rightState);
+				StateType translatedState = stateTransl(rightState);
 
-				SymbolType translatedSymbol = symbolTranslator(symbol);
+				SymbolType translatedSymbol = symbolTransl(symbol);
 
 				SetStateStart(translatedState, translatedSymbol);
 
@@ -308,22 +387,37 @@ public:
 			// load here because t could be empty
 			const State& leftState = t.first[0];
 
-			this->AddTransition(stateTranslator(leftState),symbolTranslator(symbol),
-															stateTranslator(rightState));
+			this->AddTransition(
+				stateTransl(leftState),
+				symbolTransl(symbol),
+				stateTransl(rightState));
 		}
+	}
+
+
+	template <
+		class StateTranslFunc>
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&			serializer,
+		StateTranslFunc                           stateTransl,
+		const std::string&                        params = "") const
+	{
+		return this->dumpToStringInternal(
+			serializer,
+			stateTransl,
+			this->GetAlphabet()->GetSymbolBackTransl(),
+			params);
 	}
 
 
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&			serializer,
 		const StateDict&                          stateDict,
-		const SymbolDict&                         symbolDict,
 		const std::string&                        params = "") const
 	{
-		return this->DumpToStringWithStateSymbolTransl(
+		return this->DumpToString(
 			serializer,
 			StateBackTranslStrict(stateDict.GetReverseMap()),
-			SymbolBackTranslStrict(symbolDict.GetReverseMap()),
 			params);
 	}
 
@@ -332,13 +426,14 @@ public:
 		VATA::Serialization::AbstrSerializer&			serializer,
 		const std::string&                        params = "") const
 	{
-		return this->DumpToStringWithStateSymbolTransl(
+		return this->DumpToString(
 			serializer,
 			[](const StateType& state){return Convert::ToString(state);},
-			SymbolBackTranslStrict(this->GetSymbolDict().GetReverseMap()),
 			params);
 	}
 
+
+private:  // methods
 
 	/*
 	 * Function converts the internal automaton description
@@ -347,74 +442,76 @@ public:
 	template <
 		class StateBackTranslFunc,
 		class SymbolBackTranslFunc>
-	std::string DumpToStringWithStateSymbolTransl(
+	std::string dumpToStringInternal(
 		VATA::Serialization::AbstrSerializer&   serializer,
 		StateBackTranslFunc                     stateTransl, // States from internal to string
 		SymbolBackTranslFunc                    symbolTransl, // Symbols from internal to string
 		const std::string&                      /* params */ = "") const
-
 	{
-			AutDescription desc;
+		AutDescription desc;
 
-			// Dump the final states
-			for (auto& s : this->finalStates_)
-			{
-				desc.finalStates.insert(stateTransl(s));
+		// Dump the final states
+		for (auto& s : this->finalStates_)
+		{
+			desc.finalStates.insert(stateTransl(s));
+		}
+
+		// Dump start states
+		std::string x("x"); // initial input symbol
+		std::vector<std::string> leftStateAsTuple;
+		for (auto &s : this->startStates_)
+		{
+
+			SymbolSet symset = this->GetStartSymbols(s);
+
+			if (!symset.size())
+			{ // No start symbols are defined,
+				AutDescription::Transition trans(
+					leftStateAsTuple,
+					x,
+					stateTransl(s));
+				desc.transitions.insert(trans);
 			}
-
-			// Dump start states
-			std::string x("x"); // initial input symbol
-			std::vector<std::string> leftStateAsTuple;
-			for (auto &s : this->startStates_)
-			{
-
-				SymbolSet symset = this->GetStartSymbols(s);
-
-				if (!symset.size())
-				{ // No start symbols are defined,
+			else
+			{ // print all starts symbols
+				for (auto &sym : symset)
+				{
 					AutDescription::Transition trans(
-							leftStateAsTuple,
-							x,
-							stateTransl(s));
+						leftStateAsTuple,
+						symbolTransl(sym),
+						stateTransl(s));
+					desc.transitions.insert(trans);
+					break;
+				}
+			}
+		}
+
+		/*
+		 * Converts transitions to data structure for serializer
+		 */
+		for (auto& ls : *(this->transitions_))
+		{
+			for (auto& s : *ls.second)
+			{
+				for (auto& rs : s.second)
+				{
+					std::vector<std::string> leftStateAsTuple;
+					leftStateAsTuple.push_back(stateTransl(ls.first));
+
+					AutDescription::Transition trans(
+						leftStateAsTuple,
+						symbolTransl(s.first),
+						stateTransl(rs));
 					desc.transitions.insert(trans);
 				}
-				else
-				{ // print all starts symbols
-					for (auto &sym : symset)
-					{
-					 AutDescription::Transition trans(
-							leftStateAsTuple,
-							symbolTransl(sym),
-							stateTransl(s));
-					 desc.transitions.insert(trans);
-					 break;
-				 }
-				}
 			}
+		}
 
-			/*
-			 * Converts transitions to data structure for serializer
-			 */
-			for (auto& ls : *(this->transitions_))
-			{
-				for (auto& s : *ls.second)
-				{
-					for (auto& rs : s.second)
-					{
-						std::vector<std::string> leftStateAsTuple;
-						leftStateAsTuple.push_back(stateTransl(ls.first));
-
-						AutDescription::Transition trans(
-							leftStateAsTuple,
-							symbolTransl(s.first),
-							stateTransl(rs));
-						desc.transitions.insert(trans);
-					}
-				}
-			}
-
-			return serializer.Serialize(desc);
+		return serializer.Serialize(desc);
 	}
+
+
+public:   // methods
 
 
 	ExplicitFiniteAut ReindexStates(
@@ -511,123 +608,127 @@ public:
 
 public: // Public static functions
 
-	inline static void SetNextSymbolPtr(SymbolType* pNextSymbol)
-	{
-		// Assertions
-		assert(pNextSymbol != nullptr);
-
-		pNextSymbol_ = pNextSymbol;
-	}
-
-	inline static void SetSymbolDictPtr(SymbolDict* pSymbolDict)
-	{
-		assert(pSymbolDict != nullptr);
-
-		pSymbolDict_ = pSymbolDict;
-	}
-
-
-	// Directory for symbols
-	static SymbolDict& GetSymbolDict()
-	{
-		assert(pSymbolDict_ != nullptr);
-
-		return *pSymbolDict_;
-	}
-
 	// Set of start states
-	inline const StateSet& GetStartStates() const {
+	const StateSet& GetStartStates() const {
 		return this->startStates_;
 	}
 
 	// compability with tree automata part - used by function for complementation
-	static AlphabetType GetAlphabet()
+	AlphabetType& GetAlphabet()
 	{
-		AlphabetType alphabet;
-		for (auto symbol : ExplicitFiniteAut::GetSymbolDict())
-		{
-			alphabet.push_back(symbol.second);
-		}
+		assert(nullptr != alphabet_);
 
-		return alphabet;
+		return alphabet_;
+	}
+
+	const AlphabetType& GetAlphabet() const
+	{
+		assert(nullptr != alphabet_);
+
+		return alphabet_;
 	}
 
 public: // Public inline functions
-	inline void SetStateFinal(const StateType& state) {
+
+	void SetStateFinal(const StateType& state) {
 		this->finalStates_.insert(state);
 	}
 
-	inline void AddTransition(const StateType& lstate, const SymbolType& symbol,
-									const StateType& rstate){
+	void AddTransition(
+		const StateType&           lstate,
+		const SymbolType&          symbol,
+		const StateType&           rstate)
+	{
 		this->internalAddTransition(lstate, symbol, rstate);
 	}
 
-	inline bool IsStateFinal(const StateType &state) const {
-		return (this->finalStates_.find(state) != this->finalStates_.end());
+	bool IsStateFinal(const StateType &state) const
+	{
+		return (finalStates_.find(state) != finalStates_.end());
 	}
 
-	inline bool IsStateStart(const StateType &state) const	{
-		return (this->startStates_.find(state) != this->startStates_.end());
+	bool IsStateStart(const StateType &state) const
+	{
+		return (startStates_.find(state) != startStates_.end());
 	}
 
 public: // Public setter
-	void SetStateStart(const StateType& state, const SymbolType& symbol) {
-		this->startStates_.insert(state);
+
+	void SetStateStart(
+		const StateType&       state,
+		const SymbolType&      symbol)
+	{
+		startStates_.insert(state);
 
 		// Add start transition
-		if (!this->startStateToSymbols_.count(state)) {
-			this->startStateToSymbols_.insert(
+		if (!startStateToSymbols_.count(state))
+		{
+			startStateToSymbols_.insert(
 				 std::make_pair(state,std::unordered_set<SymbolType>())).
 				 first->second.insert(symbol);
 		}
-		else { // Just add new symbol
-			this->startStateToSymbols_.find(state)->second.insert(symbol);
+		else
+		{ // Just add new symbol
+			startStateToSymbols_.find(state)->second.insert(symbol);
 		}
 	}
 
 	// Set start state with set of symbols in start transitions
-	void SetExistingStateStart(const StateType& state, const SymbolSet& symbolSet) {
-		this->startStates_.insert(state);
+	void SetExistingStateStart(
+		const StateType&        state,
+		const SymbolSet&        symbolSet)
+	{
+		startStates_.insert(state);
 
-		assert(!this->startStateToSymbols_.count(state));
+		assert(!startStateToSymbols_.count(state));
 
-		this->startStateToSymbols_.insert(std::make_pair(state,symbolSet));
+		startStateToSymbols_.insert(std::make_pair(state,symbolSet));
 	}
 
 public: // Getters
+
 	// Return a set of the symbols which are in start transitions
 	// for given state
-	const SymbolSet& GetStartSymbols(StateType state) const {
-		assert(this->startStateToSymbols_.find(state) != this->startStateToSymbols_.end());
-		return this->startStateToSymbols_.find(state)->second;
+	const SymbolSet& GetStartSymbols(StateType state) const
+	{
+		assert(startStateToSymbols_.find(state) != startStateToSymbols_.end());
+
+		return startStateToSymbols_.find(state)->second;
 	}
 
 protected:
 
 	// Returns pointer to map where state is mapped to transition cluster
-	const StateToTransitionClusterMapPtr& uniqueClusterMap() {
-		if (!this->transitions_.unique()) {
-			this->transitions_ = StateToTransitionClusterMapPtr(
+	const StateToTransitionClusterMapPtr& uniqueClusterMap()
+	{
+		if (!transitions_.unique()) {
+			transitions_ = StateToTransitionClusterMapPtr(
 				new StateToTransitionClusterMap(*transitions_));
 		}
-		return this->transitions_;
+		return transitions_;
 	}
+
+
 	/*
 	 * Add internal transition to the automaton
 	 */
-	void internalAddTransition(const StateType& lstate, const SymbolType& symbol,
-									const StateType& rstate){
-		this->uniqueClusterMap()->uniqueCluster(lstate)->uniqueRStateSet(symbol).insert(rstate);
-		return;
+	void internalAddTransition(
+		const StateType&         lstate,
+		const SymbolType&        symbol,
+		const StateType&         rstate)
+	{
+		this->uniqueClusterMap()->uniqueCluster(lstate)->
+			uniqueRStateSet(symbol).insert(rstate);
 	}
 
 	/*
 	 * Get from tree automata part of library
 	 */
 	template <class T>
-	static const typename T::mapped_type::element_type* genericLookup(const T& cont,
-		const typename T::key_type& key) {
-
+	static const typename T::mapped_type::element_type* genericLookup(
+		const T&                         cont,
+		const typename T::key_type&      key)
+	{
 		auto iter = cont.find(key);
 		if (iter == cont.end())
 			return nullptr;
@@ -658,10 +759,10 @@ public:   // methods
 
 	template <class Index = Util::IdentityTranslator<AutBase::StateType>>
 	VATA::ExplicitLTS Translate(
-		const ExplicitFiniteAut& aut,
-		std::vector<std::vector<size_t>>& partition,
-		VATA::Util::BinaryRelation& relation,
-		const Index& stateIndex = Index());
+		const ExplicitFiniteAut&              aut,
+		std::vector<std::vector<size_t>>&     partition,
+		VATA::Util::BinaryRelation&           relation,
+		const Index&                          stateIndex = Index());
 
 
 	/*

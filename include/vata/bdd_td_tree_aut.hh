@@ -56,8 +56,6 @@ public:   // data types
 	using StateTuple   = TreeAutBase::StateTuple;
 	using SymbolType   = Symbolic::SymbolType;
 
-	// FIXME: only stub
-	typedef std::vector<SymbolType> AlphabetType;
 
 private:  // data types
 
@@ -90,6 +88,9 @@ public:   // public methods
 	~BDDTopDownTreeAut();
 
 
+	AlphabetType& GetAlphabet() const;
+
+
 	void AddTransition(
 		const StateTuple&       children,
 		const SymbolType&       symbol,
@@ -99,7 +100,6 @@ public:   // public methods
 	void LoadFromString(
 		VATA::Parsing::AbstrParser&      parser,
 		const std::string&               str,
-		StateDict&                       stateDict,
 		const std::string&               params = "");
 
 
@@ -107,7 +107,6 @@ public:   // public methods
 		VATA::Parsing::AbstrParser&      parser,
 		const std::string&               str,
 		StateDict&                       stateDict,
-		SymbolDict&                      symbolDict,
 		const std::string&               params = "");
 
 
@@ -115,16 +114,24 @@ public:   // public methods
 		VATA::Parsing::AbstrParser&      parser,
 		const std::string&               str,
 		StringToStateTranslWeak&         stateTransl,
-		StringSymbolToSymbolTranslWeak&  symbolTransl,
 		const std::string&               params = "");
 
 
-	void LoadFromString(
-		VATA::Parsing::AbstrParser&      parser,
-		const std::string&               str,
-		StateDict&                       stateDict,
-		StringSymbolToSymbolTranslWeak&  symbolTransl,
-		const std::string&               params = "");
+	void LoadFromAutDesc(
+		const VATA::Util::AutDescription&   desc,
+		const std::string&                  params = "");
+
+
+	void LoadFromAutDesc(
+		const VATA::Util::AutDescription&   desc,
+		StateDict&                          stateDict,
+		const std::string&                  params = "");
+
+
+	void LoadFromAutDesc(
+		const VATA::Util::AutDescription&   desc,
+		StringToStateTranslWeak&            stateTransl,
+		const std::string&                  params = "");
 
 
 	std::string DumpToString(
@@ -135,13 +142,6 @@ public:   // public methods
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&      serializer,
 		const StateDict&                           stateDict,
-		const std::string&                         params = "") const;
-
-
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&      serializer,
-		const StateDict&                           stateDict,
-		const SymbolDict&                          symbolDict,
 		const std::string&                         params = "") const;
 
 
@@ -153,12 +153,6 @@ public:   // public methods
 
 	void SetStateFinal(
 		const StateType&               state);
-
-
-	static AlphabetType GetAlphabet()
-	{
-		throw NotImplementedException(__func__);
-	}
 
 
 	static bool CheckInclusion(

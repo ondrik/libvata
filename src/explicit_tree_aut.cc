@@ -19,15 +19,11 @@ using VATA::ExplicitTreeAut;
 using VATA::ExplicitTreeAutCore;
 
 
-void ExplicitTreeAut::SetSymbolDictPtr(SymbolDict* pSymbolDict)
+void ExplicitTreeAut::SetAlphabet(AlphabetType& alphabet)
 {
-	ExplicitTreeAutCore::SetSymbolDictPtr(pSymbolDict);
-}
+	assert(nullptr != core_);
 
-
-void ExplicitTreeAut::SetNextSymbolPtr(SymbolType* pNextSymbol)
-{
-	ExplicitTreeAutCore::SetNextSymbolPtr(pNextSymbol);
+	core_->SetAlphabet(alphabet);
 }
 
 
@@ -87,6 +83,22 @@ ExplicitTreeAut::~ExplicitTreeAut()
 { }
 
 
+ExplicitTreeAut::AlphabetType& ExplicitTreeAut::GetAlphabet()
+{
+	assert(nullptr != core_);
+
+	return core_->GetAlphabet();
+}
+
+
+const ExplicitTreeAut::AlphabetType& ExplicitTreeAut::GetAlphabet() const
+{
+	assert(nullptr != core_);
+
+	return core_->GetAlphabet();
+}
+
+
 void ExplicitTreeAut::SetStateFinal(const StateType& state)
 {
 	assert(nullptr != core_);
@@ -109,13 +121,11 @@ void ExplicitTreeAut::AddTransition(
 void ExplicitTreeAut::LoadFromString(
 	VATA::Parsing::AbstrParser&       parser,
 	const std::string&                str,
-	StateDict&                        stateDict,
-	SymbolDict&                       symbolDict,
 	const std::string&                params)
 {
 	assert(nullptr != core_);
 
-	core_->LoadFromString(parser, str, stateDict, symbolDict, params);
+	core_->LoadFromString(parser, str, params);
 }
 
 
@@ -123,13 +133,11 @@ void ExplicitTreeAut::LoadFromString(
 	VATA::Parsing::AbstrParser&       parser,
 	const std::string&                str,
 	StringToStateTranslWeak&          stateTransl,
-	StringSymbolToSymbolTranslWeak&   symbolTransl,
 	const std::string&                params)
 {
 	assert(nullptr != core_);
 
-	core_->LoadFromStringWithStateSymbolTransl(
-		parser, str, stateTransl, symbolTransl, params);
+	core_->LoadFromString(parser, str, stateTransl, params);
 }
 
 
@@ -137,13 +145,11 @@ void ExplicitTreeAut::LoadFromString(
 	VATA::Parsing::AbstrParser&      parser,
 	const std::string&               str,
 	StateDict&                       stateDict,
-	StringSymbolToSymbolTranslWeak&  symbolTransl,
 	const std::string&               params)
 {
 	assert(nullptr != core_);
 
-	core_->LoadFromStringWithSymbolTransl(
-		parser, str, stateDict, symbolTransl, params);
+	core_->LoadFromString(parser, str, stateDict, params);
 }
 
 
@@ -160,24 +166,22 @@ std::string ExplicitTreeAut::DumpToString(
 std::string ExplicitTreeAut::DumpToString(
 	VATA::Serialization::AbstrSerializer&     serializer,
 	const StateDict&                          stateDict,
-	const SymbolDict&                         symbolDict,
 	const std::string&                        params) const
 {
 	assert(nullptr != core_);
 
-	return core_->DumpToString(serializer, stateDict, symbolDict, params);
+	return core_->DumpToString(serializer, stateDict, params);
 }
 
 
 std::string ExplicitTreeAut::DumpToString(
 	VATA::Serialization::AbstrSerializer&  serializer,
 	const StateBackTranslStrict&           stateTransl,
-	const SymbolBackTranslStrict&          symbolTransl,
 	const std::string&                     params) const
 {
 	assert(nullptr != core_);
 
-	return core_->DumpToString(serializer, stateTransl, symbolTransl, params);
+	return core_->DumpToString(serializer, stateTransl, params);
 }
 
 

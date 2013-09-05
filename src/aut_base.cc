@@ -15,5 +15,3 @@
 using VATA::AutBase;
 using VATA::TreeAutBase;
 using VATA::SymbolicTreeAutBase;
-
-SymbolicTreeAutBase::SymbolDict* SymbolicTreeAutBase::pSymbolDict_ = nullptr;

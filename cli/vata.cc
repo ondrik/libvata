@@ -153,8 +153,6 @@ int performOperation(
 	AbstrParser&            parser,
 	AbstrSerializer&        serializer)
 {
-	using SymbolDict = typename Aut::SymbolDict;
-
 	Aut autInput1;
 	Aut autInput2;
 	Aut autResult;
@@ -164,8 +162,6 @@ int performOperation(
 	VATA::AutBase::StateDict stateDict1;
 	VATA::AutBase::StateDict stateDict2;
 
-	SymbolDict symbolDict;
-
 	VATA::AutBase::StateToStateMap translMap1;
 	VATA::AutBase::StateToStateMap translMap2;
 
@@ -174,8 +170,7 @@ int performOperation(
 		autInput1.LoadFromString(
 			parser,
 			VATA::Util::ReadFile(args.fileName1),
-			stateDict1,
-			symbolDict);
+			stateDict1);
 	}
 
 	if (args.operands >= 2)
@@ -183,8 +178,7 @@ int performOperation(
 		autInput2.LoadFromString(
 			parser,
 			VATA::Util::ReadFile(args.fileName2),
-			stateDict2,
-			symbolDict);
+			stateDict2);
 	}
 
 	if ((args.command == COMMAND_LOAD) ||
@@ -288,18 +282,17 @@ int performOperation(
 			(args.command == COMMAND_WITNESS) ||
 			(args.command == COMMAND_RED))
 		{
-			std::cout << autResult.DumpToString(
-				serializer, stateDict1, autResult.GetSymbolDict());
+			std::cout << autResult.DumpToString(serializer, stateDict1);
 		}
 
-		if (args.command == COMMAND_COMPLEMENT && args.representation != REPRESENTATION_EXPLICIT_FA)
+		if (args.command == COMMAND_COMPLEMENT &&
+			args.representation != REPRESENTATION_EXPLICIT_FA)
 		{
 			std::cout << autResult.DumpToString(serializer);
 		}
 		else if (args.command == COMMAND_COMPLEMENT)
 		{
-			std::cout << autResult.DumpToString(
-				serializer, stateDict1, autResult.GetSymbolDict());
+			std::cout << autResult.DumpToString(serializer, stateDict1);
 		}
 
 		if (args.command == COMMAND_UNION)
@@ -317,8 +310,7 @@ int performOperation(
 		if ((args.command == COMMAND_UNION) ||
 			(args.command == COMMAND_INTERSECTION))
 		{
-			std::cout << autResult.DumpToString(
-				serializer, stateDict1, autResult.GetSymbolDict());
+			std::cout << autResult.DumpToString(serializer, stateDict1);
 		}
 		if ((args.command == COMMAND_INCLUSION) || (args.command == COMMAND_EQUIV))
 		{
@@ -404,31 +396,6 @@ int main(int argc, char* argv[])
 		printHelp(true);
 		return EXIT_SUCCESS;
 	}
-
-	// create the symbol directory for the BDD-based automata
-	SymbolicTreeAutBase::SymbolDict bddSymbolDict;
-	SymbolicTreeAutBase::SetSymbolDictPtr(&bddSymbolDict);
-	SymbolicTreeAutBase::SetSymbolDictPtr(&bddSymbolDict);
-
-	// create the ``next symbol'' variable for the BDD-based automata
-	SymbolicTreeAutBase::SymbolType bddNextSymbol(BDD_SIZE, 0);
-	SymbolicTreeAutBase::SetNextSymbolPtr(&bddNextSymbol);
-
-	// create the symbol directory for explicit automata
-	ExplicitTreeAut::SymbolDict explSymbolDict;
-	ExplicitTreeAut::SetSymbolDictPtr(&explSymbolDict);
-
-	// create the ``next symbol'' variable for the explicit automaton
-	ExplicitTreeAut::SymbolType explNextSymbol(0);
-	ExplicitTreeAut::SetNextSymbolPtr(&explNextSymbol);
-
-	// create the symbol directory for finite automata
-	ExplicitFiniteAut::SymbolDict explFASymbolDict;
-	ExplicitFiniteAut::SetSymbolDictPtr(&explFASymbolDict);
-
-	// create the ``next symbol`` variable for the explicit finite automaton
-	ExplicitFiniteAut::SymbolType explFANextSymbol(0);
-	ExplicitFiniteAut::SetNextSymbolPtr(&explFANextSymbol);
 
 	AutBase::StateDict stateDict;
 

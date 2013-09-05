@@ -92,21 +92,12 @@ protected:// data members
 	TimbukParser parser_;
 	TimbukSerializer serializer_;
 
-	SymbolDict symbolDict_;
-
-	StringSymbolToSymbolTranslWeak symbolTransl_{symbolDict_,
-		[&](const StringSymbolType&){return nextSymbol_++;}};
-
 protected:// methods
 
 	TreeAutFixture() :
 		parser_(),
-		serializer_(),
-		symbolDict_()
-	{
-		AutType::SetSymbolDictPtr(&symbolDict_);
-		AutType::SetNextSymbolPtr(&nextSymbol_);
-	}
+		serializer_()
+	{ }
 
 	template <class Automaton>
 	void readAut(
@@ -114,7 +105,7 @@ protected:// methods
 		StringToStateTranslWeak&         stateTransl,
 		const std::string&               str)
 	{
-		aut.LoadFromString(parser_, str, stateTransl, symbolTransl_);
+		aut.LoadFromString(parser_, str, stateTransl);
 	}
 
 	template <class Automaton>
@@ -123,7 +114,7 @@ protected:// methods
 		StateDict&              stateDict,
 		const std::string&      str)
 	{
-		aut.LoadFromString(parser_, str, stateDict, symbolTransl_);
+		aut.LoadFromString(parser_, str, stateDict);
 	}
 
 	template <class Automaton>
@@ -131,8 +122,7 @@ protected:// methods
 		Automaton&              aut,
 		const std::string&      str)
 	{
-		StateDict dict;
-		readAut(aut, dict, str);
+		aut.LoadFromString(parser_, str);
 	}
 
 	template <class Automaton>
@@ -140,7 +130,7 @@ protected:// methods
 		const Automaton&           aut,
 		const StateDict&           stateDict)
 	{
-		return aut.DumpToString(serializer_, stateDict, symbolDict_);
+		return aut.DumpToString(serializer_, stateDict);
 	}
 
 	void testInclusion(VATA::InclParam& ip)
@@ -163,13 +153,11 @@ protected:// methods
 			std::string autSmallerStr = VATA::Util::ReadFile(inputSmallerFile);
 			std::string autBiggerStr = VATA::Util::ReadFile(inputBiggerFile);
 
-			StateDict stateDictSmaller;
 			AutType autSmaller;
-			readAut(autSmaller, stateDictSmaller, autSmallerStr);
+			readAut(autSmaller, autSmallerStr);
 
-			StateDict stateDictBigger;
 			AutType autBigger;
-			readAut(autBigger, stateDictBigger, autBiggerStr);
+			readAut(autBigger, autBiggerStr);
 
 			// prepare the automata
 			AutBase::StateType states =
@@ -373,7 +361,7 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 				aut.SetStateFinal(parState);
 			}
 
-			SymbolType symbol = symbolTransl_(AutType::ToStringSymbolType(symbolStr, trans.first.size()));
+			SymbolType symbol = aut.GetAlphabet()->GetSymbolTransl()(AutType::ToStringSymbolType(symbolStr, trans.first.size()));
 
 			StateTuple children;
 			for (const std::string& childStr : trans.first)
@@ -391,7 +379,7 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 			aut.AddTransition(children, symbol, parState);
 		}
 
-		std::string autTransStr = aut.DumpToString(serializer_, stateDict, symbolDict_);
+		std::string autTransStr = aut.DumpToString(serializer_, stateDict);
 
 		AutDescription descOut = parser_.ParseString(autTransStr);
 		AutDescription descCorrect = parser_.ParseString(autCorrectStr);

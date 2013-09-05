@@ -22,18 +22,17 @@ using VATA::ExplicitTreeAutCore;
 // global tuple cache definition
 ExplicitTreeAutCore::TupleCache ExplicitTreeAutCore::globalTupleCache_;
 
-// pointer to symbol dictionary
-ExplicitTreeAutCore::SymbolDict* ExplicitTreeAutCore::pSymbolDict_ = nullptr;
-
-// pointer to next symbol counter
-ExplicitTreeAutCore::SymbolType* ExplicitTreeAutCore::pNextSymbol_ = nullptr;
-
+// global alphabet
+ExplicitTreeAutCore::AlphabetType ExplicitTreeAutCore::globalAlphabet_ =
+	AlphabetType(new AlphabetType::element_type());
 
 ExplicitTreeAutCore::ExplicitTreeAutCore(
-	TupleCache&          tupleCache) :
+	TupleCache&          tupleCache,
+	AlphabetType&        alphabet) :
 	cache_(tupleCache),
 	finalStates_(),
-	transitions_(StateToTransitionClusterMapPtr(new StateToTransitionClusterMap()))
+	transitions_(StateToTransitionClusterMapPtr(new StateToTransitionClusterMap())),
+	alphabet_(alphabet)
 { }
 
 
@@ -41,7 +40,8 @@ ExplicitTreeAutCore::ExplicitTreeAutCore(
 	const ExplicitTreeAutCore&    aut) :
 	cache_(aut.cache_),
 	finalStates_(aut.finalStates_),
-	transitions_(aut.transitions_)
+	transitions_(aut.transitions_),
+	alphabet_(aut.alphabet_)
 { }
 
 
@@ -49,7 +49,8 @@ ExplicitTreeAutCore::ExplicitTreeAutCore(
 	ExplicitTreeAutCore&&         aut) :
 	cache_(aut.cache_),
 	finalStates_(std::move(aut.finalStates_)),
-	transitions_(std::move(aut.transitions_))
+	transitions_(std::move(aut.transitions_)),
+	alphabet_(std::move(aut.alphabet_))
 { }
 
 
@@ -58,7 +59,8 @@ ExplicitTreeAutCore::ExplicitTreeAutCore(
 	TupleCache&                   tupleCache) :
 	cache_(tupleCache),
 	finalStates_(aut.finalStates_),
-	transitions_(aut.transitions_)
+	transitions_(aut.transitions_),
+	alphabet_(aut.alphabet_)
 { }
 
 
@@ -69,6 +71,7 @@ ExplicitTreeAutCore& ExplicitTreeAutCore::operator=(
 	{
 		finalStates_ = rhs.finalStates_;
 		transitions_ = rhs.transitions_;
+		alphabet_    = rhs.alphabet_;
 		// NOTE: we don't care about cache_
 	}
 
@@ -83,6 +86,7 @@ ExplicitTreeAutCore& ExplicitTreeAutCore::operator=(
 
 	finalStates_ = std::move(rhs.finalStates_);
 	transitions_ = std::move(rhs.transitions_);
+	alphabet_    = std::move(rhs.alphabet_);
 	// NOTE: we don't care about cache_
 
 	return *this;
@@ -91,20 +95,11 @@ ExplicitTreeAutCore& ExplicitTreeAutCore::operator=(
 
 void ExplicitTreeAutCore::LoadFromAutDesc(
 	const AutDescription&             desc,
-	StateDict&                        stateDict,
-	SymbolDict&                       symbolDict,
 	const std::string&                params)
 {
-	StateType state(0);
-	SymbolType symbol = ExplicitTreeAut::GetZeroSymbol();
+	StateDict stateDict;
 
-	this->LoadFromAutDescWithStateSymbolTransl(
-		desc,
-		StringToStateTranslWeak(stateDict,
-			[&state](const std::string&){return state++;}),
-		StringSymbolToSymbolTranslWeak(symbolDict,
-			[&symbol](const StringSymbolType&){return symbol++;}),
-		params);
+	this->LoadFromAutDesc(desc, stateDict, params);
 }
 
 
@@ -113,11 +108,24 @@ void ExplicitTreeAutCore::LoadFromAutDesc(
 	StateDict&                        stateDict,
 	const std::string&                params)
 {
+	StateType state(0);
+
 	this->LoadFromAutDesc(
-		/* automaton description */ desc,
-		/* state dictionary */ stateDict,
-		/* symbol translator */ this->GetSymbolDict(),
-		/* parameters */ params);
+		desc,
+		StringToStateTranslWeak(stateDict,
+			[&state](const std::string&){return state++;}),
+		params);
+}
+
+
+void ExplicitTreeAutCore::LoadFromString(
+	VATA::Parsing::AbstrParser&       parser,
+	const std::string&                str,
+	const std::string&                params)
+{
+	this->LoadFromAutDesc(
+		parser.ParseString(str),
+		params);
 }
 
 
@@ -125,28 +133,12 @@ void ExplicitTreeAutCore::LoadFromString(
 	VATA::Parsing::AbstrParser&       parser,
 	const std::string&                str,
 	StateDict&                        stateDict,
-	SymbolDict&                       symbolDict,
 	const std::string&                params)
 {
 	this->LoadFromAutDesc(
 		parser.ParseString(str),
 		stateDict,
-		symbolDict,
 		params);
-}
-
-
-ExplicitTreeAutCore::AlphabetType ExplicitTreeAutCore::GetAlphabet()
-{
-	AlphabetType alphabet;
-	for (auto stringRankAndSymbolPair : ExplicitTreeAutCore::GetSymbolDict())
-	{
-		alphabet.push_back(std::make_pair(
-			stringRankAndSymbolPair.second,
-			stringRankAndSymbolPair.first.rank));
-	}
-
-	return alphabet;
 }
 
 
@@ -186,7 +178,6 @@ std::string ExplicitTreeAutCore::DumpToString(
 	return this->DumpToString(
 		serializer,
 		[](const StateType& state){return Convert::ToString(state);},
-		SymbolBackTranslStrict(this->GetSymbolDict().GetReverseMap()),
 		params);
 }
 
@@ -212,27 +203,12 @@ std::string ExplicitTreeAutCore::DumpToString(
 		}
 	};
 
-	SymbolTranslPrinter printer(
-		SymbolBackTranslStrict(GetSymbolDict().GetReverseMap()));
+	SymbolTranslPrinter printer(this->GetAlphabet()->GetSymbolBackTransl());
 
-	return this->DumpToString(
+	return this->dumpToStringInternal(
 		serializer,
 		StateBackTranslStrict(stateDict.GetReverseMap()),
 		printer,
-		params);
-}
-
-
-std::string ExplicitTreeAutCore::DumpToString(
-	VATA::Serialization::AbstrSerializer&  serializer,
-	const StateDict&                       stateDict,
-	const SymbolDict&                      symbolDict,
-	const std::string&                     params) const
-{
-	return this->DumpToString(
-		serializer,
-		StateBackTranslStrict(stateDict.GetReverseMap()),
-		SymbolBackTranslStrict(symbolDict.GetReverseMap()),
 		params);
 }
 

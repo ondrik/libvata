@@ -52,9 +52,6 @@ public:   // data types
 //	using SymbolTranslatorStrict     =
 //		VATA::Util::TranslatorStrict<StringRankToSymbolDict>;
 
-	// FIXME: only stub
-	typedef std::vector<SymbolType> AlphabetType;
-
 private:  // data types
 
 	typedef VATA::Util::AutDescription AutDescription;
@@ -104,7 +101,6 @@ public:   // methods
 	void LoadFromString(
 		VATA::Parsing::AbstrParser&     parser,
 		const std::string&              str,
-		StateDict&                      stateDict,
 		const std::string&              params = "");
 
 
@@ -112,30 +108,31 @@ public:   // methods
 		VATA::Parsing::AbstrParser&     parser,
 		const std::string&              str,
 		StateDict&                      stateDict,
-		SymbolDict&                     symbolDict,
 		const std::string&              params = "");
 
 
 	void LoadFromString(
 		VATA::Parsing::AbstrParser&     parser,
 		const std::string&              str,
-		StringToStateTranslWeak&        stateTrans,
-		StringSymbolToSymbolTranslWeak& symbolTransl,
-		const std::string&              params = "");
-
-
-	void LoadFromString(
-		VATA::Parsing::AbstrParser&     parser,
-		const std::string&              str,
-		StateDict&                      stateDict,
-		StringSymbolToSymbolTranslWeak& symbolTransl,
+		StringToStateTranslWeak&        stateTransl,
 		const std::string&              params = "");
 
 
 	void LoadFromAutDesc(
-		const AutDescription&         desc,
-		StateDict&                    stateDict,
-		const std::string&            params = "");
+		const AutDescription&           desc,
+		const std::string&              params = "");
+
+
+	void LoadFromAutDesc(
+		const AutDescription&           desc,
+		StateDict&                      stateDict,
+		const std::string&              params = "");
+
+
+	void LoadFromAutDesc(
+		const AutDescription&           desc,
+		StringToStateTranslWeak&        stateTransl,
+		const std::string&              params = "");
 
 
 	std::string DumpToString(
@@ -147,20 +144,6 @@ public:   // methods
 		VATA::Serialization::AbstrSerializer&      serializer,
 		const StateDict&                           stateDict,
 		const std::string&                         params = "") const;
-
-
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&      serializer,
-		const StateDict&                           stateDict,
-		const SymbolDict&                          symbolDict,
-		const std::string&                         params = "") const;
-
-
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&  serializer,
-		const StateBackTranslStrict&           stateTransl,
-		const SymbolBackTranslStrict&          symbolTransl,
-		const std::string&                     params = "") const;
 
 
 	template <
@@ -174,17 +157,15 @@ public:   // methods
 	}
 
 
+	AlphabetType& GetAlphabet() const;
+
+
 	BDDBottomUpTreeAut ReindexStates(
 		StateToStateTranslWeak&       trans);
 
 
 	std::string DumpToDot() const;
 
-
-	static AlphabetType GetAlphabet()
-	{
-		throw NotImplementedException(__func__);
-	}
 
 	static bool CheckInclusion(
 		const BDDBottomUpTreeAut&    smaller,

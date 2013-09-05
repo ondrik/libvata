@@ -43,6 +43,15 @@ BDDTopDownTreeAut& BDDTopDownTreeAut::operator=(
 	return *this;
 }
 
+
+BDDTopDownTreeAut::AlphabetType& BDDTopDownTreeAut::GetAlphabet() const
+{
+	assert(nullptr != core_);
+
+	return core_->GetAlphabet();
+}
+
+
 BDDTopDownTreeAut::BDDTopDownTreeAut(
 	BDDTopDownTreeAut&&              aut) :
 	core_(std::move(aut.core_))
@@ -168,13 +177,23 @@ bool BDDTopDownTreeAut::CheckInclusion(
 void BDDTopDownTreeAut::LoadFromString(
 	VATA::Parsing::AbstrParser&      parser,
 	const std::string&               str,
-	StateDict&                       stateDict,
-	SymbolDict&                      symbolDict,
 	const std::string&               params)
 {
 	assert(nullptr != core_);
 
-	core_->LoadFromString(parser, str, stateDict, symbolDict, params);
+	core_->LoadFromString(parser, str, params);
+}
+
+
+void BDDTopDownTreeAut::LoadFromString(
+	VATA::Parsing::AbstrParser&      parser,
+	const std::string&               str,
+	StateDict&                       stateDict,
+	const std::string&               params)
+{
+	assert(nullptr != core_);
+
+	core_->LoadFromString(parser, str, stateDict, params);
 }
 
 
@@ -182,27 +201,11 @@ void BDDTopDownTreeAut::LoadFromString(
 	VATA::Parsing::AbstrParser&      parser,
 	const std::string&               str,
 	StringToStateTranslWeak&         stateTransl,
-	StringSymbolToSymbolTranslWeak&  symbolTransl,
 	const std::string&               params)
 {
 	assert(nullptr != core_);
 
-	core_->LoadFromStringWithStateSymbolTransl(
-		parser, str, stateTransl, symbolTransl, params);
-}
-
-
-void BDDTopDownTreeAut::LoadFromString(
-	VATA::Parsing::AbstrParser&      parser,
-	const std::string&               str,
-	StateDict&                       stateDict,
-	StringSymbolToSymbolTranslWeak&  symbolTransl,
-	const std::string&               params)
-{
-	assert(nullptr != core_);
-
-	core_->LoadFromStringWithSymbolTransl(
-		parser, str, stateDict, symbolTransl, params);
+	core_->LoadFromString(parser, str, stateTransl, params);
 }
 
 
@@ -228,24 +231,11 @@ std::string BDDTopDownTreeAut::DumpToString(
 
 
 std::string BDDTopDownTreeAut::DumpToString(
-	VATA::Serialization::AbstrSerializer&      serializer,
-	const StateDict&                           stateDict,
-	const SymbolDict&                          symbolDict,
-	const std::string&                         params) const
-{
-	assert(nullptr != core_);
-
-	return core_->DumpToString(serializer, stateDict, symbolDict, params);
-}
-
-
-std::string BDDTopDownTreeAut::DumpToString(
 	VATA::Serialization::AbstrSerializer&  serializer,
 	const StateBackTranslStrict&           stateTransl,
 	const std::string&                     params) const
 {
 	assert(nullptr != core_);
 
-	return core_->DumpToStringWithStateTransl(
-		serializer, stateTransl, params);
+	return core_->DumpToString(serializer, stateTransl, params);
 }

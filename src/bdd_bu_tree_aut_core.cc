@@ -16,27 +16,15 @@ using VATA::BDDBUTreeAutCore;
 using VATA::BDDTDTreeAutCore;
 
 
-BDDBUTreeAutCore::BDDBUTreeAutCore(
-	const BDDBUTreeAutCore&           aut) :
-	transTable_(aut.transTable_),
-	finalStates_(aut.finalStates_)
-{ }
-
-
-BDDBUTreeAutCore::BDDBUTreeAutCore(
-	BDDBUTreeAutCore&&                aut) :
-	transTable_(std::move(aut.transTable_)),
-	finalStates_(std::move(aut.finalStates_))
-{ }
-
-
 BDDBUTreeAutCore& BDDBUTreeAutCore::operator=(
 	const BDDBUTreeAutCore&         rhs)
 {
+	this->SymbolicTreeAutBaseCore::operator=(rhs);
+
 	if (this != &rhs)
 	{
-		finalStates_ = rhs.finalStates_;
-		transTable_ = rhs.transTable_;
+		finalStates_  = rhs.finalStates_;
+		transTable_   = rhs.transTable_;
 	}
 
 	return *this;
@@ -46,11 +34,12 @@ BDDBUTreeAutCore& BDDBUTreeAutCore::operator=(
 BDDBUTreeAutCore& BDDBUTreeAutCore::operator=(
 	BDDBUTreeAutCore&&               rhs)
 {
-	if (this != &rhs)
-	{
-		finalStates_ = std::move(rhs.finalStates_);
-		transTable_ = std::move(rhs.transTable_);
-	}
+	assert(this != &rhs);
+
+	this->SymbolicTreeAutBaseCore::operator=(std::move(rhs));
+
+	finalStates_  = std::move(rhs.finalStates_);
+	transTable_   = std::move(rhs.transTable_);
 
 	return *this;
 }
@@ -91,10 +80,10 @@ std::string BDDBUTreeAutCore::DumpToString(
 	VATA::Serialization::AbstrSerializer&      serializer,
 	const std::string&                         params) const
 {
-	return this->DumpToStringWithStateTransl(
+	return this->dumpToStringInternal(
 		serializer,
 		[](const StateType& state){return Convert::ToString(state);},
-		this->GetSymbolDict(),
+		this->GetAlphabet(),
 		params);
 }
 
@@ -106,22 +95,7 @@ std::string BDDBUTreeAutCore::DumpToString(
 {
 	return this->DumpToString(
 		serializer,
-		stateDict,
-		this->GetSymbolDict(),
-		params);
-}
-
-
-std::string BDDBUTreeAutCore::DumpToString(
-	VATA::Serialization::AbstrSerializer&      serializer,
-	const StateDict&                           stateDict,
-	const SymbolDict&                          symbolDict,
-	const std::string&                         params) const
-{
-	return this->DumpToStringWithStateTransl(
-		serializer,
 		StateBackTranslStrict(stateDict.GetReverseMap()),
-		symbolDict,
 		params);
 }
 
@@ -231,7 +205,7 @@ BDDTDTreeAutCore BDDBUTreeAutCore::GetTopDownAut() const
 		}
 	};
 
-	BDDTDTreeAutCore result;
+	BDDTDTreeAutCore result(this->GetAlphabet());
 
 	StateType soughtState;
 	StateTuple checkedTuple;
@@ -289,19 +263,11 @@ std::string BDDBUTreeAutCore::DumpToDot() const
 
 void BDDBUTreeAutCore::LoadFromAutDesc(
 	const AutDescription&         desc,
-	StateDict&                    stateDict,
-	SymbolDict&                   symbolDict,
 	const std::string&            params)
 {
-	StateType stateCnt = 0;
+	StateDict stateDict;
 
-	this->LoadFromAutDescWithStateSymbolTransl(
-		desc,
-		StringToStateTranslWeak(stateDict,
-			[&stateCnt](const std::string&){return stateCnt++;}),
-		StringSymbolToSymbolTranslWeak(symbolDict,
-			[this](const StringSymbolType&){return this->AddSymbol();}),
-		params);
+	this->LoadFromAutDesc(desc, stateDict, params);
 }
 
 
@@ -310,11 +276,22 @@ void BDDBUTreeAutCore::LoadFromAutDesc(
 	StateDict&                    stateDict,
 	const std::string&            params)
 {
+	StateType state(0);
+
 	this->LoadFromAutDesc(
 		desc,
-		stateDict,
-		this->GetSymbolDict(),
+		StringToStateTranslWeak(stateDict,
+			[&state](const StringSymbolType&){return state++;}),
 		params);
+}
+
+
+void BDDBUTreeAutCore::LoadFromString(
+	VATA::Parsing::AbstrParser&     parser,
+	const std::string&              str,
+	const std::string&              params)
+{
+	this->LoadFromAutDesc(parser.ParseString(str), params);
 }
 
 
@@ -325,15 +302,4 @@ void BDDBUTreeAutCore::LoadFromString(
 	const std::string&              params)
 {
 	this->LoadFromAutDesc(parser.ParseString(str), stateDict, params);
-}
-
-
-void BDDBUTreeAutCore::LoadFromString(
-	VATA::Parsing::AbstrParser&     parser,
-	const std::string&              str,
-	StateDict&                      stateDict,
-	SymbolDict&                     symbolDict,
-	const std::string&              params)
-{
-	this->LoadFromAutDesc(parser.ParseString(str), stateDict, symbolDict, params);
 }

@@ -91,6 +91,7 @@ add_library(libvata STATIC
   timbuk_serializer.cc
   util.cc
   sym_var_asgn.cc
+	symbolic_tree_aut_base_core.cc
   ${FLEX_timbuk_scanner_OUTPUTS}
   ${BISON_timbuk_parser_OUTPUTS}
 )

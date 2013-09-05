@@ -12,8 +12,8 @@
 #include <vata/vata.hh>
 #include <vata/finite_aut/explicit_finite_aut.hh>
 
-// pointer to symbol dictionary
-VATA::ExplicitFiniteAut::SymbolDict* VATA::ExplicitFiniteAut::pSymbolDict_ = nullptr;
+using VATA::ExplicitFiniteAut;
 
-// pointer to next symbol counter
-VATA::ExplicitFiniteAut::SymbolType* VATA::ExplicitFiniteAut::pNextSymbol_ = nullptr;
+// pointer to symbol dictionary
+ExplicitFiniteAut::AlphabetType ExplicitFiniteAut::globalAlphabet_ =
+	AlphabetType(new AlphabetType::element_type());

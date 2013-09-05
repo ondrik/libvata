@@ -79,6 +79,16 @@ BDDBottomUpTreeAut::~BDDBottomUpTreeAut()
 { }
 
 
+BDDBottomUpTreeAut::AlphabetType& BDDBottomUpTreeAut::GetAlphabet() const
+{
+	// Assertions
+	assert(nullptr != core_);
+
+	return core_->GetAlphabet();
+}
+
+
+
 void BDDBottomUpTreeAut::AddTransition(
 	const StateTuple&      children,
 	const SymbolType&      symbol,
@@ -111,6 +121,17 @@ bool BDDBottomUpTreeAut::IsStateFinal(
 void BDDBottomUpTreeAut::LoadFromString(
 	VATA::Parsing::AbstrParser&     parser,
 	const std::string&              str,
+	const std::string&              params)
+{
+	assert(nullptr != core_);
+
+	core_->LoadFromString(parser, str, params);
+}
+
+
+void BDDBottomUpTreeAut::LoadFromString(
+	VATA::Parsing::AbstrParser&     parser,
+	const std::string&              str,
 	StateDict&                      stateDict,
 	const std::string&              params)
 {
@@ -123,41 +144,12 @@ void BDDBottomUpTreeAut::LoadFromString(
 void BDDBottomUpTreeAut::LoadFromString(
 	VATA::Parsing::AbstrParser&     parser,
 	const std::string&              str,
-	StateDict&                      stateDict,
-	SymbolDict&                     symbolDict,
-	const std::string&              params)
-{
-	assert(nullptr != core_);
-
-	core_->LoadFromString(parser, str, stateDict, symbolDict, params);
-}
-
-
-void BDDBottomUpTreeAut::LoadFromString(
-	VATA::Parsing::AbstrParser&     parser,
-	const std::string&              str,
 	StringToStateTranslWeak&        stateTransl,
-	StringSymbolToSymbolTranslWeak& symbolTransl,
 	const std::string&              params)
 {
 	assert(nullptr != core_);
 
-	core_->LoadFromStringWithStateSymbolTransl(
-		parser, str, stateTransl, symbolTransl, params);
-}
-
-
-void BDDBottomUpTreeAut::LoadFromString(
-	VATA::Parsing::AbstrParser&     parser,
-	const std::string&              str,
-	StateDict&                      stateDict,
-	StringSymbolToSymbolTranslWeak& symbolTransl,
-	const std::string&              params)
-{
-	assert(nullptr != core_);
-
-	core_->LoadFromStringWithSymbolTransl(
-		parser, str, stateDict, symbolTransl, params);
+	core_->LoadFromString(parser, str, stateTransl, params);
 }
 
 
@@ -190,30 +182,6 @@ std::string BDDBottomUpTreeAut::DumpToString(
 	assert(nullptr != core_);
 
 	return core_->DumpToString(serializer, stateDict, params);
-}
-
-
-std::string BDDBottomUpTreeAut::DumpToString(
-	VATA::Serialization::AbstrSerializer&      serializer,
-	const StateDict&                           stateDict,
-	const SymbolDict&                          symbolDict,
-	const std::string&                         params) const
-{
-	assert(nullptr != core_);
-
-	return core_->DumpToString(serializer, stateDict, symbolDict, params);
-}
-
-
-std::string BDDBottomUpTreeAut::DumpToString(
-	VATA::Serialization::AbstrSerializer&  /* serializer */,
-	const StateBackTranslStrict&           /* stateTransl */,
-	const SymbolBackTranslStrict&          /* symbolTransl */,
-	const std::string&                     /* params */) const
-{
-	assert(nullptr != core_);
-
-	assert(false);
 }
 
 

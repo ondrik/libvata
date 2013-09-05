@@ -263,8 +263,15 @@ private:  // data members
 
 	StateToTransitionClusterMapPtr transitions_;
 
-	static SymbolDict* pSymbolDict_;
-	static SymbolType* pNextSymbol_;
+	/**
+	 * @brief  The alphabet of the automaton
+	 *
+	 * This data member is declared as mutable because it may change, e.g.,
+	 * during loading of another automaton.
+	 */
+	mutable AlphabetType alphabet_;
+
+	static AlphabetType globalAlphabet_;
 
 	static TupleCache globalTupleCache_;
 
@@ -322,7 +329,8 @@ public:   // methods
 
 
 	explicit ExplicitTreeAutCore(
-		TupleCache&                   tupleCache = globalTupleCache_);
+		TupleCache&                   tupleCache = globalTupleCache_,
+		AlphabetType&                 alphabet = globalAlphabet_);
 
 
 	ExplicitTreeAutCore(
@@ -383,10 +391,12 @@ public:   // methods
 	}
 
 
+private:  // methods
+
 	template <
 		class StateTranslFunc,
 		class SymbolTranslFunc>
-	void LoadFromAutDescWithStateSymbolTransl(
+	void loadFromAutDescInternal(
 		const AutDescription&          desc,
 		StateTranslFunc                stateTransl,
 		SymbolTranslFunc               symbolTransl,
@@ -424,16 +434,38 @@ public:   // methods
 	}
 
 
+public:   // methods
+
+
 	void LoadFromAutDesc(
 		const AutDescription&             desc,
-		StateDict&                        stateDict,
 		const std::string&                params = "");
 
 
 	void LoadFromAutDesc(
 		const AutDescription&             desc,
 		StateDict&                        stateDict,
-		SymbolDict&                       symbolDict,
+		const std::string&                params = "");
+
+
+	template <
+		class StateTranslFunc>
+	void LoadFromAutDesc(
+		const AutDescription&             desc,
+		StateTranslFunc                   stateTransl,
+		const std::string&                params = "")
+	{
+		this->loadFromAutDescInternal(
+			desc,
+			stateTransl,
+			this->GetAlphabet()->GetSymbolTransl(),
+			params);
+	}
+
+
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&       parser,
+		const std::string&                str,
 		const std::string&                params = "");
 
 
@@ -441,45 +473,20 @@ public:   // methods
 		VATA::Parsing::AbstrParser&       parser,
 		const std::string&                str,
 		StateDict&                        stateDict,
-		SymbolDict&                       symbolDict,
 		const std::string&                params = "");
 
 
 	template <
-		class StateTranslFunc,
-		class SymbolTranslFunc>
-	void LoadFromStringWithStateSymbolTransl(
+		class StateTranslFunc>
+	void LoadFromString(
 		VATA::Parsing::AbstrParser&       parser,
 		const std::string&                str,
 		StateTranslFunc                   stateTransl,
-		SymbolTranslFunc                  symbolTransl,
 		const std::string&                params = "")
 	{
-		return this->LoadFromAutDescWithStateSymbolTransl(
+		return this->LoadFromAutDesc(
 			parser.ParseString(str),
 			stateTransl,
-			symbolTransl,
-			params);
-	}
-
-
-	template <
-		class SymbolTranslFunc>
-	void LoadFromStringWithSymbolTransl(
-		VATA::Parsing::AbstrParser&       parser,
-		const std::string&                str,
-		StateDict&                        stateDict,
-		SymbolTranslFunc                  symbolTransl,
-		const std::string&                params = "")
-	{
-		StateType state(0);
-
-		return this->LoadFromStringWithStateSymbolTransl(
-			parser,
-			str,
-			StringToStateTranslWeak(stateDict,
-				[&state](const std::string&){return state++;}),
-			symbolTransl,
 			params);
 	}
 
@@ -487,6 +494,7 @@ public:   // methods
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&     serializer,
 		const std::string&                        params = "") const;
+
 
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&     serializer,
@@ -494,44 +502,32 @@ public:   // methods
 		const std::string&                        params = "") const;
 
 
-	//template <class SymbolTransFunc>
-	//std::string DumpToString(
-	//	VATA::Serialization::AbstrSerializer&     serializer,
-	//	SymbolTransFunc                           symbolTranslator,
-	//	const std::string&                        params = "") const
-	//{
-	//	return this->DumpToString(
-	//		serializer,
-	//		[](const StateType& state){return Convert::ToString(state);},
-	//		symbolTranslator,
-	//		params);
-	//}
-
-
+	template <
+		class StateTransl>
 	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&  serializer,
-		const StateDict&                       stateDict,
-		const SymbolDict&                      symbolDict,
-		const std::string&                     params = "") const;
+		VATA::Serialization::AbstrSerializer&     serializer,
+		StateTransl                               stateTransl,
+		const std::string&                        params = "") const
+	{
+		return this->dumpToStringInternal(
+			serializer,
+			stateTransl,
+			this->GetAlphabet()->GetSymbolBackTransl(),
+			params);
+	}
 
 
-#if 0
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&  serializer,
-		const StateBackTranslStrict&           stateTransl,
-		const SymbolBackTranslStrict&          symbolTransl,
-		const std::string&                     params = "") const;
-#endif
+private:  // methods
 
 
 	template <
-		class StatePrintFunc,
-		class SymbolPrintFunc
+		class StateBackTranslFunc,
+		class SymbolBackTranslFunc
 		>
-	std::string DumpToString(
+	std::string dumpToStringInternal(
 		VATA::Serialization::AbstrSerializer&     serializer,
-		StatePrintFunc                            stateTransl,
-		SymbolPrintFunc                           symbolTransl,
+		StateBackTranslFunc                       stateTransl,
+		SymbolBackTranslFunc                      symbolTransl,
 		const std::string&                        /* params */ = "") const
 	{
 		AutDescription desc;
@@ -602,6 +598,9 @@ public:   // methods
 		return serializer.Serialize(desc);
 #endif
 	}
+
+
+public:   // methods
 
 
 	template <class Index>
@@ -757,37 +756,20 @@ public:   // methods
 		}
 	}
 
-
-	static SymbolType AddSymbol()
+	AlphabetType& GetAlphabet() const
 	{
 		// Assertions
-		assert(pNextSymbol_ != nullptr);
+		assert(nullptr != alphabet_);
 
-		return (*pNextSymbol_)++;
+		return alphabet_;
 	}
 
-	static SymbolDict& GetSymbolDict()
+	void SetAlphabet(AlphabetType& alphabet)
 	{
 		// Assertions
-		assert(pSymbolDict_ != nullptr);
+		assert(nullptr != alphabet);
 
-		return *pSymbolDict_;
-	}
-
-	static void SetSymbolDictPtr(SymbolDict* pSymbolDict)
-	{
-		// Assertions
-		assert(pSymbolDict != nullptr);
-
-		pSymbolDict_ = pSymbolDict;
-	}
-
-	static void SetNextSymbolPtr(SymbolType* pNextSymbol)
-	{
-		// Assertions
-		assert(pNextSymbol != nullptr);
-
-		pNextSymbol_ = pNextSymbol;
+		alphabet_ = alphabet;
 	}
 
 	static DownInclStateTupleVector StateTupleSetToVector(
@@ -795,9 +777,6 @@ public:   // methods
 	{
 		return DownInclStateTupleVector(tupleSet.begin(), tupleSet.end());
 	}
-
-
-	static AlphabetType GetAlphabet();
 
 
 	template <class Index = Util::IdentityTranslator<StateType>>

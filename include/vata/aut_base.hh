@@ -4,7 +4,7 @@
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
  *  Description:
- *    Header file for the base class of automata.
+ *    Header file for base classes of automata.
  *
  *****************************************************************************/
 
@@ -204,32 +204,40 @@ public:   // data types
 	using SymbolBackTranslStrict          =
 		Util::TranslatorStrict<typename SymbolDict::MapBwdType>;
 
-protected:// data members
+	class Alphabet
+	{
+	private:  // data members
 
-	static SymbolDict* pSymbolDict_;
+		SymbolDict symbolDict_{};
+		SymbolType nextSymbol_;
+
+	public:   // methods
+
+		Alphabet() :
+			nextSymbol_(Symbolic::GetZeroSymbol())
+		{ }
+
+		StringSymbolToSymbolTranslWeak GetSymbolTransl()
+		{
+			return StringSymbolToSymbolTranslWeak{symbolDict_,
+				[&](const StringSymbolType&){return nextSymbol_++;}};
+		}
+
+		SymbolDict& GetSymbolDict()
+		{
+			return symbolDict_;
+		}
+
+	};
+
+	using AlphabetType = std::shared_ptr<Alphabet>;
+
 
 protected:// methods
 
 	SymbolicTreeAutBase() { }
 
 public:   // methods
-
-	static void SetSymbolDictPtr(SymbolDict* pSymbolDict)
-	{
-		// Assertions
-		assert(nullptr != pSymbolDict);
-
-		pSymbolDict_ = pSymbolDict;
-	}
-
-	static SymbolDict& GetSymbolDict()
-	{
-		// Assertions
-		assert(nullptr != pSymbolDict_);
-
-		return *pSymbolDict_;
-	}
-
 
 	static const StringSymbolType& ToStringSymbolType(
 		const std::string&         str,

@@ -30,37 +30,17 @@ GCC_DIAG_ON(effc++)
 
 public:   // data types
 
-	typedef VATA::SymbolicVarAsgn SymbolType;
+	using SymbolType = VATA::SymbolicVarAsgn;
 
 protected:// constants
 
 	const static size_t SYMBOL_SIZE = 16;
-
-private:  // data members
-
-	static SymbolType* pNextSymbol_;
 
 protected:// methods
 
 	Symbolic() { }
 
 public:   // methods
-
-	static SymbolType AddSymbol()
-	{
-		// Assertions
-		assert(pNextSymbol_ != nullptr);
-
-		return (*pNextSymbol_)++;
-	}
-
-	static void SetNextSymbolPtr(SymbolType* pNextSymbol)
-	{
-		// Assertions
-		assert(pNextSymbol != nullptr);
-
-		pNextSymbol_ = pNextSymbol;
-	}
 
 	static SymbolType GetZeroSymbol()
 	{

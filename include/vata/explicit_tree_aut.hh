@@ -48,7 +48,6 @@ public:   // public data types
 	using StateTuple     = TreeAutBase::StateTuple;
 
 	using StringSymbolType = StringRank;
-	using AlphabetType     = std::vector<std::pair<SymbolType, size_t>>;
 
 
 	class Transition
@@ -81,6 +80,31 @@ public:   // public data types
 	using StringSymbolToSymbolTranslWeak  = Util::TranslatorWeak<SymbolDict>;
 	using StringSymbolToSymbolTranslStrict= Util::TranslatorStrict<SymbolDict>;
 	using SymbolBackTranslStrict          = Util::TranslatorStrict<SymbolDict::MapBwdType>;
+
+
+	class Alphabet
+	{
+	private:  // data members
+
+		SymbolDict symbolDict_{};
+		SymbolType nextSymbol_ = 0;
+
+	public:   // methods
+
+		StringSymbolToSymbolTranslWeak GetSymbolTransl()
+		{
+			return StringSymbolToSymbolTranslWeak{symbolDict_,
+				[&](const StringSymbolType&){return nextSymbol_++;}};
+		}
+
+		SymbolBackTranslStrict GetSymbolBackTransl()
+		{
+			return SymbolBackTranslStrict(symbolDict_.GetReverseMap());
+		}
+	};
+
+
+	using AlphabetType = std::shared_ptr<Alphabet>;
 
 
 public:
@@ -356,17 +380,17 @@ public:   // methods
 		const StateType&          state);
 
 
-	static AlphabetType GetAlphabet()
-	{
-		throw NotImplementedException(__func__);
-	}
+	AlphabetType& GetAlphabet();
+
+
+	const AlphabetType& GetAlphabet() const;
 
 
 	ExplicitTreeAut Reduce() const;
 
 
 	ExplicitTreeAut ReindexStates(
-		StateToStateTranslWeak&     stateTrans) const;
+		StateToStateTranslWeak&     stateTransl) const;
 
 
 	ExplicitTreeAut RemoveUnreachableStates(
@@ -389,10 +413,7 @@ public:   // methods
 	ExplicitTreeAut GetCandidateTree() const;
 
 
-	static void SetSymbolDictPtr(SymbolDict* pSymbolDict);
-
-
-	static void SetNextSymbolPtr(SymbolType* pNextSymbol);
+	void SetAlphabet(AlphabetType& alphabet);
 
 
 	std::string DumpToString(
@@ -403,15 +424,13 @@ public:   // methods
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&     serializer,
 		const StateDict&                          stateDict,
-		const SymbolDict&                         symbolDict,
 		const std::string&                        params = "") const;
 
 
 	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&  serializer,
-		const StateBackTranslStrict&           stateTrans,
-		const SymbolBackTranslStrict&          symbolTrans,
-		const std::string&                     params = "") const;
+		VATA::Serialization::AbstrSerializer&     serializer,
+		const StateBackTranslStrict&              stateTransl,
+		const std::string&                        params = "") const;
 
 
 	template <
@@ -452,17 +471,16 @@ public:   // methods
 	}
 
 
-	static SymbolDict& GetSymbolDict()
-	{
-		throw NotImplementedException(__func__);
-	}
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&       parser,
+		const std::string&                str,
+		const std::string&                params = "");
 
 
 	void LoadFromString(
 		VATA::Parsing::AbstrParser&       parser,
 		const std::string&                str,
 		StateDict&                        stateDict,
-		SymbolDict&                       symbolDict,
 		const std::string&                params = "");
 
 
@@ -470,16 +488,24 @@ public:   // methods
 		VATA::Parsing::AbstrParser&       parser,
 		const std::string&                str,
 		StringToStateTranslWeak&          stateTransl,
-		StringSymbolToSymbolTranslWeak&   symbolTransl,
 		const std::string&                params = "");
 
 
-	void LoadFromString(
-		VATA::Parsing::AbstrParser&      parser,
-		const std::string&               str,
-		StateDict&                       stateDict,
-		StringSymbolToSymbolTranslWeak&  symbolTransl,
-		const std::string&               params = "");
+	void LoadFromAutDesc(
+		const VATA::Util::AutDescription&   desc,
+		const std::string&                  params = "");
+
+
+	void LoadFromAutDesc(
+		const VATA::Util::AutDescription&   desc,
+		StateDict&                          stateDict,
+		const std::string&                  params = "");
+
+
+	void LoadFromAutDesc(
+		const VATA::Util::AutDescription&   desc,
+		StringToStateTranslWeak&            stateTransl,
+		const std::string&                  params = "");
 
 
 	/**
