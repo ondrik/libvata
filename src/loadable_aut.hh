@@ -12,6 +12,7 @@
 #define _VATA_LOADABLE_AUT_HH_
 
 #include <vata/util/aut_description.hh>
+#include <vata/util/convert.hh>
 
 namespace VATA
 {
@@ -37,6 +38,11 @@ public:   // data types
 	using StringSymbolType = typename TBaseAut::StringSymbolType;
 
 	using StringToStateTranslWeak = typename TBaseAut::StringToStateTranslWeak;
+	using StateBackTranslStrict   = typename TBaseAut::StateBackTranslStrict;
+
+private:  // data types
+
+	using Convert      = VATA::Util::Convert;
 
 public:   // public methods
 
@@ -132,6 +138,44 @@ public:   // public methods
 			desc,
 			stateTransl,
 			this->GetAlphabet()->GetSymbolTransl(),
+			params);
+	}
+
+
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&      serializer,
+		const std::string&                         params = "") const
+	{
+		return this->DumpToString(
+			serializer,
+			[](const StateType& state){return Convert::ToString(state);},
+			params);
+	}
+
+
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&      serializer,
+		const StateDict&                           stateDict,
+		const std::string&                         params = "") const
+	{
+		return this->DumpToString(
+			serializer,
+			StateBackTranslStrict(stateDict.GetReverseMap()),
+			params);
+	}
+
+
+	template <
+		class StateBackTranslFunc>
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&    serializer,
+		StateBackTranslFunc                      stateBackTransl,
+		const std::string&                       params = "") const
+	{
+		return this->dumpToStringInternal(
+			serializer,
+			stateBackTransl,
+			this->GetAlphabet(),
 			params);
 	}
 };

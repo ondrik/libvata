@@ -530,36 +530,6 @@ protected:// methods
 		}
 	}
 
-public:   // methods
-
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&      serializer,
-		const std::string&                         params = "") const;
-
-
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&      serializer,
-		const StateDict&                           stateDict,
-		const std::string&                         params = "") const;
-
-
-	template <
-		class StateBackTranslFunc>
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&    serializer,
-		StateBackTranslFunc                      stateBackTransl,
-		const std::string&                       params = "") const
-	{
-		return this->dumpToStringInternal(
-			serializer,
-			stateBackTransl,
-			this->GetAlphabet(),
-			params);
-	}
-
-
-private:  // methods
-
 
 	template <
 		class StateBackTranslFunc>

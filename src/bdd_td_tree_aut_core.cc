@@ -168,26 +168,3 @@ void BDDTDTreeAutCore::ReindexStates(
 		dstAut.SetStateFinal(stateTrans(fst));
 	}
 }
-
-
-std::string BDDTDTreeAutCore::DumpToString(
-	VATA::Serialization::AbstrSerializer&      serializer,
-	const StateDict&                           stateDict,
-	const std::string&                         params) const
-{
-	return this->DumpToString(
-		serializer,
-		StateBackTranslStrict(stateDict.GetReverseMap()),
-		params);
-}
-
-
-std::string BDDTDTreeAutCore::DumpToString(
-	VATA::Serialization::AbstrSerializer&      serializer,
-	const std::string&                         params) const
-{
-	return this->DumpToString(
-		serializer,
-		[](const StateType& state){return Convert::ToString(state);},
-		params);
-}

@@ -78,30 +78,6 @@ void BDDBUTreeAutCore::AddTransition(
 }
 
 
-std::string BDDBUTreeAutCore::DumpToString(
-	VATA::Serialization::AbstrSerializer&      serializer,
-	const std::string&                         params) const
-{
-	return this->dumpToStringInternal(
-		serializer,
-		[](const StateType& state){return Convert::ToString(state);},
-		this->GetAlphabet(),
-		params);
-}
-
-
-std::string BDDBUTreeAutCore::DumpToString(
-	VATA::Serialization::AbstrSerializer&      serializer,
-	const StateDict&                           stateDict,
-	const std::string&                         params) const
-{
-	return this->DumpToString(
-		serializer,
-		StateBackTranslStrict(stateDict.GetReverseMap()),
-		params);
-}
-
-
 BDDBUTreeAutCore::TransMTBDD BDDBUTreeAutCore::ReindexStates(
 	BDDBUTreeAutCore&          dstAut,
 	StateToStateTranslWeak&    stateTransl) const

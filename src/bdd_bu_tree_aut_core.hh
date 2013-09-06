@@ -358,7 +358,27 @@ public:   // methods
 		StateToStateTranslWeak&    stateTrans) const;
 
 
-private:  // methods
+protected:// methods
+
+
+	template <
+		class StateTranslFunc,
+		class SymbolTranslFunc>
+	void loadFromAutDescInternal(
+		const AutDescription&       desc,
+		StateTranslFunc             stateTransl,
+		SymbolTranslFunc            symbolTransl,
+		const std::string&          params = "")
+	{
+		if (params == "symbolic")
+		{
+			loadFromAutDescSymbolic(desc, stateTransl, symbolTransl, params);
+		}
+		else
+		{
+			loadFromAutDescExplicit(desc, stateTransl, symbolTransl, params);
+		}
+	}
 
 
 	template <
@@ -384,32 +404,6 @@ private:  // methods
 
 
 public:   // methods
-
-
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&      serializer,
-		const std::string&                         params = "") const;
-
-
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&      serializer,
-		const StateDict&                           stateDict,
-		const std::string&                         params = "") const;
-
-
-	template <
-		class StateBackTranslFunc>
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&      serializer,
-		StateBackTranslFunc                        stateBackTransl,
-		const std::string&                         params = "") const
-	{
-		return this->dumpToStringInternal(
-			serializer,
-			stateBackTransl,
-			this->GetAlphabet(),
-			params);
-	}
 
 
 	std::string DumpToDot() const;
@@ -483,30 +477,6 @@ public:   // methods
 
 	StateBinaryRelation ComputeUpwardSimulation(
 		size_t                    size) const;
-
-
-protected:// methods
-
-
-	template <
-		class StateTranslFunc,
-		class SymbolTranslFunc
-		>
-	void loadFromAutDescInternal(
-		const AutDescription&       desc,
-		StateTranslFunc             stateTransl,
-		SymbolTranslFunc            symbolTransl,
-		const std::string&          params = "")
-	{
-		if (params == "symbolic")
-		{
-			loadFromAutDescSymbolic(desc, stateTransl, symbolTransl, params);
-		}
-		else
-		{
-			loadFromAutDescExplicit(desc, stateTransl, symbolTransl, params);
-		}
-	}
 };
 
 #endif

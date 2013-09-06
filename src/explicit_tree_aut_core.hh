@@ -429,48 +429,16 @@ protected:// methods
 	}
 
 
-public:   // methods
-
-
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&     serializer,
-		const std::string&                        params = "") const;
-
-
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&     serializer,
-		const StateDict&                          stateDict,
-		const std::string&                        params = "") const;
-
-
 	template <
-		class StateTransl>
-	std::string DumpToString(
-		VATA::Serialization::AbstrSerializer&     serializer,
-		StateTransl                               stateTransl,
-		const std::string&                        params = "") const
-	{
-		return this->dumpToStringInternal(
-			serializer,
-			stateTransl,
-			this->GetAlphabet()->GetSymbolBackTransl(),
-			params);
-	}
-
-
-private:  // methods
-
-
-	template <
-		class StateBackTranslFunc,
-		class SymbolBackTranslFunc
-		>
+		class StateBackTranslFunc>
 	std::string dumpToStringInternal(
 		VATA::Serialization::AbstrSerializer&     serializer,
 		StateBackTranslFunc                       stateTransl,
-		SymbolBackTranslFunc                      symbolTransl,
+		const AlphabetType&                       alphabet,
 		const std::string&                        /* params */ = "") const
 	{
+		SymbolBackTranslStrict symbolTransl = alphabet->GetSymbolBackTransl();
+
 		AutDescription desc;
 
 		for (const StateType& s : finalStates_)
@@ -496,48 +464,6 @@ private:  // methods
 		}
 
 		return serializer.Serialize(desc);
-
-// OBSOLETE
-#if 0
-		struct SymbolTranslatorPrinter
-		{
-			std::string operator()(const SymbolType& sym) const
-			{
-				return SymPrFnc(sym).symbolStr;
-			}
-		};
-
-		auto printer = [&symbolPrinter](const SymbolType& sym)
-			{
-				return symbolPrinter(sym).symbolStr;
-			};
-
-		AutDescription desc;
-
-		for (const StateType& s : finalStates_)
-		{
-			desc.finalStates.insert(statePrinter(s));
-		}
-
-		for (const Transition& t : *this)
-		{
-			std::vector<std::string> tupleStr;
-
-			for (const StateType& s : t.children())
-			{
-				tupleStr.push_back(statePrinter(s));
-			}
-
-			AutDescription::Transition trans(
-				tupleStr,
-				printer(t.symbol()),
-				statePrinter(t.parent()));
-
-			desc.transitions.insert(trans);
-		}
-
-		return serializer.Serialize(desc);
-#endif
 	}
 
 
