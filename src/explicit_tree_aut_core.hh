@@ -15,7 +15,6 @@
 #include <vata/aut_base.hh>
 #include <vata/explicit_tree_aut.hh>
 
-#include <vata/util/convert.hh>
 #include <vata/util/ord_vector.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/util.hh>
@@ -49,8 +48,6 @@ public:   // data types
 
 private:  // data types
 
-	using AutDescription   = Util::AutDescription;
-
 	using AlphabetType     = ExplicitTreeAut::AlphabetType;
 
 	using StateSetLight    = Util::OrdVector<StateType>;
@@ -62,8 +59,6 @@ private:  // data types
 	using TuplePtrSetPtr   = std::shared_ptr<TuplePtrSet>;
 	using TupleSet         = std::set<StateTuple>;
 	using TupleCache       = Util::Cache<StateTuple>;
-
-	using Convert    = Util::Convert;
 
 	using SymbolDict                      = ExplicitTreeAut::SymbolDict;
 	using StringSymbolToSymbolTranslStrict= ExplicitTreeAut::StringSymbolToSymbolTranslStrict;
@@ -391,7 +386,7 @@ public:   // methods
 	}
 
 
-private:  // methods
+protected:// methods
 
 	template <
 		class StateTranslFunc,
@@ -435,60 +430,6 @@ private:  // methods
 
 
 public:   // methods
-
-
-	void LoadFromAutDesc(
-		const AutDescription&             desc,
-		const std::string&                params = "");
-
-
-	void LoadFromAutDesc(
-		const AutDescription&             desc,
-		StateDict&                        stateDict,
-		const std::string&                params = "");
-
-
-	template <
-		class StateTranslFunc>
-	void LoadFromAutDesc(
-		const AutDescription&             desc,
-		StateTranslFunc                   stateTransl,
-		const std::string&                params = "")
-	{
-		this->loadFromAutDescInternal(
-			desc,
-			stateTransl,
-			this->GetAlphabet()->GetSymbolTransl(),
-			params);
-	}
-
-
-	void LoadFromString(
-		VATA::Parsing::AbstrParser&       parser,
-		const std::string&                str,
-		const std::string&                params = "");
-
-
-	void LoadFromString(
-		VATA::Parsing::AbstrParser&       parser,
-		const std::string&                str,
-		StateDict&                        stateDict,
-		const std::string&                params = "");
-
-
-	template <
-		class StateTranslFunc>
-	void LoadFromString(
-		VATA::Parsing::AbstrParser&       parser,
-		const std::string&                str,
-		StateTranslFunc                   stateTransl,
-		const std::string&                params = "")
-	{
-		return this->LoadFromAutDesc(
-			parser.ParseString(str),
-			stateTransl,
-			params);
-	}
 
 
 	std::string DumpToString(

@@ -69,6 +69,7 @@ public:   // data types
 
 	using StateType = size_t;
 
+	using AutDescription             = VATA::Util::AutDescription;
 	using StateDict                  = Util::TwoWayDict<std::string, StateType>;
 	using StringToStateTranslWeak    = Util::TranslatorWeak<StateDict>;
 	using StringToStateTranslStrict  = Util::TranslatorStrict<StateDict>;

@@ -34,6 +34,10 @@ namespace VATA
 {
 	class ExplicitTreeAut;
 
+	template <
+		class>
+	class LoadableAut;
+
 	class ExplicitTreeAutCore;
 }
 
@@ -45,7 +49,6 @@ GCC_DIAG_ON(effc++)
 public:   // public data types
 
 	using SymbolType     = uintptr_t;
-	using StateTuple     = TreeAutBase::StateTuple;
 
 	using StringSymbolType = StringRank;
 
@@ -106,6 +109,14 @@ public:   // public data types
 
 	using AlphabetType = std::shared_ptr<Alphabet>;
 
+
+private:  // data types
+
+	using CoreAut        = VATA::LoadableAut<ExplicitTreeAutCore>;
+
+private:  // data members
+
+	std::unique_ptr<CoreAut> core_;
 
 public:
 
@@ -353,7 +364,7 @@ public:   // methods
 
 	~ExplicitTreeAut();
 
-	explicit ExplicitTreeAut(ExplicitTreeAutCore&& core);
+	explicit ExplicitTreeAut(CoreAut&& core);
 
 
 	static StringSymbolType ToStringSymbolType(const std::string& str, size_t rank)
@@ -602,12 +613,6 @@ public:   // methods
 	{
 		throw NotImplementedException(__func__);
 	}
-
-
-private:  // data members
-
-	std::unique_ptr<ExplicitTreeAutCore> core_;
-
 };
 
 #endif

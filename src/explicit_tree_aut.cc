@@ -13,34 +13,26 @@
 #include <vata/explicit_tree_aut.hh>
 
 #include "explicit_tree_aut_core.hh"
+#include "loadable_aut.hh"
 
 using VATA::AutBase;
 using VATA::ExplicitTreeAut;
-using VATA::ExplicitTreeAutCore;
-
-
-void ExplicitTreeAut::SetAlphabet(AlphabetType& alphabet)
-{
-	assert(nullptr != core_);
-
-	core_->SetAlphabet(alphabet);
-}
 
 
 ExplicitTreeAut::ExplicitTreeAut() :
-	core_(new ExplicitTreeAutCore())
+	core_(new CoreAut(CoreAut::ParentAut()))
 { }
 
 
 ExplicitTreeAut::ExplicitTreeAut(
-	ExplicitTreeAutCore&&             core) :
-	core_(new ExplicitTreeAutCore(std::move(core)))
+	CoreAut&&                    core) :
+	core_(new CoreAut(std::move(core)))
 { }
 
 
 ExplicitTreeAut::ExplicitTreeAut(
 	const ExplicitTreeAut&         aut) :
-	core_(new ExplicitTreeAutCore(*aut.core_))
+	core_(new CoreAut(*aut.core_))
 { }
 
 
@@ -81,6 +73,14 @@ ExplicitTreeAut& ExplicitTreeAut::operator=(
 
 ExplicitTreeAut::~ExplicitTreeAut()
 { }
+
+
+void ExplicitTreeAut::SetAlphabet(AlphabetType& alphabet)
+{
+	assert(nullptr != core_);
+
+	core_->SetAlphabet(alphabet);
+}
 
 
 ExplicitTreeAut::AlphabetType& ExplicitTreeAut::GetAlphabet()
@@ -230,7 +230,7 @@ ExplicitTreeAut ExplicitTreeAut::Union(
 	assert(nullptr != rhs.core_);
 
 	return ExplicitTreeAut(
-		ExplicitTreeAutCore::Union(*lhs.core_, *rhs.core_, pTranslMapLhs, pTranslMapRhs));
+		CoreAut::Union(*lhs.core_, *rhs.core_, pTranslMapLhs, pTranslMapRhs));
 }
 
 
@@ -242,7 +242,7 @@ ExplicitTreeAut ExplicitTreeAut::UnionDisjointStates(
 	assert(nullptr != rhs.core_);
 
 	return ExplicitTreeAut(
-		ExplicitTreeAutCore::UnionDisjointStates(*lhs.core_, *rhs.core_));
+		CoreAut::UnionDisjointStates(*lhs.core_, *rhs.core_));
 }
 
 
@@ -255,7 +255,7 @@ ExplicitTreeAut ExplicitTreeAut::Intersection(
 	assert(nullptr != rhs.core_);
 
 	return ExplicitTreeAut(
-		ExplicitTreeAutCore::Intersection(*lhs.core_, *rhs.core_, pTranslMap));
+		CoreAut::Intersection(*lhs.core_, *rhs.core_, pTranslMap));
 }
 
 
@@ -285,5 +285,5 @@ bool ExplicitTreeAut::CheckInclusion(
 	assert(nullptr != smaller.core_);
 	assert(nullptr != bigger.core_);
 
-	return ExplicitTreeAutCore::CheckInclusion(*smaller.core_, *bigger.core_, params);
+	return CoreAut::CheckInclusion(*smaller.core_, *bigger.core_, params);
 }

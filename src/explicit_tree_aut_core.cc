@@ -17,6 +17,7 @@
 
 using VATA::AutBase;
 using VATA::ExplicitTreeAutCore;
+using VATA::Util::Convert;
 
 
 // global tuple cache definition
@@ -90,55 +91,6 @@ ExplicitTreeAutCore& ExplicitTreeAutCore::operator=(
 	// NOTE: we don't care about cache_
 
 	return *this;
-}
-
-
-void ExplicitTreeAutCore::LoadFromAutDesc(
-	const AutDescription&             desc,
-	const std::string&                params)
-{
-	StateDict stateDict;
-
-	this->LoadFromAutDesc(desc, stateDict, params);
-}
-
-
-void ExplicitTreeAutCore::LoadFromAutDesc(
-	const AutDescription&             desc,
-	StateDict&                        stateDict,
-	const std::string&                params)
-{
-	StateType state(0);
-
-	this->LoadFromAutDesc(
-		desc,
-		StringToStateTranslWeak(stateDict,
-			[&state](const std::string&){return state++;}),
-		params);
-}
-
-
-void ExplicitTreeAutCore::LoadFromString(
-	VATA::Parsing::AbstrParser&       parser,
-	const std::string&                str,
-	const std::string&                params)
-{
-	this->LoadFromAutDesc(
-		parser.ParseString(str),
-		params);
-}
-
-
-void ExplicitTreeAutCore::LoadFromString(
-	VATA::Parsing::AbstrParser&       parser,
-	const std::string&                str,
-	StateDict&                        stateDict,
-	const std::string&                params)
-{
-	this->LoadFromAutDesc(
-		parser.ParseString(str),
-		stateDict,
-		params);
 }
 
 

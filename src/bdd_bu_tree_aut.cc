@@ -27,13 +27,14 @@ using VATA::Util::Convert;
 
 using StateBinaryRelation = VATA::BDDBottomUpTreeAut::StateBinaryRelation;
 
-BDDBottomUpTreeAut::BDDBottomUpTreeAut(
-	CoreAut&&                         core) :
-	core_(new CoreAut(std::move(core)))
-{ }
 
 BDDBottomUpTreeAut::BDDBottomUpTreeAut() :
 	core_(new CoreAut(CoreAut::ParentAut()))
+{ }
+
+BDDBottomUpTreeAut::BDDBottomUpTreeAut(
+	CoreAut&&                         core) :
+	core_(new CoreAut(std::move(core)))
 { }
 
 BDDBottomUpTreeAut::BDDBottomUpTreeAut(

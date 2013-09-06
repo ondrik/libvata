@@ -14,7 +14,6 @@
 // VATA headers
 #include <vata/bdd_bu_tree_aut.hh>
 #include <vata/util/aut_description.hh>
-#include <vata/util/convert.hh>
 
 // MTBDD headers
 #include "mtbdd/apply1func.hh"
@@ -34,11 +33,7 @@ GCC_DIAG_ON(effc++)
 
 public:   // data types
 
-	using AutDescription  = Util::AutDescription;
-
-	using StateType       = BDDBottomUpTreeAut::StateType;
 	using StateSet        = VATA::Util::OrdVector<StateType>;
-	using StateTuple      = BDDBottomUpTreeAut::StateTuple;
 	using StateTupleSet   = Util::OrdVector<StateTuple>;
 	using StateHT         = std::unordered_set<StateType>;
 
@@ -49,9 +44,6 @@ public:   // data types
 private:  // data types
 
 	using BDD             = MTBDDPkg::OndriksMTBDD<bool>;
-
-	using Convert       = VATA::Util::Convert;
-
 
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class UnionApplyFunctor :

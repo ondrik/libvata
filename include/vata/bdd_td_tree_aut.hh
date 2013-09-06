@@ -38,6 +38,10 @@ namespace VATA
 
 	class BDDBottomUpTreeAut;
 
+	template <
+		class>
+	class LoadableAut;
+
 	class BDDTDTreeAutCore;
 }
 
@@ -51,23 +55,21 @@ GCC_DIAG_ON(effc++)
 
 	friend VATA::BDDBottomUpTreeAut;
 
-public:   // data types
-
-	using StateTuple   = TreeAutBase::StateTuple;
-	using SymbolType   = Symbolic::SymbolType;
-
-
 private:  // data types
 
-	typedef VATA::Util::Convert Convert;
+	using CoreAut        = VATA::LoadableAut<BDDTDTreeAutCore>;
+
+private:  // data members
+
+	std::unique_ptr<CoreAut> core_;
 
 private:  // methods
 
-	BDDTopDownTreeAut(
-		const BDDTDTreeAutCore&            aut);
+	explicit BDDTopDownTreeAut(
+		const CoreAut&                     core);
 
-	BDDTopDownTreeAut(
-		BDDTDTreeAutCore&&                 aut);
+	explicit BDDTopDownTreeAut(
+		CoreAut&&                          core);
 
 public:   // public methods
 
@@ -224,12 +226,6 @@ public:   // public methods
 		const BDDTopDownTreeAut&      lhs,
 		const BDDTopDownTreeAut&      rhs,
 		AutBase::ProductTranslMap*    pTranslMap = nullptr);
-
-
-private:  // data members
-
-	std::unique_ptr<BDDTDTreeAutCore> core_;
-
 };
 
 #endif

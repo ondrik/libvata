@@ -13,6 +13,7 @@
 
 
 using VATA::BDDTDTreeAutCore;
+using VATA::Util::Convert;
 
 
 BDDTDTreeAutCore::BDDTDTreeAutCore(AlphabetType& alphabet) :
@@ -166,54 +167,6 @@ void BDDTDTreeAutCore::ReindexStates(
 	{
 		dstAut.SetStateFinal(stateTrans(fst));
 	}
-}
-
-
-void BDDTDTreeAutCore::LoadFromAutDesc(
-	const AutDescription&         desc,
-	const std::string&            params)
-{
-	StateDict stateDict;
-
-	this->LoadFromAutDesc(desc, stateDict, params);
-}
-
-
-
-void BDDTDTreeAutCore::LoadFromAutDesc(
-	const AutDescription&         desc,
-	StateDict&                    stateDict,
-	const std::string&            params)
-{
-	StateType stateCnt = 0;
-
-	this->loadFromAutDescInternal(
-		desc,
-		StringToStateTranslWeak(stateDict,
-			[&stateCnt](const std::string&){return stateCnt++;}),
-		this->GetAlphabet()->GetSymbolTransl(),
-		params);
-}
-
-
-void BDDTDTreeAutCore::LoadFromString(
-	VATA::Parsing::AbstrParser&      parser,
-	const std::string&               str,
-	StateDict&                       stateDict,
-	const std::string&               params)
-{
-	this->LoadFromAutDesc(parser.ParseString(str), stateDict, params);
-}
-
-
-void BDDTDTreeAutCore::LoadFromString(
-	VATA::Parsing::AbstrParser&      parser,
-	const std::string&               str,
-	const std::string&               params)
-{
-	this->LoadFromAutDesc(
-		parser.ParseString(str),
-		params);
 }
 
 

@@ -15,6 +15,8 @@
 using VATA::BDDBUTreeAutCore;
 using VATA::BDDTDTreeAutCore;
 
+using VATA::Util::Convert;
+
 
 BDDBUTreeAutCore& BDDBUTreeAutCore::operator=(
 	const BDDBUTreeAutCore&         rhs)

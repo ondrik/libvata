@@ -43,12 +43,12 @@ public:   // public methods
 	// inherit all constructors
 	using TBaseAut::TBaseAut;
 
-	/**
-	 * @brief  Implicit conversion from @p TBaseAut
-	 */
-	LoadableAut(const TBaseAut& baseAut) :
-		TBaseAut(baseAut)
-	{ }
+//	/**
+//	 * @brief  Implicit conversion from @p TBaseAut
+//	 */
+//	LoadableAut(const TBaseAut& baseAut) :
+//		TBaseAut(baseAut)
+//	{ }
 
 	/**
 	 * @brief  Implicit conversion from @p TBaseAut
@@ -116,7 +116,7 @@ public:   // public methods
 		this->LoadFromAutDesc(
 			desc,
 			StringToStateTranslWeak(stateDict,
-				[&state](const StringSymbolType&){return state++;}),
+				[&state](const std::string&){return state++;}),
 			params);
 	}
 

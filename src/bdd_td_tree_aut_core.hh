@@ -17,7 +17,6 @@
 #include <vata/symbolic.hh>
 #include <vata/util/ord_vector.hh>
 #include <vata/util/util.hh>
-#include <vata/util/convert.hh>
 #include <vata/incl_param.hh>
 
 // MTBDD
@@ -45,7 +44,6 @@ GCC_DIAG_ON(effc++)
 
 public:   // data types
 
-	using StateTuple                = std::vector<StateType>;
 	using StateTupleSet             = Util::OrdVector<StateTuple>;
 	using DownInclStateTupleSet     = StateTupleSet;
 	using DownInclStateTupleVector  = std::vector<StateTuple>;
@@ -63,13 +61,6 @@ private:  // data types
 
 	using BDD          = MTBDDPkg::OndriksMTBDD<bool>;
 
-	using AutDescription   = Util::AutDescription;
-	using Convert          = Util::Convert;
-
-	using BackSymbolDict   = SymbolDict::MapBwdType;
-
-	using SymbolBackTranslStrict   =
-		BDDTopDownTreeAut::SymbolBackTranslStrict;
 
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class UnionApplyFunctor :
@@ -518,7 +509,7 @@ public:   // methods
 	}
 
 
-private:  // methods
+protected:// methods
 
 	template <
 		class StateTranslFunc,
@@ -538,65 +529,6 @@ private:  // methods
 			this->loadFromAutDescExplicit(desc, stateTransl, symbolTransl);
 		}
 	}
-
-
-public:   // methods
-
-
-	void LoadFromAutDesc(
-		const AutDescription&            desc,
-		const std::string&               params = "");
-
-
-	void LoadFromAutDesc(
-		const AutDescription&            desc,
-		StateDict&                       stateDict,
-		const std::string&               params = "");
-
-
-	template <
-		class StateTranslFunc>
-	void LoadFromAutDesc(
-		const AutDescription&            desc,
-		StateTranslFunc                  stateTransl,
-		const std::string&               params = "")
-	{
-		this->loadFromAutDescInternal(
-			desc,
-			stateTransl,
-			this->GetAlphabet()->GetSymbolTransl(),
-			params);
-	}
-
-
-	void LoadFromString(
-		VATA::Parsing::AbstrParser&      parser,
-		const std::string&               str,
-		const std::string&               params = "");
-
-
-	void LoadFromString(
-		VATA::Parsing::AbstrParser&      parser,
-		const std::string&               str,
-		StateDict&                       stateDict,
-		const std::string&               params = "");
-
-
-	template <
-		class StateTranslFunc>
-	void LoadFromString(
-		VATA::Parsing::AbstrParser&      parser,
-		const std::string&               str,
-		StateTranslFunc                  stateTransl,
-		const std::string&               params = "")
-	{
-		this->LoadFromAutDesc(
-			parser.ParseString(str),
-			stateTransl,
-			params);
-	}
-
-
 
 public:   // methods
 

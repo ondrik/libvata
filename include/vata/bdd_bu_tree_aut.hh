@@ -43,14 +43,8 @@ class VATA::BDDBottomUpTreeAut : public SymbolicTreeAutBase
 {
 GCC_DIAG_ON(effc++)
 
-public:   // data types
-
-	using StateTuple = TreeAutBase::StateTuple;
-	using SymbolType = Symbolic::SymbolType;
-
 private:  // data types
 
-	using AutDescription = VATA::Util::AutDescription;
 	using CoreAut        = VATA::LoadableAut<BDDBUTreeAutCore>;
 
 private:  // data members
@@ -58,9 +52,6 @@ private:  // data members
 	std::unique_ptr<CoreAut> core_;
 
 private:  // methods
-
-	explicit BDDBottomUpTreeAut(
-		const CoreAut&                 core);
 
 	explicit BDDBottomUpTreeAut(
 		CoreAut&&                      core);
