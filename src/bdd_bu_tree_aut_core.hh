@@ -493,7 +493,7 @@ public:   // methods
 		size_t                    size) const;
 
 
-private:  // methods
+protected:// methods
 
 
 	template <
@@ -514,63 +514,6 @@ private:  // methods
 		{
 			loadFromAutDescExplicit(desc, stateTransl, symbolTransl, params);
 		}
-	}
-
-
-public:   // methods
-
-
-	void LoadFromAutDesc(
-		const AutDescription&         desc,
-		const std::string&            params = "");
-
-
-	void LoadFromAutDesc(
-		const AutDescription&         desc,
-		StateDict&                    stateDict,
-		const std::string&            params = "");
-
-
-	template <
-		class StateTranslFunc>
-	void LoadFromAutDesc(
-		const AutDescription&         desc,
-		StateTranslFunc               stateTransl,
-		const std::string&            params = "")
-	{
-		this->loadFromAutDescInternal(
-			desc,
-			stateTransl,
-			this->GetAlphabet()->GetSymbolTransl(),
-			params);
-	}
-
-
-	void LoadFromString(
-		VATA::Parsing::AbstrParser&     parser,
-		const std::string&              str,
-		const std::string&              params = "");
-
-
-	void LoadFromString(
-		VATA::Parsing::AbstrParser&     parser,
-		const std::string&              str,
-		StateDict&                      stateDict,
-		const std::string&              params = "");
-
-
-	template <
-		class StateTranslFunc>
-	void LoadFromString(
-		VATA::Parsing::AbstrParser&     parser,
-		const std::string&              str,
-		StateTranslFunc                 stateTransl,
-		const std::string&              params = "")
-	{
-		this->LoadFromAutDesc(
-			parser.ParseString(str),
-			stateTransl,
-			params);
 	}
 };
 

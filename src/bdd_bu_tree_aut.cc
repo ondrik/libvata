@@ -14,6 +14,7 @@
 
 #include "bdd_bu_tree_aut_core.hh"
 #include "bdd_td_tree_aut_core.hh"
+#include "loadable_aut.hh"
 
 
 using VATA::BDDBottomUpTreeAut;
@@ -27,17 +28,17 @@ using VATA::Util::Convert;
 using StateBinaryRelation = VATA::BDDBottomUpTreeAut::StateBinaryRelation;
 
 BDDBottomUpTreeAut::BDDBottomUpTreeAut(
-	BDDBUTreeAutCore&&             core) :
-	core_(new BDDBUTreeAutCore(std::move(core)))
+	CoreAut&&                         core) :
+	core_(new CoreAut(std::move(core)))
 { }
 
 BDDBottomUpTreeAut::BDDBottomUpTreeAut() :
-	core_(new BDDBUTreeAutCore())
+	core_(new CoreAut(CoreAut::ParentAut()))
 { }
 
 BDDBottomUpTreeAut::BDDBottomUpTreeAut(
 	const BDDBottomUpTreeAut&         aut) :
-	core_(new BDDBUTreeAutCore(*aut.core_))
+	core_(new CoreAut(*aut.core_))
 { }
 
 BDDBottomUpTreeAut& BDDBottomUpTreeAut::operator=(
@@ -251,7 +252,7 @@ bool BDDBottomUpTreeAut::CheckInclusion(
 	assert(nullptr != smaller.core_);
 	assert(nullptr != bigger.core_);
 
-	return BDDBUTreeAutCore::CheckInclusion(*smaller.core_, *bigger.core_, params);
+	return CoreAut::CheckInclusion(*smaller.core_, *bigger.core_, params);
 }
 
 
@@ -265,7 +266,7 @@ BDDBottomUpTreeAut BDDBottomUpTreeAut::Union(
 	assert(nullptr != rhs.core_);
 
 	return BDDBottomUpTreeAut(
-		BDDBUTreeAutCore::Union(*lhs.core_, *rhs.core_, pTranslMapLhs, pTranslMapRhs));
+		CoreAut::Union(*lhs.core_, *rhs.core_, pTranslMapLhs, pTranslMapRhs));
 }
 
 
@@ -277,7 +278,7 @@ BDDBottomUpTreeAut BDDBottomUpTreeAut::UnionDisjointStates(
 	assert(nullptr != rhs.core_);
 
 	return BDDBottomUpTreeAut(
-		BDDBUTreeAutCore::UnionDisjointStates(*lhs.core_, *rhs.core_));
+		CoreAut::UnionDisjointStates(*lhs.core_, *rhs.core_));
 }
 
 
@@ -290,7 +291,7 @@ BDDBottomUpTreeAut BDDBottomUpTreeAut::Intersection(
 	assert(nullptr != rhs.core_);
 
 	return BDDBottomUpTreeAut(
-		BDDBUTreeAutCore::Intersection(*lhs.core_, *rhs.core_, pTranslMap));
+		CoreAut::Intersection(*lhs.core_, *rhs.core_, pTranslMap));
 }
 
 

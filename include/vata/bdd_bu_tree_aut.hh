@@ -31,6 +31,10 @@ namespace VATA
 
 	class BDDTopDownTreeAut;
 
+	template <
+		class>
+	class LoadableAut;
+
 	class BDDBUTreeAutCore;
 }
 
@@ -44,25 +48,22 @@ public:   // data types
 	using StateTuple = TreeAutBase::StateTuple;
 	using SymbolType = Symbolic::SymbolType;
 
-//	using StateBackTranslatorStrict =
-//		VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>;
-//
-//	using SymbolBackTranslatorStrict =
-//		VATA::Util::TranslatorStrict<StringRankToSymbolDict::MapBwdType>;
-//	using SymbolTranslatorStrict     =
-//		VATA::Util::TranslatorStrict<StringRankToSymbolDict>;
-
 private:  // data types
 
-	typedef VATA::Util::AutDescription AutDescription;
+	using AutDescription = VATA::Util::AutDescription;
+	using CoreAut        = VATA::LoadableAut<BDDBUTreeAutCore>;
+
+private:  // data members
+
+	std::unique_ptr<CoreAut> core_;
 
 private:  // methods
 
 	explicit BDDBottomUpTreeAut(
-		const BDDBUTreeAutCore&        core);
+		const CoreAut&                 core);
 
 	explicit BDDBottomUpTreeAut(
-		BDDBUTreeAutCore&&             core);
+		CoreAut&&                      core);
 
 public:   // methods
 
@@ -214,10 +215,6 @@ public:   // methods
 
 	StateBinaryRelation ComputeUpwardSimulation(
 		size_t                    size) const;
-
-private:  // data members
-
-	std::unique_ptr<BDDBUTreeAutCore> core_;
 };
 
 #endif
