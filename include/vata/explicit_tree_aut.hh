@@ -50,6 +50,30 @@ public:   // public data types
 
 	using SymbolType     = uintptr_t;
 
+
+	struct StringRank
+	{
+		std::string symbolStr;
+		size_t rank;
+
+		StringRank(const std::string& symbolStr, size_t rank) :
+			symbolStr(symbolStr),
+			rank(rank)
+		{ }
+
+		bool operator<(const StringRank& rhs) const
+		{
+			return ((rank < rhs.rank) ||
+				((rank == rhs.rank) && (symbolStr < rhs.symbolStr)));
+		}
+
+		friend std::ostream& operator<<(std::ostream& os, const StringRank& strRank)
+		{
+			return os << strRank.symbolStr << ":" << strRank.rank;
+		}
+	};
+
+
 	using StringSymbolType = StringRank;
 
 
