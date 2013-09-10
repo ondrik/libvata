@@ -162,6 +162,38 @@ protected:// methods
 public:   // data types
 
 	using StateTuple     = std::vector<StateType>;
+
+protected:// data types
+
+	template <
+		class TSymbol>
+	class TTransition
+	{
+	private:  // data types
+
+		using SymbolType = TSymbol;
+
+	private:  // data members
+
+		StateType parent_;
+		SymbolType symbol_;
+		StateTuple children_;
+
+	public:
+
+		TTransition(
+			const StateType&      parent,
+			const SymbolType&     symbol,
+			const StateTuple&     children) :
+			parent_(parent),
+			symbol_(symbol),
+			children_(children)
+		{ }
+
+		const StateType& Parent()    const { return parent_;   }
+		const SymbolType& Symbol()   const { return symbol_;   }
+		const StateTuple& Children() const { return children_; }
+	};
 };
 
 
@@ -210,6 +242,7 @@ public:   // data types
 
 	using AlphabetType = std::shared_ptr<Alphabet>;
 
+	using Transition = TreeAutBase::TTransition<SymbolType>;
 
 protected:// methods
 

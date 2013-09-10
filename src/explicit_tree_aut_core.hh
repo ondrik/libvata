@@ -226,9 +226,9 @@ private:  // data types
 			assert(*tupleIterator_);
 
 			return Transition(
-				**tupleIterator_,
+				stateClusterIterator_->first,
 				symbolSetIterator_->first,
-				stateClusterIterator_->first
+				**tupleIterator_
 			);
 		}
 	};
@@ -450,15 +450,15 @@ protected:// methods
 		{
 			std::vector<std::string> tupleStr;
 
-			for (const StateType& s : t.children())
+			for (const StateType& s : t.Children())
 			{
 				tupleStr.push_back(stateTransl(s));
 			}
 
 			AutDescription::Transition trans(
 				tupleStr,
-				symbolTransl(t.symbol()).symbolStr,
-				stateTransl(t.parent()));
+				symbolTransl(t.Symbol()).symbolStr,
+				stateTransl(t.Parent()));
 
 			desc.transitions.insert(trans);
 		}

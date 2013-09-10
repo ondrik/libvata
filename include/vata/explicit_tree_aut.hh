@@ -74,33 +74,8 @@ public:   // public data types
 	};
 
 
-	using StringSymbolType = StringRank;
-
-
-	class Transition
-	{
-	private:  // data members
-
-		const StateTuple&   children_;
-		const SymbolType&   symbol_;
-		const StateType&    parent_;
-
-	public:
-
-		Transition(
-			const StateTuple&        children,
-			const SymbolType&        symbol,
-			const StateType&         parent) :
-			children_(children),
-			symbol_(symbol),
-			parent_(parent)
-		{ }
-
-		const StateTuple& children() const { return children_; }
-		const SymbolType& symbol()   const { return symbol_;   }
-		const StateType& parent()    const { return parent_;   }
-	};
-
+	using StringSymbolType   = StringRank;
+	using Transition         = TreeAutBase::TTransition<SymbolType>;
 
 	using SymbolDict                      =
 		VATA::Util::TwoWayDict<StringSymbolType, SymbolType>;
