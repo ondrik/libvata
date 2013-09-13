@@ -19,6 +19,8 @@ using VATA::AutBase;
 using VATA::ExplicitTreeAutCore;
 using VATA::Util::Convert;
 
+using namespace VATA::ExplicitTreeAutCoreUtil;
+
 
 // global tuple cache definition
 ExplicitTreeAutCore::TupleCache ExplicitTreeAutCore::globalTupleCache_;
@@ -26,6 +28,53 @@ ExplicitTreeAutCore::TupleCache ExplicitTreeAutCore::globalTupleCache_;
 // global alphabet
 ExplicitTreeAutCore::AlphabetType ExplicitTreeAutCore::globalAlphabet_ =
 	AlphabetType(new AlphabetType::element_type());
+
+
+Iterator::Iterator(
+	const ExplicitTreeAutCore&   aut) :
+	aut_(aut),
+	stateClusterIterator_(aut.transitions_->begin()),
+	symbolSetIterator_(),
+	tupleIterator_()
+{
+	if (aut.transitions_->end() == stateClusterIterator_)
+	{
+		return;
+	}
+
+	symbolSetIterator_ = stateClusterIterator_->second->begin();
+	assert(stateClusterIterator_->second->end() != symbolSetIterator_);
+
+	tupleIterator_ = symbolSetIterator_->second->begin();
+	assert(symbolSetIterator_->second->end() != tupleIterator_);
+}
+
+
+Iterator& Iterator::operator++()
+{
+	if (symbolSetIterator_->second->end() != ++tupleIterator_)
+	{
+		return *this;
+	}
+
+	if (stateClusterIterator_->second->end() != ++symbolSetIterator_)
+	{
+		tupleIterator_ = symbolSetIterator_->second->begin();
+		return *this;
+	}
+
+	if (aut_.transitions_->end() != ++stateClusterIterator_)
+	{
+		symbolSetIterator_ = stateClusterIterator_->second->begin();
+		tupleIterator_ = symbolSetIterator_->second->begin();
+		return *this;
+	}
+
+	tupleIterator_ = TuplePtrSet::const_iterator();
+
+	return *this;
+}
+
 
 ExplicitTreeAutCore::ExplicitTreeAutCore(
 	TupleCache&          tupleCache,
@@ -133,4 +182,37 @@ AutBase::StateBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
 	return this->TranslateUpward(
 		partition, relation, Util::Identity(size)
 	).computeSimulation(partition, relation, size);
+}
+
+
+std::string ExplicitTreeAutCore::ToString(const Transition& trans) const
+{
+	std::ostringstream os;
+
+	if (nullptr != alphabet_)
+	{
+		os << alphabet_->GetSymbolBackTransl()(trans.GetSymbol()).symbolStr;
+	}
+	else
+	{
+		os << trans.GetSymbol();
+	}
+
+	os << "(";
+
+	for (auto it = trans.GetChildren().cbegin();
+		it != trans.GetChildren().cend(); ++it)
+	{
+		if (it != trans.GetChildren().cbegin())
+		{
+			os << ", ";
+		}
+
+		os << *it;
+	}
+
+	os << ") -> ";
+	os << trans.GetParent();
+
+	return os.str();
 }

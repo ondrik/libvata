@@ -190,9 +190,9 @@ protected:// data types
 			children_(children)
 		{ }
 
-		const StateType& Parent()    const { return parent_;   }
-		const SymbolType& Symbol()   const { return symbol_;   }
-		const StateTuple& Children() const { return children_; }
+		const StateType& GetParent()    const { return parent_;   }
+		const SymbolType& GetSymbol()   const { return symbol_;   }
+		const StateTuple& GetChildren() const { return children_; }
 	};
 };
 

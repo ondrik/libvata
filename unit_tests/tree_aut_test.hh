@@ -87,6 +87,8 @@ protected:// data types
 	using SymbolBackTranslStrict        = AutType::SymbolBackTranslStrict;
 	using StringSymbolToSymbolTranslWeak= AutType::StringSymbolToSymbolTranslWeak;
 
+	using Transition = AutType::Transition;
+
 protected:// data members
 
 	TimbukParser parser_;

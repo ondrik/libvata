@@ -19,6 +19,53 @@ using VATA::AutBase;
 using VATA::ExplicitTreeAut;
 
 
+ExplicitTreeAut::Iterator::Iterator(const Iterator& iter) :
+	coreIter_(new CoreIterator(*iter.coreIter_))
+{
+	assert(nullptr != coreIter_);
+}
+
+
+ExplicitTreeAut::Iterator::Iterator(const CoreIterator& coreIter) :
+	coreIter_(new CoreIterator(coreIter))
+{
+	assert(nullptr != coreIter_);
+}
+
+
+ExplicitTreeAut::Iterator::~Iterator()
+{
+	assert(nullptr != coreIter_);
+}
+
+
+bool ExplicitTreeAut::Iterator::operator!=(const Iterator& rhs) const
+{
+	assert(nullptr != coreIter_);
+	assert(nullptr != rhs.coreIter_);
+
+	return *coreIter_ != *rhs.coreIter_;
+}
+
+
+ExplicitTreeAut::Iterator& ExplicitTreeAut::Iterator::operator++()
+{
+	assert(nullptr != coreIter_);
+
+	++(*coreIter_);
+
+	return *this;
+}
+
+
+ExplicitTreeAut::Transition ExplicitTreeAut::Iterator::operator*() const
+{
+	assert(nullptr != coreIter_);
+
+	return **coreIter_;
+}
+
+
 ExplicitTreeAut::ExplicitTreeAut() :
 	core_(new CoreAut(CoreAut::ParentAut()))
 { }
@@ -99,6 +146,38 @@ const ExplicitTreeAut::AlphabetType& ExplicitTreeAut::GetAlphabet() const
 }
 
 
+ExplicitTreeAut::iterator ExplicitTreeAut::begin()
+{
+	assert(nullptr != core_);
+
+	return iterator(core_->begin());
+}
+
+
+ExplicitTreeAut::const_iterator ExplicitTreeAut::begin() const
+{
+	assert(nullptr != core_);
+
+	return const_iterator(core_->begin());
+}
+
+
+ExplicitTreeAut::iterator ExplicitTreeAut::end()
+{
+	assert(nullptr != core_);
+
+	return iterator(core_->end());
+}
+
+
+ExplicitTreeAut::const_iterator ExplicitTreeAut::end() const
+{
+	assert(nullptr != core_);
+
+	return const_iterator(core_->end());
+}
+
+
 void ExplicitTreeAut::SetStateFinal(const StateType& state)
 {
 	assert(nullptr != core_);
@@ -115,6 +194,15 @@ void ExplicitTreeAut::AddTransition(
 	assert(nullptr != core_);
 
 	core_->AddTransition(children, symbol, state);
+}
+
+
+bool ExplicitTreeAut::ContainsTransition(
+	const Transition&         trans) const
+{
+	assert(nullptr != core_);
+
+	return core_->ContainsTransition(trans);
 }
 
 
@@ -286,4 +374,11 @@ bool ExplicitTreeAut::CheckInclusion(
 	assert(nullptr != bigger.core_);
 
 	return CoreAut::CheckInclusion(*smaller.core_, *bigger.core_, params);
+}
+
+std::string ExplicitTreeAut::ToString(const Transition& trans) const
+{
+	assert(nullptr != core_);
+
+	return core_->ToString(trans);
 }

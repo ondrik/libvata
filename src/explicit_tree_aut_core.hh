@@ -24,7 +24,171 @@
 
 #include "util/cache.hh"
 
-namespace VATA { class ExplicitTreeAutCore; }
+
+namespace VATA
+{
+	class ExplicitTreeAutCore;
+
+	/**
+	 * @brief  Namespace with utilities for ExplicitTreeAutCore
+	 *
+	 * This need to be in a namespace due to the limitation of C++ which
+	 * disallows forward declaration of a nested class. Therefore, in order to be
+	 * able to create the ExplicitTreeAut::iterator class that references an
+	 * iterator of the type ExplicitTreeAutCore::iterator, I needed to move
+	 * ExplicitTreeAutCore::Iterator out of ExplicitTreeAutCore, and together
+	 * with it also other classes.
+	 */
+	namespace ExplicitTreeAutCoreUtil
+	{
+		using StateType        = ExplicitTreeAut::StateType;
+		using SymbolType       = ExplicitTreeAut::SymbolType;
+		using TuplePtr         = std::shared_ptr<ExplicitTreeAut::StateTuple>;
+		using TuplePtrSet      = std::set<TuplePtr>;
+		using TuplePtrSetPtr   = std::shared_ptr<TuplePtrSet>;
+
+		class Iterator;
+
+		GCC_DIAG_OFF(effc++)
+		class TransitionCluster : public std::unordered_map<
+			SymbolType,
+			TuplePtrSetPtr>
+		{
+		GCC_DIAG_ON(effc++)
+
+		public:
+
+			const TuplePtrSetPtr& uniqueTuplePtrSet(const SymbolType& symbol)
+			{
+				auto& tupleSet = this->insert(
+					std::make_pair(symbol, TuplePtrSetPtr(nullptr))
+				).first->second;
+
+				if (!tupleSet)
+				{
+					tupleSet = TuplePtrSetPtr(new TuplePtrSet());
+				}
+				else if (!tupleSet.unique())
+				{
+					tupleSet = TuplePtrSetPtr(new TuplePtrSet(*tupleSet));
+				}
+
+				return tupleSet;
+			}
+		};
+
+		using TransitionClusterPtr    = std::shared_ptr<TransitionCluster>;
+
+		GCC_DIAG_OFF(effc++)
+		class StateToTransitionClusterMap : public std::unordered_map<
+			StateType,
+			TransitionClusterPtr>
+		{
+		GCC_DIAG_ON(effc++)
+
+		public:
+
+			const TransitionClusterPtr& uniqueCluster(const StateType& state)
+			{
+				auto& cluster = this->insert(
+					std::make_pair(state, TransitionClusterPtr(nullptr))
+				).first->second;
+
+				if (!cluster)
+				{
+					cluster = TransitionClusterPtr(new TransitionCluster());
+				}
+				else if (!cluster.unique())
+				{
+					cluster = TransitionClusterPtr(new TransitionCluster(*cluster));
+				}
+
+				return cluster;
+			}
+		};
+	}
+}
+
+
+class VATA::ExplicitTreeAutCoreUtil::Iterator
+{
+public:   // data types
+
+	using iterator_category  = std::input_iterator_tag;
+	using difference_type    = size_t;
+
+	using value_type = ExplicitTreeAut::Transition;
+	using pointer    = ExplicitTreeAut::Transition*;
+	using reference  = ExplicitTreeAut::Transition&;
+
+public:    // data members
+
+	const ExplicitTreeAutCore& aut_;
+	typename VATA::ExplicitTreeAutCoreUtil::StateToTransitionClusterMap::const_iterator
+		stateClusterIterator_;
+	typename VATA::ExplicitTreeAutCoreUtil::TransitionCluster::const_iterator
+		symbolSetIterator_;
+	TuplePtrSet::const_iterator tupleIterator_;
+
+public:   // methods
+
+
+	Iterator(
+		int                          /* FILL (only to distinguish signature?) */,
+		const ExplicitTreeAutCore&   aut) :
+		aut_(aut),
+		stateClusterIterator_(),
+		symbolSetIterator_(),
+		tupleIterator_()
+	{ }
+
+
+	Iterator(
+		const ExplicitTreeAutCore&   aut);
+
+	Iterator(const Iterator& iter) :
+		aut_(iter.aut_),
+		stateClusterIterator_(iter.stateClusterIterator_),
+		symbolSetIterator_(iter.symbolSetIterator_),
+		tupleIterator_(iter.tupleIterator_)
+	{ }
+
+
+	Iterator& operator++();
+
+
+#if 0
+		Iterator operator++(int)
+		{
+			return ++Iterator(*this);
+		}
+#endif
+
+
+	bool operator==(const Iterator& rhs) const
+	{
+		return tupleIterator_ == rhs.tupleIterator_;
+	}
+
+
+	bool operator!=(const Iterator& rhs) const
+	{
+		return tupleIterator_ != rhs.tupleIterator_;
+	}
+
+
+	ExplicitTreeAut::Transition operator*() const
+	{
+		assert(*tupleIterator_);
+
+		return ExplicitTreeAut::Transition(
+			stateClusterIterator_->first,
+			symbolSetIterator_->first,
+			**tupleIterator_
+		);
+	}
+};
+
 
 GCC_DIAG_OFF(effc++)
 class VATA::ExplicitTreeAutCore : public TreeAutBase
@@ -35,11 +199,13 @@ GCC_DIAG_ON(effc++)
 	friend class ExplicitDownwardComplementation;
 	friend class ExplicitDownwardInclusion;
 
+	friend class ExplicitTreeAutCoreUtil::Iterator;
+
 public:   // data types
 
 	using SymbolType       = ExplicitTreeAut::SymbolType;
 	using StringSymbolType = ExplicitTreeAut::StringSymbolType;
-	using TuplePtr         = std::shared_ptr<StateTuple>;
+	using TuplePtr         = ExplicitTreeAutCoreUtil::TuplePtr;
 	using StateSet         = std::unordered_set<StateType>;
 	using Transition       = ExplicitTreeAut::Transition;
 
@@ -55,8 +221,8 @@ private:  // data types
 	using StringRank       = ExplicitTreeAut::StringRank;
 
 
-	using TuplePtrSet      = std::set<TuplePtr>;
-	using TuplePtrSetPtr   = std::shared_ptr<TuplePtrSet>;
+	using TuplePtrSet      = ExplicitTreeAutCoreUtil::TuplePtrSet;
+	using TuplePtrSetPtr   = ExplicitTreeAutCoreUtil::TuplePtrSetPtr;
 	using TupleSet         = std::set<StateTuple>;
 	using TupleCache       = Util::Cache<StateTuple>;
 
@@ -66,188 +232,14 @@ private:  // data types
 	using SymbolBackTranslStrict          = ExplicitTreeAut::SymbolBackTranslStrict;
 
 
-	GCC_DIAG_OFF(effc++)
-	class TransitionCluster : public std::unordered_map<
-		SymbolType,
-		TuplePtrSetPtr>
-	{
-	GCC_DIAG_ON(effc++)
-
-	public:
-
-		const TuplePtrSetPtr& uniqueTuplePtrSet(const SymbolType& symbol)
-		{
-			auto& tupleSet = this->insert(
-				std::make_pair(symbol, TuplePtrSetPtr(nullptr))
-			).first->second;
-
-			if (!tupleSet)
-			{
-				tupleSet = TuplePtrSetPtr(new TuplePtrSet());
-			}
-			else if (!tupleSet.unique())
-			{
-				tupleSet = TuplePtrSetPtr(new TuplePtrSet(*tupleSet));
-			}
-
-			return tupleSet;
-		}
-	};
+	using iterator        = ExplicitTreeAutCoreUtil::Iterator;
+	using const_iterator  = ExplicitTreeAutCoreUtil::Iterator;
 
 
-	using TransitionClusterPtr    = std::shared_ptr<TransitionCluster>;
-
-	GCC_DIAG_OFF(effc++)
-	class StateToTransitionClusterMap : public std::unordered_map<
-		StateType,
-		TransitionClusterPtr>
-	{
-	GCC_DIAG_ON(effc++)
-
-	public:
-
-		const TransitionClusterPtr& uniqueCluster(const StateType& state)
-		{
-			auto& cluster = this->insert(
-				std::make_pair(state, TransitionClusterPtr(nullptr))
-			).first->second;
-
-			if (!cluster)
-			{
-				cluster = TransitionClusterPtr(new TransitionCluster());
-			}
-			else if (!cluster.unique())
-			{
-				cluster = TransitionClusterPtr(new TransitionCluster(*cluster));
-			}
-
-			return cluster;
-		}
-	};
-
-
-	using StateToTransitionClusterMapPtr  = std::shared_ptr<StateToTransitionClusterMap>;
-
-
-	struct Iterator
-	{
-	public:   // data types
-		typedef std::input_iterator_tag iterator_category;
-		typedef size_t difference_type;
-		typedef Transition value_type;
-		typedef Transition* pointer;
-		typedef Transition& reference;
-
-	public:    // data members
-
-		const ExplicitTreeAutCore& aut_;
-		typename StateToTransitionClusterMap::const_iterator stateClusterIterator_;
-		typename TransitionCluster::const_iterator symbolSetIterator_;
-		TuplePtrSet::const_iterator tupleIterator_;
-
-	public:   // methods
-
-
-		Iterator(
-			int                          /* FILL (only to distinguish signature?) */,
-			const ExplicitTreeAutCore&   aut) :
-			aut_(aut),
-			stateClusterIterator_(),
-			symbolSetIterator_(),
-			tupleIterator_()
-		{ }
-
-
-		Iterator(
-			const ExplicitTreeAutCore&   aut) :
-			aut_(aut),
-			stateClusterIterator_(aut.transitions_->begin()),
-			symbolSetIterator_(),
-			tupleIterator_()
-		{
-			if (aut.transitions_->end() == stateClusterIterator_)
-			{
-				return;
-			}
-
-			symbolSetIterator_ = stateClusterIterator_->second->begin();
-			assert(stateClusterIterator_->second->end() != symbolSetIterator_);
-
-			tupleIterator_ = symbolSetIterator_->second->begin();
-			assert(symbolSetIterator_->second->end() != tupleIterator_);
-		}
-
-		Iterator& operator++()
-		{
-			if (symbolSetIterator_->second->end() != ++tupleIterator_)
-			{
-				return *this;
-			}
-
-			if (stateClusterIterator_->second->end() != ++symbolSetIterator_)
-			{
-				tupleIterator_ = symbolSetIterator_->second->begin();
-				return *this;
-			}
-
-			if (aut_.transitions_->end() != ++stateClusterIterator_)
-			{
-				symbolSetIterator_ = stateClusterIterator_->second->begin();
-				tupleIterator_ = symbolSetIterator_->second->begin();
-				return *this;
-			}
-
-			tupleIterator_ = TuplePtrSet::const_iterator();
-
-			return *this;
-		}
-
-
-		Iterator operator++(int)
-		{
-			return ++Iterator(*this);
-		}
-
-
-		bool operator==(const Iterator& rhs) const
-		{
-			return tupleIterator_ == rhs.tupleIterator_;
-		}
-
-
-		bool operator!=(const Iterator& rhs) const
-		{
-			return tupleIterator_ != rhs.tupleIterator_;
-		}
-
-
-		Transition operator*() const
-		{
-			assert(*tupleIterator_);
-
-			return Transition(
-				stateClusterIterator_->first,
-				symbolSetIterator_->first,
-				**tupleIterator_
-			);
-		}
-	};
-
-
-	typedef Iterator iterator;
-	typedef Iterator const_iterator;
-
-
-	Iterator begin() const
-	{
-		return Iterator(*this);
-	}
-
-
-	Iterator end() const
-	{
-		return Iterator(0, *this);
-	}
+	using TransitionCluster              = ExplicitTreeAutCoreUtil::TransitionCluster;
+	using TransitionClusterPtr           = ExplicitTreeAutCoreUtil::TransitionClusterPtr;
+	using StateToTransitionClusterMap    = ExplicitTreeAutCoreUtil::StateToTransitionClusterMap;
+	using StateToTransitionClusterMapPtr = std::shared_ptr<StateToTransitionClusterMap>;
 
 
 private:  // data members
@@ -370,13 +362,64 @@ public:   // methods
 		return finalStates_.count(state) > 0;
 	}
 
+
+	const_iterator begin() const
+	{
+		return const_iterator(*this);
+	}
+
+
+	const_iterator end() const
+	{
+		return const_iterator(0, *this);
+	}
+
+
 	void AddTransition(
 		const StateTuple&         children,
 		const SymbolType&         symbol,
-		const StateType&          state)
+		const StateType&          parent)
 	{
-		this->internalAddTransition(this->tupleLookup(children), symbol, state);
+		this->internalAddTransition(this->tupleLookup(children), symbol, parent);
 	}
+
+
+	bool ContainsTransition(
+		const StateTuple&         children,
+		const SymbolType&         symbol,
+		const StateType&          parent)
+	{
+		assert(nullptr != transitions_);
+
+		auto itStateToClusterMap = transitions_->find(parent);
+		if (transitions_->end() != itStateToClusterMap)
+		{
+			assert(nullptr != itStateToClusterMap->second);
+			const TransitionCluster& cluster = *itStateToClusterMap->second;
+
+			auto itSymbolToTuplePtrSet = cluster.find(symbol);
+			if (cluster.end() != itSymbolToTuplePtrSet)
+			{
+				assert(nullptr != itSymbolToTuplePtrSet->second);
+				const TuplePtrSet& tuplePtrSet = *itSymbolToTuplePtrSet->second;
+
+				return (tuplePtrSet.end() != tuplePtrSet.find(this->tupleLookup(children)));
+			}
+		}
+
+		return false;
+	}
+
+
+	bool ContainsTransition(
+		const Transition&         trans)
+	{
+		return this->ContainsTransition(
+			trans.GetChildren(),
+			trans.GetSymbol(),
+			trans.GetParent());
+	}
+
 
 	static void CopyTransitions(
 		ExplicitTreeAutCore&           dst,
@@ -450,15 +493,15 @@ protected:// methods
 		{
 			std::vector<std::string> tupleStr;
 
-			for (const StateType& s : t.Children())
+			for (const StateType& s : t.GetChildren())
 			{
 				tupleStr.push_back(stateTransl(s));
 			}
 
 			AutDescription::Transition trans(
 				tupleStr,
-				symbolTransl(t.Symbol()).symbolStr,
-				stateTransl(t.Parent()));
+				symbolTransl(t.GetSymbol()).symbolStr,
+				stateTransl(t.GetParent()));
 
 			desc.transitions.insert(trans);
 		}
@@ -785,6 +828,9 @@ public:   // methods
 
 
 	ExplicitTreeAutCore Reduce() const;
+
+
+	std::string ToString(const Transition& trans) const;
 };
 
 #endif

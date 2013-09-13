@@ -116,8 +116,11 @@ BOOST_AUTO_TEST_CASE(iterators)
 		AutType aut;
 		readAut(aut, stateDict, autStr);
 
-//		for (AutType::Transition trans : aut)
+		for (const Transition& trans : aut)
 		{
+			BOOST_REQUIRE_MESSAGE(aut.ContainsTransition(trans),
+				"Inconsistent iterator output: " + aut.ToString(trans) +
+				" is claimed not to be in aut");
 		}
 	}
 }

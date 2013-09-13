@@ -39,6 +39,8 @@ namespace VATA
 	class LoadableAut;
 
 	class ExplicitTreeAutCore;
+
+	namespace ExplicitTreeAutCoreUtil { class Iterator; }
 }
 
 
@@ -46,6 +48,11 @@ GCC_DIAG_OFF(effc++)
 class VATA::ExplicitTreeAut : public TreeAutBase
 {
 GCC_DIAG_ON(effc++)
+
+private:  // data types
+
+	using CoreAut        = VATA::LoadableAut<ExplicitTreeAutCore>;
+
 public:   // public data types
 
 	using SymbolType     = uintptr_t;
@@ -108,10 +115,35 @@ public:   // public data types
 
 	using AlphabetType = std::shared_ptr<Alphabet>;
 
+	class Iterator
+	{
+	private:  // data types
 
-private:  // data types
+		using CoreIterator  = ExplicitTreeAutCoreUtil::Iterator;
 
-	using CoreAut        = VATA::LoadableAut<ExplicitTreeAutCore>;
+	private:  // data members
+
+		/**
+		 * @brief  Pointer to iterator in the core automaton
+		 */
+		std::unique_ptr<CoreIterator> coreIter_;
+
+	public:   // methods
+
+		Iterator(const Iterator& iter);
+		explicit Iterator(const ExplicitTreeAutCoreUtil::Iterator& coreIter);
+		~Iterator();
+
+		bool operator!=(const Iterator& rhs) const;
+		Iterator& operator++();
+		Transition operator*() const;
+
+
+
+	};
+
+	using iterator       = Iterator;
+	using const_iterator = Iterator;
 
 private:  // data members
 
@@ -390,6 +422,20 @@ public:   // methods
 		const StateType&          state);
 
 
+	void AddTransition(
+		const Transition&         trans);
+
+
+	bool ContainsTransition(
+		const Transition&         trans) const;
+
+
+	bool ContainsTransition(
+		const StateTuple&         children,
+		const SymbolType&         symbol,
+		const StateType&          state);
+
+
 	AlphabetType& GetAlphabet();
 
 
@@ -441,6 +487,12 @@ public:   // methods
 		VATA::Serialization::AbstrSerializer&     serializer,
 		const StateBackTranslStrict&              stateTransl,
 		const std::string&                        params = "") const;
+
+
+	iterator begin();
+	iterator end();
+	const_iterator begin() const;
+	const_iterator end() const;
 
 
 	template <
@@ -612,6 +664,8 @@ public:   // methods
 	{
 		throw NotImplementedException(__func__);
 	}
+
+	std::string ToString(const Transition& trans) const;
 };
 
 #endif
