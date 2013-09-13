@@ -186,6 +186,11 @@ public:
 		return *this;
 	}
 
+	~SmartSet()
+	{
+		this->clear();
+	}
+
 	void assignFlat(const SmartSet& s)
 	{
 		this->clear();
