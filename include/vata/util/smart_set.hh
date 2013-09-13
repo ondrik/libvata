@@ -160,7 +160,7 @@ public:
 		size_(s.size_),
 		index_(s.index_.size(), nullptr)
 	{
-		for (Element* el = s.head_.next_ ; nullptr != el; el = el->next_)
+		for (const Element* el = s.head_.next_ ; nullptr != el; el = el->next_)
 		{
 			index_[el->key_] = last_;
 			last_->next_ = new Element(el->key_, el->count_);
@@ -174,7 +174,7 @@ public:
 		index_.resize(s.index_.size(), nullptr);
 		last_ = &head_;
 
-		for (Element* el = s.head_.next_ ; nullptr != el; el = el->next_)
+		for (const Element* el = s.head_.next_ ; nullptr != el; el = el->next_)
 		{
 			index_[el->key_] = last_;
 			last_->next_ = new Element(el->key_, el->count_);
@@ -200,7 +200,7 @@ public:
 		index_.resize(s.index_.size(), nullptr);
 		last_ = &head_;
 
-		for (Element* el = s.head_.next_ ; nullptr != el; el = el->next_)
+		for (const Element* el = s.head_.next_ ; nullptr != el; el = el->next_)
 		{
 			index_[el->key_] = last_;
 			last_->next_ = new Element(el->key_, 1);
