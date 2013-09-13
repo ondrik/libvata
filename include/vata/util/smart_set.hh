@@ -188,10 +188,11 @@ public:
 
 	void assignFlat(const SmartSet& s)
 	{
-		std::fill(index_.begin(), index_.end(), nullptr);
+		this->clear();
+		assert(nullptr == head_.next_);
+		assert(std::all_of(index_.cbegin(), index_.cend(), [](const Element* elem){return nullptr == elem;}));
 
 		index_.resize(s.index_.size(), nullptr);
-
 		last_ = &head_;
 
 		for (Element* el = s.head_.next_ ; nullptr != el; el = el->next_)
