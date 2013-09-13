@@ -11,6 +11,10 @@
 #ifndef _VATA_SMART_SET_HH_
 #define _VATA_SMART_SET_HH_
 
+// VATA headers
+#include <vata/vata.hh>
+#include <vata/util/convert.hh>
+
 // Standard library headers
 #include <ostream>
 #include <vector>
@@ -33,25 +37,29 @@ private:
 
 	struct Element
 	{
-		Element* next_;
-		Key key_;
-		size_t count_;
+		Element* next;
+		Key key;
+		size_t count;
 
 		Element(
 			const Key&         key,
 			size_t             count = 0) :
-			next_(nullptr),
-			key_(key),
-			count_(count)
+			next(nullptr),
+			key(key),
+			count(count)
 		{ }
 	};
 
 	GCC_DIAG_OFF(effc++)
-	struct Iterator : public std::iterator<std::input_iterator_tag, Key>
+	class Iterator : public std::iterator<std::input_iterator_tag, Key>
 	{
 	GCC_DIAG_ON(effc++)
 
+	private:
+
 		const Element* element_;
+
+	public:
 
 		Iterator(const Element* element) :
 			element_(element)
@@ -61,7 +69,7 @@ private:
 		{
 			assert(nullptr != element_);
 
-			element_ = element_->next_;
+			element_ = element_->next;
 			return *this;
 		}
 
@@ -74,7 +82,7 @@ private:
 		{
 			assert(nullptr != element_);
 
-			return element_->key_;
+			return element_->key;
 		}
 
 		bool operator==(const Iterator& rhs) const
@@ -111,15 +119,15 @@ protected:
 		if (nullptr == prev)
 		{
 			prev = last_;
-			prev->next_ = new Element(key);
-			last_ = prev->next_;
+			prev->next = new Element(key);
+			last_ = prev->next;
 
 			++size_;
 		}
 
-		assert(key == prev->next_->key_);
+		assert(key == prev->next->key);
 
-		return prev->next_->count_;
+		return prev->next->count;
 	}
 
 	void erase(Element*& prev)
@@ -127,18 +135,18 @@ protected:
 		assert(nullptr != prev);
 
 		--size_;
-		Element* el = prev->next_;
+		Element* el = prev->next;
 
 		assert(nullptr != el);
 
-		prev->next_ = el->next_;
+		prev->next = el->next;
 
-		if (nullptr != prev->next_)
+		if (nullptr != prev->next)
 		{
-			assert(prev->next_->key_ < index_.size());
-			assert(index_[prev->next_->key_] == el);
+			assert(prev->next->key < index_.size());
+			assert(index_[prev->next->key] == el);
 
-			index_[prev->next_->key_] = prev;
+			index_[prev->next->key] = prev;
 		}
 
 		delete el;
@@ -160,11 +168,11 @@ public:
 		size_(s.size_),
 		index_(s.index_.size(), nullptr)
 	{
-		for (const Element* el = s.head_.next_ ; nullptr != el; el = el->next_)
+		for (const Element* el = s.head_.next; nullptr != el; el = el->next)
 		{
-			index_[el->key_] = last_;
-			last_->next_ = new Element(el->key_, el->count_);
-			last_ = last_->next_;
+			index_[el->key] = last_;
+			last_->next = new Element(el->key, el->count);
+			last_ = last_->next;
 		}
 	}
 
@@ -174,11 +182,11 @@ public:
 		index_.resize(s.index_.size(), nullptr);
 		last_ = &head_;
 
-		for (const Element* el = s.head_.next_ ; nullptr != el; el = el->next_)
+		for (const Element* el = s.head_.next; nullptr != el; el = el->next)
 		{
-			index_[el->key_] = last_;
-			last_->next_ = new Element(el->key_, el->count_);
-			last_ = last_->next_;
+			index_[el->key] = last_;
+			last_->next = new Element(el->key, el->count);
+			last_ = last_->next;
 		}
 
 		size_ = s.size();
@@ -194,17 +202,17 @@ public:
 	void assignFlat(const SmartSet& s)
 	{
 		this->clear();
-		assert(nullptr == head_.next_);
+		assert(nullptr == head_.next);
 		assert(std::all_of(index_.cbegin(), index_.cend(), [](const Element* elem){return nullptr == elem;}));
 
 		index_.resize(s.index_.size(), nullptr);
 		last_ = &head_;
 
-		for (const Element* el = s.head_.next_ ; nullptr != el; el = el->next_)
+		for (const Element* el = s.head_.next; nullptr != el; el = el->next)
 		{
-			index_[el->key_] = last_;
-			last_->next_ = new Element(el->key_, 1);
-			last_ = last_->next_;
+			index_[el->key] = last_;
+			last_->next = new Element(el->key, 1);
+			last_ = last_->next;
 		}
 
 		size_ = s.size();
@@ -212,7 +220,7 @@ public:
 
 	SmartSet::iterator begin() const
 	{
-		return SmartSet::Iterator(head_.next_);
+		return SmartSet::Iterator(head_.next);
 	}
 
 	SmartSet::iterator end() const
@@ -229,8 +237,8 @@ public:
 			return false;
 		}
 
-		assert(index_[key]->next_);
-		assert(index_[key]->next_->key_ == key);
+		assert(index_[key]->next);
+		assert(index_[key]->next->key == key);
 
 		return true;
 	}
@@ -244,10 +252,10 @@ public:
 			return 0;
 		}
 
-		assert(index_[key]->next_);
-		assert(index_[key]->next_->key_ == key);
+		assert(index_[key]->next);
+		assert(index_[key]->next->key == key);
 
-		return index_[key]->next_->count_;
+		return index_[key]->next->count;
 	}
 
 	void init(const Key& key, size_t count)
@@ -284,18 +292,18 @@ public:
 			return;
 		}
 
-		Element* el = prev->next_;
+		Element* el = prev->next;
 
 		assert(nullptr != el);
-		assert(key == el->key_);
+		assert(key == el->key);
 
-		if (el->count_ == 1)
+		if (el->count == 1)
 		{
 			this->erase(prev);
 		}
 		else
 		{
-			--el->count_;
+			--el->count;
 		}
 	}
 
@@ -305,22 +313,22 @@ public:
 		Element*& prev = index_[key];
 		assert(nullptr != prev);
 
-		Element* el = prev->next_;
-		assert(key == el->key_);
+		Element* el = prev->next;
+		assert(key == el->key);
 
-		if (el->count_ == 1)
+		if (el->count == 1)
 		{
 			this->erase(prev);
 		}
 		else
 		{
-			--el->count_;
+			--el->count;
 		}
 	}
 
 	bool empty() const
 	{
-		return head_.next_ == nullptr;
+		return head_.next == nullptr;
 	}
 
 	size_t size() const
@@ -330,18 +338,19 @@ public:
 
 	void clear()
 	{
-		for (Element* el = head_.next_; nullptr != el; )
+		for (Element* el = head_.next; nullptr != el; )
 		{
 			Element* tmp = el;
-			el = el->next_;
+			el = el->next;
 
-			assert(tmp->key_ < index_.size());
+			assert(tmp->key < index_.size());
 
-			index_[tmp->key_] = nullptr;
+			index_[tmp->key] = nullptr;
 			delete tmp;
 		}
 
 		last_ = &head_;
+		head_.next = nullptr;
 		size_ = 0;
 	}
 
@@ -349,9 +358,9 @@ public:
 	{
 		os << '{';
 
-		for (const Element* el = s.head_.next_; nullptr != el; el = el->next_)
+		for (const Element* el = s.head_.next; nullptr != el; el = el->next)
 		{
-			os << ' ' << el->key_ << ':' << el->count_;
+			os << ' ' << el->key << ':' << el->count;
 		}
 
 		return os << " }";
