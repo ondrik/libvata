@@ -178,18 +178,23 @@ public:
 
 	SmartSet& operator=(const SmartSet& s)
 	{
-		std::fill(index_.begin(), index_.end(), nullptr);
-		index_.resize(s.index_.size(), nullptr);
-		last_ = &head_;
-
-		for (const Element* el = s.head_.next; nullptr != el; el = el->next)
+		if (this != &s)
 		{
-			index_[el->key] = last_;
-			last_->next = new Element(el->key, el->count);
-			last_ = last_->next;
-		}
+			assert(nullptr == head_.next);
 
-		size_ = s.size();
+			std::fill(index_.begin(), index_.end(), nullptr);
+			index_.resize(s.index_.size(), nullptr);
+			last_ = &head_;
+
+			for (const Element* el = s.head_.next; nullptr != el; el = el->next)
+			{
+				index_[el->key] = last_;
+				last_->next = new Element(el->key, el->count);
+				last_ = last_->next;
+			}
+
+			size_ = s.size();
+		}
 
 		return *this;
 	}
