@@ -113,19 +113,9 @@ public: // loading automaton methods
 		const std::string&               str,
 		StateDict&                       stateDict,
 		const std::string&               params = "");
-
 	void LoadFromString(
 		VATA::Parsing::AbstrParser&      parser,
 		const std::string&               str,
-		StringToStateTranslWeak&         stateTransl,
-		const std::string&               params = "");
-
-	void LoadFromAutDesc(
-		const AutDescription&            desc,
-		const std::string&               params = "");
-
-	void LoadFromAutDesc(
-		const AutDescription&            desc,
 		StringToStateTranslWeak&         stateTransl,
 		const std::string&               params = "");
 
@@ -135,17 +125,15 @@ public: // loading automaton methods
 	 */
 	void LoadFromAutDesc(
 		const AutDescription&            desc,
+		const std::string&               params = "");
+	void LoadFromAutDesc(
+		const AutDescription&            desc,
+		StringToStateTranslWeak&         stateTransl,
+		const std::string&               params = "");
+	void LoadFromAutDesc(
+		const AutDescription&            desc,
 		StateDict&                       stateDict,
-		const std::string&               params = "")
-	{
-		StateType stateCnt = 0;
-
-		this->LoadFromAutDesc(
-			desc,
-			StringToStateTranslWeak(stateDict,
-				[&stateCnt](const std::string&){return stateCnt++;}),
-			params);
-	}
+		const std::string&               params = "");
 
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&			serializer,

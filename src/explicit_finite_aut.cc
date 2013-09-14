@@ -1,5 +1,5 @@
 #include <vata/vata.hh>
-#include <vata/explicit_finite_aut.hh>
+#include <vata/finite_aut/explicit_finite_aut.hh>
 
 #include "loadable_aut.hh"
 
