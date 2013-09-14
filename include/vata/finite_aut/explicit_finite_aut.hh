@@ -162,6 +162,8 @@ public: // public methods
 	const AlphabetType& GetAlphabet() const;
 	const StateSet& GetStartStates() const;
 	ExplicitFiniteAut ReindexStates (StateToStateTranslWeak& stateTransl) const;
+	template <class Index>
+	void ReindexStates(ExplicitFiniteAut& dst, Index& index) const;
 
 	template <
 		class TranslIndex,
@@ -207,7 +209,7 @@ public: // public methods
 			AutBase::StateToStateMap* pTranslMap = nullptr) const;
 
 	template <class Dict>
-	friend ExplicitFiniteAut Complement(
+	ExplicitFiniteAut Complement(
 			const Dict &) 
 	{
 		throw NotImplementedException(__func__);

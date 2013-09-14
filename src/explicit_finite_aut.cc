@@ -113,6 +113,14 @@ ExplicitFiniteAut ExplicitFiniteAut::ReindexStates(
 	return ExplicitFiniteAut(core_->ReindexStates(stateTransl));
 }
 
+
+template <class Index>
+void ReindexStates(ExplicitFiniteAut& dst, Index& index) const
+{
+	assert(nullptr != core_);
+	core_->ReindexStates(*dst.core_,index);
+}
+
 const ExplicitFiniteAut::StateSet& ExplicitFiniteAut::GetStartStates() const {
 	assert(nullptr != core_);
 
