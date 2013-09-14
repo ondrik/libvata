@@ -66,6 +66,8 @@ public: // alphabet
 		}
 	};
 
+	using AlphabetType = std::shared_ptr<Alphabet>;
+
 	// Stateset is unordered_set with operation for checking subset
 	GCC_DIAG_OFF(effc++)
 	class StateSet : public std::unordered_set<StateType>	 {
@@ -80,8 +82,6 @@ public: // alphabet
 			return true;
 		}
 	};
-
-	using AlphabetType = std::shared_ptr<Alphabet>;
 
 public: // Constructors and operators
 	ExplicitFiniteAut();
@@ -149,6 +149,11 @@ public: // loading automaton methods
 		const std::string&                        params = "") const;
 
 public: // public methods
+	void AddTransition(
+		const StateType&           lstate,
+		const SymbolType&          symbol,
+		const StateType&           rstate);
+
 	void SetStateFinal(const StateType& state);
 	void SetStateStart(const StateType& state, const SymbolType& symbol);
 	// Set start state with set of symbols in start transitions

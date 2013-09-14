@@ -26,7 +26,7 @@ ExplicitFiniteAut::ExplicitFiniteAut(CoreAut&& core) :
 { }
 
 
-ExplicitFiniteAut& operator=(const ExplicitFiniteAut& rhs) 
+ExplicitFiniteAut& ExplicitFiniteAut::operator=(const ExplicitFiniteAut& rhs)
 {
 	if (this != &aut)
 	{
@@ -38,7 +38,7 @@ ExplicitFiniteAut& operator=(const ExplicitFiniteAut& rhs)
 	return *this;
 }
 
-ExplicitFiniteAut& operator=(ExplicitFiniteAut&& rhs) 
+ExplicitFiniteAut& ExplicitFiniteAut::operator=(ExplicitFiniteAut&& rhs) 
 {
 	assert(this != &rhs);
 
@@ -297,7 +297,7 @@ ExplicitFiniteAut ExplicitFiniteAut::Reverse(
 }
 
 AutBase::StateBinaryRelation ExplicitFiniteAut::ComputeDownwardSimulation(
-	size_t                            size) const
+	size_t                            size)
 {
 	assert(nullptr != core_);
 	return core_->ComputeDownwardSimulation(size);
