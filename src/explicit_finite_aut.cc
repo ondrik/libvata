@@ -1,7 +1,6 @@
 #include <vata/vata.hh>
 #include <vata/explicit_finite_aut.hh>
 
-#include "explicit_finite_aut_core.hh"
 #include "loadable_aut.hh"
 
 using VATA:AutBase;
@@ -118,12 +117,6 @@ const StateSet& ExplcitFiniteAut::GetStartStates() const {
 	return core_->GetStartStates();
 }
 	
-const SymbolSet& ExplicitFiniteAut::GetStartSymbols(StateType state) const {
-	assert(nullptr != core_);
-
-	return core_->GetStartSymbols(state);
-}
-
 template <
 	class TranslIndex,
 	class SanitizeIndex>
@@ -150,7 +143,7 @@ void LoadFromString(
  ** data structure and the calls another function.
  **
  */
-void LoadFromString(
+void ExplicitFiniteAut::LoadFromString(
 	VATA::Parsing::AbstrParser&      parser,
 	const std::string&               str,
 	StateDict&                       stateDict,
@@ -159,7 +152,7 @@ void LoadFromString(
 	core_->LoadFromAutDesc(parser,str, stateDict, params);
 }
 
-void LoadFromString(
+void ExplicitFiniteAut::LoadFromString(
 	VATA::Parsing::AbstrParser&      parser,
 	const std::string&               str,
 	StringToStateTranslWeak&         stateTransl,
@@ -169,20 +162,20 @@ void LoadFromString(
 }
 
 
-void LoadFromAutDesc(
+void ExplicitFiniteAut::LoadFromAutDesc(
 	const AutDescription&            desc,
 	const std::string&               params)
 {
-	StateDict stateDict;
-
-	core_->LoadFromAutDesc(desc, stateDict, params);
+	assert(nullptr != core_);
+	core_->LoadFromAutDesc(desc, params);
 }
 
-void LoadFromAutDesc(
+void ExplicitFiniteAut::LoadFromAutDesc(
 	const AutDescription&            desc,
 	StringToStateTranslWeak&         stateTransl,
 	const std::string&               params)
 {
+	assert(nullptr != core_);
 	core_->LoadFromAutDesc(
 		desc,
 		stateTransl,
@@ -193,20 +186,19 @@ void LoadFromAutDesc(
  * Loads to internal (explicit) representation from the structure given by
  * parser
  */
-void LoadFromAutDesc(
+void ExplicitFiniteAut::LoadFromAutDesc(
 	const AutDescription&            desc,
 	StateDict&                       stateDict,
 	const std::string&               params)
 {
-	StateType stateCnt = 0;
-
+	assert(nullptr != core_);
 	core_->LoadFromAutDesc(
 		desc,
 		stateDict,
 		params);
 }
 
-std::string DumpToString(
+std::string ExplicitFiniteAut::DumpToString(
 	VATA::Serialization::AbstrSerializer&			serializer,
 	StringToStateTranslWeak&                  stateTransl,
 	const std::string&                        params) const
@@ -215,7 +207,7 @@ std::string DumpToString(
 	return core_->DumpToString(serializer,stateTransl,params);
 }
 
-std::string DumpToString(
+std::string ExplicitFiniteAut::DumpToString(
 	VATA::Serialization::AbstrSerializer&			serializer,
 	const StateDict&                          stateDict,
 	const std::string&                        params) const
@@ -224,7 +216,7 @@ std::string DumpToString(
 	return core_->DumpToString(serializer,stateDict,params);
 }
 
-std::string DumpToString(
+std::string ExplicitFiniteAut::DumpToString(
 	VATA::Serialization::AbstrSerializer&			serializer,
 	const std::string&                        params) const
 {

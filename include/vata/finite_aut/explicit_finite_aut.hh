@@ -5,11 +5,11 @@
 #include <vata/vata.hh>
 #include <vata/aut_base.hh>
 
+#include <vata/incl_param.hh>
+
 #include <vata/util/convert.hh>
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
-#include <vata/include/vata.hh>
-
 #include <vata/util/transl_weak.hh>
 
 
@@ -24,7 +24,7 @@ namespace VATA
 }
 
 GCC_DIAG_OFF(effc++) // non virtual destructors warnings suppress
-class VATA::ExplicitFiniteAutCore : public AutBase
+class VATA::ExplicitFiniteAut : public AutBase
 {
 GCC_DIAG_ON(effc++)
 
@@ -91,7 +91,7 @@ public: // Constructors and operators
 	ExplicitFiniteAut& operator=(const ExplicitFiniteAut& rhs);
 	ExplicitFiniteAut& operator=(ExplicitFiniteAut& rhs);
 
-	~ExplcitFiniteAut();
+	~ExplicitFiniteAut();
 
 	explicit ExplicitFiniteAut(CoreAut&& aut);
 
@@ -167,12 +167,10 @@ public: // public methods
 	void SetExistingStateStart(const StateType& state, const SymbolType& symbol);
 	const SymbolSet& GetStartSymbols(StateType state) const;
 
-	ExplicitFiniteAut::
 	AlphabetType& GetAlphabet();
 	AlphabetType& GetAlphabet() const;
 	const StateSet& GetStartStates() const;
 	ExplicitFiniteAut ReindexStates (StateToStateTranslWeak& stateTransl) const;
-	const SymbolSet& GetStartSymbols(StateType state) const;
 
 	template <
 		class TranslIndex,
