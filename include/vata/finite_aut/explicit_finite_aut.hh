@@ -28,17 +28,16 @@ class VATA::ExplicitFiniteAut : public AutBase
 {
 GCC_DIAG_ON(effc++)
 
-public: // public data types
-	using SymbolType       = uintptr_t ;
-	using SymbolSet        = std::unordered_set<SymbolType>;
-	using StringSymbolType = std::string;
-
 private: // private data types
 	typedef std::string string;
 	using CoreAut = VATA::LoadableAut<ExplicitFiniteAutCore>;
 	std::unique_ptr<CoreAut> core_; 
 
-public: // alphabet
+public: // public data types
+	using SymbolType       = uintptr_t ;
+	using SymbolSet        = std::unordered_set<SymbolType>;
+	using StringSymbolType = std::string;
+	
 	using SymbolDict                     = 
 		VATA::Util::TwoWayDict<string, SymbolType>;
 	using SymbolBackTranslStrict         =
