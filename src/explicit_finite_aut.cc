@@ -38,7 +38,7 @@ ExplicitFiniteAut& operator=(const ExplicitFiniteAut& rhs)
 	return *this;
 }
 
-ExplicitFiniteAut& operator=(ExplicitFiniteAut& rhs) 
+ExplicitFiniteAut& operator=(ExplicitFiniteAut&& rhs) 
 {
 	assert(this != &rhs);
 

@@ -90,7 +90,7 @@ public: // Constructors and operators
 	explicit ExplicitFiniteAut(CoreAut&& aut);
 
 	ExplicitFiniteAut& operator=(const ExplicitFiniteAut& rhs);
-	ExplicitFiniteAut& operator=(ExplicitFiniteAut& rhs);
+	ExplicitFiniteAut& operator=(ExplicitFiniteAut&& rhs);
 
 	~ExplicitFiniteAut();
 
@@ -152,7 +152,7 @@ public: // public methods
 	void SetStateFinal(const StateType& state);
 	void SetStateStart(const StateType& state, const SymbolType& symbol);
 	// Set start state with set of symbols in start transitions
-	void SetExistingStateStart(const StateType& state, const SymbolStart& symbol);
+	void SetExistingStateStart(const StateType& state, const SymbolSet& symbol);
 	const SymbolSet& GetStartSymbols(StateType state) const;
 
 	AlphabetType& GetAlphabet();
