@@ -150,7 +150,7 @@ void ExplicitFiniteAut::LoadFromString(
 	StateDict&                       stateDict,
 	const std::string&               params)
 {
-	core_->LoadFromAutString(parser,str, stateDict, params);
+	core_->LoadFromString(parser,str, stateDict, params);
 }
 
 void ExplicitFiniteAut::LoadFromString(
@@ -159,7 +159,7 @@ void ExplicitFiniteAut::LoadFromString(
 	StringToStateTranslWeak&         stateTransl,
 	const std::string&               params)
 {
-	core_->LoadFromAutString(parser,str, stateTransl, params);
+	core_->LoadFromString(parser,str, stateTransl, params);
 }
 
 
@@ -296,9 +296,9 @@ ExplicitFiniteAut ExplicitFiniteAut::Reverse(
 	return ExplicitFiniteAut(core_->Reverse(pTranslMap));
 }
 
-AutBase::StateBinaryRelation ComputeDownwardSimulation(
+AutBase::StateBinaryRelation ExplicitFiniteAut::ComputeDownwardSimulation(
 	size_t                            size) const
 {
 	assert(nullptr != core_);
-	return core_->ComputeDownwardSimulation(size)
+	return core_->ComputeDownwardSimulation(size);
 }
