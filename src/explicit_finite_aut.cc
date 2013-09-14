@@ -113,7 +113,7 @@ ExplicitFiniteAut ExplicitFiniteAut::ReindexStates(
 	return ExplicitFiniteAut(core_->ReindexStates(stateTransl));
 }
 
-const ExplicitFiniteAut::StateSet& ExplcitFiniteAut::GetStartStates() const {
+const ExplicitFiniteAut::StateSet& ExplicitFiniteAut::GetStartStates() const {
 	assert(nullptr != core_);
 
 	return core_->GetStartStates();
