@@ -30,13 +30,13 @@ namespace VATA
 {
 	template<class Rel, class Functor>
 	bool CheckFiniteAutInclusion(
-		const ExplicitFiniteAut& smaller,
-		const ExplicitFiniteAut& bigger,
+		const ExplicitFiniteAutCore& smaller,
+		const ExplicitFiniteAutCore& bigger,
 		const Rel& preorder);
 
 	bool CheckEquivalence(
-		const ExplicitFiniteAut& smaller,
-		const ExplicitFiniteAut& bigger,
+		const ExplicitFiniteAutCore& smaller,
+		const ExplicitFiniteAutCore& bigger,
 		const InclParam&                  params);
 
 }
@@ -45,13 +45,13 @@ namespace VATA
  * Get just two automata, first sanitization is
  * made then the inclusion check is called
  */
-bool VATA::ExplicitFiniteAut::CheckInclusion(
-	const VATA::ExplicitFiniteAut&    smaller,
-	const VATA::ExplicitFiniteAut&    bigger,
+bool VATA::ExplicitFiniteAutCore::CheckInclusion(
+	const VATA::ExplicitFiniteAutCore&    smaller,
+	const VATA::ExplicitFiniteAutCore&    bigger,
 	const VATA::InclParam&												params)
 {
-	VATA::ExplicitFiniteAut newSmaller;
-	VATA::ExplicitFiniteAut newBigger;
+	VATA::ExplicitFiniteAutCore newSmaller;
+	VATA::ExplicitFiniteAutCore newBigger;
 	typename AutBase::StateType states = static_cast<typename AutBase::StateType>(-1);
 
 	if (!params.GetUseSimulation())
@@ -96,7 +96,7 @@ bool VATA::ExplicitFiniteAut::CheckInclusion(
 			assert(static_cast<typename AutBase::StateType>(-1) != states);
 
 			typedef VATA::Util::Identity Rel;
-			typedef typename VATA::ExplicitFiniteAut::StateSet StateSet;
+			typedef typename VATA::ExplicitFiniteAutCore::StateSet StateSet;
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;
 			typedef VATA::ProductStateSetBreadth<StateSet,ProductState> ProductSet;
 			typedef VATA::NormalFormRelPreorder<Rel> NormalFormRel;
@@ -109,7 +109,7 @@ bool VATA::ExplicitFiniteAut::CheckInclusion(
 			assert(static_cast<typename AutBase::StateType>(-1) != states);
 
 			typedef VATA::Util::Identity Rel;
-			typedef typename VATA::ExplicitFiniteAut::StateSet StateSet;
+			typedef typename VATA::ExplicitFiniteAutCore::StateSet StateSet;
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;
 			typedef VATA::ProductStateSetDepth<StateSet,ProductState> ProductSet;
 			typedef VATA::NormalFormRelPreorder<Rel> NormalFormRel;
@@ -120,7 +120,7 @@ bool VATA::ExplicitFiniteAut::CheckInclusion(
 		case InclParam::CONGR_DEPTH_SIM:
 		{
 			typedef VATA::AutBase::StateBinaryRelation Rel;
-			typedef typename VATA::ExplicitFiniteAut::StateSet StateSet;
+			typedef typename VATA::ExplicitFiniteAutCore::StateSet StateSet;
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;
 			typedef VATA::ProductStateSetDepth<StateSet,ProductState> ProductSet;
 			typedef VATA::NormalFormRelSimulation<Rel> NormalFormRel;
@@ -134,7 +134,7 @@ bool VATA::ExplicitFiniteAut::CheckInclusion(
 			assert(static_cast<typename AutBase::StateType>(-1) != states);
 
 			typedef VATA::Util::Identity Rel;
-			typedef typename VATA::ExplicitFiniteAut::StateSet StateSet;
+			typedef typename VATA::ExplicitFiniteAutCore::StateSet StateSet;
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;
 			typedef VATA::ProductStateSetDepth<StateSet,ProductState> ProductSet;
 			typedef VATA::ExplicitFACongrEquivFunctor<Rel,ProductSet> FunctorType;
@@ -146,7 +146,7 @@ bool VATA::ExplicitFiniteAut::CheckInclusion(
 			assert(static_cast<typename AutBase::StateType>(-1) != states);
 
 			typedef VATA::Util::Identity Rel;
-			typedef typename VATA::ExplicitFiniteAut::StateSet StateSet;
+			typedef typename VATA::ExplicitFiniteAutCore::StateSet StateSet;
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;
 			typedef VATA::ProductStateSetBreadth<StateSet,ProductState> ProductSet;
 			typedef VATA::ExplicitFACongrEquivFunctor<Rel,ProductSet> FunctorType;
@@ -166,8 +166,8 @@ bool VATA::ExplicitFiniteAut::CheckInclusion(
  */
 template<class Rel, class Functor>
 bool VATA::CheckFiniteAutInclusion(
-	const VATA::ExplicitFiniteAut& smaller,
-	const VATA::ExplicitFiniteAut& bigger,
+	const VATA::ExplicitFiniteAutCore& smaller,
+	const VATA::ExplicitFiniteAutCore& bigger,
 	const Rel& preorder) {
 
 	typedef Functor InclFunc;

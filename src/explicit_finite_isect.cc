@@ -16,7 +16,7 @@
 // Standard library headers
 #include <vector>
 
-VATA::ExplicitFiniteAut VATA::ExplicitFiniteAutCore::Intersection(
+VATA::ExplicitFiniteAutCore VATA::ExplicitFiniteAutCore::Intersection(
 		const VATA::ExplicitFiniteAutCore &lhs,
 		const VATA::ExplicitFiniteAutCore &rhs,
 		AutBase::ProductTranslMap* pTranslMap) {

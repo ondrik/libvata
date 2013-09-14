@@ -51,6 +51,7 @@ ExplicitFiniteAutCore& ExplicitFiniteAutCore::operator=(const ExplicitFiniteAutC
 	return *this;
 }
 
+/*
 AutBase::StateBinaryRelation ExplicitFiniteAutCore::ComputeDownwardSimulation(
 	size_t              size)
 {
@@ -59,3 +60,4 @@ AutBase::StateBinaryRelation ExplicitFiniteAutCore::ComputeDownwardSimulation(
 
 	return Translate(*this, partition, relation).computeSimulation(partition,relation,size);
 }
+*/
