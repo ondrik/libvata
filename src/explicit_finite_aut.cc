@@ -28,11 +28,11 @@ ExplicitFiniteAut::ExplicitFiniteAut(CoreAut&& core) :
 
 ExplicitFiniteAut& ExplicitFiniteAut::operator=(const ExplicitFiniteAut& rhs)
 {
-	if (this != &aut)
+	if (this != &rhs)
 	{
 		assert(nullptr != core_);
 
-		*core_ = *aut.core_;
+		*core_ = *rhs.core_;
 	}
 
 	return *this;
