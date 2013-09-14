@@ -160,7 +160,7 @@ public: // public methods
 	const SymbolSet& GetStartSymbols(StateType state) const;
 
 	AlphabetType& GetAlphabet();
-	AlphabetType& GetAlphabet() const;
+	const AlphabetType& GetAlphabet() const;
 	const StateSet& GetStartStates() const;
 	ExplicitFiniteAut ReindexStates (StateToStateTranslWeak& stateTransl) const;
 
