@@ -70,7 +70,7 @@ void ExplicitFiniteAut::SetExistingStateStart(
 	const SymbolSet&        symbolSet)
 {
 	assert(nullptr != core_);
-	core_->SetStateStart(state,symbol);
+	core_->SetExistingStateStart(state,symbolSet);
 }
 
 
@@ -150,7 +150,7 @@ void ExplicitFiniteAut::LoadFromString(
 	StateDict&                       stateDict,
 	const std::string&               params)
 {
-	core_->LoadFromAutDesc(parser,str, stateDict, params);
+	core_->LoadFromAutString(parser,str, stateDict, params);
 }
 
 void ExplicitFiniteAut::LoadFromString(
@@ -159,7 +159,7 @@ void ExplicitFiniteAut::LoadFromString(
 	StringToStateTranslWeak&         stateTransl,
 	const std::string&               params)
 {
-	core_->LoadFromAutDesc(parser,str, stateTransl, params);
+	core_->LoadFromAutString(parser,str, stateTransl, params);
 }
 
 
@@ -285,8 +285,8 @@ bool ExplicitFiniteAut::CheckInclusion(
 {
 	assert(nullptr != smaller);
 	assert(nullptr != bigger);
-	return ExplicitFiniteAut(CoreAut::CheckInclusion(
-				*smaller.core_,*bigger.core_,params));
+	return CoreAut::CheckInclusion(
+				*smaller.core_,*bigger.core_,params);
 }
 
 ExplicitFiniteAut ExplicitFiniteAut::Reverse(

@@ -239,7 +239,7 @@ public:
 		}
 	}
 
-private:  // methods
+protected:  // methods
 
 	/*
 	 * Function converts the internal automaton description
