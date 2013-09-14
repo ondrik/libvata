@@ -9,13 +9,13 @@
  *****************************************************************************/
 
 // VATA headers
-#include <vata/finite_aut/explicit_finite_aut.hh>
+#include "explicit_finite_aut_core.hh"
 
-using VATA::ExplicitFiniteAut;
+using VATA::ExplicitFiniteAutCore;
 
-ExplicitFiniteAut ExplicitFiniteAut::Union(
-	const ExplicitFiniteAut& lhs,
-	const ExplicitFiniteAut& rhs,
+ExplicitFiniteAutCore ExplicitFiniteAutCore::Union(
+	const ExplicitFiniteAutCore& lhs,
+	const ExplicitFiniteAutCore& rhs,
 	AutBase::StateToStateMap* pTranslMapLhs,
 	AutBase::StateToStateMap* pTranslMapRhs)
 {
@@ -41,7 +41,7 @@ ExplicitFiniteAut ExplicitFiniteAut::Union(
 	StateToStateTranslWeak stateTransLhs(*pTranslMapLhs, translFunc);
 	StateToStateTranslWeak stateTransRhs(*pTranslMapRhs, translFunc);
 
-	ExplicitFiniteAut res;
+	ExplicitFiniteAutCore res;
 
 	lhs.ReindexStates(res, stateTransLhs);
 	rhs.ReindexStates(res, stateTransRhs);
@@ -51,11 +51,11 @@ ExplicitFiniteAut ExplicitFiniteAut::Union(
 }
 
 
-ExplicitFiniteAut ExplicitFiniteAut::UnionDisjointStates(
-	const ExplicitFiniteAut &lhs,
-	const ExplicitFiniteAut &rhs)
+ExplicitFiniteAutCore ExplicitFiniteAutCore::UnionDisjointStates(
+	const ExplicitFiniteAutCore &lhs,
+	const ExplicitFiniteAutCore &rhs)
 {
-	ExplicitFiniteAut res(lhs);
+	ExplicitFiniteAutCore res(lhs);
 
 	// Use uniqueCluster function, not explicitly transitions_,
 	// because of the possibility of the need of creating the

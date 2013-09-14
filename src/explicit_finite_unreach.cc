@@ -10,8 +10,9 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/finite_aut/explicit_finite_aut.hh>
 #include <vata/util/transl_strict.hh>
+
+#include "explicit_finite_aut_core.hh"
 
 // Standard library headers
 #include <vector>
@@ -19,10 +20,10 @@
 #include <utility>
 
 
-VATA::ExplicitFiniteAut VATA::ExplicitFiniteAut::RemoveUnreachableStates(
+VATA::ExplicitFiniteAutCore VATA::ExplicitFiniteAutCore::RemoveUnreachableStates(
 	VATA::AutBase::StateToStateMap* pTranslMap) {
 
-	typedef VATA::ExplicitFiniteAut ExplicitFA;
+	typedef VATA::ExplicitFiniteAutCore ExplicitFA;
 	typedef typename ExplicitFA::StateToTransitionClusterMapPtr
 		StateToTransitionClusterMapPtr;
 

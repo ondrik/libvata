@@ -18,8 +18,8 @@
 #include <vata/util/antichain2c_v2.hh>
 #include <vata/util/ordered_antichain2c.hh>
 #include <vata/util/antichain1c.hh>
-#include <vata/finite_aut/explicit_finite_aut.hh>
 
+#include "explicit_finite_aut_core.hh"
 #include "explicit_finite_abstract_fctor.hh"
 
 #include <vata/finite_aut/util/map_to_list.hh>

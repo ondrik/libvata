@@ -10,17 +10,18 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/finite_aut/explicit_finite_aut.hh>
+
+#include "explicit_finite_aut_core.hh"
 
 // Standard library headers
 #include <vector>
 
-VATA::ExplicitFiniteAut VATA::ExplicitFiniteAut::Intersection(
-		const VATA::ExplicitFiniteAut &lhs,
-		const VATA::ExplicitFiniteAut &rhs,
+VATA::ExplicitFiniteAut VATA::ExplicitFiniteAutCore::Intersection(
+		const VATA::ExplicitFiniteAutCore &lhs,
+		const VATA::ExplicitFiniteAutCore &rhs,
 		AutBase::ProductTranslMap* pTranslMap) {
 
-	typedef VATA::ExplicitFiniteAut ExplicitFA;
+	typedef VATA::ExplicitFiniteAutCore ExplicitFA;
 	typedef typename ExplicitFA::StateSet StateSet;
 
 	AutBase::ProductTranslMap translMap;
@@ -30,7 +31,7 @@ VATA::ExplicitFiniteAut VATA::ExplicitFiniteAut::Intersection(
 		pTranslMap = &translMap;
 	}
 
-	VATA::ExplicitFiniteAut res;
+	ExplicitFA res;
 
 	std::vector<const AutBase::ProductTranslMap::value_type*> stack;
 

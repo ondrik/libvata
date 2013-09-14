@@ -1,19 +1,311 @@
-/*****************************************************************************
- *  VATA Tree Automata Library
- *
- *  Copyright (c) 2013 Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
- *
- *  Description:
- *    Source file for an explicit finite automaton.
- *
- *****************************************************************************/
-
-// VATA headers
 #include <vata/vata.hh>
-#include <vata/finite_aut/explicit_finite_aut.hh>
+#include <vata/explicit_finite_aut.hh>
 
+#include "explicit_finite_aut_core.hh"
+#include "loadable_aut.hh"
+
+using VATA:AutBase;
 using VATA::ExplicitFiniteAut;
 
-// pointer to symbol dictionary
-ExplicitFiniteAut::AlphabetType ExplicitFiniteAut::globalAlphabet_ =
-	AlphabetType(new AlphabetType::element_type());
+ExplicitFiniteAut::ExplicitFiniteAut() : 
+	core_(new CoreAut(CoreAut::ParentAut()))
+{ }
+
+ExplicitFiniteAut::ExplicitFiniteAut(const ExplicitFiniteAut& aut) :
+	core_(new CoreAut(*aut.core_))
+{ }
+
+ExplicitFiniteAut::ExplicitFiniteAut(ExplicitFiniteAut&& aut) :
+	core_(std::move(aut_.core));
+{
+	aut.core_ = nullptr;
+}
+
+ExplicitFiniteAut::ExplicitFiniteAut(const CoreAut&& core) :
+	core_(new CoreAut(std::move(core)));
+{ }
+
+
+ExplicitFiniteAut::ExplicitFiniteAut& operator=(const ExplicitFiniteAut& rhs) 
+{
+	if (this != &aut)
+	{
+		assert(nullptr != core_);
+
+		*core_ = *aut.core_;
+	}
+
+	return *this;
+}
+
+ExplicitFiniteAut::ExplicitFiniteAut& operator=(ExplicitFiniteAut& rhs) 
+{
+	assert(this != &rhs);
+
+	assert(nullptr != core_);
+	assert(nullptr != aut.core_);
+
+	core_ = std::move(aut.core_);
+
+	return *this;
+}
+
+void ExplicitFiniteAut::SetStateFinal(const StateType& state) 
+{
+	assert(nullptr != core_);
+	core_->SetStateFinal(state);
+}
+
+void ExplicitFiniteAut::SetStateStart(
+	const StateType&       state,
+	const SymbolType&      symbol)
+{
+	assert(nullptr != core_);
+	core_->SetStateStart(state,symbol);
+}
+
+// Set start state with set of symbols in start transitions
+void ExplicitFiniteAut::SetExistingStateStart(
+	const StateType&        state,
+	const SymbolSet&        symbolSet)
+{
+	assert(nullptr != core_);
+	core_->SetStateStart(state,symbol);
+}
+
+
+const SymbolSet& ExplicitFiniteAut::GetStartSymbols(StateType state) const
+{
+	assert(nullptr != core_);
+	return core_->GetStartSymbols(state);
+}
+
+void ExplicitFiniteAut::AddTransition(
+	const StateType&           lstate,
+	const SymbolType&          symbol,
+	const StateType&           rstate)
+{
+	assert(nullptr != core_);
+
+	core_->AddTransition(lstate, symbol, rstate);
+}
+
+AlphabetType& ExplicitFiniteAut::GetAlphabet()
+{
+	assert(nullptr != core_);
+
+	return core_->GetAlphabet();
+}
+
+const AlphabetType& ExplicitFiniteAut::GetAlphabet() const
+{
+	assert(nullptr != core_);
+
+	return core_->GetAlphabet();
+}
+
+ExplicitFiniteAut ExplicitFiniteAut::ReindexStates(
+	StateToStateTranslWeak&    stateTransl) const
+{
+	assert(nullptr != core_);
+
+	return ExplicitFiniteAut(core_->ReindexStates(stateTransl));
+}
+
+const StateSet& ExplcitFiniteAut::GetStartStates() const {
+	assert(nullptr != core_);
+
+	return core_->GetStartStates();
+}
+	
+const SymbolSet& ExplicitFiniteAut::GetStartSymbols(StateType state) const {
+	assert(nullptr != core_);
+
+	return core_->GetStartSymbols(state);
+}
+
+template <
+	class TranslIndex,
+	class SanitizeIndex>
+std::string ExplicitFiniteAut::PrintSimulationMapping(
+	TranslIndex          index,
+	SanitizeIndex        sanitizeIndex)
+{
+	assert(nullptr != core_);
+	core_->PrintSimulationMapping(index,sanitizeIndex);
+}
+
+void LoadFromString(
+	VATA::Parsing::AbstrParser&      parser,
+	const std::string&               str,
+	const std::string&               params)
+{
+	core_->LoadFromAutDesc(parser.ParseString(str), params);
+}
+
+/*
+ ** Function loads automaton to the intern representation
+ ** from the string.
+ ** It translates from string to the automaton descrtiption
+ ** data structure and the calls another function.
+ **
+ */
+void LoadFromString(
+	VATA::Parsing::AbstrParser&      parser,
+	const std::string&               str,
+	StateDict&                       stateDict,
+	const std::string&               params)
+{
+	core_->LoadFromAutDesc(parser,str, stateDict, params);
+}
+
+void LoadFromString(
+	VATA::Parsing::AbstrParser&      parser,
+	const std::string&               str,
+	StringToStateTranslWeak&         stateTransl,
+	const std::string&               params)
+{
+	core_->LoadFromAutDesc(parser,str, stateTransl, params);
+}
+
+
+void LoadFromAutDesc(
+	const AutDescription&            desc,
+	const std::string&               params)
+{
+	StateDict stateDict;
+
+	core_->LoadFromAutDesc(desc, stateDict, params);
+}
+
+void LoadFromAutDesc(
+	const AutDescription&            desc,
+	StringToStateTranslWeak&         stateTransl,
+	const std::string&               params)
+{
+	core_->LoadFromAutDesc(
+		desc,
+		stateTransl,
+		params);
+}
+
+/*
+ * Loads to internal (explicit) representation from the structure given by
+ * parser
+ */
+void LoadFromAutDesc(
+	const AutDescription&            desc,
+	StateDict&                       stateDict,
+	const std::string&               params)
+{
+	StateType stateCnt = 0;
+
+	core_->LoadFromAutDesc(
+		desc,
+		stateDict,
+		params);
+}
+
+std::string DumpToString(
+	VATA::Serialization::AbstrSerializer&			serializer,
+	StringToStateTranslWeak&                  stateTransl,
+	const std::string&                        params) const
+{
+	assert(nullptr != core_);
+	return core_->DumpToString(serializer,stateTransl,params);
+}
+
+std::string DumpToString(
+	VATA::Serialization::AbstrSerializer&			serializer,
+	const StateDict&                          stateDict,
+	const std::string&                        params) const
+{
+	assert(nullptr != core_);
+	return core_->DumpToString(serializer,stateDict,params);
+}
+
+std::string DumpToString(
+	VATA::Serialization::AbstrSerializer&			serializer,
+	const std::string&                        params) const
+{
+	assert(nullptr != core_);
+	return core_->DumpToString(serializer,params);
+}
+
+ExplicitFiniteAut ExplicitFiniteAut::RemoveUnreachableStates(
+	VATA::AutBase::StateToStateMap*   pTranslMap)
+{
+	assert(nullptr != core_);
+	return ExplicitFiniteAut(core_->RemoveUnreachableStates(pTranslMap));
+}
+
+ExplicitFiniteAut ExplicitFiniteAut::RemoveUselessStates(
+	VATA::AutBase::StateToStateMap*   pTranslMap)
+{
+	assert(nullptr != core_);
+	return ExplicitFiniteAut(core_->RemoveUselessStates(pTranslMap));
+}
+
+ExplicitFiniteAut ExplicitFiniteAut::GetCandidateTree() const
+{
+	assert(nullptr != core_);
+	return ExplicitFiniteAut(core_->GetCandidateTree());
+}
+
+static ExplicitFiniteAut ExplicitFiniteAut::Union(
+		const ExplicitFiniteAut&        lhs,
+		const ExplicitFiniteAut&        rhs,
+		AutBase::StateToStateMap*       pTranslMapLhs,
+		AutBase::StateToStateMap*       pTranslMapRhs)
+{
+	assert(nullptr != lhs_);
+	assert(nullptr != rhs_);
+	return ExplicitFiniteAut(CoreAut::Union(
+			*lhs.core_,*rhs.core_,pTranslMapLhs,pTranslMapRhs));
+}
+
+static ExplicitFiniteAut ExplicitFiniteAut::UnionDisjointStates(
+	const ExplicitFiniteAut&          lhs,
+	const ExplicitFiniteAut&          rhs)
+{
+	assert(nullptr != lhs_);
+	assert(nullptr != rhs_);
+	return ExplicitFiniteAut(CoreAut::UnionDisjointStates(
+			*lhs.core_,*rhs.core_));
+}
+
+static ExplicitFiniteAut ExplicitFiniteAut::Intersection(
+		const VATA::ExplicitFiniteAut   &lhs,
+		const VATA::ExplicitFiniteAut   &rhs,
+		AutBase::ProductTranslMap* pTranslMap)
+{
+	assert(nullptr != lhs_);
+	assert(nullptr != rhs_);
+	return ExplicitFiniteAut(CoreAut::Intersection(
+				*lhs.core_,*rhs.core_,pTranslMap));
+}
+
+static bool ExplicitFiniteAut::CheckInclusion(
+	const VATA::ExplicitFiniteAut&    smaller,
+	const VATA::ExplicitFiniteAut&    bigger,
+	const VATA::InclParam&						params)
+{
+	assert(nullptr != smaller);
+	assert(nullptr != bigger);
+	return ExplicitFiniteAut(CoreAut::CheckInclusion(
+				*smaller.core_,*bigger.core_,params));
+}
+
+ExplicitFiniteAut ExplicitFiniteAut::Reverse(
+		AutBase::StateToStateMap* pTranslMap) const
+{
+	assert(nullptr != core_);
+	return ExplicitFiniteAut(core_->Reverse(pTranslMap));
+}
+
+AutBase::StateBinaryRelation ComputeDownwardSimulation(
+	size_t                            size) const
+{
+	assert(nullptr != core_);
+	return core_->ComputeDownwardSimulation(size)
+}

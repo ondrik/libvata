@@ -10,9 +10,10 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/finite_aut/explicit_finite_aut.hh>
 
-VATA::ExplicitFiniteAut VATA::ExplicitFiniteAut::RemoveUselessStates(
+#include "explicit_finite_aut_core.hh"
+
+VATA::ExplicitFiniteAutCore VATA::ExplicitFiniteAutCore::RemoveUselessStates(
 		VATA::AutBase::StateToStateMap* pTranslMap) {
 
 	// remove useless states by applying following operations
