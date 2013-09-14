@@ -74,7 +74,8 @@ void ExplicitFiniteAut::SetExistingStateStart(
 }
 
 
-const SymbolSet& ExplicitFiniteAut::GetStartSymbols(StateType state) const
+const ExplicitFiniteAut::SymbolSet& ExplicitFiniteAut::GetStartSymbols(
+		StateType state) const
 {
 	assert(nullptr != core_);
 	return core_->GetStartSymbols(state);
@@ -90,14 +91,14 @@ void ExplicitFiniteAut::AddTransition(
 	core_->AddTransition(lstate, symbol, rstate);
 }
 
-AlphabetType& ExplicitFiniteAut::GetAlphabet()
+ExplicitFiniteAut::AlphabetType& ExplicitFiniteAut::GetAlphabet()
 {
 	assert(nullptr != core_);
 
 	return core_->GetAlphabet();
 }
 
-const AlphabetType& ExplicitFiniteAut::GetAlphabet() const
+const ExplicitFiniteAut::AlphabetType& ExplicitFiniteAut::GetAlphabet() const
 {
 	assert(nullptr != core_);
 
@@ -112,7 +113,7 @@ ExplicitFiniteAut ExplicitFiniteAut::ReindexStates(
 	return ExplicitFiniteAut(core_->ReindexStates(stateTransl));
 }
 
-const StateSet& ExplcitFiniteAut::GetStartStates() const {
+const ExplicitFiniteAut::StateSet& ExplcitFiniteAut::GetStartStates() const {
 	assert(nullptr != core_);
 
 	return core_->GetStartStates();
