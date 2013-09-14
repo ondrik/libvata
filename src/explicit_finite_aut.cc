@@ -205,7 +205,7 @@ void ExplicitFiniteAut::LoadFromAutDesc(
 
 std::string ExplicitFiniteAut::DumpToString(
 	VATA::Serialization::AbstrSerializer&			serializer,
-	StringToStateTranslWeak&                  stateTransl,
+	StateBackTranslStrict&                    stateTransl,
 	const std::string&                        params) const
 {
 	assert(nullptr != core_);

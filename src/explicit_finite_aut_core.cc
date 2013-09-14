@@ -37,7 +37,7 @@ ExplicitFiniteAutCore::ExplicitFiniteAutCore(const ExplicitFiniteAutCore& aut) :
 	alphabet_(aut.alphabet_)
 { }
 
-ExplicitFiniteAutCore::ExplicitFiniteAutCore& operator=(const ExplicitFiniteAutCore& rhs)
+ExplicitFiniteAutCore& ExplicitFiniteAutCore::operator=(const ExplicitFiniteAutCore& rhs)
 {
 	if (this != &rhs)
 	{
@@ -51,7 +51,7 @@ ExplicitFiniteAutCore::ExplicitFiniteAutCore& operator=(const ExplicitFiniteAutC
 	return *this;
 }
 
-AutBase::StateBinaryRelation ComputeDownwardSimulation(
+AutBase::StateBinaryRelation ExplicitFiniteAutCore::ComputeDownwardSimulation(
 	size_t              size)
 {
 	AutBase::StateBinaryRelation relation;

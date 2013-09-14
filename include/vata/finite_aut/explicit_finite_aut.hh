@@ -136,7 +136,7 @@ public: // loading automaton methods
 
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&			serializer,
-		StringToStateTranslWeak&                  stateTransl,
+		StateBackTranslStrict&                    stateTransl,
 		const std::string&                        params = "") const;
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&			serializer,
