@@ -151,7 +151,8 @@ public: // loading automaton methods
 public: // public methods
 	void SetStateFinal(const StateType& state);
 	void SetStateStart(const StateType& state, const SymbolType& symbol);
-	void SetExistingStateStart(const StateType& state, const SymbolType& symbol);
+	// Set start state with set of symbols in start transitions
+	void SetExistingStateStart(const StateType& state, const SymbolStart& symbol);
 	const SymbolSet& GetStartSymbols(StateType state) const;
 
 	AlphabetType& GetAlphabet();

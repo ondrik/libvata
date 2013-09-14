@@ -16,7 +16,7 @@ ExplicitFiniteAut::ExplicitFiniteAut(const ExplicitFiniteAut& aut) :
 { }
 
 ExplicitFiniteAut::ExplicitFiniteAut(ExplicitFiniteAut&& aut) :
-	core_(std::move(aut.core))
+	core_(std::move(aut.core_))
 {
 	aut.core_ = nullptr;
 }
@@ -26,7 +26,7 @@ ExplicitFiniteAut::ExplicitFiniteAut(CoreAut&& core) :
 { }
 
 
-ExplicitFiniteAut::ExplicitFiniteAut& operator=(const ExplicitFiniteAut& rhs) 
+ExplicitFiniteAut& operator=(const ExplicitFiniteAut& rhs) 
 {
 	if (this != &aut)
 	{
@@ -38,7 +38,7 @@ ExplicitFiniteAut::ExplicitFiniteAut& operator=(const ExplicitFiniteAut& rhs)
 	return *this;
 }
 
-ExplicitFiniteAut::ExplicitFiniteAut& operator=(ExplicitFiniteAut& rhs) 
+ExplicitFiniteAut& operator=(ExplicitFiniteAut& rhs) 
 {
 	assert(this != &rhs);
 
@@ -129,7 +129,7 @@ std::string ExplicitFiniteAut::PrintSimulationMapping(
 	core_->PrintSimulationMapping(index,sanitizeIndex);
 }
 
-void LoadFromString(
+void ExplicitFiniteAut::LoadFromString(
 	VATA::Parsing::AbstrParser&      parser,
 	const std::string&               str,
 	const std::string&               params)
@@ -245,7 +245,7 @@ ExplicitFiniteAut ExplicitFiniteAut::GetCandidateTree() const
 	return ExplicitFiniteAut(core_->GetCandidateTree());
 }
 
-static ExplicitFiniteAut ExplicitFiniteAut::Union(
+ExplicitFiniteAut ExplicitFiniteAut::Union(
 		const ExplicitFiniteAut&        lhs,
 		const ExplicitFiniteAut&        rhs,
 		AutBase::StateToStateMap*       pTranslMapLhs,
@@ -257,7 +257,7 @@ static ExplicitFiniteAut ExplicitFiniteAut::Union(
 			*lhs.core_,*rhs.core_,pTranslMapLhs,pTranslMapRhs));
 }
 
-static ExplicitFiniteAut ExplicitFiniteAut::UnionDisjointStates(
+ExplicitFiniteAut ExplicitFiniteAut::UnionDisjointStates(
 	const ExplicitFiniteAut&          lhs,
 	const ExplicitFiniteAut&          rhs)
 {
@@ -267,7 +267,7 @@ static ExplicitFiniteAut ExplicitFiniteAut::UnionDisjointStates(
 			*lhs.core_,*rhs.core_));
 }
 
-static ExplicitFiniteAut ExplicitFiniteAut::Intersection(
+ExplicitFiniteAut ExplicitFiniteAut::Intersection(
 		const VATA::ExplicitFiniteAut   &lhs,
 		const VATA::ExplicitFiniteAut   &rhs,
 		AutBase::ProductTranslMap* pTranslMap)
@@ -278,7 +278,7 @@ static ExplicitFiniteAut ExplicitFiniteAut::Intersection(
 				*lhs.core_,*rhs.core_,pTranslMap));
 }
 
-static bool ExplicitFiniteAut::CheckInclusion(
+bool ExplicitFiniteAut::CheckInclusion(
 	const VATA::ExplicitFiniteAut&    smaller,
 	const VATA::ExplicitFiniteAut&    bigger,
 	const VATA::InclParam&						params)
