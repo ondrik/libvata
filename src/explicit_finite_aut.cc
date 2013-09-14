@@ -43,9 +43,9 @@ ExplicitFiniteAut& ExplicitFiniteAut::operator=(ExplicitFiniteAut&& rhs)
 	assert(this != &rhs);
 
 	assert(nullptr != core_);
-	assert(nullptr != aut.core_);
+	assert(nullptr != rhs.core_);
 
-	core_ = std::move(aut.core_);
+	core_ = std::move(rhs.core_);
 
 	return *this;
 }
