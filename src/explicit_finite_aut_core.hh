@@ -13,6 +13,7 @@
 
 // VATA headers
 #include <vata/aut_base.hh>
+#include <vata/finite_aut/explicit_finite_aut.hh>
 
 #include <vata/util/transl_weak.hh>
 #include <vata/explicit_lts.hh>
@@ -21,7 +22,8 @@
 // Standard library headers
 #include <unordered_set>
 
-namespace VATA {
+namespace VATA 
+{
 	class ExplicitFiniteAutCore;
 }
 

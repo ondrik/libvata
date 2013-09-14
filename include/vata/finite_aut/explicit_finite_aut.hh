@@ -204,7 +204,7 @@ public: // public methods
 			AutBase::StateToStateMap* pTranslMap = nullptr) const;
 
 	template <class Dict>
-	friend ExplicitFiniteAutCore Complement(
+	friend ExplicitFiniteAut Complement(
 			const Dict &) 
 	{
 		throw NotImplementedException(__func__);
@@ -218,4 +218,5 @@ public: // public methods
 	{
 		throw NotImplementedException(__func__);
 	}
+};
 #endif
