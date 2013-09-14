@@ -177,25 +177,11 @@ private: // private static data memebers
 
 public:
 
-	explicit ExplicitFiniteAutCore(AlphabetType& alphabet = globalAlphabet_) :
-		finalStates_(),
-		startStates_(),
-		startStateToSymbols_(),
-		transitions_(StateToTransitionClusterMapPtr(new StateToTransitionClusterMap)),
-		alphabet_(alphabet)
-	{ }
+	explicit ExplicitFiniteAutCore(AlphabetType& alphabet = globalAlphabet_);
 
-	ExplicitFiniteAutCore(const ExplicitFiniteAutCore& aut) :
-		finalStates_(aut.finalStates_),
-		startStates_(aut.startStates_),
-		startStateToSymbols_(aut.startStateToSymbols_),
-		transitions_(aut.transitions_),
-		alphabet_(aut.alphabet_)
-	{ }
+	ExplicitFiniteAutCore(const ExplicitFiniteAutCore& aut);
 
-	ExplicitFiniteAutCore& operator=(const ExplicitFiniteAutCore& rhs)
-	{ }
-
+	ExplicitFiniteAutCore& operator=(const ExplicitFiniteAutCore& rhs);
 
 	~ExplicitFiniteAutCore()
 	{ }

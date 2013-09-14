@@ -15,47 +15,47 @@
 #include "explicit_finite_aut_core.hh"
 #include "loadable_aut.hh"
 
-using VATA::ExplicitFiniteAutCoreCore;
+using VATA::ExplicitFiniteAutCore;
 
 // pointer to symbol dictionary
 ExplicitFiniteAutCore::AlphabetType ExplicitFiniteAutCore::globalAlphabet_ =
 	AlphabetType(new AlphabetType::element_type());
 
-	ExplicitFiniteAutCore::ExplicitFiniteAutCore(AlphabetType& alphabet = globalAlphabet_) :
-		finalStates_(),
-		startStates_(),
-		startStateToSymbols_(),
-		transitions_(StateToTransitionClusterMapPtr(new StateToTransitionClusterMap)),
-		alphabet_(alphabet)
-	{ }
+ExplicitFiniteAutCore::ExplicitFiniteAutCore(AlphabetType& alphabet) :
+	finalStates_(),
+	startStates_(),
+	startStateToSymbols_(),
+	transitions_(StateToTransitionClusterMapPtr(new StateToTransitionClusterMap)),
+	alphabet_(alphabet)
+{ }
 
-	ExplicitFiniteAutCore::ExplicitFiniteAutCore(const ExplicitFiniteAutCore& aut) :
-		finalStates_(aut.finalStates_),
-		startStates_(aut.startStates_),
-		startStateToSymbols_(aut.startStateToSymbols_),
-		transitions_(aut.transitions_),
-		alphabet_(aut.alphabet_)
-	{ }
+ExplicitFiniteAutCore::ExplicitFiniteAutCore(const ExplicitFiniteAutCore& aut) :
+	finalStates_(aut.finalStates_),
+	startStates_(aut.startStates_),
+	startStateToSymbols_(aut.startStateToSymbols_),
+	transitions_(aut.transitions_),
+	alphabet_(aut.alphabet_)
+{ }
 
-	ExplicitFiniteAutCore::ExplicitFiniteAutCore& operator=(const ExplicitFiniteAutCore& rhs)
+ExplicitFiniteAutCore::ExplicitFiniteAutCore& operator=(const ExplicitFiniteAutCore& rhs)
+{
+	if (this != &rhs)
 	{
-		if (this != &rhs)
-		{
-			finalStates_          = rhs.finalStates_;
-			startStates_          = rhs.startStates_;
-			startStateToSymbols_  = rhs.startStateToSymbols_;
-			transitions_          = rhs.transitions_;
-			alphabet_             = rhs.alphabet_;
-		}
-
-		return *this;
+		finalStates_          = rhs.finalStates_;
+		startStates_          = rhs.startStates_;
+		startStateToSymbols_  = rhs.startStateToSymbols_;
+		transitions_          = rhs.transitions_;
+		alphabet_             = rhs.alphabet_;
 	}
 
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		size_t              size)
-	{
-		AutBase::StateBinaryRelation relation;
-		std::vector<std::vector<size_t>> partition(1);
+	return *this;
+}
 
-		return Translate(*this, partition, relation).computeSimulation(partition,relation,size);
-	}
+AutBase::StateBinaryRelation ComputeDownwardSimulation(
+	size_t              size)
+{
+	AutBase::StateBinaryRelation relation;
+	std::vector<std::vector<size_t>> partition(1);
+
+	return Translate(*this, partition, relation).computeSimulation(partition,relation,size);
+}
