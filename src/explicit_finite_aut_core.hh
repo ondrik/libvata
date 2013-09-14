@@ -105,9 +105,6 @@ private: // private type definitions
 
 	using StateSet     = ExplicitFiniteAut::StateSet;
 
-	// Structure given by parser or given to serializer
-	typedef VATA::Util::AutDescription AutDescription;
-
 	typedef AutDescription::State State;
 
 	typedef std::unordered_map<StateType,SymbolSet> StateToSymbols;

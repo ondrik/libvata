@@ -16,13 +16,13 @@ ExplicitFiniteAut::ExplicitFiniteAut(const ExplicitFiniteAut& aut) :
 { }
 
 ExplicitFiniteAut::ExplicitFiniteAut(ExplicitFiniteAut&& aut) :
-	core_(std::move(aut_.core));
+	core_(std::move(aut.core))
 {
 	aut.core_ = nullptr;
 }
 
-ExplicitFiniteAut::ExplicitFiniteAut(const CoreAut&& core) :
-	core_(new CoreAut(std::move(core)));
+ExplicitFiniteAut::ExplicitFiniteAut(CoreAut&& core) :
+	core_(new CoreAut(std::move(core)))
 { }
 
 

@@ -87,13 +87,12 @@ public: // Constructors and operators
 	ExplicitFiniteAut();
 	ExplicitFiniteAut(const ExplicitFiniteAut& aut);
 	ExplicitFiniteAut(ExplicitFiniteAut&& aut);
+	explicit ExplicitFiniteAut(CoreAut&& aut);
 
 	ExplicitFiniteAut& operator=(const ExplicitFiniteAut& rhs);
 	ExplicitFiniteAut& operator=(ExplicitFiniteAut& rhs);
 
 	~ExplicitFiniteAut();
-
-	explicit ExplicitFiniteAut(CoreAut&& aut);
 
 public: // loading automaton methods
 	void LoadFromString(
