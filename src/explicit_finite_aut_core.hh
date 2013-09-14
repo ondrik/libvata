@@ -246,15 +246,16 @@ protected:  // methods
 	 * to a string.
 	 */
 	template <
-		class StateBackTranslFunc,
-		class SymbolBackTranslFunc>
+		class StateBackTranslFunc>
 	std::string dumpToStringInternal(
 		VATA::Serialization::AbstrSerializer&   serializer,
 		StateBackTranslFunc                     stateTransl, // States from internal to string
-		SymbolBackTranslFunc                    symbolTransl, // Symbols from internal to string
+		const AlphabetType&                     alphabeth, // Symbols from internal to string
 		const std::string&                      /* params */ = "") const
 	{
 		AutDescription desc;
+
+		SymbolBackTranslStrict symbolTransl = alphabet->GetSymbolBackTransl();
 
 		// Dump the final states
 		for (auto& s : this->finalStates_)
