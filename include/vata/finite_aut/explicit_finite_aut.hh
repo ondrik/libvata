@@ -44,7 +44,6 @@ public: // public data types
 	using SymbolBackTranslStrict         =
 		VATA::Util::TranslatorStrict<typename SymbolDict::MapBwdType>;
 	using StringSymbolToSymbolTranslWeak = Util::TranslatorWeak<SymbolDict>;
-	using SymbolBackTranslStrict         = Util::TranslatorStrict<SymbolDict::MapBwdType>;
 
 	class Alphabet
 	{
