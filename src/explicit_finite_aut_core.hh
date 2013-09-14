@@ -94,7 +94,7 @@ public:
 	using SymbolType               = ExplicitFiniteAut::SymbolType;
 	using SymbolSet                = ExplicitFiniteAut::SymbolSet;
 	using StringSymbolType         = ExplicitFiniteAut::StringSymbolType;
-	using SymbolBackTranslStrict   = ExplicitTreeAut::SymbolBackTranslStrict;
+	using SymbolBackTranslStrict   = ExplicitFiniteAut::SymbolBackTranslStrict;
 
 private: // private type definitions
 
@@ -251,7 +251,7 @@ protected:  // methods
 	std::string dumpToStringInternal(
 		VATA::Serialization::AbstrSerializer&   serializer,
 		StateBackTranslFunc                     stateTransl, // States from internal to string
-		const AlphabetType&                     alphabeth, // Symbols from internal to string
+		const AlphabetType&                     alphabet, // Symbols from internal to string
 		const std::string&                      /* params */ = "") const
 	{
 		AutDescription desc;

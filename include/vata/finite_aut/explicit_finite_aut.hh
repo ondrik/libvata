@@ -10,8 +10,9 @@
 #include <vata/util/convert.hh>
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
-#include <vata/util/transl_weak.hh>
 
+#include <vata/util/transl_weak.hh>
+#include <vata/util/transl_strict.hh>
 
 namespace VATA
 {
@@ -38,12 +39,12 @@ public: // public data types
 	using SymbolSet        = std::unordered_set<SymbolType>;
 	using StringSymbolType = std::string;
 
-	using SymbolBackTranslStrict         = Util::TranslatorStrict<SymbolDict::MapBwdType>;
 	using SymbolDict                     = 
 		VATA::Util::TwoWayDict<string, SymbolType>;
 	using SymbolBackTranslStrict         =
 		VATA::Util::TranslatorStrict<typename SymbolDict::MapBwdType>;
 	using StringSymbolToSymbolTranslWeak = Util::TranslatorWeak<SymbolDict>;
+	using SymbolBackTranslStrict         = Util::TranslatorStrict<SymbolDict::MapBwdType>;
 
 	class Alphabet
 	{
@@ -138,12 +139,10 @@ public: // loading automaton methods
 		VATA::Serialization::AbstrSerializer&			serializer,
 		StringToStateTranslWeak&                  stateTransl,
 		const std::string&                        params = "") const;
-
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&			serializer,
 		const StateDict&                          stateDict,
 		const std::string&                        params = "") const;
-
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&			serializer,
 		const std::string&                        params = "") const;

@@ -135,6 +135,7 @@ void ExplicitFiniteAut::LoadFromString(
 	const std::string&               str,
 	const std::string&               params)
 {
+	assert(nullptr != core_);
 	core_->LoadFromAutDesc(parser.ParseString(str), params);
 }
 
@@ -151,6 +152,7 @@ void ExplicitFiniteAut::LoadFromString(
 	StateDict&                       stateDict,
 	const std::string&               params)
 {
+	assert(nullptr != core_);
 	core_->LoadFromString(parser,str, stateDict, params);
 }
 
@@ -160,6 +162,7 @@ void ExplicitFiniteAut::LoadFromString(
 	StringToStateTranslWeak&         stateTransl,
 	const std::string&               params)
 {
+	assert(nullptr != core_);
 	core_->LoadFromString(parser,str, stateTransl, params);
 }
 
@@ -206,7 +209,7 @@ std::string ExplicitFiniteAut::DumpToString(
 	const std::string&                        params) const
 {
 	assert(nullptr != core_);
-	return core_->DumpToString(serializer,stateTransl,params);
+	return core_->DumpToString(serializer, stateTransl, params);
 }
 
 std::string ExplicitFiniteAut::DumpToString(
@@ -215,7 +218,7 @@ std::string ExplicitFiniteAut::DumpToString(
 	const std::string&                        params) const
 {
 	assert(nullptr != core_);
-	return core_->DumpToString(serializer,stateDict,params);
+	return core_->DumpToString(serializer, stateDict, params);
 }
 
 std::string ExplicitFiniteAut::DumpToString(
@@ -223,7 +226,7 @@ std::string ExplicitFiniteAut::DumpToString(
 	const std::string&                        params) const
 {
 	assert(nullptr != core_);
-	return core_->DumpToString(serializer,params);
+	return core_->DumpToString(serializer, params);
 }
 
 ExplicitFiniteAut ExplicitFiniteAut::RemoveUnreachableStates(
