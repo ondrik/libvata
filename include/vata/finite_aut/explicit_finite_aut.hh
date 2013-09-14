@@ -37,7 +37,8 @@ public: // public data types
 	using SymbolType       = uintptr_t ;
 	using SymbolSet        = std::unordered_set<SymbolType>;
 	using StringSymbolType = std::string;
-	
+
+	using SymbolBackTranslStrict         = Util::TranslatorStrict<SymbolDict::MapBwdType>;
 	using SymbolDict                     = 
 		VATA::Util::TwoWayDict<string, SymbolType>;
 	using SymbolBackTranslStrict         =

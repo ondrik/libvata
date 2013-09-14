@@ -91,9 +91,10 @@ GCC_DIAG_ON(effc++)
 	friend class MacroStateCache;
 
 public:
-	using SymbolType         = ExplicitFiniteAut::SymbolType;
-	using SymbolSet          = ExplicitFiniteAut::SymbolSet;
-	using StringSymbolType   = ExplicitFiniteAut::StringSymbolType;
+	using SymbolType               = ExplicitFiniteAut::SymbolType;
+	using SymbolSet                = ExplicitFiniteAut::SymbolSet;
+	using StringSymbolType         = ExplicitFiniteAut::StringSymbolType;
+	using SymbolBackTranslStrict   = ExplicitTreeAut::SymbolBackTranslStrict;
 
 private: // private type definitions
 
