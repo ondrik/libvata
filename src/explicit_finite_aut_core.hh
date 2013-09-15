@@ -594,10 +594,6 @@ public:   // methods
 			const VATA::ExplicitFiniteAutCore &rhs,
 			AutBase::ProductTranslMap* pTranslMap = nullptr);
 
-
-	template <class Index>
-	VATA::ExplicitLTS VATA::ExplicitFiniteAutCore::Translate;
-
 	static bool CheckInclusion(
 		const VATA::ExplicitFiniteAutCore&    smaller,
 		const VATA::ExplicitFiniteAutCore&    bigger,

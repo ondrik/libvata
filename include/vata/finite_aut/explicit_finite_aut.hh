@@ -179,6 +179,13 @@ public: // public methods
 			VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
 	ExplicitFiniteAut GetCandidateTree() const;
 
+	template <class Index = Util::IdentityTranslator<AutBase::StateType>>
+	VATA::ExplicitLTS Translate(
+		const ExplicitFiniteAut&              aut,
+		std::vector<std::vector<size_t>>&     partition,
+		VATA::Util::BinaryRelation&           relation,
+		const Index&                          stateIndex = Index());
+
 	/**
 	 * Creates union of two automata. It just reindexs
 	 * existing states of both automata to a new one.

@@ -257,6 +257,19 @@ ExplicitFiniteAut ExplicitFiniteAut::GetCandidateTree() const
 	return ExplicitFiniteAut(core_->GetCandidateTree());
 }
 
+template <class Index>
+VATA::ExplicitLTS Translate(
+	const ExplicitFiniteAut&              aut,
+	std::vector<std::vector<size_t>>&     partition,
+	VATA::Util::BinaryRelation&           relation,
+	const Index&                          stateIndex)
+{
+	assert(nullptr != core_);
+	assert(nullptr != aut);
+
+	return core_->Translate(aut,partition,relation,stateIndex);
+}
+
 ExplicitFiniteAut ExplicitFiniteAut::Union(
 		const ExplicitFiniteAut&        lhs,
 		const ExplicitFiniteAut&        rhs,
