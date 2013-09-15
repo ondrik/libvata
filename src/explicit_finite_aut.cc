@@ -258,10 +258,10 @@ ExplicitFiniteAut ExplicitFiniteAut::GetCandidateTree() const
 }
 
 template <class Index>
-VATA::ExplicitLTS Translate(
+ExplicitLTS ExplicitFintieAut::Translate(
 	const ExplicitFiniteAut&              aut,
 	std::vector<std::vector<size_t>>&     partition,
-	VATA::Util::BinaryRelation&           relation,
+	Util::BinaryRelation&                 relation,
 	const Index&                          stateIndex)
 {
 	assert(nullptr != core_);
