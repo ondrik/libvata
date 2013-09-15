@@ -50,7 +50,7 @@ ExplicitFiniteAut& ExplicitFiniteAut::operator=(ExplicitFiniteAut&& rhs)
 	return *this;
 }
 
-~ExplicitFiniteAut::ExplicitFiniteAut()
+ExplicitFiniteAut::~ExplicitFiniteAut()
 { }
 
 void ExplicitFiniteAut::SetStateFinal(const StateType& state) 
@@ -130,17 +130,6 @@ const ExplicitFiniteAut::StateSet& ExplicitFiniteAut::GetStartStates() const {
 	return core_->GetStartStates();
 }
 	
-template <
-	class TranslIndex,
-	class SanitizeIndex>
-std::string ExplicitFiniteAut::PrintSimulationMapping(
-	TranslIndex          index,
-	SanitizeIndex        sanitizeIndex)
-{
-	assert(nullptr != core_);
-	core_->PrintSimulationMapping(index,sanitizeIndex);
-}
-
 void ExplicitFiniteAut::LoadFromString(
 	VATA::Parsing::AbstrParser&      parser,
 	const std::string&               str,

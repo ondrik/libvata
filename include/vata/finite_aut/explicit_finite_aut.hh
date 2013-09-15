@@ -171,8 +171,11 @@ public: // public methods
 		class SanitizeIndex>
 	std::string PrintSimulationMapping(
 		TranslIndex          index,
-		SanitizeIndex        sanitizeIndex);
-
+		SanitizeIndex        sanitizeIndex)
+	{
+		assert(nullptr != core_);
+		return core_->PrintSimulationMapping(index,sanitizeIndex);
+	}
 
 	ExplicitFiniteAut RemoveUnreachableStates(
 			VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
