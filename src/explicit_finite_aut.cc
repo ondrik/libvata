@@ -50,6 +50,9 @@ ExplicitFiniteAut& ExplicitFiniteAut::operator=(ExplicitFiniteAut&& rhs)
 	return *this;
 }
 
+~ExplicitFiniteAut::ExplicitFiniteAut()
+{ }
+
 void ExplicitFiniteAut::SetStateFinal(const StateType& state) 
 {
 	assert(nullptr != core_);
@@ -258,7 +261,7 @@ ExplicitFiniteAut ExplicitFiniteAut::GetCandidateTree() const
 }
 
 template <class Index>
-VATA::ExplicitLTS ExplicitFintieAut::Translate(
+VATA::ExplicitLTS ExplicitFiniteAut::Translate(
 	const ExplicitFiniteAut&              aut,
 	std::vector<std::vector<size_t>>&     partition,
 	Util::BinaryRelation&                 relation,

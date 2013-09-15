@@ -21,8 +21,6 @@
 #include <vata/explicit_lts.hh>
 
 #include <vata/finite_aut/explicit_finite_aut.hh>
-#include <vata/finite_aut/explicit_finite_transl.hh>
-
 
 namespace VATA {
 	template <class Rel,
