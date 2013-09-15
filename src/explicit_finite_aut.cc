@@ -130,11 +130,10 @@ const ExplicitFiniteAut::StateSet& ExplicitFiniteAut::GetStartStates() const {
 	return core_->GetStartStates();
 }
 
-template <
-	class SanitizeIndex>
-std::string ExplicitFiniteAut::PrintSimulationMapping(
-	StateBackTranslStrict&                    stateTransl,
-	SanitizeIndex        sanitizeIndex)
+std::string PrintSimulationMapping(
+		StateBackTranslStrict&                 stateTransl,
+		StateBackTranslStrict                  StateBackTranslStrict);
+
 {
 	assert(nullptr != core_);
 	return core_->PrintSimulationMapping(stateTransl,sanitizeIndex);
