@@ -130,9 +130,9 @@ const ExplicitFiniteAut::StateSet& ExplicitFiniteAut::GetStartStates() const {
 	return core_->GetStartStates();
 }
 
-std::string PrintSimulationMapping(
-		StateBackTranslStrict&                 stateTransl,
-		StateBackTranslStrict                  StateBackTranslStrict);
+std::string ExplicitFiniteAut::PrintSimulationMapping(
+	StateBackTranslStrict&                    stateTransl,
+	StateToStateTranslStrict                  sanitizeIndex)
 
 {
 	assert(nullptr != core_);

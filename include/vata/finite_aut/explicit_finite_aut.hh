@@ -166,10 +166,9 @@ public: // public methods
 	template <class Index>
 	void ReindexStates(ExplicitFiniteAut& dst, Index& index) const;
 
-	std::string PrintSimulationMapping(
-		//TranslIndex          index,
-		StateBackTranslStrict&                 stateTransl,
-		StateBackTranslStrict                  StateBackTranslStrict);
+	std::string ExplicitFiniteAut::PrintSimulationMapping(
+		StateBackTranslStrict&                    stateTransl,
+		StateToStateTranslStrict                  sanitizeIndex);
 
 	ExplicitFiniteAut RemoveUnreachableStates(
 			VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
