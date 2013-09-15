@@ -180,7 +180,7 @@ public: // public methods
 	ExplicitFiniteAut GetCandidateTree() const;
 
 	template <class Index = Util::IdentityTranslator<AutBase::StateType>>
-	ExplicitLTS Translate(
+	VATA::ExplicitLTS Translate(
 		const ExplicitFiniteAut&              aut,
 		std::vector<std::vector<size_t>>&     partition,
 		Util::BinaryRelation&                 relation,

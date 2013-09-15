@@ -258,7 +258,7 @@ ExplicitFiniteAut ExplicitFiniteAut::GetCandidateTree() const
 }
 
 template <class Index>
-ExplicitLTS ExplicitFintieAut::Translate(
+VATA::ExplicitLTS ExplicitFintieAut::Translate(
 	const ExplicitFiniteAut&              aut,
 	std::vector<std::vector<size_t>>&     partition,
 	Util::BinaryRelation&                 relation,
