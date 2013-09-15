@@ -165,7 +165,6 @@ public: // public methods
 	ExplicitFiniteAut ReindexStates (StateToStateTranslWeak& stateTransl) const;
 	template <class Index>
 	void ReindexStates(ExplicitFiniteAut& dst, Index& index) const;
-
 	template <
 		class TranslIndex,
 		class SanitizeIndex>
