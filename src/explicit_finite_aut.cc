@@ -130,18 +130,16 @@ const ExplicitFiniteAut::StateSet& ExplicitFiniteAut::GetStartStates() const {
 	return core_->GetStartStates();
 }
 
-/*
 template <
-	class TranslIndex,
 	class SanitizeIndex>
 std::string ExplicitFiniteAut::PrintSimulationMapping(
-	TranslIndex          index,
+	StateBackTranslStrict&                    stateTransl,
 	SanitizeIndex        sanitizeIndex)
 {
 	assert(nullptr != core_);
-	return core_->PrintSimulationMapping(index,sanitizeIndex);
+	return core_->PrintSimulationMapping(stateTransl,sanitizeIndex);
 }
-*/
+
 void ExplicitFiniteAut::LoadFromString(
 	VATA::Parsing::AbstrParser&      parser,
 	const std::string&               str,

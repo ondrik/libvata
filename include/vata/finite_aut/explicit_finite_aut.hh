@@ -167,14 +167,11 @@ public: // public methods
 	void ReindexStates(ExplicitFiniteAut& dst, Index& index) const;
 
 	template <
-		class TranslIndex,
 		class SanitizeIndex>
 	std::string PrintSimulationMapping(
-		TranslIndex          index,
-		SanitizeIndex        sanitizeIndex)
-	{
-		throw NotImplementedException(__func__);
-	}
+		//TranslIndex          index,
+		StateBackTranslStrict&                    stateTransl,
+		SanitizeIndex        sanitizeIndex);
 
 	ExplicitFiniteAut RemoveUnreachableStates(
 			VATA::AutBase::StateToStateMap* pTranslMap = nullptr);
