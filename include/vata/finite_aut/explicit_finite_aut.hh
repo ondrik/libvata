@@ -6,6 +6,7 @@
 #include <vata/aut_base.hh>
 
 #include <vata/incl_param.hh>
+#include <vata/explicit_lts.hh>
 
 #include <vata/util/convert.hh>
 #include <vata/parsing/abstr_parser.hh>
