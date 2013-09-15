@@ -25,7 +25,7 @@
  */
 template <class Index>
 VATA::ExplicitLTS VATA::ExplicitFiniteAutCore::Translate(
-	const VATA::ExplicitFiniteAut& aut,
+	const VATA::ExplicitFiniteAutCore& aut,
 	std::vector<std::vector<size_t>>& partition,
 	Util::BinaryRelation& relation,
 	const Index& stateIndex) {
