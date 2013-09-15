@@ -115,7 +115,7 @@ ExplicitFiniteAut ExplicitFiniteAut::ReindexStates(
 
 
 template <class Index>
-void ReindexStates(ExplicitFiniteAut& dst, Index& index) const
+void ExplicitFiniteAut::ReindexStates(ExplicitFiniteAut& dst, Index& index) const
 {
 	assert(nullptr != core_);
 	core_->ReindexStates(*dst.core_,index);

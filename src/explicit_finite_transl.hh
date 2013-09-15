@@ -13,7 +13,8 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/finite_aut/explicit_finite_aut.hh>
+
+#include "explicit_finite_aut_core.hh"
 
 #include <vata/explicit_lts.hh>
 #include <vata/util/transl_weak.hh>
@@ -23,7 +24,7 @@
  * creates partition and set relation
  */
 template <class Index>
-VATA::ExplicitLTS VATA::ExplicitFiniteAut::Translate(
+VATA::ExplicitLTS VATA::ExplicitFiniteAutCore::Translate(
 	const VATA::ExplicitFiniteAut& aut,
 	std::vector<std::vector<size_t>>& partition,
 	Util::BinaryRelation& relation,
