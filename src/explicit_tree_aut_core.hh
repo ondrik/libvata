@@ -810,6 +810,17 @@ public:   // methods
 
 	static bool CheckInclusion(
 		const ExplicitTreeAutCore&             smaller,
+		const ExplicitTreeAutCore&             bigger)
+	{
+		InclParam inclParam;
+		// TODO: set more sensible defaults
+
+		return ExplicitTreeAutCore::CheckInclusion(smaller, bigger, inclParam);
+	}
+
+
+	static bool CheckInclusion(
+		const ExplicitTreeAutCore&             smaller,
 		const ExplicitTreeAutCore&             bigger,
 		const VATA::InclParam&                 params);
 

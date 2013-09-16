@@ -638,8 +638,7 @@ public:   // methods
 	 *
 	 * @param[in]  smaller  The smaller automaton
 	 * @param[in]  bigger   The bigger automaton
-	 * @param[in]  params   Parameters for the inclusion (can be @p nullptr for
-	 *                      the default parameters)
+	 * @param[in]  params   Parameters for the inclusion
 	 *
 	 * @returns  @p true if the language of @p smaller is a subset of the language
 	 *           of @p bigger, @p false otherwise
@@ -648,6 +647,23 @@ public:   // methods
 		const ExplicitTreeAut&                 smaller,
 		const ExplicitTreeAut&                 bigger,
 		const VATA::InclParam&                 params);
+
+
+	/**
+	 * @brief  Checks inclusion using default parameters
+	 *
+	 * This static method checks language inclusion of a pair of automata (@p
+	 * smaller, @p bigger) using default parameters.
+	 *
+	 * @param[in]  smaller  The smaller automaton
+	 * @param[in]  bigger   The bigger automaton
+	 *
+	 * @returns  @p true if the language of @p smaller is a subset of the language
+	 *           of @p bigger, @p false otherwise
+	 */
+	static bool CheckInclusion(
+		const ExplicitTreeAut&                 smaller,
+		const ExplicitTreeAut&                 bigger);
 
 
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(

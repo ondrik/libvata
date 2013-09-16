@@ -376,6 +376,18 @@ bool ExplicitTreeAut::CheckInclusion(
 	return CoreAut::CheckInclusion(*smaller.core_, *bigger.core_, params);
 }
 
+
+bool ExplicitTreeAut::CheckInclusion(
+	const ExplicitTreeAut&                 smaller,
+	const ExplicitTreeAut&                 bigger)
+{
+	assert(nullptr != smaller.core_);
+	assert(nullptr != bigger.core_);
+
+	return CoreAut::CheckInclusion(*smaller.core_, *bigger.core_);
+}
+
+
 std::string ExplicitTreeAut::ToString(const Transition& trans) const
 {
 	assert(nullptr != core_);
