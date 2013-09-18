@@ -65,6 +65,59 @@ ExplicitTreeAut::Transition ExplicitTreeAut::Iterator::operator*() const
 	return **coreIter_;
 }
 
+ExplicitTreeAut::AcceptTrans::AcceptTrans(
+	const CoreAcceptTrans&       coreAcceptTrans) :
+	coreAcceptTrans_(new CoreAcceptTrans(coreAcceptTrans))
+{
+	assert(nullptr != coreAcceptTrans_);
+}
+
+ExplicitTreeAut::AcceptTrans::AcceptTrans(
+	AcceptTrans&&                acceptTrans) :
+	coreAcceptTrans_(std::move(acceptTrans.coreAcceptTrans_))
+{
+	assert(nullptr != coreAcceptTrans_);
+	assert(nullptr == acceptTrans.coreAcceptTrans_);
+}
+
+ExplicitTreeAut::AcceptTrans::Iterator::Iterator(const CoreIterator& coreIter) :
+	coreAcceptTransIter_(new CoreIterator(coreIter))
+{
+	assert(nullptr != coreAcceptTransIter_);
+}
+
+ExplicitTreeAut::AcceptTrans::~AcceptTrans()
+{ }
+
+ExplicitTreeAut::AcceptTrans::Iterator::~Iterator()
+{
+	assert(nullptr != coreAcceptTransIter_);
+}
+
+
+ExplicitTreeAut::AcceptTrans::Iterator ExplicitTreeAut::AcceptTrans::begin() const
+{
+	assert(nullptr != coreAcceptTrans_);
+
+	return Iterator(coreAcceptTrans_->begin());
+}
+
+
+ExplicitTreeAut::AcceptTrans::Iterator ExplicitTreeAut::AcceptTrans::end() const
+{
+	assert(nullptr != coreAcceptTrans_);
+
+	return Iterator(coreAcceptTrans_->end());
+}
+
+
+ExplicitTreeAut::Transition ExplicitTreeAut::AcceptTrans::Iterator::operator*() const
+{
+	assert(nullptr != coreAcceptTransIter_);
+
+	return **coreAcceptTransIter_;
+}
+
 
 ExplicitTreeAut::ExplicitTreeAut() :
 	core_(new CoreAut(CoreAut::ParentAut()))
@@ -185,6 +238,51 @@ void ExplicitTreeAut::SetStateFinal(const StateType& state)
 	core_->SetStateFinal(state);
 }
 
+
+bool ExplicitTreeAut::IsFinalState(const StateType& state) const
+{
+	assert(nullptr != core_);
+
+	return core_->IsFinalState(state);
+}
+
+
+ExplicitTreeAut::AcceptTrans ExplicitTreeAut::GetAcceptTrans() const
+{
+	assert(nullptr != core_);
+
+	return AcceptTrans(core_->GetAcceptTrans());
+}
+
+
+ExplicitTreeAut::AcceptTrans::Iterator&
+	ExplicitTreeAut::AcceptTrans::Iterator::operator++()
+{
+	assert(nullptr != coreAcceptTransIter_);
+
+	++(*coreAcceptTransIter_);
+
+	return *this;
+}
+
+
+bool ExplicitTreeAut::AcceptTrans::Iterator::operator==(
+	const AcceptTrans::Iterator&     rhs) const
+{
+	assert(nullptr != coreAcceptTransIter_);
+	assert(nullptr != rhs.coreAcceptTransIter_);
+
+	return (*coreAcceptTransIter_ == *rhs.coreAcceptTransIter_);
+}
+
+bool ExplicitTreeAut::AcceptTrans::Iterator::operator!=(
+	const AcceptTrans::Iterator&     rhs) const
+{
+	assert(nullptr != coreAcceptTransIter_);
+	assert(nullptr != rhs.coreAcceptTransIter_);
+
+	return (*coreAcceptTransIter_ != *rhs.coreAcceptTransIter_);
+}
 
 void ExplicitTreeAut::AddTransition(
 	const StateTuple&         children,

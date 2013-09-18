@@ -40,7 +40,12 @@ namespace VATA
 
 	class ExplicitTreeAutCore;
 
-	namespace ExplicitTreeAutCoreUtil { class Iterator; }
+	namespace ExplicitTreeAutCoreUtil
+	{
+		class Iterator;
+		class AcceptTrans;
+	 	class AcceptTransIterator;
+	}
 }
 
 
@@ -131,143 +136,74 @@ public:   // public data types
 	public:   // methods
 
 		Iterator(const Iterator& iter);
-		explicit Iterator(const ExplicitTreeAutCoreUtil::Iterator& coreIter);
+		explicit Iterator(const CoreIterator& coreIter);
 		~Iterator();
 
 		bool operator!=(const Iterator& rhs) const;
 		Iterator& operator++();
 		Transition operator*() const;
-
-
-
 	};
 
 	using iterator       = Iterator;
 	using const_iterator = Iterator;
+
+	class AcceptTrans
+	{
+	public:  // data types
+
+		class Iterator
+		{
+		private:  // data types
+
+			using CoreIterator = ExplicitTreeAutCoreUtil::AcceptTransIterator;
+
+		private:  // data types
+
+			std::unique_ptr<CoreIterator> coreAcceptTransIter_;
+
+		public:   // methods
+
+			explicit Iterator(const ExplicitTreeAut& aut);
+			explicit Iterator(const CoreIterator& coreIter);
+			Iterator(const Iterator& iter);
+			~Iterator();
+
+			bool operator==(const Iterator& rhs) const;
+			bool operator!=(const Iterator& rhs) const;
+			Transition operator*() const;
+
+			/**
+			 * @brief  Prefix increment operator
+			 */
+			Iterator& operator++();
+		};
+
+		using CoreAcceptTrans = ExplicitTreeAutCoreUtil::AcceptTrans;
+
+
+	private:  // data members
+
+		std::unique_ptr<CoreAcceptTrans> coreAcceptTrans_;
+
+	public:   // methods
+
+		explicit AcceptTrans(
+			const CoreAcceptTrans&       coreAcceptTrans);
+
+		AcceptTrans(
+			AcceptTrans&&                acceptTrans);
+
+		~AcceptTrans();
+
+		Iterator begin() const;
+		Iterator end() const;
+	};
 
 private:  // data members
 
 	std::unique_ptr<CoreAut> core_;
 
 public:
-
-// TODO: remove --- I suspect this was not used anywhere
-#if 0
-	struct AcceptingTransitions {
-
-		const ExplicitTreeAut& aut_;
-
-		AcceptingTransitions(const ExplicitTreeAut& aut) : aut_(aut) {}
-
-		struct Iterator {
-
-			typedef std::input_iterator_tag iterator_category;
-			typedef size_t difference_type;
-			typedef Transition value_type;
-			typedef Transition* pointer;
-			typedef Transition& reference;
-
-			const ExplicitTreeAut& aut_;
-
-			StateSet::const_iterator stateSetIterator_;
-			typename StateToTransitionClusterMap::const_iterator stateClusterIterator_;
-			typename TransitionCluster::const_iterator symbolSetIterator_;
-			TuplePtrSet::const_iterator tupleIterator_;
-
-			Iterator(int, const ExplicitTreeAut& aut) : aut_(aut), stateSetIterator_(),
-				stateClusterIterator_(), symbolSetIterator_(), tupleIterator_() {}
-
-			Iterator(const ExplicitTreeAut& aut) : aut_(aut),
-				stateSetIterator_(aut.finalStates_.begin()), stateClusterIterator_(),
-				symbolSetIterator_(), tupleIterator_() {
-
-				this->_init();
-
-			}
-
-			void _init() {
-
-				for (; this->stateSetIterator_ != this->aut_.finalStates_.end();
-					++this->stateSetIterator_) {
-
-					this->stateClusterIterator_ =
-						this->aut_.transitions_->find(*this->stateSetIterator_);
-
-					if (this->stateClusterIterator_ != this->aut_.transitions->.end())
-						break;
-
-				}
-
-				if (this->stateSetIterator_ == this->aut.finalStates_->end()) {
-					this->tupleIterator_ = TuplePtrSet::const_iterator();
-					return;
-				}
-
-				this->symbolSetIterator_ = this->stateClusterIterator_->second->begin();
-				this->tupleIterator_ = this->symbolSetIterator_->second->begin();
-
-			}
-
-			Iterator& operator++() {
-
-				if (++this->tupleIterator_ != this->symbolSetIterator_->second->end())
-					return *this;
-
-				if (++this->symbolSetIterator_ != this->stateClusterIterator_->second->end()) {
-					this->tupleIterator_ = this->symbolSetIterator_->second->begin();
-					return *this;
-				}
-
-				++this->stateSetIterator_;
-
-				this->_init();
-
-				return *this;
-
-			}
-
-			Iterator operator++(int) {
-
-				return ++Iterator(*this);
-
-			}
-
-			bool operator==(const Iterator& rhs) const {
-
-				return this->tupleIterator_ == rhs.tupleIterator_;
-
-			}
-
-			bool operator!=(const Iterator& rhs) const {
-
-				return this->tupleIterator_ != rhs.tupleIterator_;
-
-			}
-
-			Transition operator*() const {
-
-				assert(*this->tupleIterator_);
-
-				return Transition(
-					**this->tupleIterator_,
-					this->symbolSetIterator_->first,
-					this->stateClusterIterator_->first
-				);
-
-			}
-
-		};
-
-		typedef Iterator iterator;
-		typedef Iterator const_iterator;
-
-		Iterator begin() const { return Iterator(this->aut_); }
-		Iterator end() const { return Iterator(0, this->aut_); }
-
-	};
-
-	AcceptingTransitions accepting;
-#endif
 
 public:
 
@@ -415,6 +351,21 @@ public:   // methods
 	 */
 	void SetStateFinal(const StateType& state);
 
+	/**
+	 * @brief  Checks whether a state is accepting
+	 *
+	 * @param[in]  state  The state to be checked
+	 *
+	 * @returns  @p true in the case @p state is accepting, @p false otherwise
+	 */
+	bool IsFinalState(const StateType& state) const;
+
+	/**
+	 * @brief  Retrieves a container with accepting transitions
+	 *
+	 * @returns  An (iterable) container with accepting transitions
+	 */
+	AcceptTrans GetAcceptTrans() const;
 
 	void AddTransition(
 		const StateTuple&         children,

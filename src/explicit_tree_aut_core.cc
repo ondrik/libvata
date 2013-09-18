@@ -75,6 +75,64 @@ Iterator& Iterator::operator++()
 	return *this;
 }
 
+AcceptTransIterator::AcceptTransIterator(
+	int                              /* FILL */,
+	const ExplicitTreeAutCore&       aut) :
+	aut_(aut),
+	stateSetIterator_()
+{ }
+
+AcceptTransIterator::AcceptTransIterator(
+	const ExplicitTreeAutCore&       aut) :
+	aut_(aut),
+	stateSetIterator_(aut.finalStates_.begin())
+{
+	this->init();
+}
+
+void AcceptTransIterator::init()
+{
+	for (; stateSetIterator_ != aut_.finalStates_.end(); ++stateSetIterator_)
+	{	// we try to find the first final state that has an outgoing transition
+		stateClusterIterator_ = aut_.transitions_->find(*stateSetIterator_);
+
+		if (stateClusterIterator_ != aut_.transitions_->end())
+		{
+			break;
+		}
+	}
+
+	if (stateSetIterator_ == aut_.finalStates_.end())
+	{	// in case no final state has an outgoing transition
+		tupleIterator_ = TuplePtrSet::const_iterator();
+		return;
+	}
+
+	symbolSetIterator_ = stateClusterIterator_->second->begin();
+	tupleIterator_ = symbolSetIterator_->second->begin();
+}
+
+
+AcceptTransIterator& AcceptTransIterator::operator++()
+{
+	if (++tupleIterator_ != symbolSetIterator_->second->end())
+	{
+		return *this;
+	}
+
+	if (++symbolSetIterator_ != stateClusterIterator_->second->end())
+	{
+		tupleIterator_ = symbolSetIterator_->second->begin();
+		return *this;
+	}
+
+	++stateSetIterator_;
+
+	this->init();
+
+	return *this;
+}
+
 
 ExplicitTreeAutCore::ExplicitTreeAutCore(
 	TupleCache&          tupleCache,

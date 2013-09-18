@@ -42,10 +42,12 @@ namespace VATA
 	namespace ExplicitTreeAutCoreUtil
 	{
 		using StateType        = ExplicitTreeAut::StateType;
+		using StateSet         = std::unordered_set<StateType>;
 		using SymbolType       = ExplicitTreeAut::SymbolType;
 		using TuplePtr         = std::shared_ptr<ExplicitTreeAut::StateTuple>;
 		using TuplePtrSet      = std::set<TuplePtr>;
 		using TuplePtrSetPtr   = std::shared_ptr<TuplePtrSet>;
+		using Transition       = ExplicitTreeAut::Transition;
 
 		class Iterator;
 
@@ -106,6 +108,8 @@ namespace VATA
 				return cluster;
 			}
 		};
+
+		class AcceptTrans;
 	}
 }
 
@@ -190,6 +194,81 @@ public:   // methods
 };
 
 
+class VATA::ExplicitTreeAutCoreUtil::AcceptTransIterator
+{
+	typedef std::input_iterator_tag iterator_category;
+	typedef size_t difference_type;
+	typedef Transition value_type;
+	typedef Transition* pointer;
+	typedef Transition& reference;
+
+private:  // data members
+
+	const ExplicitTreeAutCore& aut_;
+
+	StateSet::const_iterator stateSetIterator_;
+	typename StateToTransitionClusterMap::const_iterator stateClusterIterator_{};
+	typename TransitionCluster::const_iterator symbolSetIterator_{};
+	TuplePtrSet::const_iterator tupleIterator_{};
+
+private:  // methods
+
+	void init();
+
+public:   // methods
+
+	AcceptTransIterator(
+		int                              /* FILL */,
+		const ExplicitTreeAutCore&       aut);
+
+	explicit AcceptTransIterator(
+		const ExplicitTreeAutCore&       aut);
+
+	AcceptTransIterator& operator++();
+
+	bool operator==(const AcceptTransIterator& rhs) const
+	{
+		return tupleIterator_ == rhs.tupleIterator_;
+	}
+
+	bool operator!=(const AcceptTransIterator& rhs) const
+	{
+		return tupleIterator_ != rhs.tupleIterator_;
+	}
+
+	Transition operator*() const
+	{
+		assert(nullptr != *tupleIterator_);
+
+		return Transition(
+			stateClusterIterator_->first,
+			symbolSetIterator_->first,
+			**tupleIterator_
+		);
+	}
+};
+
+
+class VATA::ExplicitTreeAutCoreUtil::AcceptTrans
+{
+private:  // data members
+
+	const ExplicitTreeAutCore& aut_;
+
+public:   // methods
+
+	explicit AcceptTrans(const ExplicitTreeAutCore& aut) :
+		aut_(aut)
+	{ }
+
+	using iterator        = AcceptTransIterator;
+	using const_iterator  = AcceptTransIterator;
+
+	AcceptTransIterator begin() const { return AcceptTransIterator(aut_); }
+	AcceptTransIterator end() const { return AcceptTransIterator(0, aut_); }
+};
+
+
 GCC_DIAG_OFF(effc++)
 class VATA::ExplicitTreeAutCore : public TreeAutBase
 {
@@ -200,14 +279,17 @@ GCC_DIAG_ON(effc++)
 	friend class ExplicitDownwardInclusion;
 
 	friend class ExplicitTreeAutCoreUtil::Iterator;
+	friend class ExplicitTreeAutCoreUtil::AcceptTrans;
+	friend class ExplicitTreeAutCoreUtil::AcceptTransIterator;
 
 public:   // data types
 
 	using SymbolType       = ExplicitTreeAut::SymbolType;
 	using StringSymbolType = ExplicitTreeAut::StringSymbolType;
 	using TuplePtr         = ExplicitTreeAutCoreUtil::TuplePtr;
-	using StateSet         = std::unordered_set<StateType>;
+	using StateSet         = ExplicitTreeAutCoreUtil::StateSet;
 	using Transition       = ExplicitTreeAut::Transition;
+	using AcceptTrans      = ExplicitTreeAutCoreUtil::AcceptTrans;
 
 	using DownInclStateTupleSet       = std::set<TuplePtr>;
 	using DownInclStateTupleVector    = std::vector<TuplePtr>;
@@ -360,6 +442,11 @@ public:   // methods
 		const StateType&          state) const
 	{
 		return finalStates_.count(state) > 0;
+	}
+
+	AcceptTrans GetAcceptTrans() const
+	{
+		return AcceptTrans(*this);
 	}
 
 
