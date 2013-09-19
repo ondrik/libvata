@@ -142,7 +142,7 @@ public:   // public data types
 
 		bool operator!=(const Iterator& rhs) const;
 		Iterator& operator++();
-		Transition operator*() const;
+		const Transition& operator*() const;
 	};
 
 	using iterator       = Iterator;
@@ -171,13 +171,17 @@ public:   // public data types
 
 			bool operator==(const Iterator& rhs) const;
 			bool operator!=(const Iterator& rhs) const;
-			Transition operator*() const;
+			const Transition& operator*() const;
+			const Transition* operator->() const;
 
 			/**
 			 * @brief  Prefix increment operator
 			 */
 			Iterator& operator++();
 		};
+
+		using iterator         = Iterator;
+		using const_iterator   = Iterator;
 
 		using CoreAcceptTrans = ExplicitTreeAutCoreUtil::AcceptTrans;
 

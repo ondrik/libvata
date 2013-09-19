@@ -30,8 +30,8 @@ ExplicitTreeAutCore::AlphabetType ExplicitTreeAutCore::globalAlphabet_ =
 	AlphabetType(new AlphabetType::element_type());
 
 
-Iterator::Iterator(
-	const ExplicitTreeAutCore&   aut) :
+BaseTransIterator::BaseTransIterator(
+	const ExplicitTreeAutCore&        aut) :
 	aut_(aut),
 	stateClusterIterator_(aut.transitions_->begin()),
 	symbolSetIterator_(),
@@ -47,6 +47,8 @@ Iterator::Iterator(
 
 	tupleIterator_ = symbolSetIterator_->second->begin();
 	assert(symbolSetIterator_->second->end() != tupleIterator_);
+
+	this->updateTrans();
 }
 
 
@@ -54,12 +56,14 @@ Iterator& Iterator::operator++()
 {
 	if (symbolSetIterator_->second->end() != ++tupleIterator_)
 	{
+		this->updateTrans();
 		return *this;
 	}
 
 	if (stateClusterIterator_->second->end() != ++symbolSetIterator_)
 	{
 		tupleIterator_ = symbolSetIterator_->second->begin();
+		this->updateTrans();
 		return *this;
 	}
 
@@ -67,6 +71,7 @@ Iterator& Iterator::operator++()
 	{
 		symbolSetIterator_ = stateClusterIterator_->second->begin();
 		tupleIterator_ = symbolSetIterator_->second->begin();
+		this->updateTrans();
 		return *this;
 	}
 
@@ -78,13 +83,13 @@ Iterator& Iterator::operator++()
 AcceptTransIterator::AcceptTransIterator(
 	int                              /* FILL */,
 	const ExplicitTreeAutCore&       aut) :
-	aut_(aut),
+	BaseTransIterator(0, aut),
 	stateSetIterator_()
 { }
 
 AcceptTransIterator::AcceptTransIterator(
 	const ExplicitTreeAutCore&       aut) :
-	aut_(aut),
+	BaseTransIterator(aut),
 	stateSetIterator_(aut.finalStates_.begin())
 {
 	this->init();
@@ -110,6 +115,8 @@ void AcceptTransIterator::init()
 
 	symbolSetIterator_ = stateClusterIterator_->second->begin();
 	tupleIterator_ = symbolSetIterator_->second->begin();
+
+	this->updateTrans();
 }
 
 

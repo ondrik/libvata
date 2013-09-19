@@ -49,6 +49,7 @@ namespace VATA
 		using TuplePtrSetPtr   = std::shared_ptr<TuplePtrSet>;
 		using Transition       = ExplicitTreeAut::Transition;
 
+		class BaseTransIterator;
 		class Iterator;
 
 		GCC_DIAG_OFF(effc++)
@@ -114,7 +115,10 @@ namespace VATA
 }
 
 
-class VATA::ExplicitTreeAutCoreUtil::Iterator
+/**
+ * @brief  Base class for transition iterators
+ */
+class VATA::ExplicitTreeAutCoreUtil::BaseTransIterator
 {
 public:   // data types
 
@@ -125,19 +129,21 @@ public:   // data types
 	using pointer    = ExplicitTreeAut::Transition*;
 	using reference  = ExplicitTreeAut::Transition&;
 
-public:    // data members
+protected:  // data members
 
 	const ExplicitTreeAutCore& aut_;
+
 	typename VATA::ExplicitTreeAutCoreUtil::StateToTransitionClusterMap::const_iterator
 		stateClusterIterator_;
 	typename VATA::ExplicitTreeAutCoreUtil::TransitionCluster::const_iterator
 		symbolSetIterator_;
 	TuplePtrSet::const_iterator tupleIterator_;
 
-public:   // methods
+	Transition trans_{};
 
+protected:// methods
 
-	Iterator(
+	BaseTransIterator(
 		int                          /* FILL (only to distinguish signature?) */,
 		const ExplicitTreeAutCore&   aut) :
 		aut_(aut),
@@ -146,70 +152,92 @@ public:   // methods
 		tupleIterator_()
 	{ }
 
-
-	Iterator(
+	BaseTransIterator(
 		const ExplicitTreeAutCore&   aut);
 
-	Iterator(const Iterator& iter) :
-		aut_(iter.aut_),
-		stateClusterIterator_(iter.stateClusterIterator_),
-		symbolSetIterator_(iter.symbolSetIterator_),
-		tupleIterator_(iter.tupleIterator_)
+	BaseTransIterator(
+		const BaseTransIterator&           baseTransIter) :
+		aut_(baseTransIter.aut_),
+		stateClusterIterator_(baseTransIter.stateClusterIterator_),
+		symbolSetIterator_(baseTransIter.symbolSetIterator_),
+		tupleIterator_(baseTransIter.tupleIterator_),
+		trans_(baseTransIter.trans_)
 	{ }
 
-
-	Iterator& operator++();
-
-
-#if 0
-		Iterator operator++(int)
-		{
-			return ++Iterator(*this);
-		}
-#endif
-
-
-	bool operator==(const Iterator& rhs) const
-	{
-		return tupleIterator_ == rhs.tupleIterator_;
-	}
-
-
-	bool operator!=(const Iterator& rhs) const
-	{
-		return tupleIterator_ != rhs.tupleIterator_;
-	}
-
-
-	ExplicitTreeAut::Transition operator*() const
+	void updateTrans()
 	{
 		assert(*tupleIterator_);
 
-		return ExplicitTreeAut::Transition(
+		trans_ = Transition(
 			stateClusterIterator_->first,
 			symbolSetIterator_->first,
 			**tupleIterator_
 		);
 	}
+
+public:   // methods
+
+	const Transition& operator*() const
+	{
+		assert(*tupleIterator_);
+
+		return trans_;
+	}
+
+	const Transition* operator->() const
+	{
+		assert(*tupleIterator_);
+
+		return &trans_;
+	}
+
+	bool operator==(const BaseTransIterator& rhs) const
+	{
+		return tupleIterator_ == rhs.tupleIterator_;
+	}
+
+
+	bool operator!=(const BaseTransIterator& rhs) const
+	{
+		return tupleIterator_ != rhs.tupleIterator_;
+	}
+};
+
+GCC_DIAG_OFF(effc++)
+class VATA::ExplicitTreeAutCoreUtil::Iterator : public BaseTransIterator
+{
+GCC_DIAG_ON(effc++)
+
+public:   // methods
+
+	Iterator(
+		int                          /* FILL (only to distinguish signature?) */,
+		const ExplicitTreeAutCore&   aut) :
+		BaseTransIterator(0, aut)
+	{ }
+
+	explicit Iterator(
+		const ExplicitTreeAutCore&   aut) :
+		BaseTransIterator(aut)
+	{ }
+
+	Iterator(const Iterator& iter) :
+		BaseTransIterator(iter)
+	{ }
+
+
+	Iterator& operator++();
 };
 
 
-class VATA::ExplicitTreeAutCoreUtil::AcceptTransIterator
+GCC_DIAG_OFF(effc++)
+class VATA::ExplicitTreeAutCoreUtil::AcceptTransIterator : public BaseTransIterator
 {
-	typedef std::input_iterator_tag iterator_category;
-	typedef size_t difference_type;
-	typedef Transition value_type;
-	typedef Transition* pointer;
-	typedef Transition& reference;
+GCC_DIAG_ON(effc++)
 
 private:  // data members
 
-	const ExplicitTreeAutCore& aut_;
-
 	FinalStateSet::const_iterator stateSetIterator_;
-	typename StateToTransitionClusterMap::const_iterator stateClusterIterator_{};
-	typename TransitionCluster::const_iterator symbolSetIterator_{};
-	TuplePtrSet::const_iterator tupleIterator_{};
 
 private:  // methods
 
@@ -225,27 +253,6 @@ public:   // methods
 		const ExplicitTreeAutCore&       aut);
 
 	AcceptTransIterator& operator++();
-
-	bool operator==(const AcceptTransIterator& rhs) const
-	{
-		return tupleIterator_ == rhs.tupleIterator_;
-	}
-
-	bool operator!=(const AcceptTransIterator& rhs) const
-	{
-		return tupleIterator_ != rhs.tupleIterator_;
-	}
-
-	Transition operator*() const
-	{
-		assert(nullptr != *tupleIterator_);
-
-		return Transition(
-			stateClusterIterator_->first,
-			symbolSetIterator_->first,
-			**tupleIterator_
-		);
-	}
 };
 
 
@@ -278,6 +285,7 @@ GCC_DIAG_ON(effc++)
 	friend class ExplicitDownwardComplementation;
 	friend class ExplicitDownwardInclusion;
 
+	friend class ExplicitTreeAutCoreUtil::BaseTransIterator;
 	friend class ExplicitTreeAutCoreUtil::Iterator;
 	friend class ExplicitTreeAutCoreUtil::AcceptTrans;
 	friend class ExplicitTreeAutCoreUtil::AcceptTransIterator;

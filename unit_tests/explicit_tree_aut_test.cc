@@ -102,56 +102,67 @@ BOOST_AUTO_TEST_CASE(aut_up_inclusion_sim)
 
 BOOST_AUTO_TEST_CASE(iterators)
 {
-	auto testfileContent = ParseTestFile(LOAD_TIMBUK_FILE.string());
-	for (auto testcase : testfileContent)
-	{
-		BOOST_REQUIRE_MESSAGE(testcase.size() == 1, "Invalid format of a testcase: " +
-			Convert::ToString(testcase));
-
-		std::string filename = (AUT_DIR / testcase[0]).string();
-		BOOST_MESSAGE("Checking iteration over automaton " + filename + "...");
-		std::string autStr = VATA::Util::ReadFile(filename);
-
-		StateDict stateDict;
-		AutType aut;
-		readAut(aut, stateDict, autStr);
-
-		for (const Transition& trans : aut)
+	this->runOnAutomataSet(
+		[](const AutType& aut, const StateDict& stateDict)
 		{
-			BOOST_REQUIRE_MESSAGE(aut.ContainsTransition(trans),
-				"Inconsistent iterator output: " + aut.ToString(trans) +
-				" is claimed not to be in aut");
-		}
-	}
+			for (const Transition& trans : aut)
+			{
+				BOOST_REQUIRE_MESSAGE(aut.ContainsTransition(trans),
+					"Inconsistent iterator output: " + aut.ToString(trans) +
+					" is claimed not to be in aut");
+			}
+		});
+}
+
+BOOST_AUTO_TEST_CASE(iterators_dereference)
+{
+	this->runOnAutomataSet(
+		[](const AutType& aut, const StateDict& stateDict)
+		{
+			for (AutType::const_iterator it = aut.begin(); it != aut.end(); ++it)
+			{
+				BOOST_REQUIRE_MESSAGE(aut.ContainsTransition(*it),
+					"Inconsistent iterator output: " + aut.ToString(*it) +
+					" is claimed not to be in aut");
+			}
+		});
 }
 
 BOOST_AUTO_TEST_CASE(accept_iterators)
 {
-	auto testfileContent = ParseTestFile(LOAD_TIMBUK_FILE.string());
-	for (auto testcase : testfileContent)
-	{
-		BOOST_REQUIRE_MESSAGE(testcase.size() == 1, "Invalid format of a testcase: " +
-			Convert::ToString(testcase));
-
-		std::string filename = (AUT_DIR / testcase[0]).string();
-		BOOST_MESSAGE("Checking iteration over accepting transitions of " + filename + "...");
-		std::string autStr = VATA::Util::ReadFile(filename);
-
-		StateDict stateDict;
-		AutType aut;
-		readAut(aut, stateDict, autStr);
-
-		for (const Transition& trans : aut.GetAcceptTrans())
+	this->runOnAutomataSet(
+		[](const AutType& aut, const StateDict& stateDict)
 		{
-			BOOST_REQUIRE_MESSAGE(aut.ContainsTransition(trans),
-				"Inconsistent iterator output: " + aut.ToString(trans) +
-				" is claimed not to be in aut");
+			for (const Transition& trans : aut.GetAcceptTrans())
+			{
+				BOOST_REQUIRE_MESSAGE(aut.ContainsTransition(trans),
+					"Inconsistent iterator output: " + aut.ToString(trans) +
+					" is claimed not to be in aut");
 
-			BOOST_REQUIRE_MESSAGE(aut.IsStateFinal(trans.GetParent()),
-				"Inconsistent iterator output: " + aut.ToString(trans) +
-				" is not accepting");
-		}
-	}
+				BOOST_REQUIRE_MESSAGE(aut.IsStateFinal(trans.GetParent()),
+					"Inconsistent iterator output: " + aut.ToString(trans) +
+					" is not accepting");
+			}
+		});
+}
+
+BOOST_AUTO_TEST_CASE(accept_iterators_dereference)
+{
+	this->runOnAutomataSet(
+		[](const AutType& aut, const StateDict& stateDict)
+		{
+			for (AutType::AcceptTrans::const_iterator it = aut.GetAcceptTrans().begin();
+				it != aut.GetAcceptTrans().end(); ++it)
+			{
+				BOOST_REQUIRE_MESSAGE(aut.ContainsTransition(*it),
+					"Inconsistent iterator output: " + aut.ToString(*it) +
+					" is claimed not to be in aut");
+
+				BOOST_REQUIRE_MESSAGE(aut.IsStateFinal(it->GetParent()),
+					"Inconsistent iterator output: " + aut.ToString(*it) +
+					" is not accepting");
+			}
+		});
 }
 
 BOOST_AUTO_TEST_SUITE_END()

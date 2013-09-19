@@ -182,6 +182,12 @@ protected:// data types
 
 	public:
 
+		TTransition() :
+			parent_(),
+			symbol_(),
+			children_()
+		{ }
+
 		TTransition(
 			const StateType&      parent,
 			const SymbolType&     symbol,
