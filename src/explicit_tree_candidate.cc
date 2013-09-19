@@ -93,7 +93,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::GetCandidateTree() const
 
 				for (auto& s : transitionInfoPtr->childrenSet_)
 				{
-					// Add a new pair to stateMap and also add the transitionInfor 
+					// Add a new pair to stateMap and also add the transitionInfor
 					// ptr to the second item of the pair in one step
 					stateMap.insert(
 						std::make_pair(s, std::vector<TransitionInfoPtr>())
@@ -130,13 +130,13 @@ ExplicitTreeAutCore ExplicitTreeAutCore::GetCandidateTree() const
 
 			--remaining;
 
-			// Insert state, which is accessible from currently chosen transition 
+			// Insert state, which is accessible from currently chosen transition
 			if (reachableStates.insert(info->state_).second)
 			{
 				reachableTransitions.push_back(info);
 
 				newStates.push_back(info->state_);
-				if (this->IsFinalState(info->state_))
+				if (this->IsStateFinal(info->state_))
 				{
 					goto found_;
 				}

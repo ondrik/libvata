@@ -239,13 +239,19 @@ void ExplicitTreeAut::SetStateFinal(const StateType& state)
 }
 
 
-bool ExplicitTreeAut::IsFinalState(const StateType& state) const
+bool ExplicitTreeAut::IsStateFinal(const StateType& state) const
 {
 	assert(nullptr != core_);
 
-	return core_->IsFinalState(state);
+	return core_->IsStateFinal(state);
 }
 
+const ExplicitTreeAut::FinalStateSet& ExplicitTreeAut::GetFinalStates() const
+{
+	assert(nullptr != core_);
+
+	return core_->GetFinalStates();
+}
 
 ExplicitTreeAut::AcceptTrans ExplicitTreeAut::GetAcceptTrans() const
 {

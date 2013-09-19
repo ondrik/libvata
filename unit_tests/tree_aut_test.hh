@@ -663,3 +663,27 @@ BOOST_AUTO_TEST_CASE(aut_down_inclusion_opt_rec_nosim)
 	ip.SetUseRecursion(true);
 	testInclusion(ip);
 }
+
+BOOST_AUTO_TEST_CASE(final_states_test)
+{
+	auto testfileContent = ParseTestFile(LOAD_TIMBUK_FILE.string());
+	for (auto testcase : testfileContent)
+	{
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 1, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
+
+		std::string filename = (AUT_DIR / testcase[0]).string();
+		BOOST_MESSAGE("Checking final states of " + filename + "...");
+		std::string autStr = VATA::Util::ReadFile(filename);
+
+		StateDict stateDict;
+		AutType aut;
+		readAut(aut, stateDict, autStr);
+
+		for (const StateType& state : aut.GetFinalStates())
+		{
+			BOOST_REQUIRE_MESSAGE(aut.IsStateFinal(state),
+				"Inconsistent final state: " + Convert::ToString(state));
+		}
+	}
+}

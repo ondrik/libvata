@@ -42,7 +42,7 @@ namespace VATA
 	namespace ExplicitTreeAutCoreUtil
 	{
 		using StateType        = ExplicitTreeAut::StateType;
-		using StateSet         = std::unordered_set<StateType>;
+		using FinalStateSet    = ExplicitTreeAut::FinalStateSet;
 		using SymbolType       = ExplicitTreeAut::SymbolType;
 		using TuplePtr         = std::shared_ptr<ExplicitTreeAut::StateTuple>;
 		using TuplePtrSet      = std::set<TuplePtr>;
@@ -206,7 +206,7 @@ private:  // data members
 
 	const ExplicitTreeAutCore& aut_;
 
-	StateSet::const_iterator stateSetIterator_;
+	FinalStateSet::const_iterator stateSetIterator_;
 	typename StateToTransitionClusterMap::const_iterator stateClusterIterator_{};
 	typename TransitionCluster::const_iterator symbolSetIterator_{};
 	TuplePtrSet::const_iterator tupleIterator_{};
@@ -287,7 +287,7 @@ public:   // data types
 	using SymbolType       = ExplicitTreeAut::SymbolType;
 	using StringSymbolType = ExplicitTreeAut::StringSymbolType;
 	using TuplePtr         = ExplicitTreeAutCoreUtil::TuplePtr;
-	using StateSet         = ExplicitTreeAutCoreUtil::StateSet;
+	using FinalStateSet    = ExplicitTreeAutCoreUtil::FinalStateSet;
 	using Transition       = ExplicitTreeAut::Transition;
 	using AcceptTrans      = ExplicitTreeAutCoreUtil::AcceptTrans;
 
@@ -328,7 +328,7 @@ private:  // data members
 
 	TupleCache& cache_;
 
-	StateSet finalStates_;
+	FinalStateSet finalStates_;
 
 	StateToTransitionClusterMapPtr transitions_;
 
@@ -427,7 +427,7 @@ public:   // methods
 	{ }
 
 
-	const StateSet& GetFinalStates() const
+	const FinalStateSet& GetFinalStates() const
 	{
 		return finalStates_;
 	}
@@ -438,7 +438,7 @@ public:   // methods
 		finalStates_.insert(state);
 	}
 
-	bool IsFinalState(
+	bool IsStateFinal(
 		const StateType&          state) const
 	{
 		return finalStates_.count(state) > 0;

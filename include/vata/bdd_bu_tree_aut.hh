@@ -83,6 +83,8 @@ public:   // methods
 		const StateType&               state) const;
 
 
+	const FinalStateSet& GetFinalStates() const;
+
 
 	void AddTransition(
 		const StateTuple&      children,

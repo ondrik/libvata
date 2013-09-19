@@ -66,7 +66,7 @@ private:  // constants
 private:  // data members
 
 	TransTable transTable_;
-	StateHT finalStates_;
+	FinalStateSet finalStates_;
 
 private:  // methods
 

@@ -146,9 +146,9 @@ private:
 
 	static bool checkInternal(
 		const DoubleIndexedTupleList&                smallerIndex,
-		const ExplicitTreeAutCore::StateSet&         smallerFinalStates,
+		const ExplicitTreeAutCore::FinalStateSet&    smallerFinalStates,
 		const DoubleIndexedTupleList&                biggerIndex,
-		const ExplicitTreeAutCore::StateSet&         biggerFinalStates,
+		const ExplicitTreeAutCore::FinalStateSet&    biggerFinalStates,
 		const std::vector<std::vector<size_t>>&      ind,
 		const std::vector<std::vector<size_t>>&      inv
 	);

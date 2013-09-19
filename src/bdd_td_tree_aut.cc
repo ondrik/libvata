@@ -90,13 +90,28 @@ void BDDTopDownTreeAut::AddTransition(
 	core_->AddTransition(children, symbol, parent);
 }
 
-
 void BDDTopDownTreeAut::SetStateFinal(
 	const StateType&               state)
 {
 	assert(nullptr != core_);
 
 	core_->SetStateFinal(state);
+}
+
+
+bool BDDTopDownTreeAut::IsStateFinal(const StateType& state) const
+{
+	assert(nullptr != core_);
+
+	return core_->IsStateFinal(state);
+}
+
+
+const BDDTopDownTreeAut::FinalStateSet& BDDTopDownTreeAut::GetFinalStates() const
+{
+	assert(nullptr != core_);
+
+	return core_->GetFinalStates();
 }
 
 

@@ -67,7 +67,8 @@ class VATA::AutBase
 {
 public:   // data types
 
-	using StateType = size_t;
+	using StateType      = size_t;
+	using FinalStateSet  = std::unordered_set<StateType>;
 
 	using AutDescription             = VATA::Util::AutDescription;
 	using StateDict                  = Util::TwoWayDict<std::string, StateType>;

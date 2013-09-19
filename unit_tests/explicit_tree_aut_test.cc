@@ -147,7 +147,7 @@ BOOST_AUTO_TEST_CASE(accept_iterators)
 				"Inconsistent iterator output: " + aut.ToString(trans) +
 				" is claimed not to be in aut");
 
-			BOOST_REQUIRE_MESSAGE(aut.IsFinalState(trans.GetParent()),
+			BOOST_REQUIRE_MESSAGE(aut.IsStateFinal(trans.GetParent()),
 				"Inconsistent iterator output: " + aut.ToString(trans) +
 				" is not accepting");
 		}

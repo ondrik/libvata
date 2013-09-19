@@ -93,6 +93,10 @@ public:   // public methods
 	AlphabetType& GetAlphabet() const;
 
 
+	const FinalStateSet& GetFinalStates() const;
+
+	bool IsStateFinal(const StateType& state) const;
+
 	void AddTransition(
 		const StateTuple&       children,
 		const SymbolType&       symbol,

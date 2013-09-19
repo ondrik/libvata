@@ -120,6 +120,14 @@ bool BDDBottomUpTreeAut::IsStateFinal(
 }
 
 
+const BDDBottomUpTreeAut::FinalStateSet& BDDBottomUpTreeAut::GetFinalStates() const
+{
+	assert(nullptr != core_);
+
+	return core_->GetFinalStates();
+}
+
+
 void BDDBottomUpTreeAut::LoadFromString(
 	VATA::Parsing::AbstrParser&     parser,
 	const std::string&              str,

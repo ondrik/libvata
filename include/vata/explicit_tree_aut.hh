@@ -61,6 +61,7 @@ private:  // data types
 public:   // public data types
 
 	using SymbolType     = uintptr_t;
+	using StateSet       = std::unordered_set<StateType>;
 
 
 	struct StringRank
@@ -358,7 +359,14 @@ public:   // methods
 	 *
 	 * @returns  @p true in the case @p state is accepting, @p false otherwise
 	 */
-	bool IsFinalState(const StateType& state) const;
+	bool IsStateFinal(const StateType& state) const;
+
+	/**
+	 * @brief  Retrieves the set of accepting states
+	 *
+	 * @returns  The set of accepting states of the automaton
+	 */
+	const FinalStateSet& GetFinalStates() const;
 
 	/**
 	 * @brief  Retrieves a container with accepting transitions

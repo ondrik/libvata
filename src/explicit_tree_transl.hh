@@ -242,7 +242,7 @@ VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateUpward(
 		assert(stateIndex[stateClusterPair.first] < transitions_->size());
 
 		partition[
-			this->IsFinalState(stateClusterPair.first)?(0):(base - 2)
+			this->IsStateFinal(stateClusterPair.first)?(0):(base - 2)
 		].push_back(stateIndex[stateClusterPair.first]);
 
 		for (auto& symbolTupleSetPair : *stateClusterPair.second)
