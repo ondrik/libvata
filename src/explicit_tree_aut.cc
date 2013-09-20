@@ -355,6 +355,17 @@ void ExplicitTreeAut::LoadFromString(
 }
 
 
+void ExplicitTreeAut::LoadFromAutDesc(
+	const VATA::Util::AutDescription&   desc,
+	StateDict&                          stateDict,
+	const std::string&                  params)
+{
+	assert(nullptr != core_);
+
+	core_->LoadFromAutDesc(desc, stateDict, params);
+}
+
+
 std::string ExplicitTreeAut::DumpToString(
 	VATA::Serialization::AbstrSerializer&     serializer,
 	const std::string&                        params) const

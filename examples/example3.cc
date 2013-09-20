@@ -16,7 +16,7 @@ const char* autStr =
 	"a          -> q0\n"
 	"b(q0, q0)  -> q1\n";
 
-typedef VATA::ExplicitTreeAut<unsigned> Automaton;
+typedef VATA::ExplicitTreeAut Automaton;
 //typedef VATA::BDDBottomUpTreeAut Automaton;  // uncomment for BDD BU automaton
 //typedef VATA::BDDTopDownTreeAut Automaton;   // uncomment for BDD TD automaton
 
@@ -26,18 +26,8 @@ int main()
 	std::unique_ptr<VATA::Parsing::AbstrParser> parser(
 		new VATA::Parsing::TimbukParser());
 
-	// create the dictionary translating symbol names to internal symbols ...
-	typename Automaton::StringToSymbolDict symbolDict;
-	// ... and link it to the automaton
-	Automaton::SetSymbolDictPtr(&symbolDict);
-
-	// create the ``next symbol'' variable for the automaton
-	typename Automaton::SymbolType nextSymbol(0);
-	//typename Automaton::SymbolType nextSymbol(16, 0);  // uncomment for BDD aut
-	Automaton::SetNextSymbolPtr(&nextSymbol);
-
 	// create the dictionary for translating state names to internal state numbers
-	VATA::AutBase::StringToStateDict stateDict;
+	VATA::AutBase::StateDict stateDict;
 
 	// create and load the automaton
 	Automaton aut;
