@@ -51,6 +51,8 @@ namespace VATA
 
 		class BaseTransIterator;
 		class Iterator;
+		class AcceptTransIterator;
+		class DownAccessorIterator;
 
 		GCC_DIAG_OFF(effc++)
 		class TransitionCluster : public std::unordered_map<
@@ -111,6 +113,7 @@ namespace VATA
 		};
 
 		class AcceptTrans;
+		class DownAccessor;
 	}
 }
 
@@ -125,18 +128,16 @@ public:   // data types
 	using iterator_category  = std::input_iterator_tag;
 	using difference_type    = size_t;
 
-	using value_type = ExplicitTreeAut::Transition;
-	using pointer    = ExplicitTreeAut::Transition*;
-	using reference  = ExplicitTreeAut::Transition&;
+	using value_type = Transition;
+	using pointer    = Transition*;
+	using reference  = Transition&;
 
 protected:  // data members
 
 	const ExplicitTreeAutCore& aut_;
 
-	typename VATA::ExplicitTreeAutCoreUtil::StateToTransitionClusterMap::const_iterator
-		stateClusterIterator_;
-	typename VATA::ExplicitTreeAutCoreUtil::TransitionCluster::const_iterator
-		symbolSetIterator_;
+	StateToTransitionClusterMap::const_iterator stateClusterIterator_;
+	TransitionCluster::const_iterator symbolSetIterator_;
 	TuplePtrSet::const_iterator tupleIterator_;
 
 	Transition trans_{};
@@ -255,6 +256,99 @@ public:   // methods
 	AcceptTransIterator& operator++();
 };
 
+class VATA::ExplicitTreeAutCoreUtil::DownAccessorIterator
+{
+private:  // data members
+
+	const DownAccessor& accessor_;
+
+	TransitionCluster::const_iterator symbolSetIterator_;
+	TuplePtrSet::const_iterator tupleIterator_;
+
+	Transition trans_{};
+
+private:  // methods
+
+	void updateTrans();
+
+public:   // methods
+
+	DownAccessorIterator(
+		int                           /* FILL */,
+		const DownAccessor&           accessor) :
+		accessor_(accessor),
+		symbolSetIterator_(),
+		tupleIterator_()
+	{ }
+
+	explicit DownAccessorIterator(
+		const DownAccessor&           accessor);
+
+	DownAccessorIterator& operator++();
+
+	bool operator==(const DownAccessorIterator& rhs) const
+	{
+		return tupleIterator_ == rhs.tupleIterator_;
+	}
+
+	bool operator!=(const DownAccessorIterator& rhs) const
+	{
+		return tupleIterator_ != rhs.tupleIterator_;
+	}
+
+	const Transition& operator*() const
+	{
+		assert(*tupleIterator_);
+
+		return trans_;
+	}
+
+	const Transition* operator->() const
+	{
+		assert(*tupleIterator_);
+
+		return &trans_;
+	}
+};
+
+class VATA::ExplicitTreeAutCoreUtil::DownAccessor
+{
+private:  // data types
+
+	friend class DownAccessorIterator;
+
+public:   // data types
+
+	using iterator        = DownAccessorIterator;
+	using const_iterator  = DownAccessorIterator;
+
+private:  // data members
+
+	size_t state_;
+	const TransitionCluster* cluster_;
+
+public:   // methods
+
+	DownAccessor(
+		const ExplicitTreeAutCore&     aut,
+		size_t                         state);
+
+	DownAccessorIterator begin() const
+	{
+		return DownAccessorIterator(*this);
+	}
+
+	DownAccessorIterator end() const
+	{
+		return DownAccessorIterator(0, *this);
+	}
+
+	bool empty() const
+	{
+		return nullptr == cluster_;
+	}
+};
+
 
 class VATA::ExplicitTreeAutCoreUtil::AcceptTrans
 {
@@ -289,6 +383,8 @@ GCC_DIAG_ON(effc++)
 	friend class ExplicitTreeAutCoreUtil::Iterator;
 	friend class ExplicitTreeAutCoreUtil::AcceptTrans;
 	friend class ExplicitTreeAutCoreUtil::AcceptTransIterator;
+	friend class ExplicitTreeAutCoreUtil::DownAccessor;
+	friend class ExplicitTreeAutCoreUtil::DownAccessorIterator;
 
 public:   // data types
 
@@ -298,6 +394,7 @@ public:   // data types
 	using FinalStateSet    = ExplicitTreeAutCoreUtil::FinalStateSet;
 	using Transition       = ExplicitTreeAut::Transition;
 	using AcceptTrans      = ExplicitTreeAutCoreUtil::AcceptTrans;
+	using DownAccessor     = ExplicitTreeAutCoreUtil::DownAccessor;
 
 	using DownInclStateTupleSet       = std::set<TuplePtr>;
 	using DownInclStateTupleVector    = std::vector<TuplePtr>;
@@ -457,6 +554,17 @@ public:   // methods
 		return AcceptTrans(*this);
 	}
 
+	DownAccessor GetDown(
+		const StateType&           state) const
+	{
+		return DownAccessor(*this, state);
+	}
+
+	DownAccessor operator[](
+		const StateType&           state) const
+	{
+		return this->GetDown(state);
+	}
 
 	const_iterator begin() const
 	{

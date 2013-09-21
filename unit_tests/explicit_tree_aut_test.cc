@@ -103,8 +103,9 @@ BOOST_AUTO_TEST_CASE(aut_up_inclusion_sim)
 BOOST_AUTO_TEST_CASE(iterators)
 {
 	this->runOnAutomataSet(
-		[](const AutType& aut, const StateDict& stateDict)
+		[](const AutType& aut, const StateDict& stateDict, const std::string& filename)
 		{
+			BOOST_MESSAGE("Checking iterators for " + filename + "...");
 			for (const Transition& trans : aut)
 			{
 				BOOST_REQUIRE_MESSAGE(aut.ContainsTransition(trans),
@@ -117,8 +118,9 @@ BOOST_AUTO_TEST_CASE(iterators)
 BOOST_AUTO_TEST_CASE(iterators_dereference)
 {
 	this->runOnAutomataSet(
-		[](const AutType& aut, const StateDict& stateDict)
+		[](const AutType& aut, const StateDict& stateDict, const std::string& filename)
 		{
+			BOOST_MESSAGE("Checking iterators dereference for " + filename + "...");
 			for (AutType::const_iterator it = aut.begin(); it != aut.end(); ++it)
 			{
 				BOOST_REQUIRE_MESSAGE(aut.ContainsTransition(*it),
@@ -131,8 +133,9 @@ BOOST_AUTO_TEST_CASE(iterators_dereference)
 BOOST_AUTO_TEST_CASE(accept_iterators)
 {
 	this->runOnAutomataSet(
-		[](const AutType& aut, const StateDict& stateDict)
+		[](const AutType& aut, const StateDict& stateDict, const std::string& filename)
 		{
+			BOOST_MESSAGE("Checking accepting transitions iterators for " + filename + "...");
 			for (const Transition& trans : aut.GetAcceptTrans())
 			{
 				BOOST_REQUIRE_MESSAGE(aut.ContainsTransition(trans),
@@ -149,8 +152,9 @@ BOOST_AUTO_TEST_CASE(accept_iterators)
 BOOST_AUTO_TEST_CASE(accept_iterators_dereference)
 {
 	this->runOnAutomataSet(
-		[](const AutType& aut, const StateDict& stateDict)
+		[](const AutType& aut, const StateDict& stateDict, const std::string& filename)
 		{
+			BOOST_MESSAGE("Checking accepting transitions iterators dereference for " + filename + "...");
 			for (AutType::AcceptTrans::const_iterator it = aut.GetAcceptTrans().begin();
 				it != aut.GetAcceptTrans().end(); ++it)
 			{
@@ -162,6 +166,39 @@ BOOST_AUTO_TEST_CASE(accept_iterators_dereference)
 					"Inconsistent iterator output: " + aut.ToString(*it) +
 					" is not accepting");
 			}
+		});
+}
+
+// tests AutType::begin(state), AutType::end(state)
+BOOST_AUTO_TEST_CASE(iterators_for_state)
+{
+	this->runOnAutomataSet(
+		[](const AutType& aut, const StateDict& stateDict, const std::string& filename)
+		{
+			BOOST_MESSAGE("Checking state iterators for " + filename + "...");
+
+			std::set<Transition> accTransitions1;
+			std::set<Transition> accTransitions2;
+
+			// fill in accTransitions1:
+			for (const StateType& state : aut.GetFinalStates())
+			{
+				for (const Transition& trans : aut[state])
+				{
+					accTransitions1.insert(trans);
+				}
+			}
+
+			// fill in accTransitions2
+			for (const Transition& trans : aut.GetAcceptTrans())
+			{
+				accTransitions2.insert(trans);
+			}
+
+			BOOST_REQUIRE_MESSAGE(accTransitions1 == accTransitions2,
+				"The sets of accepting transitions do not match: " +
+				Convert::ToString(accTransitions1) + " and " +
+				Convert::ToString(accTransitions2));
 		});
 }
 

@@ -45,6 +45,8 @@ namespace VATA
 		class Iterator;
 		class AcceptTrans;
 	 	class AcceptTransIterator;
+		class DownAccessor;
+		class DownAccessorIterator;
 	}
 }
 
@@ -183,7 +185,7 @@ public:   // public data types
 		using iterator         = Iterator;
 		using const_iterator   = Iterator;
 
-		using CoreAcceptTrans = ExplicitTreeAutCoreUtil::AcceptTrans;
+		using CoreAcceptTrans  = ExplicitTreeAutCoreUtil::AcceptTrans;
 
 
 	private:  // data members
@@ -204,126 +206,66 @@ public:   // public data types
 		Iterator end() const;
 	};
 
+
+	class DownAccessor
+	{
+	public:  // data types
+
+		class Iterator
+		{
+		private:  // data types
+
+			using CoreIterator = ExplicitTreeAutCoreUtil::DownAccessorIterator;
+
+		private:  // data types
+
+			std::unique_ptr<CoreIterator> coreDownAccessIter_;
+
+		public:   // methods
+
+			explicit Iterator(const ExplicitTreeAut& aut);
+			explicit Iterator(const CoreIterator& coreIter);
+			Iterator(const Iterator& iter);
+			~Iterator();
+
+			bool operator==(const Iterator& rhs) const;
+			bool operator!=(const Iterator& rhs) const;
+			const Transition& operator*() const;
+			const Transition* operator->() const;
+
+			/**
+			 * @brief  Prefix increment operator
+			 */
+			Iterator& operator++();
+		};
+
+		using iterator         = Iterator;
+		using const_iterator   = Iterator;
+
+		using CoreDownAccessor = ExplicitTreeAutCoreUtil::DownAccessor;
+
+	private:  // data members
+
+		std::unique_ptr<CoreDownAccessor> coreDownAccessor_;
+
+	public:   // methods
+
+		explicit DownAccessor(
+			const CoreDownAccessor&      coreDownAccessor);
+
+		DownAccessor(
+			DownAccessor&&               downAccessor);
+
+		~DownAccessor();
+
+		Iterator begin() const;
+		Iterator end() const;
+	};
+
+
 private:  // data members
 
 	std::unique_ptr<CoreAut> core_;
-
-public:
-
-public:
-
-#if 0
-	struct ClusterAccessor {
-
-		const size_t& state_;
-		const TransitionCluster* cluster_;
-
-		ClusterAccessor(const size_t& state, const TransitionCluster* cluster) : state_(state),
-			cluster_(cluster) {}
-
-		struct Iterator {
-
-			typedef std::input_iterator_tag iterator_category;
-			typedef size_t difference_type;
-			typedef Transition value_type;
-			typedef Transition* pointer;
-			typedef Transition& reference;
-
-			const ClusterAccessor& accessor_;
-
-			typename TransitionCluster::const_iterator symbolSetIterator_;
-			TuplePtrSet::const_iterator tupleIterator_;
-
-			Iterator(int, ClusterAccessor& accessor) : accessor_(accessor), symbolSetIterator_(),
-				tupleIterator_() {}
-
-			Iterator(ClusterAccessor& accessor) : accessor_(accessor), symbolSetIterator_(),
-				tupleIterator_() {
-
-				if (!accessor.cluster_)
-					return;
-
-				this->symbolSetIterator_ = accessor.cluster_->begin();
-
-				assert(this->symbolSetIterator_ != this->stateClusterIterator_->second->end());
-
-				this->tupleIterator_ = this->symbolSetIterator_->second->begin();
-
-				assert(this->tupleIterator_ != this->symbolSetIterator_->second->end());
-
-			}
-
-			Iterator& operator++() {
-
-				if (++this->tupleIterator_ != this->symbolSetIterator_->second->end())
-					return *this;
-
-				if (++this->symbolSetIterator_ != this->stateClusterIterator_->second->end()) {
-					this->tupleIterator_ = this->symbolSetIterator_->second->begin();
-					return *this;
-				}
-
-				this->tupleIterator_ = TuplePtrSet::const_iterator();
-
-				return *this;
-
-			}
-
-			Iterator operator++(int) {
-
-				return ++Iterator(*this);
-
-			}
-
-			bool operator==(const Iterator& rhs) const {
-
-				return this->tupleIterator_ == rhs.tupleIterator_;
-
-			}
-
-			bool operator!=(const Iterator& rhs) const {
-
-				return this->tupleIterator_ != rhs.tupleIterator_;
-
-			}
-
-			Transition operator*() const {
-
-				assert(*this->tupleIterator_);
-
-				return Transition(
-					**this->tupleIterator_, this->symbolSetIterator_->first, this->accessor.state_
-				);
-
-			}
-
-		};
-
-		typedef Iterator iterator;
-		typedef Iterator const_iterator;
-
-		Iterator begin() const { return Iterator(this->aut_); }
-		Iterator end() const { return Iterator(0, this->aut_); }
-
-		bool empty() const { return this->cluster != nullptr; }
-
-	};
-
-#endif
-
-#if 0
-	ClusterAccessor GetCluster(
-		const StateType&           state) const
-	{
-		return ClusterAccessor(state, ExplicitTreeAut::genericLookup(transitions_, state));
-	}
-
-	ClusterAccessor operator[](
-		const StateType&           state) const
-	{
-		return this->GetCluster(state);
-	}
-#endif
 
 public:   // methods
 
@@ -378,6 +320,32 @@ public:   // methods
 	 * @returns  An (iterable) container with accepting transitions
 	 */
 	AcceptTrans GetAcceptTrans() const;
+
+	/**
+	 * @brief  Retrieves the transitions where the state is a parent
+	 *
+	 * This method retrieves an iterable container of transitions where @p state
+	 * is the parent state.
+	 *
+	 * @param[in]  state  The parent state of the transitions to be retrieved
+	 *
+	 * @returns  A container of transitions going from @p state down
+	 */
+	DownAccessor GetDown(
+		const StateType&          state) const;
+
+	/**
+	 * @brief  Retrieves the transitions where the state is a parent
+	 *
+	 * This method retrieves an iterable container of transitions where @p state
+	 * is the parent state.
+	 *
+	 * @param[in]  state  The parent state of the transitions to be retrieved
+	 *
+	 * @returns  A container of transitions going from @p state down
+	 */
+	DownAccessor operator[](
+		const StateType&          state) const;
 
 	void AddTransition(
 		const StateTuple&         children,

@@ -125,7 +125,7 @@ ExplicitTreeAut::AcceptTrans::Iterator::operator->() const
 {
 	assert(nullptr != coreAcceptTransIter_);
 
-	return coreAcceptTransIter_->operator ->();
+	return coreAcceptTransIter_->operator->();
 }
 
 
@@ -310,6 +310,92 @@ void ExplicitTreeAut::AddTransition(
 	core_->AddTransition(children, symbol, state);
 }
 
+
+ExplicitTreeAut::DownAccessor ExplicitTreeAut::operator[](
+	const StateType&           state) const
+{
+	assert(nullptr != core_);
+
+	return DownAccessor((*core_)[state]);
+}
+
+ExplicitTreeAut::DownAccessor::DownAccessor(
+	const CoreDownAccessor&      coreDownAccessor) :
+	coreDownAccessor_(new CoreDownAccessor(coreDownAccessor))
+{ }
+
+ExplicitTreeAut::DownAccessor::Iterator
+ExplicitTreeAut::DownAccessor::begin() const
+{
+	assert(nullptr != coreDownAccessor_);
+
+	return Iterator(coreDownAccessor_->begin());
+}
+
+
+ExplicitTreeAut::DownAccessor::Iterator
+ExplicitTreeAut::DownAccessor::end() const
+{
+	assert(nullptr != coreDownAccessor_);
+
+	return Iterator(coreDownAccessor_->end());
+}
+
+ExplicitTreeAut::DownAccessor::Iterator::Iterator(
+	const CoreIterator&          coreIter) :
+	coreDownAccessIter_(new CoreIterator(coreIter))
+{ }
+
+const ExplicitTreeAut::Transition&
+ExplicitTreeAut::DownAccessor::Iterator::operator*() const
+{
+	assert(nullptr != coreDownAccessIter_);
+
+	return **coreDownAccessIter_;
+}
+
+const ExplicitTreeAut::Transition*
+ExplicitTreeAut::DownAccessor::Iterator::operator->() const
+{
+	assert(nullptr != coreDownAccessIter_);
+
+	return coreDownAccessIter_->operator->();
+}
+
+
+ExplicitTreeAut::DownAccessor::Iterator&
+ExplicitTreeAut::DownAccessor::Iterator::operator++()
+{
+	assert(nullptr != coreDownAccessIter_);
+
+	++(*coreDownAccessIter_);
+
+	return *this;
+}
+
+ExplicitTreeAut::DownAccessor::Iterator::~Iterator()
+{ }
+
+ExplicitTreeAut::DownAccessor::~DownAccessor()
+{ }
+
+bool ExplicitTreeAut::DownAccessor::Iterator::operator==(
+	const Iterator&           rhs) const
+{
+	assert(nullptr != coreDownAccessIter_);
+	assert(nullptr != rhs.coreDownAccessIter_);
+
+	return *coreDownAccessIter_ == *rhs.coreDownAccessIter_;
+}
+
+bool ExplicitTreeAut::DownAccessor::Iterator::operator!=(
+	const Iterator&           rhs) const
+{
+	assert(nullptr != coreDownAccessIter_);
+	assert(nullptr != rhs.coreDownAccessIter_);
+
+	return *coreDownAccessIter_ != *rhs.coreDownAccessIter_;
+}
 
 bool ExplicitTreeAut::ContainsTransition(
 	const Transition&         trans) const

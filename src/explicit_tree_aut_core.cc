@@ -80,6 +80,63 @@ Iterator& Iterator::operator++()
 	return *this;
 }
 
+DownAccessor::DownAccessor(
+	const ExplicitTreeAutCore&     aut,
+	size_t                         state) :
+	state_(state),
+	cluster_(ExplicitTreeAutCore::genericLookup(*aut.transitions_, state))
+{ }
+
+void DownAccessorIterator::updateTrans()
+{
+	assert(*tupleIterator_);
+
+	trans_ = Transition(
+		accessor_.state_,
+		symbolSetIterator_->first,
+		**tupleIterator_
+	);
+}
+
+DownAccessorIterator::DownAccessorIterator(
+		const DownAccessor&           accessor) :
+		accessor_(accessor),
+		symbolSetIterator_(),
+		tupleIterator_()
+{
+	if (nullptr == accessor_.cluster_)
+	{
+		return;
+	}
+
+	symbolSetIterator_ = accessor_.cluster_->begin();
+	assert(symbolSetIterator_ != accessor_.cluster_->end());
+
+	tupleIterator_ = symbolSetIterator_->second->begin();
+	assert(tupleIterator_ != symbolSetIterator_->second->end());
+
+	this->updateTrans();
+}
+
+DownAccessorIterator& DownAccessorIterator::operator++()
+{
+	if (++tupleIterator_ != symbolSetIterator_->second->end())
+	{
+		this->updateTrans();
+		return *this;
+	}
+
+	if (++symbolSetIterator_ != accessor_.cluster_->end())
+	{
+		tupleIterator_ = symbolSetIterator_->second->begin();
+		this->updateTrans();
+		return *this;
+	}
+
+	tupleIterator_ = TuplePtrSet::const_iterator();
+	return *this;
+}
+
 AcceptTransIterator::AcceptTransIterator(
 	int                              /* FILL */,
 	const ExplicitTreeAutCore&       aut) :
@@ -124,19 +181,20 @@ AcceptTransIterator& AcceptTransIterator::operator++()
 {
 	if (++tupleIterator_ != symbolSetIterator_->second->end())
 	{
+		this->updateTrans();
 		return *this;
 	}
 
 	if (++symbolSetIterator_ != stateClusterIterator_->second->end())
 	{
 		tupleIterator_ = symbolSetIterator_->second->begin();
+		this->updateTrans();
 		return *this;
 	}
 
 	++stateSetIterator_;
 
 	this->init();
-
 	return *this;
 }
 
