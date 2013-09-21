@@ -260,6 +260,8 @@ public:   // public data types
 
 		Iterator begin() const;
 		Iterator end() const;
+
+		bool empty() const;
 	};
 
 

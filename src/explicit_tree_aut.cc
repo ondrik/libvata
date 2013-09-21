@@ -341,6 +341,13 @@ ExplicitTreeAut::DownAccessor::end() const
 	return Iterator(coreDownAccessor_->end());
 }
 
+bool ExplicitTreeAut::DownAccessor::empty() const
+{
+	assert(nullptr != coreDownAccessor_);
+
+	return coreDownAccessor_->empty();
+}
+
 ExplicitTreeAut::DownAccessor::Iterator::Iterator(
 	const CoreIterator&          coreIter) :
 	coreDownAccessIter_(new CoreIterator(coreIter))
