@@ -200,6 +200,96 @@ protected:// data types
 		const StateType& GetParent()    const { return parent_;   }
 		const SymbolType& GetSymbol()   const { return symbol_;   }
 		const StateTuple& GetChildren() const { return children_; }
+
+		bool operator<(const TTransition& rhs) const
+		{
+			if (parent_ < rhs.parent_)
+			{
+				return true;
+			}
+			else if (parent_ == rhs.parent_)
+			{
+				if (symbol_ < rhs.symbol_)
+				{
+					return true;
+				}
+				else if (symbol_ == rhs.symbol_)
+				{
+					if (children_.size() != rhs.children_.size())
+					{
+						return children_.size() < rhs.children_.size();
+					}
+					else
+					{
+						for (size_t i = 0; i < children_.size(); ++i)
+						{
+							if (children_[i] != rhs.children_[i])
+							{
+								return children_[i] < rhs.children_[i];
+							}
+						}
+					}
+				}
+			}
+
+			return false;
+		}
+
+
+		bool operator==(const TTransition& rhs) const
+		{
+			if ((parent_ == rhs.parent_) && (symbol_ == rhs.symbol_))
+			{
+				if (children_.size() == rhs.children_.size())
+				{
+					size_t i;
+					for (i = 0; i < children_.size(); ++i)
+					{
+						if (children_[i] != rhs.children_[i])
+						{
+							break;
+						}
+					}
+
+					if (children_.size() == i)
+					{
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		bool operator!=(const TTransition& rhs) const
+		{
+			return !(*this == rhs);
+		}
+
+		friend std::ostream& operator<<(
+			std::ostream&              os,
+			const TTransition&         trans)
+		{
+			os << trans.GetSymbol();
+
+			os << "(";
+
+			for (auto it = trans.GetChildren().cbegin();
+				it != trans.GetChildren().cend(); ++it)
+			{
+				if (it != trans.GetChildren().cbegin())
+				{
+					os << ", ";
+				}
+
+				os << *it;
+			}
+
+			os << ") -> ";
+			os << trans.GetParent();
+
+			return os;
+		}
 	};
 };
 
