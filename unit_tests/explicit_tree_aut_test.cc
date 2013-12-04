@@ -202,4 +202,60 @@ BOOST_AUTO_TEST_CASE(iterators_for_state)
 		});
 }
 
+BOOST_AUTO_TEST_CASE(reindex_states_functor)
+{
+	class IncrementReindexF : public VATA::AbstractReindexF
+	{
+	private:
+
+		size_t offset_;
+
+	public:
+
+		explicit IncrementReindexF(const size_t& offset) :
+			offset_(offset)
+		{ }
+
+		virtual StateType operator[](const StateType& state)
+		{
+			return state + offset_;
+		}
+	};
+
+	auto testfileContent = ParseTestFile(LOAD_TIMBUK_FILE.string());
+
+	for (auto testcase : testfileContent)
+	{
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 1, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
+
+		std::string filename = (AUT_DIR / testcase[0]).string();
+		BOOST_MESSAGE("Functor-reindexing of states of automaton " + filename + "...");
+		std::string autStr = VATA::Util::ReadFile(filename);
+
+		StateType state(0);
+
+		AutType aut;
+		StateDict stateDict;
+		StringToStateTranslWeak stateTransl(
+			/* state dictionary */ stateDict,
+			/* generator of new states */ [&state](const std::string&){return state++;});
+
+		readAut(aut, stateTransl, autStr);
+
+		IncrementReindexF fctor(state);
+		AutType newAut = aut.ReindexStatesWithFctor(fctor);
+
+		for (const Transition& trans : newAut)
+		{
+			BOOST_REQUIRE_MESSAGE(trans.GetParent() >= state, "Parent state inconsistent!");
+
+			for (const StateType& child : trans.GetChildren())
+			{
+				BOOST_REQUIRE_MESSAGE(child >= state, "Child state inconsistent!");
+			}
+		}
+	}
+}
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -48,6 +48,12 @@ namespace VATA
 		class DownAccessor;
 		class DownAccessorIterator;
 	}
+
+	class AbstractReindexF
+	{
+	public:
+		virtual VATA::AutBase::StateType operator[](const VATA::AutBase::StateType&) = 0;
+	};
 }
 
 
@@ -380,6 +386,10 @@ public:   // methods
 
 	ExplicitTreeAut ReindexStates(
 		StateToStateTranslWeak&     stateTransl) const;
+
+
+	ExplicitTreeAut ReindexStatesWithFctor(
+		AbstractReindexF&           fctor) const;
 
 
 	ExplicitTreeAut RemoveUnreachableStates(

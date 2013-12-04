@@ -357,7 +357,6 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 		std::string transStr = VATA::Util::ReadFile(inputTransFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-		SymbolType symbol = AutType::GetZeroSymbol();
 		StateType state(0);
 
 		AutType aut;
