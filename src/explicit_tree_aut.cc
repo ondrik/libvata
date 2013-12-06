@@ -263,6 +263,13 @@ const ExplicitTreeAut::FinalStateSet& ExplicitTreeAut::GetFinalStates() const
 	return core_->GetFinalStates();
 }
 
+void ExplicitTreeAut::EraseFinalStates()
+{
+	assert(nullptr != core_);
+
+	return core_->EraseFinalStates();
+}
+
 ExplicitTreeAut::AcceptTrans ExplicitTreeAut::GetAcceptTrans() const
 {
 	assert(nullptr != core_);

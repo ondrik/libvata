@@ -549,6 +549,11 @@ public:   // methods
 		return finalStates_.count(state) > 0;
 	}
 
+	void EraseFinalStates()
+	{
+		finalStates_.clear();
+	}
+
 	AcceptTrans GetAcceptTrans() const
 	{
 		return AcceptTrans(*this);

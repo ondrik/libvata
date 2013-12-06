@@ -323,6 +323,11 @@ public:   // methods
 	const FinalStateSet& GetFinalStates() const;
 
 	/**
+	 * @brief  Clears the set of final states
+	 */
+	void EraseFinalStates();
+
+	/**
 	 * @brief  Retrieves a container with accepting transitions
 	 *
 	 * @returns  An (iterable) container with accepting transitions
