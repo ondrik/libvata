@@ -756,11 +756,15 @@ public:   // methods
 	template <class Index>
 	void ReindexStates(
 		ExplicitTreeAutCore&      dst,
-		Index&                    index) const
+		Index&                    index,
+		bool                      addFinalStates = true) const
 	{
-		for (const StateType& state : finalStates_)
+		if (addFinalStates)
 		{
-			dst.SetStateFinal(index[state]);
+			for (const StateType& state : finalStates_)
+			{
+				dst.SetStateFinal(index[state]);
+			}
 		}
 
 		auto clusterMap = dst.uniqueClusterMap();
@@ -797,10 +801,11 @@ public:   // methods
 
 	template <class Index>
 	ExplicitTreeAutCore ReindexStates(
-		Index&                    index) const
+		Index&                    index,
+		bool                      addFinalStates = true) const
 	{
 		ExplicitTreeAutCore res;
-		this->ReindexStates(res, index);
+		this->ReindexStates(res, index, addFinalStates);
 
 		return res;
 	}

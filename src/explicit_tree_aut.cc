@@ -499,11 +499,12 @@ std::string ExplicitTreeAut::DumpToString(
 
 
 ExplicitTreeAut ExplicitTreeAut::ReindexStatesWithFctor(
-	AbstractReindexF&           fctor) const
+	AbstractReindexF&           fctor,
+	bool                        addFinalStates) const
 {
 	assert(nullptr != core_);
 
-	return ExplicitTreeAut(core_->ReindexStates(fctor));
+	return ExplicitTreeAut(core_->ReindexStates(fctor, addFinalStates));
 }
 
 

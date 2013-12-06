@@ -394,7 +394,8 @@ public:   // methods
 
 
 	ExplicitTreeAut ReindexStatesWithFctor(
-		AbstractReindexF&           fctor) const;
+		AbstractReindexF&           fctor,
+		bool                        addFinalStates = true) const;
 
 
 	ExplicitTreeAut RemoveUnreachableStates(
