@@ -498,6 +498,17 @@ std::string ExplicitTreeAut::DumpToString(
 }
 
 
+void ExplicitTreeAut::CopyTransitionsFrom(
+	const ExplicitTreeAut&      src,
+	AbstractCopyF&              fctor)
+{
+	assert(nullptr != core_);
+	assert(nullptr != src.core_);
+
+	core_->CopyTransitionsFrom(*src.core_, fctor);
+}
+
+
 ExplicitTreeAut ExplicitTreeAut::ReindexStates(
 	AbstractReindexF&           fctor,
 	bool                        addFinalStates) const

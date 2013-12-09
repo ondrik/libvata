@@ -583,6 +583,12 @@ public:   // methods
 	}
 
 
+	void AddTransition(const Transition& trans)
+	{
+		this->AddTransition(
+			trans.GetChildren(), trans.GetSymbol(), trans.GetParent());
+	}
+
 	void AddTransition(
 		const StateTuple&         children,
 		const SymbolType&         symbol,
@@ -629,12 +635,12 @@ public:   // methods
 	}
 
 
-	static void CopyTransitions(
-		ExplicitTreeAutCore&           dst,
-		const ExplicitTreeAutCore&     src)
-	{
-		dst.transitions_ = src.transitions_;
-	}
+//	static void CopyTransitions(
+//		ExplicitTreeAutCore&           dst,
+//		const ExplicitTreeAutCore&     src)
+//	{
+//		dst.transitions_ = src.transitions_;
+//	}
 
 
 protected:// methods
@@ -817,6 +823,20 @@ public:   // methods
 		return this->ReindexStates<StateToStateTranslWeak>(stateTransl);
 	}
 
+
+	template <class CopyFctor>
+	void CopyTransitionsFrom(
+		const ExplicitTreeAutCore&    src,
+		CopyFctor&                    fctor)
+	{
+		for (const Transition& trans : src)
+		{
+			if (fctor(trans))
+			{
+				this->AddTransition(trans);
+			}
+		}
+	}
 
 	template <class OperationFunc>
 	static void ForeachDownSymbolFromStateAndStateSetDo(

@@ -105,6 +105,13 @@ public:   // public data types
 	using SymbolBackTranslStrict          = Util::TranslatorStrict<SymbolDict::MapBwdType>;
 
 
+	class AbstractCopyF
+	{
+	public:
+		virtual bool operator()(const Transition&) = 0;
+	};
+
+
 	class Alphabet
 	{
 	private:  // data members
@@ -402,6 +409,11 @@ public:   // methods
 		ExplicitTreeAut&            dst,
 		AbstractReindexF&           fctor,
 		bool                        addFinalStates = true) const;
+
+
+	void CopyTransitionsFrom(
+		const ExplicitTreeAut&      src,
+		AbstractCopyF&              fctor);
 
 
 	ExplicitTreeAut RemoveUnreachableStates(
