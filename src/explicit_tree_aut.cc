@@ -498,13 +498,25 @@ std::string ExplicitTreeAut::DumpToString(
 }
 
 
-ExplicitTreeAut ExplicitTreeAut::ReindexStatesWithFctor(
+ExplicitTreeAut ExplicitTreeAut::ReindexStates(
 	AbstractReindexF&           fctor,
 	bool                        addFinalStates) const
 {
 	assert(nullptr != core_);
 
 	return ExplicitTreeAut(core_->ReindexStates(fctor, addFinalStates));
+}
+
+
+void ExplicitTreeAut::ReindexStates(
+	ExplicitTreeAut&            dst,
+	AbstractReindexF&           fctor,
+	bool                        addFinalStates) const
+{
+	assert(nullptr != core_);
+	assert(nullptr != dst.core_);
+
+	core_->ReindexStates(*dst.core_, fctor, addFinalStates);
 }
 
 

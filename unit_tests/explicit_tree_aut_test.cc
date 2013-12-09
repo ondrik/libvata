@@ -244,7 +244,7 @@ BOOST_AUTO_TEST_CASE(reindex_states_functor)
 		readAut(aut, stateTransl, autStr);
 
 		IncrementReindexF fctor(state);
-		AutType newAut = aut.ReindexStatesWithFctor(fctor);
+		AutType newAut = aut.ReindexStates(fctor);
 
 		for (const Transition& trans : newAut)
 		{

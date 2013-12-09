@@ -393,7 +393,13 @@ public:   // methods
 		StateToStateTranslWeak&     stateTransl) const;
 
 
-	ExplicitTreeAut ReindexStatesWithFctor(
+	ExplicitTreeAut ReindexStates(
+		AbstractReindexF&           fctor,
+		bool                        addFinalStates = true) const;
+
+
+	void ReindexStates(
+		ExplicitTreeAut&            dst,
 		AbstractReindexF&           fctor,
 		bool                        addFinalStates = true) const;
 
