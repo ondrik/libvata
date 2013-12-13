@@ -8,6 +8,8 @@
  *
  *****************************************************************************/
 
+%require "3.0.2"
+
 %code requires {
 // VATA headers
 #include <vata/parsing/timbuk_parser.hh>
@@ -58,7 +60,7 @@ static AutDescription::StateTuple global_tuple;
 
 %token END_OF_FILE 0 "end-of-file"
 
-%union TokenType
+%union
 {
   char* svalue;
 }
