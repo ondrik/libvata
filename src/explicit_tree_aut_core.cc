@@ -27,7 +27,7 @@ ExplicitTreeAutCore::TupleCache ExplicitTreeAutCore::globalTupleCache_;
 
 // global alphabet
 ExplicitTreeAutCore::AlphabetType ExplicitTreeAutCore::globalAlphabet_ =
-	AlphabetType(new AlphabetType::element_type());
+	AlphabetType(new ExplicitTreeAut::OnTheFlyAlphabet);
 
 
 BaseTransIterator::BaseTransIterator(
@@ -314,7 +314,7 @@ std::string ExplicitTreeAutCore::ToString(const Transition& trans) const
 
 	if (nullptr != alphabet_)
 	{
-		os << alphabet_->GetSymbolBackTransl()(trans.GetSymbol()).symbolStr;
+		os << (*alphabet_->GetSymbolBackTransl())(trans.GetSymbol()).symbolStr;
 	}
 	else
 	{

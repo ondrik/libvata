@@ -15,4 +15,4 @@ using VATA::SymbolicTreeAutBaseCore;
 
 // global alphabet
 SymbolicTreeAutBaseCore::AlphabetType SymbolicTreeAutBaseCore::globalAlphabet_ =
-	AlphabetType(new AlphabetType::element_type());
+	AlphabetType(new OnTheFlyAlphabet());

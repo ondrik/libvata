@@ -13,6 +13,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/util/abstract_transl.hh>
 #include <vata/util/convert.hh>
 
 // Standard library headers
@@ -39,9 +40,9 @@ namespace VATA
  */
 template <
 	class Cont>
-class VATA::Util::TranslatorStrict
+class VATA::Util::TranslatorStrict :
+	public AbstractTranslator<typename Cont::key_type, typename Cont::mapped_type>
 {
-
 private:  // data types
 
 	typedef Cont Container;
@@ -58,7 +59,7 @@ public:   // methods
 		container_(container)
 	{ }
 
-	const ResultType& operator()(const InputType& value) const
+	virtual ResultType operator()(const InputType& value) const override
 	{
 		typename Container::const_iterator itCont;
 		if ((itCont = container_.find(value)) != container_.end())
@@ -72,9 +73,9 @@ public:   // methods
 		}
 	}
 
-	const ResultType& operator[](const InputType& value) const
+	virtual ResultType operator()(const InputType& value) override
 	{
-		return this->operator()(value);
+		return const_cast<const TranslatorStrict*>(this)->operator()(value);
 	}
 };
 
@@ -86,17 +87,17 @@ template
 <
 	class T
 >
-class VATA::Util::IdentityTranslator
+class VATA::Util::IdentityTranslator :
+	public AbstractTranslator<T, T>
 {
-
 public:   // methods
 
-	inline T operator()(const T& value) const
+	virtual T operator()(const T& value) override
 	{
 		return value;
 	}
 
-	inline T operator[](const T& value) const
+	virtual T operator()(const T& value) const override
 	{
 		return value;
 	}

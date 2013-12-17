@@ -19,33 +19,49 @@ namespace VATA { class ExplicitUpwardInclusion; }
 class VATA::ExplicitUpwardInclusion
 {
 	using StateType      = ExplicitTreeAutCore::StateType;
+	using SymbolType     = ExplicitTreeAutCore::SymbolType;
+	using StateTuple     = ExplicitTreeAutCore::StateTuple;
 
 	class Transition
 	{
 	private:  // data members
 
 		ExplicitTreeAutCore::TuplePtr children_;
-		size_t symbol_;
+		SymbolType symbol_;
 		ExplicitTreeAutCore::StateType state_;
 
 	public:
 
 		Transition(
 			const ExplicitTreeAutCore::TuplePtr&    children,
-			size_t                                  symbol,
+			const SymbolType&                       symbol,
 			const ExplicitTreeAutCore::StateType&   state) :
 			children_(children),
 			symbol_(symbol),
 			state_(state)
 		{ }
 
-		const ExplicitTreeAutCore::StateTuple& children() const { return *children_; }
-		const size_t& symbol() const { return symbol_; }
-		const ExplicitTreeAutCore::StateType& state() const { return state_; }
-
-		friend std::ostream& operator<<(std::ostream& os, const Transition& t)
+		const StateTuple& children() const
 		{
-			return os << t.symbol_ << Util::Convert::ToString(*t.children_) << "->" << t.state_;
+			return *children_;
+		}
+
+		const SymbolType& symbol() const
+		{
+			return symbol_;
+		}
+
+		const StateType& state() const
+		{
+			return state_;
+		}
+
+		friend std::ostream& operator<<(
+			std::ostream&         os,
+			const Transition&     t)
+		{
+			return os << t.symbol_
+				<< Util::Convert::ToString(*t.children_) << "->" << t.state_;
 		}
 	};
 
@@ -58,6 +74,7 @@ class VATA::ExplicitUpwardInclusion
 	typedef std::vector<DoubleIndexedTransitionList> SymbolToDoubleIndexedTransitionListMap;
 	typedef std::vector<SymbolToIndexedTransitionListMap> IndexedSymbolToIndexedTransitionListMap;
 
+	// TODO: rewrite using the DownAccessor?
 	template <class Aut, class SymbolIndex>
 	static void bottomUpIndex(
 		const Aut&                                  aut,
@@ -74,7 +91,7 @@ class VATA::ExplicitUpwardInclusion
 				assert(symbolTupleSetPair.second);
 				assert(symbolTupleSetPair.second->size());
 
-				auto& symbol = symbolIndex[symbolTupleSetPair.first];
+				SymbolType symbol = symbolIndex[symbolTupleSetPair.first];
 
 				auto& first = *symbolTupleSetPair.second->begin();
 
@@ -159,7 +176,7 @@ class VATA::ExplicitUpwardInclusion
 				assert(symbolTupleSetPair.second);
 				assert(symbolTupleSetPair.second->size());
 
-				auto& symbol = symbolIndex[symbolTupleSetPair.first];
+				SymbolType symbol = symbolIndex[symbolTupleSetPair.first];
 
 				auto& first = *symbolTupleSetPair.second->begin();
 

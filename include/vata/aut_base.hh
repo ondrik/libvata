@@ -311,7 +311,25 @@ public:   // data types
 	using SymbolBackTranslStrict          =
 		Util::TranslatorStrict<typename SymbolDict::MapBwdType>;
 
-	class Alphabet
+	// TODO: merge with ExplicitTreeAut
+	class AbstractAlphabet
+	{
+	public:  // data types
+
+		using FwdTranslator    = VATA::Util::AbstractTranslator<StringSymbolType, SymbolType>;
+		using FwdTranslatorPtr = std::unique_ptr<FwdTranslator>;
+		using BwdTranslator    = VATA::Util::AbstractTranslator<SymbolType, StringSymbolType>;
+		using BwdTranslatorPtr = std::unique_ptr<BwdTranslator>;
+
+	public:  // methods
+
+		virtual FwdTranslatorPtr GetSymbolTransl() = 0;
+		virtual BwdTranslatorPtr GetSymbolBackTransl() = 0;
+		virtual SymbolDict& GetSymbolDict() = 0;
+	};
+
+
+	class OnTheFlyAlphabet : public AbstractAlphabet
 	{
 	private:  // data members
 
@@ -320,24 +338,30 @@ public:   // data types
 
 	public:   // methods
 
-		Alphabet() :
+		OnTheFlyAlphabet() :
 			nextSymbol_(Symbolic::GetZeroSymbol())
 		{ }
 
-		StringSymbolToSymbolTranslWeak GetSymbolTransl()
+		virtual FwdTranslatorPtr GetSymbolTransl() override
 		{
-			return StringSymbolToSymbolTranslWeak{symbolDict_,
+			FwdTranslator* fwdTransl = new
+				StringSymbolToSymbolTranslWeak{symbolDict_,
 				[&](const StringSymbolType&){return nextSymbol_++;}};
+			return FwdTranslatorPtr(fwdTransl);
 		}
 
-		SymbolDict& GetSymbolDict()
+		virtual BwdTranslatorPtr GetSymbolBackTransl() override
+		{
+			throw NotImplementedException(__func__);
+		}
+
+		virtual SymbolDict& GetSymbolDict() override
 		{
 			return symbolDict_;
 		}
-
 	};
 
-	using AlphabetType = std::shared_ptr<Alphabet>;
+	using AlphabetType = std::shared_ptr<AbstractAlphabet>;
 
 	using Transition = TreeAutBase::TTransition<SymbolType>;
 

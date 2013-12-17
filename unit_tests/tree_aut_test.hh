@@ -384,7 +384,7 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 				aut.SetStateFinal(parState);
 			}
 
-			SymbolType symbol = aut.GetAlphabet()->GetSymbolTransl()(AutType::ToStringSymbolType(symbolStr, trans.first.size()));
+			SymbolType symbol = (*aut.GetAlphabet()->GetSymbolTransl())(AutType::ToStringSymbolType(symbolStr, trans.first.size()));
 
 			StateTuple children;
 			for (const std::string& childStr : trans.first)

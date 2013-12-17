@@ -20,9 +20,11 @@ class VATA::ExplicitDownwardInclusion
 {
 public:
 
-	typedef std::vector<const ExplicitTreeAutCore::StateTuple*> TupleList;
-	typedef std::vector<TupleList> IndexedTupleList;
-	typedef std::vector<IndexedTupleList> DoubleIndexedTupleList;
+	using StateTuple               = ExplicitTreeAutCore::StateTuple;
+	using SymbolType               = ExplicitTreeAutCore::SymbolType;
+	using TupleList                = std::vector<const StateTuple*>;
+	using IndexedTupleList         = std::vector<TupleList>;
+	using DoubleIndexedTupleList   = std::vector<IndexedTupleList> ;
 
 private:
 
@@ -50,7 +52,7 @@ private:
 				assert(symbolTupleSetPair.second);
 				assert(symbolTupleSetPair.second->size());
 
-				auto& symbol = symbolIndex[symbolTupleSetPair.first];
+				SymbolType symbol = symbolIndex[symbolTupleSetPair.first];
 
 				if (symbol >= indexedTupleList.size())
 				{

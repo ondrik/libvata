@@ -77,8 +77,8 @@ private:  // methods
 		>
 	void loadFromAutDescSymbolic(
 		const AutDescription&     /* desc */,
-		StateTranslFunc           /* stateTransl */,
-		SymbolTranslFunc          /* symbolTransl */,
+		StateTranslFunc&          /* stateTransl */,
+		SymbolTranslFunc&         /* symbolTransl */,
 		const std::string&        /* params */)
 	{
 		throw NotImplementedException(__func__);
@@ -199,8 +199,8 @@ private:  // methods
 		>
 	void loadFromAutDescExplicit(
 		const AutDescription&      desc,
-		StateTranslFunc            stateTransl,
-		SymbolTranslFunc           symbolTransl,
+		StateTranslFunc&           stateTransl,
+		SymbolTranslFunc&          symbolTransl,
 		const std::string&         /* params */)
 	{
 		for (const AutDescription::State& fst : desc.finalStates)
@@ -366,8 +366,8 @@ protected:// methods
 		class SymbolTranslFunc>
 	void loadFromAutDescInternal(
 		const AutDescription&       desc,
-		StateTranslFunc             stateTransl,
-		SymbolTranslFunc            symbolTransl,
+		StateTranslFunc&            stateTransl,
+		SymbolTranslFunc&           symbolTransl,
 		const std::string&          params = "")
 	{
 		if (params == "symbolic")

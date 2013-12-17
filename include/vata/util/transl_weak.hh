@@ -15,6 +15,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/util/abstract_transl.hh>
 
 
 namespace VATA
@@ -33,11 +34,12 @@ namespace VATA
 
 /**
  * @brief  Weak translator
- * 
+ *
  */
 template <
 	class Cont>
-class VATA::Util::TranslatorWeak
+class VATA::Util::TranslatorWeak :
+	public AbstractTranslator<typename Cont::key_type, typename Cont::mapped_type>
 {
 private:  // data types
 
@@ -61,7 +63,7 @@ public:   // methods
 		resultAllocFunc_(resultAllocFunc)
 	{ }
 
-	ResultType operator()(const InputType& value)
+	virtual ResultType operator()(const InputType& value) override
 	{
 		typename Container::const_iterator itCont;
 		if ((itCont = container_.find(value)) != container_.end())
@@ -77,24 +79,31 @@ public:   // methods
 		}
 	}
 
-	ResultType operator[](const InputType& value)
+	virtual ResultType operator()(const InputType& value) const override
 	{
-		return this->operator()(value);
+		typename Container::const_iterator itCont;
+		if ((itCont = container_.find(value)) != container_.end())
+		{	// in case the value is known
+			return itCont->second;
+		}
+		else
+		{
+			throw std::runtime_error("Cannot insert value into const translator.");
+		}
 	}
-
 };
 
 /**
  * @brief  Weak translator (ver 2)
- * 
+ *
  */
 template
 <
 	class Cont
 >
-class VATA::Util::TranslatorWeak2
+class VATA::Util::TranslatorWeak2 :
+	public AbstractTranslator<typename Cont::key_type, typename Cont::mapped_type>
 {
-
 private:  // data types
 
 	typedef Cont Container;
@@ -117,7 +126,7 @@ public:   // methods
 		resultAllocFunc_(resultAllocFunc)
 	{ }
 
-	const ResultType& operator()(const InputType& value)
+	virtual ResultType operator()(const InputType& value) override
 	{
 		auto p = container_.insert(std::make_pair(value, ResultType()));
 
@@ -129,11 +138,18 @@ public:   // methods
 		return p.first->second;
 	}
 
-	const ResultType& operator[](const InputType& value)
+	virtual ResultType operator()(const InputType& value) const override
 	{
-		return this->operator()(value);
+		typename Container::const_iterator itCont;
+		if ((itCont = container_.find(value)) != container_.end())
+		{	// in case the value is known
+			return itCont->second;
+		}
+		else
+		{
+			throw std::runtime_error("Cannot insert value into const translator.");
+		}
 	}
-
 };
 
 #endif

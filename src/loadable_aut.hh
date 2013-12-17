@@ -134,10 +134,16 @@ public:   // public methods
 		StateTranslFunc               stateTransl,
 		const std::string&            params = "")
 	{
+		assert(nullptr != this->GetAlphabet());
+
+		typename ParentAut::AbstractAlphabet::FwdTranslatorPtr symbolTransl =
+			this->GetAlphabet()->GetSymbolTransl();
+		assert(nullptr != symbolTransl);
+
 		this->loadFromAutDescInternal(
 			desc,
 			stateTransl,
-			this->GetAlphabet()->GetSymbolTransl(),
+			*symbolTransl,
 			params);
 	}
 

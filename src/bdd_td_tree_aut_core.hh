@@ -109,8 +109,8 @@ private:  // methods
 		class SymbolTranslFunc>
 	void loadFromAutDescExplicit(
 		const AutDescription&       desc,
-		StateTranslFunc             stateTransl,
-		SymbolTranslFunc            symbolTransl)
+		StateTranslFunc&            stateTransl,
+		SymbolTranslFunc&           symbolTransl)
 	{
 		for (const AutDescription::State& fst : desc.finalStates)
 		{	// traverse final states
@@ -145,8 +145,8 @@ private:  // methods
 		class SymbolTranslFunc>
 	void loadFromAutDescSymbolic(
 		const AutDescription&      /* desc */,
-		StateTranslFunc            /* stateTransl */,
-		SymbolTranslFunc           /* symbolTransl */)
+		StateTranslFunc&           /* stateTransl */,
+		SymbolTranslFunc&          /* symbolTransl */)
 	{
 		assert(false);
 	}
@@ -516,8 +516,8 @@ protected:// methods
 		class SymbolTranslFunc>
 	void loadFromAutDescInternal(
 		const AutDescription&      desc,
-		StateTranslFunc            stateTransl,
-		SymbolTranslFunc           symbolTransl,
+		StateTranslFunc&           stateTransl,
+		SymbolTranslFunc&          symbolTransl,
 		const std::string&         params = "")
 	{
 		if (params == "symbolic")

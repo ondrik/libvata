@@ -112,7 +112,23 @@ public:   // public data types
 	};
 
 
-	class Alphabet
+	class AbstractAlphabet
+	{
+	public:  // data types
+
+		using FwdTranslator    = VATA::Util::AbstractTranslator<StringSymbolType, SymbolType>;
+		using FwdTranslatorPtr = std::unique_ptr<FwdTranslator>;
+		using BwdTranslator    = VATA::Util::AbstractTranslator<SymbolType, StringSymbolType>;
+		using BwdTranslatorPtr = std::unique_ptr<BwdTranslator>;
+
+	public:  // methods
+
+		virtual FwdTranslatorPtr GetSymbolTransl() = 0;
+		virtual BwdTranslatorPtr GetSymbolBackTransl() = 0;
+	};
+
+
+	class OnTheFlyAlphabet : public AbstractAlphabet
 	{
 	private:  // data members
 
@@ -121,20 +137,26 @@ public:   // public data types
 
 	public:   // methods
 
-		StringSymbolToSymbolTranslWeak GetSymbolTransl()
+		virtual FwdTranslatorPtr GetSymbolTransl() override
 		{
-			return StringSymbolToSymbolTranslWeak{symbolDict_,
+			FwdTranslator* fwdTransl = new
+				StringSymbolToSymbolTranslWeak{symbolDict_,
 				[&](const StringSymbolType&){return nextSymbol_++;}};
+
+			return FwdTranslatorPtr(fwdTransl);
 		}
 
-		SymbolBackTranslStrict GetSymbolBackTransl()
+		virtual BwdTranslatorPtr GetSymbolBackTransl() override
 		{
-			return SymbolBackTranslStrict(symbolDict_.GetReverseMap());
+			BwdTranslator* bwdTransl =
+				new SymbolBackTranslStrict(symbolDict_.GetReverseMap());
+
+			return BwdTranslatorPtr(bwdTransl);
 		}
 	};
 
 
-	using AlphabetType = std::shared_ptr<Alphabet>;
+	using AlphabetType = std::shared_ptr<AbstractAlphabet>;
 
 	class Iterator
 	{

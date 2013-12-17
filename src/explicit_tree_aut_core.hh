@@ -399,7 +399,10 @@ public:   // data types
 	using DownInclStateTupleSet       = std::set<TuplePtr>;
 	using DownInclStateTupleVector    = std::vector<TuplePtr>;
 
+	using AbstractAlphabet = ExplicitTreeAut::AbstractAlphabet;
+
 private:  // data types
+
 
 	using AlphabetType     = ExplicitTreeAut::AlphabetType;
 
@@ -650,8 +653,8 @@ protected:// methods
 		class SymbolTranslFunc>
 	void loadFromAutDescInternal(
 		const AutDescription&          desc,
-		StateTranslFunc                stateTransl,
-		SymbolTranslFunc               symbolTransl,
+		StateTranslFunc&               stateTransl,
+		SymbolTranslFunc&              symbolTransl,
 		const std::string&             /* params */ = "")
 	{
 		for (auto symbolRankPair : desc.symbols)
@@ -694,7 +697,11 @@ protected:// methods
 		const AlphabetType&                       alphabet,
 		const std::string&                        /* params */ = "") const
 	{
-		SymbolBackTranslStrict symbolTransl = alphabet->GetSymbolBackTransl();
+		assert(nullptr != alphabet);
+
+		AbstractAlphabet::BwdTranslatorPtr symbolTransl =
+			alphabet->GetSymbolBackTransl();
+		assert(nullptr != symbolTransl);
 
 		AutDescription desc;
 
@@ -714,7 +721,7 @@ protected:// methods
 
 			AutDescription::Transition trans(
 				tupleStr,
-				symbolTransl(t.GetSymbol()).symbolStr,
+				(*symbolTransl)(t.GetSymbol()).symbolStr,
 				stateTransl(t.GetParent()));
 
 			desc.transitions.insert(trans);
