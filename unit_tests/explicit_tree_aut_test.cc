@@ -260,18 +260,18 @@ BOOST_AUTO_TEST_CASE(reindex_states_functor)
 
 BOOST_AUTO_TEST_CASE(inherited_alphabet_type)
 {
-	class StupidAlphabet : public AutType::AbstractAlphabet
+	class DirectAlphabet : public AutType::AbstractAlphabet
 	{
 	public:  // data types
 
-		class StupidTranslator : public FwdTranslator
+		class DirectTranslator : public FwdTranslator
 		{ };
 
-		class StupidBackTranslator : public BwdTranslator
+		class DirectBackTranslator : public BwdTranslator
 		{
 			virtual StringSymbolType operator()(const SymbolType& value) override
 			{
-				return const_cast<const StupidBackTranslator*>(this)->operator()(value);
+				return const_cast<const DirectBackTranslator*>(this)->operator()(value);
 			}
 
 			virtual StringSymbolType operator()(const SymbolType& value) const override
@@ -289,7 +289,7 @@ BOOST_AUTO_TEST_CASE(inherited_alphabet_type)
 
 		virtual BwdTranslatorPtr GetSymbolBackTransl() override
 		{
-			return BwdTranslatorPtr(new StupidBackTranslator);
+			return BwdTranslatorPtr(new DirectBackTranslator);
 		}
 	};
 
@@ -301,16 +301,16 @@ BOOST_AUTO_TEST_CASE(inherited_alphabet_type)
 			Convert::ToString(testcase));
 
 		std::string filename = (AUT_DIR / testcase[0]).string();
-		BOOST_MESSAGE("Checking StupidAlphabet on automaton " + filename + "...");
+		BOOST_MESSAGE("Checking DirectAlphabet on automaton " + filename + "...");
 		std::string autStr = VATA::Util::ReadFile(filename);
 
 		StateDict stateDict;
 		AutType aut;
 		readAut(aut, stateDict, autStr);
 
-		// now let's change to the StupidAlphabet alphabet
-		AutType::AlphabetType stupidAlph(new StupidAlphabet);
-		aut.SetAlphabet(stupidAlph);
+		// now let's change to the DirectAlphabet alphabet
+		AutType::AlphabetType directAlph(new DirectAlphabet);
+		aut.SetAlphabet(directAlph);
 
 		std::string autOut = dumpAut(aut, stateDict);
 		AutDescription descOut = parser_.ParseString(autOut);
