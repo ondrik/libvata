@@ -179,7 +179,7 @@ public:   // public data types
 
 		virtual FwdTranslatorPtr GetSymbolTransl() override
 		{
-			assert(false);
+			throw NotImplementedException(__func__);
 		}
 
 		virtual BwdTranslatorPtr GetSymbolBackTransl() override
