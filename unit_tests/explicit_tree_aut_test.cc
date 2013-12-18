@@ -260,39 +260,6 @@ BOOST_AUTO_TEST_CASE(reindex_states_functor)
 
 BOOST_AUTO_TEST_CASE(inherited_alphabet_type)
 {
-	class DirectAlphabet : public AutType::AbstractAlphabet
-	{
-	public:  // data types
-
-		class DirectTranslator : public FwdTranslator
-		{ };
-
-		class DirectBackTranslator : public BwdTranslator
-		{
-			virtual StringSymbolType operator()(const SymbolType& value) override
-			{
-				return const_cast<const DirectBackTranslator*>(this)->operator()(value);
-			}
-
-			virtual StringSymbolType operator()(const SymbolType& value) const override
-			{
-				return StringSymbolType(Convert::ToString(value), 0);
-			}
-		};
-
-	public:  // methods
-
-		virtual FwdTranslatorPtr GetSymbolTransl() override
-		{
-			assert(false);
-		}
-
-		virtual BwdTranslatorPtr GetSymbolBackTransl() override
-		{
-			return BwdTranslatorPtr(new DirectBackTranslator);
-		}
-	};
-
 	auto testfileContent = ParseTestFile(LOAD_TIMBUK_FILE.string());
 
 	for (auto testcase : testfileContent)
@@ -309,7 +276,7 @@ BOOST_AUTO_TEST_CASE(inherited_alphabet_type)
 		readAut(aut, stateDict, autStr);
 
 		// now let's change to the DirectAlphabet alphabet
-		AutType::AlphabetType directAlph(new DirectAlphabet);
+		AutType::AlphabetType directAlph(new AutType::DirectAlphabet);
 		aut.SetAlphabet(directAlph);
 
 		std::string autOut = dumpAut(aut, stateDict);

@@ -155,6 +155,38 @@ public:   // public data types
 		}
 	};
 
+	class DirectAlphabet : public AbstractAlphabet
+	{
+	public:  // data types
+
+		class DirectTranslator : public FwdTranslator
+		{ };
+
+		class DirectBackTranslator : public BwdTranslator
+		{
+			virtual StringSymbolType operator()(const SymbolType& value) override
+			{
+				return const_cast<const DirectBackTranslator*>(this)->operator()(value);
+			}
+
+			virtual StringSymbolType operator()(const SymbolType& value) const override
+			{
+				return StringSymbolType(VATA::Util::Convert::ToString(value), 0);
+			}
+		};
+
+	public:  // methods
+
+		virtual FwdTranslatorPtr GetSymbolTransl() override
+		{
+			assert(false);
+		}
+
+		virtual BwdTranslatorPtr GetSymbolBackTransl() override
+		{
+			return BwdTranslatorPtr(new DirectBackTranslator);
+		}
+	};
 
 	using AlphabetType = std::shared_ptr<AbstractAlphabet>;
 
