@@ -86,6 +86,7 @@ add_library(libvata STATIC
   convert.cc
   incl_param.cc
   fake_file.cc
+  fmemopen.c
 	symbolic.cc
   memstream.c
   timbuk_parser.cc
