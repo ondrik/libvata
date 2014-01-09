@@ -15,6 +15,8 @@
 #include <stdexcept>
 #include <cstdlib>
 
+// to make open_memstream work on the majority of systems
+#include "memstream.h"
 
 using VATA::Util::FakeFile;
 
