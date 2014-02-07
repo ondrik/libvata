@@ -204,6 +204,12 @@ public:   // public methods
 	}
 
 
+	BDDTopDownTreeAut Reduce() const
+	{
+		throw NotImplementedException(__func__);
+	}
+
+
 	BDDTopDownTreeAut ReindexStates(
 		StateToStateTranslWeak&     stateTrans) const;
 

@@ -826,6 +826,11 @@ public:   // methods
 		return Translate(*this, partition, relation).computeSimulation(partition,relation,size);
 	}
 
+	ExplicitFiniteAut Reduce() const
+	{
+		throw NotImplementedException(__func__);
+	}
+
 #if 0
 	// Automaton has not been sanitized
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(

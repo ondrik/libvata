@@ -32,12 +32,6 @@ namespace VATA
 	class SymbolicTreeAutBase;
 
 	template <class Automaton>
-	Automaton Reduce(const Automaton&)
-	{
-		throw NotImplementedException(__func__);
-	}
-
-	template <class Automaton>
 	Automaton GetCandidateTree(const Automaton&)
 	{
 		throw NotImplementedException(__func__);

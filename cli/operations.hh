@@ -232,7 +232,7 @@ Automaton ComputeReduction(
 	}
 	else if (options["dir"] == "down")
 	{
-		return VATA::Reduce(aut);
+		return aut.Reduce();
 	}
 	else
 	{

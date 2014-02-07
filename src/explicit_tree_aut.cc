@@ -646,6 +646,14 @@ bool ExplicitTreeAut::CheckInclusion(
 }
 
 
+ExplicitTreeAut ExplicitTreeAut::Reduce() const
+{
+	assert(nullptr != core_);
+
+	return ExplicitTreeAut(core_->Reduce());
+}
+
+
 std::string ExplicitTreeAut::ToString(const Transition& trans) const
 {
 	assert(nullptr != core_);
