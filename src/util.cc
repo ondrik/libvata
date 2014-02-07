@@ -96,7 +96,11 @@ VATA::AutBase::StateDict VATA::Util::CreateUnionStringToStateMap(
 			state = itTransl->second;
 		}
 
-		result.insert(std::make_pair(dictElem.first + "_1", state));
+		if (!result.insert(std::make_pair(dictElem.first + "_1", state)).second)
+		{	// in the case there is already something
+			assert(false);
+		}
+
 	}
 
 	for (auto dictElem : rhsCont)
@@ -113,7 +117,10 @@ VATA::AutBase::StateDict VATA::Util::CreateUnionStringToStateMap(
 			state = itTransl->second;
 		}
 
-		result.insert(std::make_pair(dictElem.first + "_2", state));
+		if (!result.insert(std::make_pair(dictElem.first + "_2", state)).second)
+		{	// in the case there is already something
+			assert(false);
+		}
 	}
 
 	return result;
