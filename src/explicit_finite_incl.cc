@@ -13,7 +13,7 @@
 // VATA headers
 #include <vata/vata.hh>
 
-#include <vata/finite_aut/explicit_finite_aut.hh>
+#include <vata/explicit_finite_aut.hh>
 
 #include "explicit_finite_congr_fctor_cache_opt.hh"
 #include "explicit_finite_congr_equiv_fctor.hh"

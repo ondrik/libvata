@@ -10,16 +10,16 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/finite_aut/explicit_finite_aut.hh>
+#include <vata/explicit_finite_aut.hh>
 
 #include "explicit_finite_aut_core.hh"
 #include "loadable_aut.hh"
 
 using VATA::ExplicitFiniteAutCore;
 
-// pointer to symbol dictionary
+// global alphabet
 ExplicitFiniteAutCore::AlphabetType ExplicitFiniteAutCore::globalAlphabet_ =
-	AlphabetType(new AlphabetType::element_type());
+	AlphabetType(new ExplicitFiniteAut::OnTheFlyAlphabet);
 
 ExplicitFiniteAutCore::ExplicitFiniteAutCore(AlphabetType& alphabet) :
 	finalStates_(),

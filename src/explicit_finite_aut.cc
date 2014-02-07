@@ -1,5 +1,14 @@
+/*****************************************************************************
+ *	VATA Finite Automata Library
+ *
+ *	Copyright (c) 2013	Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
+ *
+ *	Description:
+ *	Implementation of the ExplicitFiniteAut facade.
+ *****************************************************************************/
+
 #include <vata/vata.hh>
-#include <vata/finite_aut/explicit_finite_aut.hh>
+#include <vata/explicit_finite_aut.hh>
 
 #include "explicit_finite_aut_core.hh"
 #include "loadable_aut.hh"
@@ -7,7 +16,7 @@
 using VATA::AutBase;
 using VATA::ExplicitFiniteAut;
 
-ExplicitFiniteAut::ExplicitFiniteAut() : 
+ExplicitFiniteAut::ExplicitFiniteAut() :
 	core_(new CoreAut(CoreAut::ParentAut()))
 { }
 
@@ -38,7 +47,7 @@ ExplicitFiniteAut& ExplicitFiniteAut::operator=(const ExplicitFiniteAut& rhs)
 	return *this;
 }
 
-ExplicitFiniteAut& ExplicitFiniteAut::operator=(ExplicitFiniteAut&& rhs) 
+ExplicitFiniteAut& ExplicitFiniteAut::operator=(ExplicitFiniteAut&& rhs)
 {
 	assert(this != &rhs);
 
@@ -53,7 +62,7 @@ ExplicitFiniteAut& ExplicitFiniteAut::operator=(ExplicitFiniteAut&& rhs)
 ExplicitFiniteAut::~ExplicitFiniteAut()
 { }
 
-void ExplicitFiniteAut::SetStateFinal(const StateType& state) 
+void ExplicitFiniteAut::SetStateFinal(const StateType& state)
 {
 	assert(nullptr != core_);
 	core_->SetStateFinal(state);
@@ -263,15 +272,13 @@ ExplicitFiniteAut ExplicitFiniteAut::GetCandidateTree() const
 
 template <class Index>
 VATA::ExplicitLTS ExplicitFiniteAut::Translate(
-	const ExplicitFiniteAut&              aut,
 	std::vector<std::vector<size_t>>&     partition,
 	Util::BinaryRelation&                 relation,
-	const Index&                          stateIndex)
+	const Index&                          stateIndex) const
 {
 	assert(nullptr != core_);
-	assert(nullptr != aut);
 
-	return core_->Translate(aut,partition,relation,stateIndex);
+	return core_->Translate(partition,relation,stateIndex);
 }
 
 ExplicitFiniteAut ExplicitFiniteAut::Union(
@@ -280,8 +287,8 @@ ExplicitFiniteAut ExplicitFiniteAut::Union(
 		AutBase::StateToStateMap*       pTranslMapLhs,
 		AutBase::StateToStateMap*       pTranslMapRhs)
 {
-	assert(nullptr != lhs_);
-	assert(nullptr != rhs_);
+	assert(nullptr != lhs.core_);
+	assert(nullptr != rhs.core_);
 	return ExplicitFiniteAut(CoreAut::Union(
 			*lhs.core_,*rhs.core_,pTranslMapLhs,pTranslMapRhs));
 }
@@ -290,8 +297,8 @@ ExplicitFiniteAut ExplicitFiniteAut::UnionDisjointStates(
 	const ExplicitFiniteAut&          lhs,
 	const ExplicitFiniteAut&          rhs)
 {
-	assert(nullptr != lhs_);
-	assert(nullptr != rhs_);
+	assert(nullptr != lhs.core_);
+	assert(nullptr != rhs.core_);
 	return ExplicitFiniteAut(CoreAut::UnionDisjointStates(
 			*lhs.core_,*rhs.core_));
 }
@@ -301,8 +308,8 @@ ExplicitFiniteAut ExplicitFiniteAut::Intersection(
 		const VATA::ExplicitFiniteAut   &rhs,
 		AutBase::ProductTranslMap* pTranslMap)
 {
-	assert(nullptr != lhs_);
-	assert(nullptr != rhs_);
+	assert(nullptr != lhs.core_);
+	assert(nullptr != rhs.core_);
 	return ExplicitFiniteAut(CoreAut::Intersection(
 				*lhs.core_,*rhs.core_,pTranslMap));
 }
@@ -312,8 +319,8 @@ bool ExplicitFiniteAut::CheckInclusion(
 	const VATA::ExplicitFiniteAut&    bigger,
 	const VATA::InclParam&						params)
 {
-	assert(nullptr != smaller);
-	assert(nullptr != bigger);
+	assert(nullptr != smaller.core_);
+	assert(nullptr != bigger.core_);
 	return CoreAut::CheckInclusion(
 				*smaller.core_,*bigger.core_,params);
 }
@@ -325,9 +332,11 @@ ExplicitFiniteAut ExplicitFiniteAut::Reverse(
 	return ExplicitFiniteAut(core_->Reverse(pTranslMap));
 }
 
+#if 0
 AutBase::StateBinaryRelation ExplicitFiniteAut::ComputeDownwardSimulation(
 	size_t                            size)
 {
 	assert(nullptr != core_);
 	return core_->ComputeDownwardSimulation(size);
 }
+#endif

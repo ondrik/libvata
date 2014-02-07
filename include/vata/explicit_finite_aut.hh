@@ -1,3 +1,12 @@
+/*****************************************************************************
+ *	VATA Finite Automata Library
+ *
+ *	Copyright (c) 2013	Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
+ *
+ *	Description:
+ *	Header file for the ExplicitFiniteAut facade.
+ *****************************************************************************/
+
 #ifndef _VATA_EXPLICIT_FINITE_AUT_HH_
 #define _VATA_EXPLICIT_FINITE_AUT_HH_
 
@@ -31,7 +40,6 @@ class VATA::ExplicitFiniteAut : public AutBase
 GCC_DIAG_ON(effc++)
 
 private: // private data types
-	typedef std::string string;
 	using CoreAut = VATA::LoadableAut<ExplicitFiniteAutCore>;
 	std::unique_ptr<CoreAut> core_;
 
@@ -41,12 +49,27 @@ public: // public data types
 	using StringSymbolType = std::string;
 
 	using SymbolDict                     =
-		VATA::Util::TwoWayDict<string, SymbolType>;
+		VATA::Util::TwoWayDict<std::string, SymbolType>;
 	using SymbolBackTranslStrict         =
 		VATA::Util::TranslatorStrict<typename SymbolDict::MapBwdType>;
 	using StringSymbolToSymbolTranslWeak = Util::TranslatorWeak<SymbolDict>;
 
-	class Alphabet
+	class AbstractAlphabet
+	{
+	public:  // data types
+
+		using FwdTranslator    = VATA::Util::AbstractTranslator<StringSymbolType, SymbolType>;
+		using FwdTranslatorPtr = std::unique_ptr<FwdTranslator>;
+		using BwdTranslator    = VATA::Util::AbstractTranslator<SymbolType, StringSymbolType>;
+		using BwdTranslatorPtr = std::unique_ptr<BwdTranslator>;
+
+	public:  // methods
+
+		virtual FwdTranslatorPtr GetSymbolTransl() = 0;
+		virtual BwdTranslatorPtr GetSymbolBackTransl() = 0;
+	};
+
+	class OnTheFlyAlphabet : public AbstractAlphabet
 	{
 	private:  // data members
 
@@ -55,19 +78,25 @@ public: // public data types
 
 	public:   // methods
 
-		StringSymbolToSymbolTranslWeak GetSymbolTransl()
+		virtual FwdTranslatorPtr GetSymbolTransl() override
 		{
-			return StringSymbolToSymbolTranslWeak{symbolDict_,
+			FwdTranslator* fwdTransl = new
+			StringSymbolToSymbolTranslWeak{symbolDict_,
 				[&](const StringSymbolType&){return nextSymbol_++;}};
+
+			return FwdTranslatorPtr(fwdTransl);
 		}
 
-		SymbolBackTranslStrict GetSymbolBackTransl()
+		virtual BwdTranslatorPtr GetSymbolBackTransl() override
 		{
-			return SymbolBackTranslStrict(symbolDict_.GetReverseMap());
+			BwdTranslator* bwdTransl =
+				new SymbolBackTranslStrict(symbolDict_.GetReverseMap());
+
+			return BwdTranslatorPtr(bwdTransl);
 		}
 	};
 
-	using AlphabetType = std::shared_ptr<Alphabet>;
+	using AlphabetType = std::shared_ptr<AbstractAlphabet>;
 
 	// Stateset is unordered_set with operation for checking subset
 	GCC_DIAG_OFF(effc++)
@@ -170,8 +199,8 @@ public: // public methods
 		class TranslIndex,
 		class SanitizeIndex>
 	std::string PrintSimulationMapping(
-		TranslIndex          index,
-		SanitizeIndex        sanitizeIndex)
+		TranslIndex          /* index */,
+		SanitizeIndex        /* sanitizeIndex */)
 	{
 		throw NotImplementedException(__func__);
 	}
@@ -184,10 +213,9 @@ public: // public methods
 
 	template <class Index = Util::IdentityTranslator<AutBase::StateType>>
 	VATA::ExplicitLTS Translate(
-		const ExplicitFiniteAut&              aut,
 		std::vector<std::vector<size_t>>&     partition,
 		Util::BinaryRelation&                 relation,
-		const Index&                          stateIndex = Index());
+		const Index&                          stateIndex = Index()) const;
 
 	/**
 	 * Creates union of two automata. It just reindexs
@@ -226,6 +254,18 @@ public: // public methods
 	}
 
 	ExplicitFiniteAut Reduce() const
+	{
+		throw NotImplementedException(__func__);
+	}
+
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		size_t                            /* size */)
+	{
+		throw NotImplementedException(__func__);
+	}
+
+	AutBase::StateBinaryRelation ComputeUpwardSimulation(
+		size_t                            /* size */)
 	{
 		throw NotImplementedException(__func__);
 	}

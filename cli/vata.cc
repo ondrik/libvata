@@ -13,8 +13,7 @@
 #include <vata/bdd_bu_tree_aut.hh>
 #include <vata/bdd_td_tree_aut.hh>
 #include <vata/explicit_tree_aut.hh>
-#include <vata/finite_aut/explicit_finite_aut.hh>
-#include <vata/finite_aut/explicit_finite_aut_op.hh>
+#include <vata/explicit_finite_aut.hh>
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
 #include <vata/util/convert.hh>

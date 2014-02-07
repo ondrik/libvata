@@ -13,7 +13,7 @@
 
 // VATA headers
 #include <vata/aut_base.hh>
-#include <vata/finite_aut/explicit_finite_aut.hh>
+#include <vata/explicit_finite_aut.hh>
 
 #include <vata/util/transl_weak.hh>
 #include <vata/explicit_lts.hh>
@@ -22,7 +22,7 @@
 // Standard library headers
 #include <unordered_set>
 
-namespace VATA 
+namespace VATA
 {
 	class ExplicitFiniteAutCore;
 }
@@ -95,6 +95,8 @@ public:
 	using SymbolSet                = ExplicitFiniteAut::SymbolSet;
 	using StringSymbolType         = ExplicitFiniteAut::StringSymbolType;
 	using SymbolBackTranslStrict   = ExplicitFiniteAut::SymbolBackTranslStrict;
+
+	using AbstractAlphabet = ExplicitFiniteAut::AbstractAlphabet;
 
 private: // private type definitions
 
@@ -195,10 +197,10 @@ public:
 		class StateTranslFunc,
 		class SymbolTranslFunc>
 	void loadFromAutDescInternal(
-		const AutDescription&					 desc,
-		StateTranslFunc							   stateTransl,
-		SymbolTranslFunc							 symbolTransl,
-		const std::string&						 /* params */ = "")
+		const AutDescription&            desc,
+		StateTranslFunc&                 stateTransl,
+		SymbolTranslFunc&                symbolTransl,
+		const std::string&               /* params */ = "")
 	{
 		// Load symbols
 		for (auto symbolRankPair : desc.symbols){ // Symbols translater
@@ -250,13 +252,16 @@ protected:  // methods
 		class StateBackTranslFunc>
 	std::string dumpToStringInternal(
 		VATA::Serialization::AbstrSerializer&   serializer,
-		StateBackTranslFunc                     stateTransl, // States from internal to string
+		StateBackTranslFunc&                    stateTransl, // States from internal to string
 		const AlphabetType&                     alphabet, // Symbols from internal to string
 		const std::string&                      /* params */ = "") const
 	{
+		assert(nullptr != alphabet);
 		AutDescription desc;
 
-		SymbolBackTranslStrict symbolTransl = alphabet->GetSymbolBackTransl();
+		AbstractAlphabet::BwdTranslatorPtr symbolTransl =
+			alphabet->GetSymbolBackTransl();
+		assert(nullptr != symbolTransl);
 
 		// Dump the final states
 		for (auto& s : this->finalStates_)
@@ -286,7 +291,7 @@ protected:  // methods
 				{
 					AutDescription::Transition trans(
 						leftStateAsTuple,
-						symbolTransl(sym),
+						(*symbolTransl)(sym),
 						stateTransl(s));
 					desc.transitions.insert(trans);
 					break;
@@ -308,7 +313,7 @@ protected:  // methods
 
 					AutDescription::Transition trans(
 						leftStateAsTuple,
-						symbolTransl(s.first),
+						(*symbolTransl)(s.first),
 						stateTransl(rs));
 					desc.transitions.insert(trans);
 				}
@@ -624,18 +629,21 @@ public:   // methods
 		return Translate(*this, partition, relation, index).computeSimulation(size);
 	}
 
+	// TODO: change VATA to a have ComputeSimulation method with a SimParams argument
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		size_t              size)
-	{ }
+	{
+		assert(&size == &size);
+		throw NotImplementedException(__func__);
+	}
 
-#if 0
 	// Automaton has not been sanitized
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const ExplicitFiniteAutCore& aut) {
+		const ExplicitFiniteAutCore& /* aut */) {
 
-		return ComputeDownwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
+		throw NotImplementedException(__func__);
+		// return ComputeDownwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
 	}
-#endif
 
 	/*****************************************************************
 	 * Upward simulation just for compatibility
