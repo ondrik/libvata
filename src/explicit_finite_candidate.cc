@@ -10,7 +10,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/finite_aut/explicit_finite_aut.hh>
+#include "explicit_finite_aut_core.hh"
 
 // std library headers
 #include <list>
@@ -20,9 +20,9 @@
  * Get candidate nfa. It is the smallest nfa which
  * has language which is subset of the input nfa
  */
-VATA::ExplicitFiniteAut VATA::ExplicitFiniteAut::GetCandidateTree() const {
+VATA::ExplicitFiniteAutCore VATA::ExplicitFiniteAutCore::GetCandidateTree() const {
 
-	typedef ExplicitFiniteAut ExplicitFA;
+	typedef ExplicitFiniteAutCore ExplicitFA;
 	typedef typename ExplicitFA::StateType StateType;
 
 	std::unordered_set<StateType> reachableStates;
