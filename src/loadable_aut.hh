@@ -13,6 +13,7 @@
 
 #include <vata/util/aut_description.hh>
 #include <vata/util/convert.hh>
+#include <vata/serialization/timbuk_serializer.hh>
 
 namespace VATA
 {
@@ -49,12 +50,12 @@ public:   // public methods
 	// inherit all constructors
 	using TBaseAut::TBaseAut;
 
-//	/**
-//	 * @brief  Implicit conversion from @p TBaseAut
-//	 */
-//	LoadableAut(const TBaseAut& baseAut) :
-//		TBaseAut(baseAut)
-//	{ }
+	/**
+	 * @brief  Implicit conversion from @p TBaseAut
+	 */
+	LoadableAut(const TBaseAut& baseAut) :
+		TBaseAut(baseAut)
+	{ }
 
 	/**
 	 * @brief  Implicit conversion from @p TBaseAut
@@ -144,6 +145,16 @@ public:   // public methods
 			desc,
 			stateTransl,
 			*symbolTransl,
+			params);
+	}
+
+
+	std::string DumpToString(
+		const std::string&                         params = "") const
+	{
+		VATA::Serialization::TimbukSerializer serializer;
+		return this->DumpToString(
+			serializer,
 			params);
 	}
 
