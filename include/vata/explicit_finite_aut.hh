@@ -15,6 +15,7 @@
 #include <vata/aut_base.hh>
 
 #include <vata/incl_param.hh>
+#include <vata/sim_param.hh>
 #include <vata/explicit_lts.hh>
 
 #include <vata/util/convert.hh>
@@ -258,17 +259,8 @@ public: // public methods
 		throw NotImplementedException(__func__);
 	}
 
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		size_t                            /* size */)
-	{
-		throw NotImplementedException(__func__);
-	}
-
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		size_t                            /* size */)
-	{
-		throw NotImplementedException(__func__);
-	}
+	AutBase::StateBinaryRelation ComputeSimulation(
+		const SimParam&            params) const;
 };
 
 #endif
