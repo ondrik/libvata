@@ -19,14 +19,8 @@ using VATA::Util::Convert;
 typedef VATA::AutBase::StateBinaryRelation StateBinaryRelation;
 
 
-StateBinaryRelation BDDTopDownTreeAut::ComputeDownwardSimulation(
-	size_t /* size */) const
-{
-	throw NotImplementedException(__func__);
-}
-
-StateBinaryRelation BDDTopDownTreeAut::ComputeUpwardSimulation(
-	size_t /* size */) const
+StateBinaryRelation BDDTopDownTreeAut::ComputeSimulation(
+	const SimParam&             /*  params */) const
 {
 	throw NotImplementedException(__func__);
 }

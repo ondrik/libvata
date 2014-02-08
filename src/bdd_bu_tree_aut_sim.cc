@@ -242,15 +242,20 @@ public:   // methods
 
 StateBinaryRelation BDDBUTreeAutCore::ComputeDownwardSimulation() const
 {
-	BDDBottomUpTreeAut newAut;
-	StateType stateCnt = 0;
-	AutBase::StateToStateMap translMap;
-	StateToStateTranslWeak stateTrans(translMap,
-		[&stateCnt](const StateType&){return stateCnt++;});
+	throw NotImplementedException(__func__);
 
-	StateType states = AutBase::SanitizeAutForSimulation(newAut, stateCnt, stateTrans);
+	// TODO: the following should be OK, just leaving to compile now...
+	#if 0
+		BDDBottomUpTreeAut newAut;
+		StateType stateCnt = 0;
+		AutBase::StateToStateMap translMap;
+		StateToStateTranslWeak stateTrans(translMap,
+			[&stateCnt](const StateType&){return stateCnt++;});
 
-	return newAut.ComputeDownwardSimulation(states);
+		StateType states = AutBase::SanitizeAutForSimulation(newAut, stateCnt, stateTrans);
+
+		return newAut.ComputeDownwardSimulation(states);
+	#endif
 }
 
 StateBinaryRelation BDDBUTreeAutCore::ComputeDownwardSimulation(

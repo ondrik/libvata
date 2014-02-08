@@ -211,37 +211,13 @@ BDDBottomUpTreeAut BDDBottomUpTreeAut::RemoveUnreachableStates() const
 }
 
 
-StateBinaryRelation BDDBottomUpTreeAut::ComputeDownwardSimulation() const
+StateBinaryRelation BDDBottomUpTreeAut::ComputeSimulation(
+	const SimParam&                 /*  params */) const
 {
 	assert(nullptr != core_);
 
-	return core_->ComputeDownwardSimulation();
-}
-
-
-StateBinaryRelation BDDBottomUpTreeAut::ComputeDownwardSimulation(
-	size_t                    size) const
-{
-	assert(nullptr != core_);
-
-	return core_->ComputeDownwardSimulation(size);
-}
-
-
-StateBinaryRelation BDDBottomUpTreeAut::ComputeUpwardSimulation() const
-{
-	assert(nullptr != core_);
-
-	return core_->ComputeUpwardSimulation();
-}
-
-
-StateBinaryRelation BDDBottomUpTreeAut::ComputeUpwardSimulation(
-	size_t                    size) const
-{
-	assert(nullptr != core_);
-
-	return core_->ComputeUpwardSimulation(size);
+	throw NotImplementedException(__func__);
+	// return core_->ComputeSimulation(params);
 }
 
 
