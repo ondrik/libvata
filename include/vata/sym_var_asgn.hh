@@ -144,6 +144,16 @@ private:  // Private methods
 
 public:   // Public methods
 
+	/**
+	 * @brief  The copy constructor
+	 *
+	 * @param[in]  asgn  The copied object
+	 */
+	SymbolicVarAsgn(const SymbolicVarAsgn& asgn) :
+		variablesCount_(asgn.variablesCount_),
+		vars_(asgn.vars_)
+	{ }
+
 	explicit SymbolicVarAsgn(size_t size) :
 		variablesCount_(size),
 		vars_(numberOfChars(size))
@@ -173,8 +183,22 @@ public:   // Public methods
 	 *
 	 * @param[in]  value  The string with the value of variables
 	 */
-	explicit SymbolicVarAsgn(const std::string& value);
+	explicit SymbolicVarAsgn(const std::string& value = "");
 
+
+	/**
+	 * @brief  The assignment operator
+	 */
+	SymbolicVarAsgn& operator=(const SymbolicVarAsgn& rhs)
+	{
+		if (this != &rhs)
+		{
+			variablesCount_ = rhs.variablesCount_;
+			vars_ = rhs.vars_;
+		}
+
+		return *this;
+	}
 
 	/**
 	 * @brief  Returns value of variable at given index
