@@ -332,11 +332,10 @@ ExplicitFiniteAut ExplicitFiniteAut::Reverse(
 	return ExplicitFiniteAut(core_->Reverse(pTranslMap));
 }
 
-#if 0
-AutBase::StateBinaryRelation ExplicitFiniteAut::ComputeDownwardSimulation(
-	size_t                            size)
+AutBase::StateBinaryRelation ExplicitFiniteAut::ComputeSimulation(
+	const SimParam&             params) const
 {
 	assert(nullptr != core_);
-	return core_->ComputeDownwardSimulation(size);
+
+	return core_->ComputeSimulation(params);
 }
-#endif
