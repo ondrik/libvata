@@ -605,21 +605,12 @@ ExplicitTreeAut ExplicitTreeAut::Intersection(
 }
 
 
-AutBase::StateBinaryRelation ExplicitTreeAut::ComputeDownwardSimulation(
-	size_t            size) const
+AutBase::StateBinaryRelation ExplicitTreeAut::ComputeSimulation(
+	const VATA::SimParam&                  params) const
 {
 	assert(nullptr != core_);
 
-	return core_->ComputeDownwardSimulation(size);
-}
-
-
-AutBase::StateBinaryRelation ExplicitTreeAut::ComputeUpwardSimulation(
-	size_t            size) const
-{
-	assert(nullptr != core_);
-
-	return core_->ComputeUpwardSimulation(size);
+	return core_->ComputeSimulation(params);
 }
 
 
