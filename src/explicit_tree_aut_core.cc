@@ -13,6 +13,7 @@
 #include "explicit_tree_sim.hh"
 #include "explicit_tree_transl.hh"
 #include "explicit_tree_unreach.hh"
+#include "loadable_aut.hh"
 
 
 using VATA::AutBase;
@@ -288,10 +289,15 @@ ExplicitTreeAutCore ExplicitTreeAutCore::Reduce() const
 		stateMap.size(), Util::TranslatorStrict<StateMap>(stateMap)
 	);
 
-	return this->CollapseStates(
+	ExplicitTreeAutCore aut = this->CollapseStates(
 			sim, Util::TranslatorStrict<StateMap::MapBwdType>(stateMap.GetReverseMap())
-		).RemoveUnreachableStates(sim, Util::TranslatorStrict<StateMap>(stateMap)
-	);
+		);
+
+	aut = aut.RemoveUnreachableStates();
+	// TODO: we could probably refine using simulation... but this is not working now
+	// aut = aut.RemoveUnreachableStates(sim, Util::TranslatorStrict<StateMap>(stateMap));
+
+	return aut;
 }
 
 

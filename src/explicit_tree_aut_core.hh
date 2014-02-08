@@ -968,6 +968,9 @@ public:   // methods
 		return res;
 	}
 
+	AutBase::StateBinaryRelation ComputeSimulation(
+		const VATA::SimParam&          params) const;
+
 	template <class Index>
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		size_t            size,
@@ -976,12 +979,6 @@ public:   // methods
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		size_t            size) const;
 
-#if 0
-	AutBase::StateBinaryRelation ComputeDownwardSimulation() const
-	{
-		return ComputeDownwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
-	}
-#endif
 
 	template <class Index>
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
@@ -1002,13 +999,12 @@ public:   // methods
 		size_t             size) const;
 
 
-#if 0
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const ExplicitTreeAut& aut)
-	{
-		return ComputeUpwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
-	}
-#endif
+		const SimParam&          params) const;
+
+
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		const SimParam&          params) const;
 
 
 	static ExplicitTreeAutCore Union(
