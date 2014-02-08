@@ -18,6 +18,7 @@
 #include <vata/serialization/timbuk_serializer.hh>
 #include <vata/util/convert.hh>
 #include <vata/util/transl_strict.hh>
+#include <vata/util/two_way_dict.hh>
 #include <vata/util/util.hh>
 
 // standard library headers
@@ -41,8 +42,9 @@ using VATA::Parsing::TimbukParser;
 using VATA::Serialization::AbstrSerializer;
 using VATA::Serialization::TimbukSerializer;
 using VATA::Util::Convert;
+using VATA::Util::TwoWayDict;
 
-
+using StateDict                = AutBase::StateDict;
 using StringToStateTranslWeak  = AutBase::StringToStateTranslWeak;
 using StateBackTranslStrict    = AutBase::StateBackTranslStrict;
 using StateToStateTranslStrict = AutBase::StateToStateTranslStrict;
@@ -158,11 +160,10 @@ int performOperation(
 	bool boolResult = false;
 	VATA::AutBase::StateBinaryRelation relResult;
 
-	VATA::AutBase::StateDict stateDict1;
-	VATA::AutBase::StateDict stateDict2;
+	StateDict stateDict1;
+	StateDict stateDict2;
 
-	VATA::AutBase::StateToStateMap translMap1;
-	VATA::AutBase::StateToStateMap translMap2;
+	AutBase::StateToStateMap translMap1;
 
 	if (args.operands >= 1)
 	{
@@ -251,7 +252,7 @@ int performOperation(
 	}
 	else if (args.command == COMMAND_SIM)
 	{
-		relResult = ComputeSimulation(autInput1, args,stateDict1,translMap1);
+		relResult = ComputeSimulation(autInput1, args, stateDict1, translMap1);
 	}
 	else if (args.command == COMMAND_RED)
 	{
@@ -318,11 +319,37 @@ int performOperation(
 
 		if (args.command == COMMAND_SIM)
 		{
+			// std::cout << autInput1.PrintSimulationMapping(
+			// 		StateBackTranslStrict(stateDict1.GetReverseMap()),
+			// 		StateToStateTranslStrict(translMap1))
+			// 	<< std::endl;
 
-			std::cout << autInput1.PrintSimulationMapping(
-					StateBackTranslStrict(stateDict1.GetReverseMap()),
-					StateToStateTranslStrict(translMap1))
-				<< std::endl;
+			TwoWayDict<
+				AutBase::StateType,
+				AutBase::StateType,
+				AutBase::StateToStateMap
+			> stateToIndexDict(translMap1);
+
+			assert(stateDict1.size() == stateToIndexDict.size());
+			size_t i = 0;
+			for (const auto indexToStatePair : stateToIndexDict.GetReverseMap())
+			{
+				// check that the indices are correct
+				assert(indexToStatePair.first == i);
+
+				StateDict::ConstIteratorBwd it;
+				if ((it = stateDict1.FindBwd(indexToStatePair.second)) == stateDict1.EndBwd())
+				{
+					assert(false);
+				}
+
+				std::cout << i << ": " << it->second << ", ";
+				++i;
+			}
+
+			assert(stateDict1.size() == i);
+
+			std::cout << "\n";
 			std::cout << relResult << "\n";
 		}
 	}

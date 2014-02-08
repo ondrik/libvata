@@ -20,6 +20,7 @@
 using VATA::Util::Convert;
 using VATA::AutBase;
 using VATA::InclParam;
+using VATA::SimParam;
 
 extern timespec startTime;
 
@@ -149,12 +150,18 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 
 		if (InclParam::e_direction::upward == ip.GetDirection())
 		{	// for upward algorithm compute the upward simulation
-			sim = unionAut.ComputeUpwardSimulation(states);
+			SimParam sp;
+			sp.SetRelation(VATA::SimParam::e_sim_relation::TA_UPWARD);
+			sp.SetNumStates(states);
+			sim = unionAut.ComputeSimulation(sp);
 			ip.SetSimulation(&sim);
 		}
 		else if (InclParam::e_direction::downward == ip.GetDirection())
-		{	// for downward algorithm, compute the downward simualation
-			sim = unionAut.ComputeDownwardSimulation(states);
+		{	// for downward algorithm, compute the downward simulation
+			SimParam sp;
+			sp.SetRelation(VATA::SimParam::e_sim_relation::TA_DOWNWARD);
+			sp.SetNumStates(states);
+			sim = unionAut.ComputeSimulation(sp);
 			ip.SetSimulation(&sim);
 		}
 		else
@@ -182,39 +189,47 @@ VATA::AutBase::StateBinaryRelation ComputeSimulation(
 	const StringToStateMap   /* index */,    // TODO: why is this here?
 	StateToStateMap&         translMap)
 {
-	if (!args.pruneUseless)
-	{
-		throw std::runtime_error("Simulation can only be computed for "
-			"automata with pruned useless states!");
-	}
+// TODO: Why was this here?
+//	if (!args.pruneUseless)
+//	{
+//		throw std::runtime_error("Simulation can only be computed for "
+//			"automata with pruned useless states!");
+//	}
 
-	typedef AutBase::StateType StateType;
-	typedef VATA::Util::TranslatorWeak<StateToStateMap> StateToStateTranslator;
+	using StateType = AutBase::StateType;
+
+	using StateToStateTranslator = AutBase::StateToStateTranslWeak;
 
 	// insert default values
 	Options options = args.options;
 	options.insert(std::make_pair("dir", "down"));
 
 	StateType stateCnt = 0;
-	StateToStateTranslator stateTrans(translMap,
+	StateToStateTranslator stateTransl(translMap,
 		[&stateCnt](const StateType&){return stateCnt++;});
 
-	AutBase::StateType states = AutBase::SanitizeAutForSimulation(aut,
-			stateCnt,stateTrans);
+	aut = aut.ReindexStates(stateTransl);
 
+	// AutBase::StateType states = AutBase::SanitizeAutForSimulation(aut,
+	// 	stateCnt, stateTransl);
+
+	SimParam sp;
+	sp.SetNumStates(stateCnt);
 	if (options["dir"] == "up")
 	{
-		return aut.ComputeUpwardSimulation(states);
+		sp.SetRelation(VATA::SimParam::e_sim_relation::TA_UPWARD);
 	}
 	else if (options["dir"] == "down")
 	{
-		return aut.ComputeDownwardSimulation(states);
+		sp.SetRelation(VATA::SimParam::e_sim_relation::TA_DOWNWARD);
 	}
 	else
 	{
 		throw std::runtime_error("Invalid options for simulation: " +
 			Convert::ToString(options));
 	}
+
+	return aut.ComputeSimulation(sp);
 }
 
 template <class Automaton>
