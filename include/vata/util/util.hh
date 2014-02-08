@@ -71,8 +71,14 @@ Container VATA::Util::RebindMap(const Container& container,
 	return result;
 }
 
-template <class Container1, class Container2, class Translator>
-void VATA::Util::RebindMap2(Container1& dst, const Container2& src, const Translator& transl)
+template <
+	class Container1,
+	class Container2,
+	class Translator>
+void VATA::Util::RebindMap2(
+	Container1&            dst,
+	const Container2&      src,
+	const Translator&      transl)
 {
 	for (auto& contElem : src)
 	{	// for each element in the container
@@ -80,13 +86,19 @@ void VATA::Util::RebindMap2(Container1& dst, const Container2& src, const Transl
 	}
 }
 
-template <class Container1, class T, class Translator>
-void VATA::Util::RebindMap2(Container1& dst, const std::vector<T>& src, const Translator& transl)
+template <
+	class Container1,
+	class T,
+	class Translator>
+void VATA::Util::RebindMap2(
+	Container1&               dst,
+	const std::vector<T>&     src,
+	const Translator&         transl)
 {
-	size_t i = 0;
-	for (auto& contElem : src)
-	{	// for each element in the container
-		dst[i++] = transl[contElem];
+	// TODO: check that we are not screwing something up!!!
+	for (size_t i = 0; i < src.size(); ++i)
+	{
+		dst[transl[i]] = transl[src[i]];
 	}
 }
 
