@@ -875,8 +875,10 @@ BinaryRelation VATA::ExplicitLTS::computeSimulation(
 	size_t outputSize
 ) {
 
-	if (this->states_ == 0)
+	if (0 == states_)
+	{
 		return BinaryRelation();
+	}
 
 	SimulationEngine engine(*this);
 
@@ -888,5 +890,4 @@ BinaryRelation VATA::ExplicitLTS::computeSimulation(
 	engine.buildResult(result, outputSize);
 
 	return result;
-
 }
