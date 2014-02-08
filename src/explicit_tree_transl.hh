@@ -50,53 +50,49 @@ VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateDownward(
 	 */
 	for (auto& stateClusterPair : *transitions_)
 	{
-		assert(stateClusterPair.second);
+		assert(nullptr != stateClusterPair.second);
 
 		size_t state = stateIndex[stateClusterPair.first];
 
 		for (auto& symbolTupleSetPair : *stateClusterPair.second)
 		{
-			assert(symbolTupleSetPair.second);
+			assert(nullptr != symbolTupleSetPair.second);
 
 			size_t symbol = symbolTranslator(symbolTupleSetPair.first);
 
 			for (auto& tuple : *symbolTupleSetPair.second)
 			{
-				assert(tuple);
+				assert(nullptr != tuple);
 
-				if (tuple->size() == 1) { // a(p) -> q
+				if (1 == tuple->size()) { // a(p) -> q
 					// inline lhs of size 1 >:-)
-					result.addTransition(state, symbol, tuple->front());
-				} else { // a(p,r) -> q
-					result.addTransition(
-						stateClusterPair.first, symbol, lhsTranslator(tuple.get())
-					);
+					result.addTransition(state, symbol, stateIndex[tuple->front()]);
+				}
+				else
+				{ // a(p,r) -> q
+					result.addTransition(state, symbol, lhsTranslator(tuple.get()));
 				}
 			}
 		}
 	}
 
-	for (auto& tupleIndexPair : lhsMap) {
-
+	for (auto& tupleIndexPair : lhsMap)
+	{
 		assert(tupleIndexPair.first);
 
 		size_t i = 0;
-
-		for (auto& state : *tupleIndexPair.first) {
-
+		for (auto& state : *tupleIndexPair.first)
+		{
 			result.addTransition(tupleIndexPair.second, symbolMap.size() + i, stateIndex[state]);
-
 			++i;
-
 		}
-
 	}
 
 	result.init();
 
 	return result;
-
 }
+
 
 template <
 	class Rel,
