@@ -110,41 +110,6 @@ public:   // methods
 
 		return stateCnt;
 	}
-
-	/*
-	template <class Automaton>
-	static StateType SanitizeAutForSimulation(Automaton& aut)
-	{
-		StateType stateCnt = 0;
-		StateToStateMap stateMap;
-		StateToStateTranslator stateTrans(stateMap,
-			[&stateCnt](const StateType&){return stateCnt++;});
-
-		Automaton newAut = aut.RemoveUselessStates();
-		Automaton reindexedAut = newAut.ReindexStates(stateTrans);
-
-		aut = reindexedAut;
-
-		return stateCnt;
-	}
-	*/
-
-	template <
-		class Automaton,
-		class Index>
-	static StateType SanitizeAutForSimulation(
-		Automaton&       aut,
-		StateType&       stateCnt,
-		Index&           index)
-	{
-		Automaton newAut = aut.RemoveUselessStates();
-		aut = newAut.ReindexStates(index);
-
-		return stateCnt;
-	}
-};
-
-
 GCC_DIAG_OFF(effc++)
 class VATA::TreeAutBase : public AutBase
 {
