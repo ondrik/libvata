@@ -19,7 +19,10 @@ VATA::AutBase::StateBinaryRelation VATA::ExplicitTreeAutCore::ComputeDownwardSim
 	size_t            size,
 	const Index&      index) const
 {
-	return this->TranslateDownward(index).computeSimulation(size);
+	VATA::AutBase::StateBinaryRelation sim =
+		this->TranslateDownward(index).computeSimulation(size);
+
+	return sim;
 }
 
 #endif

@@ -50,8 +50,8 @@ VATA::ExplicitTreeAutCore VATA::ExplicitTreeAutCore::RemoveUnreachableStates(
 			const TuplePtr&    lhsPtr,
 			const TuplePtr&    rhsPtr) const
 		{
-			assert(lhsPtr);
-			assert(rhsPtr);
+			assert(nullptr != lhsPtr);
+			assert(nullptr != rhsPtr);
 
 			const StateTuple& lhs = *lhsPtr;
 			const StateTuple& rhs = *rhsPtr;
