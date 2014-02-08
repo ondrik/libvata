@@ -460,6 +460,11 @@ public: // Public functions
 		return (finalStates_.find(state) != finalStates_.end());
 	}
 
+	const StateSet& GetFinalStates() const
+	{
+		return finalStates_;
+	}
+
 	bool IsStateStart(const StateType &state) const
 	{
 		return (startStates_.find(state) != startStates_.end());
@@ -572,14 +577,13 @@ public:   // methods
 
 	template <class Index = Util::IdentityTranslator<AutBase::StateType>>
 	VATA::ExplicitLTS Translate(
-		const ExplicitFiniteAutCore&              aut,
 		std::vector<std::vector<size_t>>&     partition,
 		VATA::Util::BinaryRelation&           relation,
 		const Index&                          stateIndex = Index());
 
 
 	/*
-	 * Creates union of two automata. It just reindexs
+	 * Creates union of two automata. It just reindexes
 	 * existing states of both automata to a new one.
 	 * Reindexing of states is not done in this function, this
 	 * function just prepares translators.
@@ -602,7 +606,7 @@ public:   // methods
 	static bool CheckInclusion(
 		const VATA::ExplicitFiniteAutCore&    smaller,
 		const VATA::ExplicitFiniteAutCore&    bigger,
-		const VATA::InclParam&						params);
+		const VATA::InclParam&                params);
 
 	// Checking inclusion
 	template<class Rel, class Functor>
@@ -626,43 +630,11 @@ public:   // methods
 	{
 		AutBase::StateBinaryRelation relation;
 		std::vector<std::vector<size_t>> partition(1);
-		return Translate(*this, partition, relation, index).computeSimulation(size);
+		return Translate(partition, relation, index).computeSimulation(size);
 	}
 
-	// TODO: change VATA to a have ComputeSimulation method with a SimParams argument
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		size_t              size)
-	{
-		assert(&size == &size);
-		throw NotImplementedException(__func__);
-	}
-
-	// Automaton has not been sanitized
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const ExplicitFiniteAutCore& /* aut */) {
-
-		throw NotImplementedException(__func__);
-		// return ComputeDownwardSimulation(aut, AutBase::SanitizeAutForSimulation(aut));
-	}
-
-	/*****************************************************************
-	 * Upward simulation just for compatibility
-	 */
-	template <class Index>
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		size_t                  /* size */,
-		const Index&            /* index */) const
-	{
-		throw NotImplementedException(__func__);
-	}
-
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		size_t                  /* size */) const
-	{
-		throw NotImplementedException(__func__);
-	}
-
-	AutBase::StateBinaryRelation ComputeUpwardSimulation() const
+	AutBase::StateBinaryRelation ComputeSimulation(
+		const SimParam&      /*   params */)
 	{
 		throw NotImplementedException(__func__);
 	}
