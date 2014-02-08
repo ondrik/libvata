@@ -18,6 +18,7 @@
 #include <vata/symbolic.hh>
 #include <vata/notimpl_except.hh>
 #include <vata/incl_param.hh>
+#include <vata/sim_param.hh>
 
 // utilities
 #include <vata/util/ord_vector.hh>
@@ -206,15 +207,8 @@ public:   // methods
 	}
 
 
-	StateBinaryRelation ComputeDownwardSimulation() const;
-
-	StateBinaryRelation ComputeDownwardSimulation(
-		size_t                    size) const;
-
-	StateBinaryRelation ComputeUpwardSimulation() const;
-
-	StateBinaryRelation ComputeUpwardSimulation(
-		size_t                    size) const;
+	StateBinaryRelation ComputeSimulation(
+		const VATA::SimParam&              params) const;
 };
 
 #endif

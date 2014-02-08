@@ -17,6 +17,7 @@
 #include <vata/bdd_bu_tree_aut.hh>
 #include <vata/notimpl_except.hh>
 #include <vata/incl_param.hh>
+#include <vata/sim_param.hh>
 
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
@@ -178,16 +179,8 @@ public:   // public methods
 	}
 
 
-	AutBase::StateBinaryRelation ComputeDownwardSimulation() const;
-
-
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(size_t size) const;
-
-
-	AutBase::StateBinaryRelation ComputeUpwardSimulation() const;
-
-
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(size_t size) const;
+	AutBase::StateBinaryRelation ComputeSimulation(
+		const SimParam&        params) const;
 
 
 	BDDTopDownTreeAut RemoveUnreachableStates() const;
