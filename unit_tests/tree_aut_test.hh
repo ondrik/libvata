@@ -19,6 +19,7 @@
 
 using VATA::AutBase;
 using VATA::InclParam;
+using VATA::SimParam;
 using VATA::Parsing::TimbukParser;
 using VATA::Serialization::TimbukSerializer;
 using VATA::Util::AutDescription;
@@ -173,11 +174,17 @@ protected:// methods
 				AutType unionAut = AutType::UnionDisjointStates(autSmaller, autBigger);
 				if (InclParam::e_direction::downward == ip.GetDirection())
 				{	// downward direction
-					sim = unionAut.ComputeDownwardSimulation(states);
+					VATA::SimParam sp;
+					sp.SetRelation(VATA::SimParam::e_sim_relation::TA_DOWNWARD);
+					sp.SetNumStates(states);
+					sim = unionAut.ComputeSimulation(sp);
 				}
 				else if (InclParam::e_direction::upward == ip.GetDirection())
 				{	// upward direction
-					sim = unionAut.ComputeUpwardSimulation(states);
+					VATA::SimParam sp;
+					sp.SetRelation(VATA::SimParam::e_sim_relation::TA_UPWARD);
+					sp.SetNumStates(states);
+					sim = unionAut.ComputeSimulation(sp);
 				}
 				else
 				{
@@ -227,7 +234,10 @@ protected:// methods
 
 			stateDict = RebindMap(stateDict, stateMap);
 
-			StateBinaryRelation sim = reindexedAut.ComputeDownwardSimulation(stateCnt);
+			SimParam sp;
+			sp.SetRelation(VATA::SimParam::e_sim_relation::TA_DOWNWARD);
+			sp.SetNumStates(stateCnt);
+			StateBinaryRelation sim = reindexedAut.ComputeSimulation(sp);
 
 			auto simulationContent = ParseTestFile(resultFile);
 			StateBinaryRelation refSim(stateCnt);
