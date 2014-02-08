@@ -16,6 +16,7 @@
 #include <vata/util/binary_relation.hh>
 #include <vata/util/smart_set.hh>
 
+
 namespace VATA { class ExplicitLTS; }
 
 class VATA::ExplicitLTS {
@@ -35,7 +36,6 @@ public:
 	ExplicitLTS() : states_(0), transitions_(0), data_(), bwLabels_() {}
 
 	void addTransition(size_t q, size_t a, size_t r) {
-
 		if (a >= this->data_.size())
 			this->data_.resize(a + 1);
 
@@ -50,10 +50,10 @@ public:
 				this->states_ = r + 1;
 			this->data_[a].second.resize(r + 1);
 		}
-		
+
 		this->data_[a].first[q].push_back(r);
 		this->data_[a].second[r].push_back(q);
-		
+
 		++this->transitions_;
 
 	}
@@ -106,7 +106,7 @@ public:
 		return this->bwLabels_[q];
 
 	}
-	
+
 	void buildDelta1(std::vector<Util::SmartSet>& delta1) const {
 
 		delta1.resize(this->data_.size(), Util::SmartSet(this->states_));
