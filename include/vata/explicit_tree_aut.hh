@@ -17,6 +17,7 @@
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
 #include <vata/incl_param.hh>
+#include <vata/sim_param.hh>
 
 #include <vata/util/ord_vector.hh>
 #include <vata/util/transl_strict.hh>
@@ -687,12 +688,18 @@ public:   // methods
 		const ExplicitTreeAut&                 bigger);
 
 
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		size_t            size) const;
-
-
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		size_t            size) const;
+	/**
+	 * @brief  Computes the specified simulation relation on the automaton
+	 *
+	 * This method computes the simulation relation specified in the @p params
+	 * structure among the states of the automaton.
+	 *
+	 * @param[in]  params  Parameters specifying which simulation is to be computed.
+	 *
+	 * @returns  The computed simulation relation
+	 */
+	AutBase::StateBinaryRelation ComputeSimulation(
+		const VATA::SimParam&                  params) const;
 
 
 	template <class Dict>
