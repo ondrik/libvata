@@ -77,6 +77,11 @@ public:   // methods
 	{
 		return const_cast<const TranslatorStrict*>(this)->operator()(value);
 	}
+
+	const Container& GetContainer() const
+	{
+		return container_;
+	}
 };
 
 /**

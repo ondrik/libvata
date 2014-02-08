@@ -83,6 +83,28 @@ public:   // Public methods
 		bwdMap_()
 	{ }
 
+
+	/**
+	 * @brief  Constructor from the forward map
+	 *
+	 * This constructor copies the forward map and attempts to infer the backward map.
+	 *
+	 * @param[in]  fwdMap  The forward mapping
+	 */
+	explicit TwoWayDict(const MapFwdType& fwdMap) :
+		fwdMap_(fwdMap),
+		bwdMap_()
+	{
+		for (auto mappingPair : fwdMap_)
+		{
+			if (!bwdMap_.insert(std::make_pair(mappingPair.second, mappingPair.first)).second)
+			{
+				throw std::runtime_error(std::string(__func__) +
+					": failed to construct reverse mapping");
+			}
+		}
+	}
+
 	const Type2& TranslateFwd(const Type1& t1) const
 	{
 		ConstIteratorFwd itFwd;

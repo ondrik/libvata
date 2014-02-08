@@ -150,6 +150,11 @@ public:   // methods
 			throw std::runtime_error("Cannot insert value into const translator.");
 		}
 	}
+
+	const Container& GetContainer() const
+	{
+		return container_;
+	}
 };
 
 #endif
