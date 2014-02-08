@@ -25,7 +25,6 @@
  */
 template <class Index>
 VATA::ExplicitLTS VATA::ExplicitFiniteAutCore::Translate(
-	const VATA::ExplicitFiniteAutCore& aut,
 	std::vector<std::vector<size_t>>& partition,
 	Util::BinaryRelation& relation,
 	const Index& stateIndex) {
@@ -41,9 +40,9 @@ VATA::ExplicitLTS VATA::ExplicitFiniteAutCore::Translate(
 
 
 	// checks whether are all states final
-	auto areAllStartStatesFinal = [&aut]() -> bool {
-		for (auto fs : aut.finalStates_) {
-			if (!aut.IsStateStart(fs)) {
+	auto areAllStartStatesFinal = [this]() -> bool {
+		for (auto fs : this->GetFinalStates()) {
+			if (!this->IsStateStart(fs)) {
 				return false;
 			}
 		}
@@ -52,10 +51,14 @@ VATA::ExplicitLTS VATA::ExplicitFiniteAutCore::Translate(
 
 	size_t base;
 	// When all states are final just two partitions will be created, otherwise three
-	if (aut.finalStates_.size()>0 && (aut.finalStates_.size() <= aut.transitions_->size() || !areAllStartStatesFinal())) {
+	if (this->GetFinalStates().size() > 0 &&
+		(this->GetFinalStates().size() <= this->transitions_->size() ||
+			!areAllStartStatesFinal()))
+	{
 		base = 3;
 	}
-	else {
+	else
+	{
 		base = 2;
 	}
 
@@ -63,24 +66,29 @@ VATA::ExplicitLTS VATA::ExplicitFiniteAutCore::Translate(
 	partition.resize(base);
 
 	// Add all final states to the first partition
-	for (auto& finalState : aut.finalStates_) {
+	for (auto& finalState : this->GetFinalStates())
+	{
 		partition[0].push_back(stateIndex[finalState]);
 	}
 
 	// Add all transitions to LTS
-	for (auto stateToCluster : *aut.transitions_) { // left state of transition
+	for (auto stateToCluster : *this->transitions_) { // left state of transition
 		assert(stateToCluster.second);
 		size_t leftStateTranslated = stateIndex[stateToCluster.first];
 
 		// non final states to second partition
-		if (!aut.IsStateFinal(stateToCluster.first)) {
+		if (!this->IsStateFinal(stateToCluster.first)) {
 			partition[base-2].push_back(leftStateTranslated);
 		}
 
-		for (auto symbolToSet : *stateToCluster.second) { // symbol of transition
-
-			for (auto setState : symbolToSet.second) { // right state of transition
-				res.addTransition(leftStateTranslated, symbolTranslator[symbolToSet.first],stateIndex[setState]);
+		for (auto symbolToSet : *stateToCluster.second)
+		{ // symbol of transition
+			for (auto setState : symbolToSet.second)
+			{ // right state of transition
+				res.addTransition(
+					leftStateTranslated,
+					symbolTranslator[symbolToSet.first],
+					stateIndex[setState]);
 			}
 		}
 	}
@@ -96,8 +104,8 @@ VATA::ExplicitLTS VATA::ExplicitFiniteAutCore::Translate(
 	}
 	max++;
 
-	for (auto& startState : aut.GetStartStates()) { // add start transitions
-		for (auto& startSymbol : aut.GetStartSymbols(startState)) {
+	for (auto& startState : this->GetStartStates()) { // add start transitions
+		for (auto& startSymbol : this->GetStartSymbols(startState)) {
 			res.addTransition(max,
 				symbolTranslator[startSymbol],stateIndex[startState]);
 		}
