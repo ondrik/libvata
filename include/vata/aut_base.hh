@@ -110,6 +110,8 @@ public:   // methods
 
 		return stateCnt;
 	}
+};
+
 GCC_DIAG_OFF(effc++)
 class VATA::TreeAutBase : public AutBase
 {
