@@ -6,3 +6,5 @@ build/*
 /html
 # ctags tags
 tags
+# YouCompleteMe dust
+.ycm_extra_conf.pyc
