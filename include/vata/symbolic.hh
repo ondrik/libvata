@@ -34,6 +34,8 @@ public:   // data types
 
 protected:// constants
 
+	// TODO: this is not nice... SYMBOL_SIZE should be dynamic, no?
+	// Why is it needed at all? Only for the GetZeroSymbol()?
 	const static size_t SYMBOL_SIZE = 16;
 
 protected:// methods
