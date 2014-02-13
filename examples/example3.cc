@@ -1,4 +1,4 @@
-// example1.cc - loading and dumping an automaton
+// example3.cc - loading and dumping an automaton
 
 // VATA headers
 #include <vata/bdd_bu_tree_aut.hh>

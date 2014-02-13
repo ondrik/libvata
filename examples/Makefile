@@ -13,6 +13,7 @@ CFLAGS=-std=c++0x \
   -Weffc++ \
   -Woverloaded-virtual \
   -fdiagnostics-show-option \
+	-g
 
 
 INCLUDE=-I../include
