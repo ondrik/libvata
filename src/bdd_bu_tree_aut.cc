@@ -229,6 +229,18 @@ BDDBottomUpTreeAut BDDBottomUpTreeAut::ReindexStates(
 	return BDDBottomUpTreeAut(core_->ReindexStates(trans));
 }
 
+
+bool BDDBottomUpTreeAut::CheckInclusion(
+	const BDDBottomUpTreeAut&    smaller,
+	const BDDBottomUpTreeAut&    bigger)
+{
+	assert(nullptr != smaller.core_);
+	assert(nullptr != bigger.core_);
+
+	return CoreAut::CheckInclusion(*smaller.core_, *bigger.core_);
+}
+
+
 bool BDDBottomUpTreeAut::CheckInclusion(
 	const BDDBottomUpTreeAut&    smaller,
 	const BDDBottomUpTreeAut&    bigger,

@@ -162,6 +162,37 @@ public:   // methods
 	std::string DumpToDot() const;
 
 
+	/**
+	 * @brief  Checks inclusion using default parameters
+	 *
+	 * This static method checks language inclusion of a pair of automata (@p
+	 * smaller, @p bigger) using default parameters.
+	 *
+	 * @param[in]  smaller  The smaller automaton
+	 * @param[in]  bigger   The bigger automaton
+	 *
+	 * @returns  @p true if the language of @p smaller is a subset of the language
+	 *           of @p bigger, @p false otherwise
+	 */
+	static bool CheckInclusion(
+		const BDDBottomUpTreeAut&    smaller,
+		const BDDBottomUpTreeAut&    bigger);
+
+
+	/**
+	 * @brief  Dispatcher for calling correct inclusion checking function
+	 *
+	 * This function is a dispatcher that calls a proper inclusion checking
+	 * function between @p smaller and @p bigger according to the parameters in @p
+	 * params.
+	 *
+	 * @param[in]  smaller  The smaller automaton
+	 * @param[in]  bigger   The bigger automaton
+	 * @param[in]  params   Parameters for the inclusion
+	 *
+	 * @returns  @p true if the language of @p smaller is a subset of the language
+	 *           of @p bigger, @p false otherwise
+	 */
 	static bool CheckInclusion(
 		const BDDBottomUpTreeAut&    smaller,
 		const BDDBottomUpTreeAut&    bigger,
