@@ -32,11 +32,38 @@ int main()
 	Automaton aut1;
 	aut1.SetStateFinal(1);
 
-	aut1.AddTransition(Automaton::StateTuple(), Automaton::SymbolType("0000"), 0);
-	aut1.AddTransition(Automaton::StateTuple({0, 0}), Automaton::SymbolType("11X0"), 1);
+	aut1.AddTransition(
+		Automaton::StateTuple(),
+		Automaton::SymbolType("0000000000000000"),
+		0);
+	aut1.AddTransition(
+		Automaton::StateTuple({1, 1}),
+		Automaton::SymbolType("11X011X011X011X0"),
+		1);
 
-	Automaton aut2 = aut1;
-	aut1.AddTransition(Automaton::StateTuple({1, 1}), Automaton::SymbolType("0XXX"), 1);
+	// the following would be nice... BUT IS NOT WORKING NOW!
+	// We need to construct the automaton from the beginning
+	#if 0
+		Automaton aut2 = aut1;
+		aut1.AddTransition(
+			Automaton::StateTuple({1, 1}),
+			Automaton::SymbolType("0XXX0XXX0XXX0XXX"),
+			1);
+	#endif
+
+	Automaton aut2;
+	aut1.AddTransition(
+		Automaton::StateTuple(),
+		Automaton::SymbolType("0000000000000000"),
+		0);
+	aut1.AddTransition(
+		Automaton::StateTuple({1, 1}),
+		Automaton::SymbolType("11X011X011X011X0"),
+		1);
+	aut1.AddTransition(
+		Automaton::StateTuple({1, 1}),
+		Automaton::SymbolType("0XXX0XXX0XXX0XXX"),
+		1);
 
 	// test inclusion
 	std::cout << "aut1 <= aut2 : " << Automaton::CheckInclusion(aut1, aut2) << "\n";
