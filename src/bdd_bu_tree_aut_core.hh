@@ -462,6 +462,17 @@ public:   // methods
 
 	static bool CheckInclusion(
 		const BDDBUTreeAutCore&     smaller,
+		const BDDBUTreeAutCore&     bigger)
+	{
+		InclParam inclParam;
+		// TODO: set some more sensible defaults
+
+		return BDDBUTreeAutCore::CheckInclusion(smaller, bigger, inclParam);
+	}
+
+
+	static bool CheckInclusion(
+		const BDDBUTreeAutCore&     smaller,
 		const BDDBUTreeAutCore&     bigger,
 		const VATA::InclParam&      params);
 
