@@ -240,9 +240,13 @@ public: // public methods
 			AutBase::ProductTranslMap* pTranslMap = nullptr);
 
 	static bool CheckInclusion(
-		const VATA::ExplicitFiniteAut&    smaller,
-		const VATA::ExplicitFiniteAut&    bigger,
-		const VATA::InclParam&						params);
+		const ExplicitFiniteAut&    smaller,
+		const ExplicitFiniteAut&    bigger);
+
+	static bool CheckInclusion(
+		const ExplicitFiniteAut&    smaller,
+		const ExplicitFiniteAut&    bigger,
+		const InclParam&            params);
 
 	ExplicitFiniteAut Reverse(
 			AutBase::StateToStateMap* pTranslMap = nullptr) const;
