@@ -240,6 +240,26 @@ public:   // methods
 } // namespace
 
 
+StateBinaryRelation BDDBUTreeAutCore::ComputeSimulation(
+	const VATA::SimParam&                  params) const
+{
+	switch (params.GetRelation())
+	{
+		case SimParam::e_sim_relation::TA_UPWARD:
+		{
+			return this->ComputeUpwardSimulation(params);
+		}
+		case SimParam::e_sim_relation::TA_DOWNWARD:
+		{
+			return this->ComputeDownwardSimulation(params);
+		}
+		default:
+		{
+			throw std::runtime_error("Unknown simulation parameters: " + params.toString());
+		}
+	}
+}
+
 StateBinaryRelation BDDBUTreeAutCore::ComputeDownwardSimulation() const
 {
 	throw NotImplementedException(__func__);
@@ -346,4 +366,31 @@ StateBinaryRelation BDDBUTreeAutCore::ComputeUpwardSimulation(
 	size_t             /* size */) const
 {
 	throw NotImplementedException(__func__);
+}
+
+StateBinaryRelation BDDBUTreeAutCore::ComputeUpwardSimulation(
+	const SimParam&          params) const
+{
+	if (params.GetNumStates() != static_cast<size_t>(-1))
+	{
+		return this->ComputeUpwardSimulation(params.GetNumStates());
+	}
+	else
+	{
+		throw NotImplementedException(__func__);
+	}
+}
+
+
+StateBinaryRelation BDDBUTreeAutCore::ComputeDownwardSimulation(
+	const SimParam&          params) const
+{
+	if (params.GetNumStates() != static_cast<size_t>(-1))
+	{
+		return this->ComputeDownwardSimulation(params.GetNumStates());
+	}
+	else
+	{
+		throw NotImplementedException(__func__);
+	}
 }
