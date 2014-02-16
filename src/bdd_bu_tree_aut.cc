@@ -212,12 +212,11 @@ BDDBottomUpTreeAut BDDBottomUpTreeAut::RemoveUnreachableStates() const
 
 
 StateBinaryRelation BDDBottomUpTreeAut::ComputeSimulation(
-	const SimParam&                 /*  params */) const
+	const SimParam&                 params) const
 {
 	assert(nullptr != core_);
 
-	throw NotImplementedException(__func__);
-	// return core_->ComputeSimulation(params);
+	return core_->ComputeSimulation(params);
 }
 
 
