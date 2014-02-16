@@ -61,20 +61,13 @@ void BDDBUTreeAutCore::AddTransition(
 
 		const TransMTBDD& oldMtbdd = this->GetMtbdd(children);
 		TransMTBDD addedMtbdd(symbol, StateSet(parent), StateSet());
+		// TODO: this might maybe be done better
 		this->SetMtbdd(children, unioner(oldMtbdd, addedMtbdd));
 	}
 	else
 	{	// copy on write
 		assert(false);
 	}
-
-	UnionApplyFunctor unioner;
-
-	const TransMTBDD& oldMtbdd = this->GetMtbdd(children);
-	TransMTBDD addedMtbdd(symbol, StateSet(parent), StateSet());
-
-	// TODO: this could be done better
-	this->SetMtbdd(children, unioner(oldMtbdd, addedMtbdd));
 }
 
 
