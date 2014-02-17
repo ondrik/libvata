@@ -28,7 +28,7 @@ int main()
 		Automaton::SymbolType("0000000000000000"),
 		0);
 	aut.AddTransition(
-		Automaton::StateTuple({1, 1}),
+		Automaton::StateTuple({0, 0}),
 		Automaton::SymbolType("11X011X011X011X0"),
 		1);
 
