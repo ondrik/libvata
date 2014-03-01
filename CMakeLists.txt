@@ -55,7 +55,7 @@ include(CTest)
 
 # Necessary packages
 find_package(FLEX REQUIRED)
-find_package(BISON 2.7.1 REQUIRED)
+find_package(BISON 3.0.0 REQUIRED)
 find_package(Doxygen REQUIRED)
 
 set(Boost_USE_MULTITHREADED OFF)
