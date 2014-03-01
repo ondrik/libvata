@@ -15,6 +15,7 @@
 #include	<vata/vata.hh>
 #include	<vata/sym_var_asgn.hh>
 #include	<vata/util/triple.hh>
+#include  <vata/notimpl_except.hh>
 
 #include	"mtbdd_node.hh"
 
@@ -529,6 +530,52 @@ public:   // public methods
 
 		IncrementRefCnt(newRoot);
 		return OndriksMTBDD(newRoot, defaultValue_);
+	}
+
+
+	/**
+	 * @brief  Project out variables specified by a predicate
+	 *
+	 * This method returns an MTBDD with removed nodes that satisfy the @p pred
+	 * predicate. If such a node is encounted in a traversal of the MTBDD, its
+	 * children are combined using a binary apply operation that performs the @p
+	 * leafFunc function on the leaves.
+	 *
+	 * @param[in]  pred      The predicate that denotes the nodes to be removed
+	 * @param[in]  leafFunc  The function to be performed on the leaves
+	 *
+	 * @returns  An MTBDD that corresponds to the projection given by the input parameters
+	 */
+	template <
+		class VarPredicate,
+		class LeafFunc>
+	OndriksMTBDD Project(
+		VarPredicate             pred,
+		LeafFunc                 leafFunc) const
+	{
+		throw NotImplementedException(__func__);
+	}
+
+
+	/**
+	 * @brief  Rename variables
+	 *
+	 * This method renames the variables of the MTBDD according to the renaming
+	 * functor given in @p renamer.
+	 *
+	 * @param[in,out]  renamer  A functor that renames the variables
+	 *
+	 * @returns  An MTBDD with renamed variables
+	 *
+	 * @note  The @p renamer must respect the ordering of variables. That is, for
+	 *        all x, y, if x < y, then it must hold that renamer(x) < renamer(y)
+	 */
+	template <
+		class RenamingF>
+	OndriksMTBDD Rename(
+		RenamingF                renamer) const
+	{
+		throw NotImplementedException(__func__);
 	}
 
 
