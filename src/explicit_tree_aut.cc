@@ -17,6 +17,7 @@
 
 using VATA::AutBase;
 using VATA::ExplicitTreeAut;
+using VATA::Util::AutDescription;
 
 
 ExplicitTreeAut::Iterator::Iterator(const Iterator& iter) :
@@ -495,6 +496,35 @@ std::string ExplicitTreeAut::DumpToString(
 	assert(nullptr != core_);
 
 	return core_->DumpToString(serializer, stateTransl, params);
+}
+
+
+AutDescription ExplicitTreeAut::DumpToAutDesc(
+	const std::string&                        params) const
+{
+	assert(nullptr != core_);
+
+	return core_->DumpToAutDesc(params);
+}
+
+
+AutDescription ExplicitTreeAut::DumpToAutDesc(
+	const StateDict&                          stateDict,
+	const std::string&                        params) const
+{
+	assert(nullptr != core_);
+
+	return core_->DumpToAutDesc(stateDict, params);
+}
+
+
+AutDescription ExplicitTreeAut::DumpToAutDesc(
+	const StateBackTranslStrict&           stateTransl,
+	const std::string&                     params) const
+{
+	assert(nullptr != core_);
+
+	return core_->DumpToAutDesc(stateTransl, params);
 }
 
 

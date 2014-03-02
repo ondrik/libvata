@@ -511,6 +511,20 @@ public:   // methods
 		const std::string&                        params = "") const;
 
 
+	AutDescription DumpToAutDesc(
+		const std::string&                        params = "") const;
+
+
+	AutDescription DumpToAutDesc(
+		const StateDict&                          stateDict,
+		const std::string&                        params = "") const;
+
+
+	AutDescription DumpToAutDesc(
+		const StateBackTranslStrict&              stateTransl,
+		const std::string&                        params = "") const;
+
+
 	iterator begin();
 	iterator end();
 	const_iterator begin() const;
