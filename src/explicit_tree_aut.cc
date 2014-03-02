@@ -675,6 +675,15 @@ ExplicitTreeAut ExplicitTreeAut::Reduce() const
 }
 
 
+ExplicitTreeAut ExplicitTreeAut::TranslateSymbols(
+	AbstractSymbolTranslateF&       transl) const
+{
+	assert(nullptr != core_);
+
+	return ExplicitTreeAut(core_->TranslateSymbols(transl));
+}
+
+
 std::string ExplicitTreeAut::ToString(const Transition& trans) const
 {
 	assert(nullptr != core_);

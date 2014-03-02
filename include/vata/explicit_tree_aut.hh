@@ -189,6 +189,17 @@ public:   // public data types
 		}
 	};
 
+	/**
+	 * @brief  Base class for translation of symbols
+	 *
+	 * This is the base class for functors translating symbols, see @fn TranslateSymbols.
+	 */
+	class AbstractSymbolTranslateF
+	{
+	public:
+		virtual SymbolType operator()(const SymbolType&) = 0;
+	};
+
 	using AlphabetType = std::shared_ptr<AbstractAlphabet>;
 
 	class Iterator
@@ -722,6 +733,20 @@ public:   // methods
 	{
 		throw NotImplementedException(__func__);
 	}
+
+
+	/**
+	 * @brief  Translates all symbols according to a translator
+	 *
+	 * This method translates symbols of all transitions according to the @p
+	 * transl functor passed to the method. The changed automaton is returned.
+	 *
+	 * @param[in,out]  transl  The functor for the translation
+	 *
+	 * @returns  The automaton with symbols in transitions changed
+	 */
+	ExplicitTreeAut TranslateSymbols(
+		AbstractSymbolTranslateF&       transl) const;
 
 	std::string ToString(const Transition& trans) const;
 };
