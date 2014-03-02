@@ -533,8 +533,7 @@ protected:// methods
 
 	template <
 		class StateBackTranslFunc>
-	std::string dumpToStringInternal(
-		VATA::Serialization::AbstrSerializer&    serializer,
+	AutDescription dumpToAutDescInternal(
 		StateBackTranslFunc                      stateBackTransl,
 		const AlphabetType&                      alphabet,
 		const std::string&                       params = "") const
@@ -549,7 +548,7 @@ protected:// methods
 			desc = dumpToAutDescExplicit(stateBackTransl, alphabet);
 		}
 
-		return serializer.Serialize(desc);
+		return desc;
 	}
 
 

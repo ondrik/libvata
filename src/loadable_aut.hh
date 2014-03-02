@@ -153,9 +153,8 @@ public:   // public methods
 		const std::string&                         params = "") const
 	{
 		VATA::Serialization::TimbukSerializer serializer;
-		return this->DumpToString(
-			serializer,
-			params);
+		return serializer.Serialize(this->DumpToAutDesc(
+			params));
 	}
 
 
@@ -163,10 +162,8 @@ public:   // public methods
 		VATA::Serialization::AbstrSerializer&      serializer,
 		const std::string&                         params = "") const
 	{
-		return this->DumpToString(
-			serializer,
-			[](const StateType& state){return Convert::ToString(state);},
-			params);
+		return serializer.Serialize(this->DumpToAutDesc(
+			params));
 	}
 
 
@@ -175,10 +172,9 @@ public:   // public methods
 		const StateDict&                           stateDict,
 		const std::string&                         params = "") const
 	{
-		return this->DumpToString(
-			serializer,
-			StateBackTranslStrict(stateDict.GetReverseMap()),
-			params);
+		return serializer.Serialize(this->DumpToAutDesc(
+			stateDict,
+			params));
 	}
 
 
@@ -189,8 +185,47 @@ public:   // public methods
 		StateBackTranslFunc                      stateBackTransl,
 		const std::string&                       params = "") const
 	{
-		return this->dumpToStringInternal(
-			serializer,
+		return serializer.Serialize(this->DumpToAutDesc(
+			stateBackTransl,
+			params));
+	}
+
+
+	AutDescription DumpToAutDesc(
+		const std::string&                         params = "") const
+	{
+		return this->DumpToAutDesc(
+			params);
+	}
+
+
+	AutDescription DumpToAutDesc(
+		VATA::Serialization::AbstrSerializer&      serializer,
+		const std::string&                         params = "") const
+	{
+		return this->DumpToAutDesc(
+			[](const StateType& state){return Convert::ToString(state);},
+			params);
+	}
+
+
+	AutDescription DumpToAutDesc(
+		const StateDict&                           stateDict,
+		const std::string&                         params = "") const
+	{
+		return this->DumpToAutDesc(
+			StateBackTranslStrict(stateDict.GetReverseMap()),
+			params);
+	}
+
+
+	template <
+		class StateBackTranslFunc>
+	AutDescription DumpToAutDesc(
+		StateBackTranslFunc                      stateBackTransl,
+		const std::string&                       params = "") const
+	{
+		return this->dumpToAutDescInternal(
 			stateBackTransl,
 			this->GetAlphabet(),
 			params);
