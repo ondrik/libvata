@@ -1090,6 +1090,24 @@ public:   // methods
 	ExplicitTreeAutCore Reduce() const;
 
 
+	template <
+		class SymbolTranslateF>
+	ExplicitTreeAutCore TranslateSymbols(
+		SymbolTranslateF&                     symbTransl) const
+	{
+		// copy the environment from this
+		ExplicitTreeAutCore aut(*this, false, true);
+		for (const Transition& trans : *this)
+		{
+			aut.AddTransition(
+				trans.GetChildren(),
+				symbTransl(trans.GetSymbol()),
+				trans.GetParent());
+		}
+
+		return aut;
+	}
+
 	std::string ToString(const Transition& trans) const;
 };
 
