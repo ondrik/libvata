@@ -510,8 +510,22 @@ public:   // methods
 		AlphabetType&                 alphabet = globalAlphabet_);
 
 
+	/**
+	 * @brief  Selective copy constructor
+	 *
+	 * This copy constructor copies the whole automaton @p aut, starting from the
+	 * @e environment (the alphabet and tuple cache), and optionally also the
+	 * transitions (if @p copyTrans  is @p true) and final states (if @p
+	 * copyFinal is @p true).
+	 *
+	 * @param[in]  aut        The automaton to be copied
+	 * @param[in]  copyTrans  Copy the transitions?
+	 * @param[in]  copyFinal  Copy the final states?
+	 */
 	ExplicitTreeAutCore(
-		const ExplicitTreeAutCore&    aut);
+		const ExplicitTreeAutCore&    aut,
+		bool                          copyTrans = true,
+		bool                          copyFinal = true);
 
 
 	ExplicitTreeAutCore(

@@ -211,12 +211,28 @@ ExplicitTreeAutCore::ExplicitTreeAutCore(
 
 
 ExplicitTreeAutCore::ExplicitTreeAutCore(
-	const ExplicitTreeAutCore&    aut) :
+	const ExplicitTreeAutCore&    aut,
+	bool                          copyTrans,
+	bool                          copyFinal) :
 	cache_(aut.cache_),
-	finalStates_(aut.finalStates_),
-	transitions_(aut.transitions_),
+	finalStates_(),
+	transitions_(),
 	alphabet_(aut.alphabet_)
-{ }
+{
+	if (copyTrans)
+	{
+		transitions_ = aut.transitions_;
+	}
+	else
+	{
+		transitions_ = StateToTransitionClusterMapPtr(new StateToTransitionClusterMap());
+	}
+
+	if (copyFinal)
+	{
+		finalStates_ = aut.finalStates_;
+	}
+}
 
 
 ExplicitTreeAutCore::ExplicitTreeAutCore(
