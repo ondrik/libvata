@@ -316,4 +316,75 @@ BOOST_AUTO_TEST_CASE(inherited_alphabet_type)
 	}
 }
 
+BOOST_AUTO_TEST_CASE(translate_symbols)
+{
+	class SymbolTranslPlus42 : public VATA::ExplicitTreeAut::AbstractSymbolTranslateF
+	{
+		virtual SymbolType operator()(const SymbolType& sym) override
+		{
+			return 42 + sym;
+		}
+	};
+
+	auto testfileContent = ParseTestFile(LOAD_TIMBUK_FILE.string());
+
+	for (auto testcase : testfileContent)
+	{
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 1, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
+
+		std::string filename = (AUT_DIR / testcase[0]).string();
+		BOOST_MESSAGE("Checking TranslateSymbols on automaton " + filename + "...");
+		std::string autStr = VATA::Util::ReadFile(filename);
+
+		StateDict stateDict;
+		AutType aut;
+		readAut(aut, stateDict, autStr);
+
+		// now let's change to the DirectAlphabet alphabet
+		AutType::AlphabetType directAlph(new AutType::DirectAlphabet);
+		aut.SetAlphabet(directAlph);
+
+		// do the translation
+		SymbolTranslPlus42 symbolTransl;
+		AutType translAut = aut.TranslateSymbols(symbolTransl);
+
+		// get the AutDescription of the translated automaton
+		AutDescription descTransl = translAut.DumpToAutDesc(stateDict);
+
+		AutDescription descManual;
+		for (const Transition& trans : aut)
+		{
+			descManual.states.insert(stateDict.TranslateBwd(trans.GetParent()));
+
+			AutDescription::StateTuple tuple;
+			for (const StateType& state : trans.GetChildren())
+			{
+				descManual.states.insert(stateDict.TranslateBwd(state));
+				tuple.push_back(stateDict.TranslateBwd(state));
+			}
+
+			descManual.symbols.insert(AutDescription::Symbol(
+				Convert::ToString(42 + trans.GetSymbol()),
+				trans.GetChildren().size()));
+
+			descManual.transitions.insert(AutDescription::Transition(
+				tuple,
+				Convert::ToString(42 + trans.GetSymbol()),
+				stateDict.TranslateBwd(trans.GetParent())));
+		}
+
+		for (const StateType& finState : aut.GetFinalStates())
+		{
+			descManual.finalStates.insert(stateDict.TranslateBwd(finState));
+			descManual.states.insert(stateDict.TranslateBwd(finState));
+		}
+
+		BOOST_CHECK_MESSAGE(descManual == descTransl,
+			std::string("\n\nInvalid output.") + "\n\nExpected:\n===========\n" +
+			TimbukSerializer().Serialize(descManual) + "\nGot:\n===========\n" +
+			TimbukSerializer().Serialize(descTransl) + "\n===========");
+	}
+}
+
 BOOST_AUTO_TEST_SUITE_END()
