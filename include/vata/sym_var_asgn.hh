@@ -270,7 +270,7 @@ public:   // Public methods
 	 * @brief  Returns all assignments of given variables
 	 *
 	 * This static class method returns all assignments for all variables with
-	 * index lvoer than te parameter.
+	 * index lower than the parameter.
 	 *
 	 * @param[in]  variablesCount  Index denoting that all variables with smaller
 	 *                             index should be assigned.

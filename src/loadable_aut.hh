@@ -195,15 +195,6 @@ public:   // public methods
 		const std::string&                         params = "") const
 	{
 		return this->DumpToAutDesc(
-			params);
-	}
-
-
-	AutDescription DumpToAutDesc(
-		VATA::Serialization::AbstrSerializer&      serializer,
-		const std::string&                         params = "") const
-	{
-		return this->DumpToAutDesc(
 			[](const StateType& state){return Convert::ToString(state);},
 			params);
 	}
