@@ -126,6 +126,9 @@ public:   // public data types
 
 		virtual FwdTranslatorPtr GetSymbolTransl() = 0;
 		virtual BwdTranslatorPtr GetSymbolBackTransl() = 0;
+
+		virtual ~AbstractAlphabet()
+		{ }
 	};
 
 
@@ -154,6 +157,9 @@ public:   // public data types
 
 			return BwdTranslatorPtr(bwdTransl);
 		}
+
+		virtual ~OnTheFlyAlphabet() override
+		{ }
 	};
 
 	class DirectAlphabet : public AbstractAlphabet
@@ -187,6 +193,9 @@ public:   // public data types
 		{
 			return BwdTranslatorPtr(new DirectBackTranslator);
 		}
+
+		virtual ~DirectAlphabet() override
+		{ }
 	};
 
 	/**
@@ -198,6 +207,9 @@ public:   // public data types
 	{
 	public:
 		virtual SymbolType operator()(const SymbolType&) = 0;
+
+		virtual ~AbstractSymbolTranslateF()
+		{ }
 	};
 
 	using AlphabetType = std::shared_ptr<AbstractAlphabet>;
