@@ -438,7 +438,20 @@ public:   // methods
 	BDDBUTreeAutCore RemoveUselessStates() const;
 
 
-	BDDBUTreeAutCore RemoveUnreachableStates() const;
+	/**
+	 * @brief  Removes bottom-up unreachable states of the automaton
+	 *
+	 * Removes bottom-up unreachable states of the automaton. If @p
+	 * reachableStates is provided, the bottom-up reachable states are collected
+	 * into this container.
+	 *
+	 * @param[out]  reachableStates  Container for bottom-up reachable states (or
+	 *                               @p nullptr)
+	 *
+	 * @returns  The copy of the automaton without bottom-up unreachable states
+	 */
+	BDDBUTreeAutCore RemoveUnreachableStates(
+		StateHT*               reachableStates = nullptr) const;
 
 
 	static BDDBUTreeAutCore Union(

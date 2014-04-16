@@ -203,11 +203,12 @@ BDDBottomUpTreeAut BDDBottomUpTreeAut::RemoveUselessStates() const
 }
 
 
-BDDBottomUpTreeAut BDDBottomUpTreeAut::RemoveUnreachableStates() const
+BDDBottomUpTreeAut BDDBottomUpTreeAut::RemoveUnreachableStates(
+	StateHT*                       reachableStates) const
 {
 	assert(nullptr != core_);
 
-	return BDDBottomUpTreeAut(core_->RemoveUnreachableStates());
+	return BDDBottomUpTreeAut(core_->RemoveUnreachableStates(reachableStates));
 }
 
 

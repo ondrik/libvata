@@ -66,11 +66,21 @@ public:   // methods
 } // namespace
 
 
-BDDBUTreeAutCore BDDBUTreeAutCore::RemoveUnreachableStates() const
+BDDBUTreeAutCore BDDBUTreeAutCore::RemoveUnreachableStates(
+	StateHT*                   reachableStates) const
 {
 	BDDBUTreeAutCore result;
 
-	StateHT reachable;
+	StateHT* reachable = nullptr;
+	if (nullptr != reachableStates)
+	{
+		reachable = reachableStates;
+	}
+	else
+	{
+		reachable = new StateHT;
+	}
+
 	StateHT workset;
 
 	TupleHT tuples;
@@ -82,7 +92,7 @@ BDDBUTreeAutCore BDDBUTreeAutCore::RemoveUnreachableStates() const
 
 	tuples.erase(StateTuple());
 
-	ReachableCollectorFctor reachFunc(reachable, workset);
+	ReachableCollectorFctor reachFunc(*reachable, workset);
 
 	const TransMTBDD& nullaryBdd = this->GetMtbdd(StateTuple());
 	reachFunc(nullaryBdd);
@@ -103,7 +113,7 @@ BDDBUTreeAutCore BDDBUTreeAutCore::RemoveUnreachableStates() const
 				size_t i;
 				for (i = 0; i < tuple.size(); ++i)
 				{
-					if (reachable.find(tuple[i]) == reachable.end())
+					if (reachable->find(tuple[i]) == reachable->end())
 					{
 						break;
 					}
@@ -131,10 +141,16 @@ BDDBUTreeAutCore BDDBUTreeAutCore::RemoveUnreachableStates() const
 
 	for (const StateType& fst : this->GetFinalStates())
 	{
-		if (reachable.find(fst) != reachable.end())
+		if (reachable->find(fst) != reachable->end())
 		{
 			result.SetStateFinal(fst);
 		}
+	}
+
+
+	if (nullptr == reachableStates)
+	{
+		delete reachable;
 	}
 
 	return result;
