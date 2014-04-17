@@ -485,6 +485,24 @@ public:   // public methods
 		return result + "}";
 	}
 
+
+	/**
+	 * @brief  Retrieve a sub-MTBDD for a prefix
+	 *
+	 * Given an assignment @p asgn and an @p offset, this method returns a
+	 * sub-MTBDD that corresponds to a DAG rooted at a node that is reachable
+	 * using @p asgn from the root of @p this. @p offset determines the highest
+	 * number of a Boolean variable that will be in the resulting MTBDD (so it
+	 * cuts of all Boolean variables with higher numbers than this).
+	 *
+	 * @note  There may be more than one MTBDD corresponding to a prefix; the
+	 *        lowest one (accessible via '0's) is returned in such a case
+	 *
+	 * @param[in]  asgn      The prefix
+	 * @param[in]  offset    The number of Boolean variables to keep
+	 *
+	 * @returns  An MTBDD under the prefix given by @p asgn
+	 */
 	OndriksMTBDD GetMtbddForPrefix(
 		const SymbolicVarAsgn&           asgn,
 		const size_t&                    offset) const
