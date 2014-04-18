@@ -162,6 +162,10 @@ public:   // methods
 	std::string DumpToDot() const;
 
 
+	uintptr_t GetTransMTBDDForTuple(
+		const StateTuple&        children) const;
+
+
 	/**
 	 * @brief  Checks inclusion using default parameters
 	 *

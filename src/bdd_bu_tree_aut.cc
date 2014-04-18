@@ -163,6 +163,16 @@ void BDDBottomUpTreeAut::LoadFromString(
 }
 
 
+uintptr_t BDDBottomUpTreeAut::GetTransMTBDDForTuple(
+	const StateTuple&        children) const
+{
+	assert(nullptr != core_);
+
+	const CoreAut::TransMTBDD& mtbdd = core_->GetMtbdd(children);
+	uintptr_t res = reinterpret_cast<uintptr_t>(&mtbdd);
+	return res;
+}
+
 void BDDBottomUpTreeAut::LoadFromAutDesc(
 	const AutDescription&         desc,
 	StateDict&                    stateDict,
