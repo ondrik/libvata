@@ -16,7 +16,7 @@ CFLAGS=-std=c++0x \
 	-g
 
 
-INCLUDE=-I../include
+INCLUDE=-I../include -I../src/mtbdd
 
 LIBS_ADD=-L../build/src
 
