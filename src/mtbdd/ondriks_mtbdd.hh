@@ -401,12 +401,15 @@ private:  // private methods
 
 		assert(!IsNull(result));
 
-		lowTree = GetLowFromInternal(result);
-		highTree = GetHighFromInternal(result);
+		if (IsInternal(result))
+		{	// check some invariants
+			lowTree = GetLowFromInternal(result);
+			highTree = GetHighFromInternal(result);
 
-		assert(result != lowTree);
-		assert(result != highTree);
-		assert(lowTree != highTree);
+			assert(result != lowTree);
+			assert(result != highTree);
+			assert(lowTree != highTree);
+		}
 
 		return result;
 	}

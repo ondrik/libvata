@@ -130,6 +130,21 @@ const char* const STANDARD_TEST_CASES_PROJECTION_X1_RESULT[] =
 const unsigned STANDARD_TEST_CASES_PROJECTION_X1_RESULT_SIZE =
 	sizeof(STANDARD_TEST_CASES_PROJECTION_X1_RESULT) / sizeof(const char* const);
 
+/**
+ * Formulae for standard test cases with all variables projected
+ */
+const char* const STANDARD_TEST_CASES_PROJECTION_ALL_RESULT[] =
+{
+	" = 45"
+};
+
+
+/**
+ * Number of formulae for standard test cases all projection result
+ */
+const unsigned STANDARD_TEST_CASES_PROJECTION_ALL_RESULT_SIZE =
+	sizeof(STANDARD_TEST_CASES_PROJECTION_ALL_RESULT) / sizeof(const char* const);
+
 
 /**
  * Formulae for standard test cases with 'x'es renamed to 'y's
@@ -842,6 +857,30 @@ BOOST_AUTO_TEST_CASE(projection)
 		for (size_t i = 0; i < STANDARD_TEST_CASES_PROJECTION_X1_RESULT_SIZE; ++i)
 		{	// load test cases
 			projectionResult.push_back(STANDARD_TEST_CASES_PROJECTION_X1_RESULT[i]);
+		}
+
+		for (const std::string& projRes : projectionResult)
+		{	// check the result
+			// BOOST_TEST_MESSAGE("Finding stored " + projRes);
+			FormulaParser::ParserResultUnsignedType prsRes =
+				FormulaParser::ParseExpressionUnsigned(projRes);
+			DataType leafValue = static_cast<DataType>(prsRes.first);
+			VarAsgn asgn = varListToAsgn(prsRes.second);
+
+			BOOST_CHECK_MESSAGE(projBdd.GetValue(asgn) == leafValue,
+				projRes + " != " + Convert::ToString(projBdd.GetValue(asgn)));
+		}
+	}
+
+	{
+		MTBDD projBdd = bdd.Project([this](size_t var){return true;}, blackAdder);
+		// BOOST_TEST_MESSAGE("dot before proj:\n" + MTBDD::DumpToDot(std::vector<const MTBDD*>({&bdd})));
+		// BOOST_TEST_MESSAGE("dot after proj:\n" + MTBDD::DumpToDot(std::vector<const MTBDD*>({&projBdd})));
+
+		ListOfTestCasesType projectionResult;
+		for (size_t i = 0; i < STANDARD_TEST_CASES_PROJECTION_ALL_RESULT_SIZE; ++i)
+		{	// load test cases
+			projectionResult.push_back(STANDARD_TEST_CASES_PROJECTION_ALL_RESULT[i]);
 		}
 
 		for (const std::string& projRes : projectionResult)
