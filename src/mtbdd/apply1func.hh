@@ -68,7 +68,7 @@ private:  // Private data types
 	//boost::hash is implemented by calling the function hash_value. The
 	//namespace isn't specified so that it can detect overloads via argument
 	//dependant lookup. So if there is a free function hash_value in the same
-	//namespace as a custom type, it will get called. 
+	//namespace as a custom type, it will get called.
 
 	typedef std::unordered_map<CacheAddressType, NodeOutPtrType,
 		boost::hash<CacheAddressType>> CacheHashTable;
@@ -91,6 +91,7 @@ private:  // Private methods
 		// Assertions
 		assert(!IsNull(node1));
 
+		// TODO: optimize
 		if (IsLeaf(node1))
 		{	// for the terminal case
 			CacheAddressType cacheAddress(node1);

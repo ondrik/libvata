@@ -282,6 +282,7 @@ private:  // private methods
 		}
 	}
 
+	// TODO: optimize
 	static inline NodePtrType spawnLeaf(const DataType& data)
 	{
 		NodePtrType result = 0;
@@ -301,6 +302,7 @@ private:  // private methods
 		return result;
 	}
 
+	// TODO: optimize
 	static inline NodePtrType spawnInternal(
 		NodePtrType low, NodePtrType high, const VarType& var)
 	{
@@ -338,8 +340,9 @@ private:  // private methods
 
 		if (IsLeaf(ptr))
 		{
+			DataType data = GetDataFromLeaf(ptr);
 			return Convert::ToString(ptr) + " [label = \"" +
-				Convert::ToString(GetDataFromLeaf(ptr)) + "\"]" + "\n";
+				Convert::ToString(data) + "\"]" + "\n";
 		}
 		else
 		{
@@ -353,6 +356,61 @@ private:  // private methods
 				mtbddNodeToDotString(GetHighFromInternal(ptr), cache);
 		}
 	}
+
+	template <
+		class VarPredicate,
+		class ApplyFunc>
+	static NodePtrType projectNode(
+		const NodePtrType             node,
+		VarPredicate                  pred,
+		ApplyFunc&                    applyFunc,
+		const DataType&               defaultValue)
+	{
+		assert(!IsNull(node));
+
+		if (IsLeaf(node))
+		{
+			return OndriksMTBDD::spawnLeaf(GetDataFromLeaf(node));
+		}
+
+		VarType var = GetVarFromInternal(node);
+		NodePtrType lowTree = GetLowFromInternal(node);
+		NodePtrType highTree = GetHighFromInternal(node);
+
+		assert(lowTree != highTree);
+		assert(node != lowTree);
+		assert(node != highTree);
+
+		lowTree = projectNode(lowTree, pred, applyFunc, defaultValue);
+		highTree = projectNode(highTree, pred, applyFunc, defaultValue);
+		assert(!IsNull(lowTree) && !IsNull(highTree));
+
+		NodePtrType result(reinterpret_cast<const uintptr_t>(nullptr));
+		if (pred(var))
+		{	// if the node is to be removed
+			result = applyFunc(lowTree, highTree);
+		}
+		else if (lowTree == highTree)
+		{
+			result = lowTree;
+		}
+		else
+		{
+			result = OndriksMTBDD::spawnInternal(lowTree, highTree, var);
+		}
+
+		assert(!IsNull(result));
+
+		lowTree = GetLowFromInternal(result);
+		highTree = GetHighFromInternal(result);
+
+		assert(result != lowTree);
+		assert(result != highTree);
+		assert(lowTree != highTree);
+
+		return result;
+	}
+
 
 public:   // public methods
 
@@ -541,19 +599,26 @@ public:   // public methods
 	 * children are combined using a binary apply operation that performs the @p
 	 * leafFunc function on the leaves.
 	 *
-	 * @param[in]  pred      The predicate that denotes the nodes to be removed
-	 * @param[in]  leafFunc  The function to be performed on the leaves
+	 * @param[in]  pred       The predicate that denotes the nodes to be removed
+	 * @param[in]  applyFunc  The apply functor to apply on children of a node
+	 *                        projected out
 	 *
-	 * @returns  An MTBDD that corresponds to the projection given by the input parameters
+	 * @returns  An MTBDD that corresponds to the projection given by the input
+	 *           parameters
 	 */
 	template <
 		class VarPredicate,
-		class LeafFunc>
+		class ApplyFunc>
 	OndriksMTBDD Project(
 		VarPredicate             pred,
-		LeafFunc                 leafFunc) const
+		ApplyFunc&               applyFunc) const
 	{
-		throw NotImplementedException(__func__);
+		assert(!IsNull(this->getRoot()));
+
+		NodePtrType newRoot = OndriksMTBDD::projectNode(
+			this->getRoot(), pred, applyFunc, this->GetDefaultValue());
+		IncrementRefCnt(newRoot);
+		return OndriksMTBDD(newRoot, this->GetDefaultValue());
 	}
 
 

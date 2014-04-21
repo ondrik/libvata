@@ -175,6 +175,22 @@ public:   // Public methods
 		ht()
 	{ }
 
+	NodeOutPtrType operator()(const Node1PtrType& node1, const Node2PtrType& node2)
+	{
+		assert(!IsNull(node1));
+		assert(!IsNull(node2));
+
+		// clear the MTBDDs
+		mtbdd1_ = nullptr;
+		mtbdd2_ = nullptr;
+
+		// clear the cache
+		ht.clear();
+
+		// recursively descend the nodes and generate a new one
+		return recDescend(node1, node2);
+	}
+
 	MTBDDOutType operator()(const MTBDD1Type& mtbdd1, const MTBDD2Type& mtbdd2)
 	{
 		// store the MTBDDs

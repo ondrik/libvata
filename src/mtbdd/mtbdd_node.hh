@@ -55,7 +55,7 @@ namespace VATA
  * or to a leaf node. Methods of this structure are optimised so that they can
  * be inlined thus yielding minimum overhead.
  *
- * @li  Internal nodes contain left and right child pointers and a variable. 
+ * @li  Internal nodes contain left and right child pointers and a variable.
  *
  * @li  Leaf nodes contain value of the given data type.
  *
@@ -418,7 +418,7 @@ public:
 	 * This function determines whether the passed node pointer points to @p
 	 * NULL.
 	 *
-	 * @param[in]  node  Node pointer 
+	 * @param[in]  node  Node pointer
 	 *
 	 * @tparam NodePtrType  Type of node pointer
 	 */
@@ -430,7 +430,7 @@ public:
 	 *
 	 * This function determines whether the node is a leaf node of an MTBDD.
 	 *
-	 * @param[in]  node  Pointer to the node to be checked 
+	 * @param[in]  node  Pointer to the node to be checked
 	 *
 	 * @return  @p true if @p node is a leaf, @p false otherwise
 	 *
@@ -445,7 +445,7 @@ public:
 	 * This function determines whether the node is an interanal node of an
 	 * MTBDD.
 	 *
-	 * @param[in]  node  Pointer to the node to be checked 
+	 * @param[in]  node  Pointer to the node to be checked
 	 *
 	 * @return  @p true if @p node is an internal node, @p false otherwise
 	 *
@@ -541,7 +541,23 @@ public:
 	 * @tparam  NodePtrType  Type of node pointer
 	 */
 	template <typename NodePtrType>
-	friend const typename NodePtrType::VarType& GetLeafRefCnt(
+	friend const typename NodePtrType::RefCntType& GetLeafRefCnt(
+		const NodePtrType node);
+
+	/**
+	 * @brief  Gets the reference counter (for arbitrary node)
+	 *
+	 * Retrieves the value of the reference counter of an arbitrary node (either
+	 * internal or leaf) pointed to by given pointer.
+	 *
+	 * @param[in]  node  Pointer to the node
+	 *
+	 * @return  The value of the reference counter
+	 *
+	 * @tparam  NodePtrType  Type of node pointer
+	 */
+	template <typename NodePtrType>
+	friend const typename NodePtrType::RefCntType& GetRefCnt(
 		const NodePtrType node);
 
 	/**
@@ -1009,7 +1025,7 @@ namespace VATA
 			typedef MTBDDNodePtr<DataType> NodePtrType;
 			typedef typename NodePtrType::LeafType LeafType;
 
-			// TODO: create allocator						
+			// TODO: create allocator
 			LeafType* newNode = new LeafType(data, 0);
 
 			return NodePtrType::makeLeaf(newNode);
@@ -1050,7 +1066,7 @@ namespace VATA
 
 
 		template <typename NodePtrType>
-		inline const typename NodePtrType::VarType& GetLeafRefCnt(
+		inline const typename NodePtrType::RefCntType& GetLeafRefCnt(
 			const NodePtrType node)
 		{
 			// Assertions
@@ -1058,6 +1074,24 @@ namespace VATA
 			assert(IsLeaf(node));
 
 			return NodePtrType::nodeToLeaf(node)->GetRefCnt();
+		}
+
+
+		template <typename NodePtrType>
+		inline const typename NodePtrType::RefCntType& GetRefCnt(
+			const NodePtrType node)
+		{
+			// Assertions
+			assert(!IsNull(node));
+
+			if (IsLeaf(node))
+			{
+				return NodePtrType::nodeToLeaf(node)->GetRefCnt();
+			}
+			else
+			{	// for internal nodes
+				return NodePtrType::nodeToInternal(node)->GetRefCnt();
+			}
 		}
 
 
