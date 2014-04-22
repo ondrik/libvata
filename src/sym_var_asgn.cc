@@ -65,6 +65,9 @@ void SymbolicVarAsgn::getAllSymbols(
 			getAllSymbols(var, vec, pos + 1);
 			var.SetIthVariableValue(pos, ONE);
 			getAllSymbols(var, vec, pos + 1);
+
+			// return to the original value
+			var.SetIthVariableValue(pos, DONT_CARE);
 		}
 		else
 		{
