@@ -445,14 +445,14 @@ private:  // private methods
 		NodePtrType result = OndriksMTBDD::spawnInternal(lowTree, highTree, newVar);
 		assert(!IsNull(result));
 
-		if (IsInternal(result))
+		if (IsInternal(lowTree))
 		{	// check some invariants
-			lowTree = GetLowFromInternal(result);
-			highTree = GetHighFromInternal(result);
+			assert(GetVarFromInternal(lowTree) < newVar);
+		}
 
-			assert(result != lowTree);
-			assert(result != highTree);
-			assert(lowTree != highTree);
+		if (IsInternal(highTree))
+		{
+			assert(GetVarFromInternal(highTree) < newVar);
 		}
 
 		return result;
