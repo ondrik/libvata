@@ -898,151 +898,58 @@ BOOST_AUTO_TEST_CASE(projection)
 }
 
 
-// BOOST_AUTO_TEST_CASE(renaming)
-// {
-// 	// load test cases
-// 	ListOfTestCasesType testCases;
-// 	ListOfTestCasesType failedCases;
-// 	loadStandardTests(testCases, failedCases);
-//
-// 	MTBDD bdd = createMTBDDForTestCases(testCases);
-// 	MTBDD renamedBdd = bdd.Rename(
-// 		[this]
-// 		(size_t var){
-// 			if (this->translateVarNameToIndex("x1") == var)
-// 			{
-// 				return this->translateVarNameToIndex("y1");
-// 			}
-// 			else if (this->translateVarNameToIndex("x2") == var)
-// 			{
-// 				return this->translateVarNameToIndex("y2");
-// 			}
-// 			else if (this->translateVarNameToIndex("x3") == var)
-// 			{
-// 				return this->translateVarNameToIndex("y3");
-// 			}
-// 			else if (this->translateVarNameToIndex("x4") == var)
-// 			{
-// 				return this->translateVarNameToIndex("y4");
-// 			}
-// 			else
-// 			{
-// 				assert(false);
-// 			}
-// 		});
-//
-// 	ListOfTestCasesType renamingResult;
-// 	for (size_t i = 0; i < STANDARD_TEST_CASES_RENAMING_X_TO_Y_RESULT_SIZE; ++i)
-// 	{	// load test cases
-// 		renamingResult.push_back(STANDARD_TEST_CASES_RENAMING_X_TO_Y_RESULT[i]);
-// 	}
-//
-// 	for (const std::string& renRes : renamingResult)
-// 	{	// check the result
-// 		#if DEBUG
-// 			BOOST_TEST_MESSAGE("Finding stored " + renRes);
-// 		#endif
-// 		FormulaParser::ParserResultUnsignedType prsRes =
-// 			FormulaParser::ParseExpressionUnsigned(renRes);
-// 		DataType leafValue = static_cast<DataType>(prsRes.first);
-// 		VarAsgn asgn = varListToAsgn(prsRes.second);
-//
-// 		BOOST_CHECK_MESSAGE(renamedBdd.GetValue(asgn) == leafValue,
-// 			renRes + " != " + Convert::ToString(renamedBdd.GetValue(asgn)));
-// 	}
-// }
+BOOST_AUTO_TEST_CASE(renaming)
+{
+	// load test cases
+	ListOfTestCasesType testCases;
+	ListOfTestCasesType failedCases;
+	loadStandardTests(testCases, failedCases);
 
+	MTBDD bdd = createMTBDDForTestCases(testCases);
+	MTBDD renamedBdd = bdd.Rename(
+		[this]
+		(size_t var){
+			if (this->translateVarNameToIndex("x0") == var)
+			{
+				return this->translateVarNameToIndex("y0");
+			}
+			else if (this->translateVarNameToIndex("x1") == var)
+			{
+				return this->translateVarNameToIndex("y1");
+			}
+			else if (this->translateVarNameToIndex("x2") == var)
+			{
+				return this->translateVarNameToIndex("y2");
+			}
+			else if (this->translateVarNameToIndex("x3") == var)
+			{
+				return this->translateVarNameToIndex("y3");
+			}
+			else
+			{
+				assert(false);
+			}
+		});
 
+	ListOfTestCasesType renamingResult;
+	for (size_t i = 0; i < STANDARD_TEST_CASES_RENAMING_X_TO_Y_RESULT_SIZE; ++i)
+	{	// load test cases
+		renamingResult.push_back(STANDARD_TEST_CASES_RENAMING_X_TO_Y_RESULT[i]);
+	}
 
+	for (const std::string& renRes : renamingResult)
+	{	// check the result
+		#if DEBUG
+			BOOST_TEST_MESSAGE("Finding stored " + renRes);
+		#endif
+		FormulaParser::ParserResultUnsignedType prsRes =
+			FormulaParser::ParseExpressionUnsigned(renRes);
+		DataType leafValue = static_cast<DataType>(prsRes.first);
+		VarAsgn asgn = varListToAsgn(prsRes.second);
 
-// BOOST_AUTO_TEST_CASE(variable_trimming)
-// {
-// 	ASMTBDDCC* bdd = new CuddMTBDDCC();
-// 	bdd->SetBottomValue(0);
-//
-// 	for (unsigned i = 0; i < NUM_VARIABLES; ++i)
-// 	{	// fill the table of variables
-// 		translateVarNameToIndex("x" + Convert::ToString(i));
-// 	}
-//
-// 	// load test cases
-// 	ListOfTestCasesType testCases;
-// 	ListOfTestCasesType failedCases;
-// 	loadStandardTests(testCases, failedCases);
-//
-// 	RootType root = createMTBDDForTestCases(bdd, testCases);
-//
-// 	class OddVariablePredicateFunctorType
-// 		: public ASMTBDDCC::AbstractVariablePredicateFunctorType
-// 	{
-// 	public:
-//
-// 		virtual bool operator()(const ASMTBDDCC::VariableType& var)
-// 		{
-// 			return var % 2 == 0;
-// 		}
-// 	};
-//
-// 	OddVariablePredicateFunctorType oddPred;
-//
-// 	class AdditionApplyFunctorType: public ASMTBDDCC::AbstractApplyFunctorType
-// 	{
-// 	public:
-// 		virtual LeafType operator()(const LeafType& lhs, const LeafType& rhs)
-// 		{
-// 			return lhs + rhs;
-// 		}
-// 	};
-//
-// 	AdditionApplyFunctorType addApply;
-//
-// 	RootType trimmedRoot = bdd->TrimVariables(root, &oddPred, &addApply);
-//
-// 	ListOfTestCasesType trimmedTestCases;
-// 	// formulae that we wish to check
-// 	for (size_t i = 0; i < TRIMMED_STANDARD_TEST_CASES_SIZE; ++i)
-// 	{	// load test cases
-// 		trimmedTestCases.push_back(TRIMMED_STANDARD_TEST_CASES[i]);
-// 	}
-//
-// 	for (ListOfTestCasesType::const_iterator itTests = trimmedTestCases.begin();
-// 		itTests != trimmedTestCases.end(); ++itTests)
-// 	{	// test that the test cases have been stored properly
-// #if DEBUG
-// 		BOOST_TEST_MESSAGE("Finding stored " + *itTests);
-// #endif
-// 		FormulaParser::ParserResultUnsignedType prsRes =
-// 			FormulaParser::ParseExpressionUnsigned(*itTests);
-// 		LeafType leafValue = static_cast<LeafType>(prsRes.first);
-// 		VariableAssignment asgn = varListToAsgn(prsRes.second);
-//
-// 		ASMTBDDCC::LeafContainer res;
-// 		res.push_back(&leafValue);
-//
-// 		BOOST_CHECK_MESSAGE(
-// 			compareTwoLeafContainers(bdd->GetValue(trimmedRoot, asgn), res), *itTests
-// 			+ " != " + leafContainerToString(bdd->GetValue(trimmedRoot, asgn)));
-// 	}
-// 	delete bdd;
-// }
-
-//BOOST_AUTO_TEST_CASE(serialization)
-//{
-//	ASMTBDDCC* bdd = new CuddMTBDDCC();
-//
-//	// load test cases
-//	ListOfTestCasesType testCases;
-//	ListOfTestCasesType failedCases;
-//	loadStandardTests(testCases, failedCases);
-//
-//	RootType root = createMTBDDForTestCases(bdd, testCases);
-//
-//	std::string str = bdd->Serialize();
-//
-//	BOOST_TEST_MESSAGE("BDD:\n" + str);
-//
-//	delete bdd;
-//}
+		BOOST_CHECK_MESSAGE(renamedBdd.GetValue(asgn) == leafValue,
+			renRes + " != " + Convert::ToString(renamedBdd.GetValue(asgn)));
+	}
+}
 
 BOOST_AUTO_TEST_SUITE_END()
-

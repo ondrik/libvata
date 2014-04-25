@@ -415,6 +415,50 @@ private:  // private methods
 	}
 
 
+	template <
+		class RenameFunc>
+	static NodePtrType renameNode(
+		const NodePtrType             node,
+		RenameFunc&                   renamer)
+	{
+		assert(!IsNull(node));
+
+		if (IsLeaf(node))
+		{
+			return OndriksMTBDD::spawnLeaf(GetDataFromLeaf(node));
+		}
+
+		VarType var = GetVarFromInternal(node);
+		NodePtrType lowTree = GetLowFromInternal(node);
+		NodePtrType highTree = GetHighFromInternal(node);
+
+		assert(lowTree != highTree);
+		assert(node != lowTree);
+		assert(node != highTree);
+
+		lowTree = renameNode(lowTree, renamer);
+		highTree = renameNode(highTree, renamer);
+		assert(!IsNull(lowTree) && !IsNull(highTree));
+		assert(lowTree != highTree);
+
+		VarType newVar = renamer(var);
+		NodePtrType result = OndriksMTBDD::spawnInternal(lowTree, highTree, newVar);
+		assert(!IsNull(result));
+
+		if (IsInternal(result))
+		{	// check some invariants
+			lowTree = GetLowFromInternal(result);
+			highTree = GetHighFromInternal(result);
+
+			assert(result != lowTree);
+			assert(result != highTree);
+			assert(lowTree != highTree);
+		}
+
+		return result;
+	}
+
+
 public:   // public methods
 
 
@@ -635,15 +679,21 @@ public:   // public methods
 	 *
 	 * @returns  An MTBDD with renamed variables
 	 *
-	 * @note  The @p renamer must respect the ordering of variables. That is, for
-	 *        all x, y, if x < y, then it must hold that renamer(x) < renamer(y)
+	 * @note  The @p renamer must respect the ordering of ALL variables. That is,
+	 *        for all x, y, if x < y, then it must hold that renamer(x) <
+	 *        renamer(y)
 	 */
 	template <
 		class RenamingF>
 	OndriksMTBDD Rename(
 		RenamingF                renamer) const
 	{
-		throw NotImplementedException(__func__);
+		assert(!IsNull(this->getRoot()));
+
+		NodePtrType newRoot = OndriksMTBDD::renameNode(
+			this->getRoot(), renamer);
+		IncrementRefCnt(newRoot);
+		return OndriksMTBDD(newRoot, this->GetDefaultValue());
 	}
 
 
