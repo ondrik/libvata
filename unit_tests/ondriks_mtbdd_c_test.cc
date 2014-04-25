@@ -952,4 +952,19 @@ BOOST_AUTO_TEST_CASE(renaming)
 	}
 }
 
+
+BOOST_AUTO_TEST_CASE(equality)
+{
+	// load test cases
+	ListOfTestCasesType testCases;
+	ListOfTestCasesType failedCases;
+	loadStandardTests(testCases, failedCases);
+
+	MTBDD bdd1 = createMTBDDForTestCases(testCases);
+	MTBDD bdd2 = createMTBDDForTestCases(testCases);
+
+	BOOST_CHECK_MESSAGE(bdd1 == bdd2, "BDDs are not equal!");
+}
+
+
 BOOST_AUTO_TEST_SUITE_END()

@@ -530,6 +530,19 @@ public:   // public methods
 		return defaultValue_;
 	}
 
+	bool operator==(const OndriksMTBDD& rhs) const
+	{
+		assert(!IsNull(this->getRoot()));
+		assert(!IsNull(rhs.getRoot()));
+
+		return this->getRoot() == rhs.getRoot();
+	}
+
+	bool operator!=(const OndriksMTBDD& rhs) const
+	{
+		return !(this->operator==(rhs));
+	}
+
 	OndriksMTBDD ExtendWith(
 		const SymbolicVarAsgn&         asgn,
 		const size_t&                  offset) const
