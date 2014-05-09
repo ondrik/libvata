@@ -981,43 +981,35 @@ public:   // methods
 		return res;
 	}
 
+	//
+	// simulation computation
+	//
+
 	AutBase::StateBinaryRelation ComputeSimulation(
 		const VATA::SimParam&          params) const;
+
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		const SimParam&          params) const;
+
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		size_t            size) const;
 
 	template <class Index>
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
 		size_t            size,
 		const Index&      index) const;
 
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		size_t            size) const;
 
-
-	template <class Index>
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		size_t                   size,
-		const Index&             index) const
-	{
-		std::vector<std::vector<size_t>> partition;
-
-		AutBase::StateBinaryRelation relation;
-
-		return TranslateUpward(
-			*this, partition, relation, Util::Identity(size), index
-		).computeSimulation(partition, relation, size);
-	}
-
+		const SimParam&          params) const;
 
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
 		size_t             size) const;
 
-
+	template <class Index>
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const SimParam&          params) const;
-
-
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const SimParam&          params) const;
+		size_t                   size,
+		const Index&             index) const;
 
 
 	static ExplicitTreeAutCore Union(
@@ -1036,6 +1028,7 @@ public:   // methods
 		const ExplicitTreeAutCore&           lhs,
 		const ExplicitTreeAutCore&           rhs,
 		VATA::AutBase::ProductTranslMap*     pTranslMap = nullptr);
+
 
 	ExplicitTreeAutCore GetCandidateTree() const;
 
