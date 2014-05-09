@@ -48,7 +48,7 @@ namespace VATA
 bool VATA::ExplicitFiniteAutCore::CheckInclusion(
 	const VATA::ExplicitFiniteAutCore&    smaller,
 	const VATA::ExplicitFiniteAutCore&    bigger,
-	const VATA::InclParam&												params)
+	const VATA::InclParam&                params)
 {
 	VATA::ExplicitFiniteAutCore newSmaller;
 	VATA::ExplicitFiniteAutCore newBigger;

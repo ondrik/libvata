@@ -588,24 +588,24 @@ public:   // methods
 	 * function just prepares translators.
 	 */
 	static ExplicitFiniteAutCore Union(
-		const ExplicitFiniteAutCore& lhs,
-		const ExplicitFiniteAutCore& rhs,
-		AutBase::StateToStateMap* pTranslMapLhs = nullptr,
-		AutBase::StateToStateMap* pTranslMapRhs = nullptr);
+		const ExplicitFiniteAutCore&        lhs,
+		const ExplicitFiniteAutCore&        rhs,
+		AutBase::StateToStateMap*           pTranslMapLhs = nullptr,
+		AutBase::StateToStateMap*           pTranslMapRhs = nullptr);
 
 	static ExplicitFiniteAutCore UnionDisjointStates(
-		const ExplicitFiniteAutCore& lhs,
-		const ExplicitFiniteAutCore& rhs);
+		const ExplicitFiniteAutCore&        lhs,
+		const ExplicitFiniteAutCore&        rhs);
 
 	static VATA::ExplicitFiniteAutCore Intersection(
-			const VATA::ExplicitFiniteAutCore &lhs,
-			const VATA::ExplicitFiniteAutCore &rhs,
-			AutBase::ProductTranslMap* pTranslMap = nullptr);
+		const ExplicitFiniteAutCore&        lhs,
+		const ExplicitFiniteAutCore&        rhs,
+		AutBase::ProductTranslMap*          pTranslMap = nullptr);
 
 	static bool CheckInclusion(
-		const VATA::ExplicitFiniteAutCore&    smaller,
-		const VATA::ExplicitFiniteAutCore&    bigger,
-		const VATA::InclParam&                params);
+		const ExplicitFiniteAutCore&        smaller,
+		const ExplicitFiniteAutCore&        bigger,
+		const InclParam&                    params);
 
 	// Checking inclusion
 	template<class Rel, class Functor>

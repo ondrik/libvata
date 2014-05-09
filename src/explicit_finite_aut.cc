@@ -230,6 +230,7 @@ std::string ExplicitFiniteAut::DumpToString(
 	const std::string&                        params) const
 {
 	assert(nullptr != core_);
+
 	return core_->DumpToString(serializer, stateTransl, params);
 }
 
@@ -239,6 +240,7 @@ std::string ExplicitFiniteAut::DumpToString(
 	const std::string&                        params) const
 {
 	assert(nullptr != core_);
+
 	return core_->DumpToString(serializer, stateDict, params);
 }
 
@@ -247,6 +249,7 @@ std::string ExplicitFiniteAut::DumpToString(
 	const std::string&                        params) const
 {
 	assert(nullptr != core_);
+
 	return core_->DumpToString(serializer, params);
 }
 
@@ -254,6 +257,7 @@ ExplicitFiniteAut ExplicitFiniteAut::RemoveUnreachableStates(
 	VATA::AutBase::StateToStateMap*   pTranslMap)
 {
 	assert(nullptr != core_);
+
 	return ExplicitFiniteAut(core_->RemoveUnreachableStates(pTranslMap));
 }
 
@@ -261,12 +265,14 @@ ExplicitFiniteAut ExplicitFiniteAut::RemoveUselessStates(
 	VATA::AutBase::StateToStateMap*   pTranslMap)
 {
 	assert(nullptr != core_);
+
 	return ExplicitFiniteAut(core_->RemoveUselessStates(pTranslMap));
 }
 
 ExplicitFiniteAut ExplicitFiniteAut::GetCandidateTree() const
 {
 	assert(nullptr != core_);
+
 	return ExplicitFiniteAut(core_->GetCandidateTree());
 }
 
@@ -282,15 +288,16 @@ VATA::ExplicitLTS ExplicitFiniteAut::Translate(
 }
 
 ExplicitFiniteAut ExplicitFiniteAut::Union(
-		const ExplicitFiniteAut&        lhs,
-		const ExplicitFiniteAut&        rhs,
-		AutBase::StateToStateMap*       pTranslMapLhs,
-		AutBase::StateToStateMap*       pTranslMapRhs)
+	const ExplicitFiniteAut&          lhs,
+	const ExplicitFiniteAut&          rhs,
+	AutBase::StateToStateMap*         pTranslMapLhs,
+	AutBase::StateToStateMap*         pTranslMapRhs)
 {
 	assert(nullptr != lhs.core_);
 	assert(nullptr != rhs.core_);
+
 	return ExplicitFiniteAut(CoreAut::Union(
-			*lhs.core_,*rhs.core_,pTranslMapLhs,pTranslMapRhs));
+		*lhs.core_,*rhs.core_,pTranslMapLhs,pTranslMapRhs));
 }
 
 ExplicitFiniteAut ExplicitFiniteAut::UnionDisjointStates(
@@ -299,36 +306,40 @@ ExplicitFiniteAut ExplicitFiniteAut::UnionDisjointStates(
 {
 	assert(nullptr != lhs.core_);
 	assert(nullptr != rhs.core_);
+
 	return ExplicitFiniteAut(CoreAut::UnionDisjointStates(
-			*lhs.core_,*rhs.core_));
+		*lhs.core_,*rhs.core_));
 }
 
 ExplicitFiniteAut ExplicitFiniteAut::Intersection(
-		const VATA::ExplicitFiniteAut   &lhs,
-		const VATA::ExplicitFiniteAut   &rhs,
-		AutBase::ProductTranslMap* pTranslMap)
+	const ExplicitFiniteAut&          lhs,
+	const ExplicitFiniteAut&          rhs,
+	AutBase::ProductTranslMap*        pTranslMap)
 {
 	assert(nullptr != lhs.core_);
 	assert(nullptr != rhs.core_);
+
 	return ExplicitFiniteAut(CoreAut::Intersection(
-				*lhs.core_,*rhs.core_,pTranslMap));
+		*lhs.core_,*rhs.core_,pTranslMap));
 }
 
 bool ExplicitFiniteAut::CheckInclusion(
-	const VATA::ExplicitFiniteAut&    smaller,
-	const VATA::ExplicitFiniteAut&    bigger,
-	const VATA::InclParam&						params)
+	const ExplicitFiniteAut&    smaller,
+	const ExplicitFiniteAut&    bigger,
+	const InclParam&						params)
 {
 	assert(nullptr != smaller.core_);
 	assert(nullptr != bigger.core_);
+
 	return CoreAut::CheckInclusion(
-				*smaller.core_,*bigger.core_,params);
+		*smaller.core_,*bigger.core_,params);
 }
 
 ExplicitFiniteAut ExplicitFiniteAut::Reverse(
 		AutBase::StateToStateMap* pTranslMap) const
 {
 	assert(nullptr != core_);
+
 	return ExplicitFiniteAut(core_->Reverse(pTranslMap));
 }
 
