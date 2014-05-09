@@ -632,10 +632,39 @@ public:   // methods
 		return Translate(partition, relation, index).computeSimulation(size);
 	}
 
-	AutBase::StateBinaryRelation ComputeSimulation(
-		const SimParam&      /*   params */)
+
+	AutBase::StateBinaryRelation ComputeForwardSimulation(
+		const SimParam&     /* params */) const
 	{
 		throw NotImplementedException(__func__);
+	}
+
+
+	AutBase::StateBinaryRelation ComputeBackwardSimulation(
+		const SimParam&     /* params */) const
+	{
+		throw NotImplementedException(__func__);
+	}
+
+
+	AutBase::StateBinaryRelation ComputeSimulation(
+		const SimParam&     params) const
+	{
+		switch (params.GetRelation())
+		{
+			case SimParam::e_sim_relation::FA_FORWARD:
+			{
+				return this->ComputeForwardSimulation(params);
+			}
+			case SimParam::e_sim_relation::FA_BACKWARD:
+			{
+				return this->ComputeBackwardSimulation(params);
+			}
+			default:
+			{
+				throw std::runtime_error("Unknown simulation parameters: " + params.toString());
+			}
+		}
 	}
 };
 #endif
