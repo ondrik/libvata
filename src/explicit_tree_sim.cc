@@ -21,34 +21,6 @@ using VATA::ExplicitTreeAutCore;
 using StateBinaryRelation  = AutBase::StateBinaryRelation;
 
 
-StateBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
-	const SimParam&          params) const
-{
-	if (params.GetNumStates() != static_cast<size_t>(-1))
-	{
-		return this->ComputeUpwardSimulation(params.GetNumStates());
-	}
-	else
-	{
-		throw NotImplementedException(__func__);
-	}
-}
-
-
-StateBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
-	const SimParam&          params) const
-{
-	if (params.GetNumStates() != static_cast<size_t>(-1))
-	{
-		return this->ComputeDownwardSimulation(params.GetNumStates());
-	}
-	else
-	{
-		throw NotImplementedException(__func__);
-	}
-}
-
-
 StateBinaryRelation ExplicitTreeAutCore::ComputeSimulation(
 	const VATA::SimParam&                  params) const
 {
@@ -69,9 +41,50 @@ StateBinaryRelation ExplicitTreeAutCore::ComputeSimulation(
 	}
 }
 
+
+StateBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
+	const SimParam&          params) const
+{
+	if (params.GetNumStates() != static_cast<size_t>(-1))
+	{
+		return this->ComputeUpwardSimulation(params.GetNumStates());
+	}
+	else
+	{
+		throw NotImplementedException(__func__);
+	}
+}
+
+
+AutBase::StateBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
+	size_t             size) const
+{
+	std::vector<std::vector<size_t>> partition;
+
+	AutBase::StateBinaryRelation relation;
+
+	return this->TranslateUpward(
+		partition, relation, Util::Identity(size)
+	).computeSimulation(partition, relation, size);
+}
+
+
+StateBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
+	const SimParam&          params) const
+{
+	if (params.GetNumStates() != static_cast<size_t>(-1))
+	{
+		return this->ComputeDownwardSimulation(params.GetNumStates());
+	}
+	else
+	{
+		throw NotImplementedException(__func__);
+	}
+}
+
+
 StateBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
 	size_t            size) const
 {
 	return this->TranslateDownward().computeSimulation(size);
 }
-

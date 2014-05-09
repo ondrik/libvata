@@ -317,19 +317,6 @@ ExplicitTreeAutCore ExplicitTreeAutCore::Reduce() const
 }
 
 
-AutBase::StateBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
-	size_t             size) const
-{
-	std::vector<std::vector<size_t>> partition;
-
-	AutBase::StateBinaryRelation relation;
-
-	return this->TranslateUpward(
-		partition, relation, Util::Identity(size)
-	).computeSimulation(partition, relation, size);
-}
-
-
 std::string ExplicitTreeAutCore::ToString(const Transition& trans) const
 {
 	std::ostringstream os;
