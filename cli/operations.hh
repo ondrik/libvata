@@ -223,6 +223,14 @@ VATA::AutBase::StateBinaryRelation ComputeSimulation(
 	{
 		sp.SetRelation(VATA::SimParam::e_sim_relation::TA_DOWNWARD);
 	}
+	else if (options["dir"] == "fwd")
+	{
+		sp.SetRelation(VATA::SimParam::e_sim_relation::FA_FORWARD);
+	}
+	else if (options["dir"] == "bwd")
+	{
+		sp.SetRelation(VATA::SimParam::e_sim_relation::FA_BACKWARD);
+	}
 	else
 	{
 		throw std::runtime_error("Invalid options for simulation: " +
