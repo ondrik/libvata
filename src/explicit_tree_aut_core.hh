@@ -1028,8 +1028,8 @@ public:   // methods
 
 
 	static ExplicitTreeAutCore UnionDisjointStates(
-		const ExplicitTreeAutCore&        lhs,
-		const ExplicitTreeAutCore&        rhs);
+		const ExplicitTreeAutCore&           lhs,
+		const ExplicitTreeAutCore&           rhs);
 
 
 	static ExplicitTreeAutCore Intersection(
@@ -1045,7 +1045,7 @@ public:   // methods
 
 
 	ExplicitTreeAutCore RemoveUselessStates(
-		StateToStateMap*            pTranslMap = nullptr) const;
+		StateToStateMap*                    pTranslMap = nullptr) const;
 
 
 	template <
@@ -1053,13 +1053,13 @@ public:   // methods
 		class Index
 	>
 	ExplicitTreeAutCore RemoveUnreachableStates(
-		const Rel&                                 rel,
-		const Index&                               index) const;
+		const Rel&                          rel,
+		const Index&                        index) const;
 
 
 	static bool CheckInclusion(
-		const ExplicitTreeAutCore&             smaller,
-		const ExplicitTreeAutCore&             bigger)
+		const ExplicitTreeAutCore&          smaller,
+		const ExplicitTreeAutCore&          bigger)
 	{
 		InclParam inclParam;
 		// TODO: set more sensible defaults
@@ -1069,22 +1069,22 @@ public:   // methods
 
 
 	static bool CheckInclusion(
-		const ExplicitTreeAutCore&             smaller,
-		const ExplicitTreeAutCore&             bigger,
-		const VATA::InclParam&                 params);
+		const ExplicitTreeAutCore&          smaller,
+		const ExplicitTreeAutCore&          bigger,
+		const VATA::InclParam&              params);
 
 
 	template <
 		class Dict,
 		class Rel>
 	ExplicitTreeAutCore ComplementWithPreorder(
-		const Dict&                            alphabet,
-		const Rel&                             preorder) const;
+		const Dict&                         alphabet,
+		const Rel&                          preorder) const;
 
 
 	template <class Dict>
 	ExplicitTreeAutCore Complement(
-		const Dict&                           alphabet) const;
+		const Dict&                         alphabet) const;
 
 
 	ExplicitTreeAutCore Reduce() const;
@@ -1093,7 +1093,7 @@ public:   // methods
 	template <
 		class SymbolTranslateF>
 	ExplicitTreeAutCore TranslateSymbols(
-		SymbolTranslateF&                     symbTransl) const
+		SymbolTranslateF&                   symbTransl) const
 	{
 		// copy the environment from this
 		ExplicitTreeAutCore aut(*this, false, true);
@@ -1108,7 +1108,8 @@ public:   // methods
 		return aut;
 	}
 
-	std::string ToString(const Transition& trans) const;
+	std::string ToString(
+		const Transition&                   trans) const;
 };
 
 #endif
