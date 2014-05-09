@@ -30,14 +30,14 @@ namespace VATA
 {
 	template<class Rel, class Functor>
 	bool CheckFiniteAutInclusion(
-		const ExplicitFiniteAutCore& smaller,
-		const ExplicitFiniteAutCore& bigger,
-		const Rel& preorder);
+		const ExplicitFiniteAutCore&   smaller,
+		const ExplicitFiniteAutCore&   bigger,
+		const Rel&                     preorder);
 
 	bool CheckEquivalence(
-		const ExplicitFiniteAutCore& smaller,
-		const ExplicitFiniteAutCore& bigger,
-		const InclParam&                  params);
+		const ExplicitFiniteAutCore&   smaller,
+		const ExplicitFiniteAutCore&   bigger,
+		const InclParam&               params);
 
 }
 

@@ -609,10 +609,10 @@ public:   // methods
 
 	// Checking inclusion
 	template<class Rel, class Functor>
-	static bool CheckFiniteAutInclusion (
-		const ExplicitFiniteAutCore& smaller,
-		const ExplicitFiniteAutCore& bigger,
-		const Rel& preorder);
+	static bool CheckFiniteAutInclusion(
+		const ExplicitFiniteAutCore&        smaller,
+		const ExplicitFiniteAutCore&        bigger,
+		const Rel&                          preorder);
 
 	ExplicitFiniteAutCore Reverse(
 			AutBase::StateToStateMap* pTranslMap = nullptr) const;
