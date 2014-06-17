@@ -491,9 +491,8 @@ public:   // methods
 
 	BDDTDTreeAutCore GetTopDownAut() const;
 
-	StateBinaryRelation ComputeSimulation(
-		const SimParam&                 params) const;
-
+	StateDiscontBinaryRelation ComputeSimulation(
+		const SimParam&                 /* params */) const;
 
 	StateBinaryRelation ComputeDownwardSimulation() const;
 

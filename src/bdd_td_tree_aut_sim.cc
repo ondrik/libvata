@@ -16,10 +16,10 @@
 using VATA::BDDTopDownTreeAut;
 using VATA::Util::Convert;
 
-typedef VATA::AutBase::StateBinaryRelation StateBinaryRelation;
+typedef VATA::AutBase::StateDiscontBinaryRelation StateDiscontBinaryRelation;
 
 
-StateBinaryRelation BDDTopDownTreeAut::ComputeSimulation(
+StateDiscontBinaryRelation BDDTopDownTreeAut::ComputeSimulation(
 	const SimParam&             /*  params */) const
 {
 	throw NotImplementedException(__func__);

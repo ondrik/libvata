@@ -25,9 +25,16 @@ namespace VATA
 	{
 		class BinaryRelation;
 		class Identity;
+		class DiscontBinaryRelation;
 	}
 }
 
+
+/**
+ * @brief  A binary relation address continuously
+ *
+ * A binary relation addressed from indices from 0 to @p size_ - 1
+ */
 class VATA::Util::BinaryRelation
 {
 	std::vector<bool> data_;
@@ -160,7 +167,7 @@ public:
 
 public:
 
-	typedef std::vector<std::vector<size_t>> IndexType;
+	using IndexType    = std::vector<std::vector<size_t>>;
 
 	BinaryRelation(
 		size_t         size = 0,
@@ -196,9 +203,9 @@ public:
 
 	// TODO: does this do what is expected? What is expected this should do???
 	// WHAT ABOUT SOME FREAKING DOCUMENTATION??????
-	bool sym(size_t r, size_t c) const
+	bool sym(size_t row, size_t column) const
 	{
-		return this->get(r, c) && this->get(c, r);
+		return this->get(row, column) && this->get(column, row);
 	}
 
 	// build equivalence classes
@@ -389,7 +396,7 @@ public:
 
 	typedef std::vector<std::vector<size_t>> IndexType;
 
-	explicit Identity(size_t size) :\
+	explicit Identity(size_t size) :
 		size_(size)
 	{ }
 
@@ -501,6 +508,82 @@ public:
 		}
 
 		return os;
+	}
+};
+
+/**
+ * @brief  A binary relation with discontinuous indexing
+ */
+class VATA::Util::DiscontBinaryRelation
+{
+public:   // data types
+
+	using IndexType    = BinaryRelation::IndexType;
+
+private:  // data members
+
+	/// The underlying binary relation, indexed from 0
+	BinaryRelation rel_;
+
+public:   // methods
+
+	/**
+	 * @brief  The constructor
+	 */
+	DiscontBinaryRelation(
+		size_t         size = 0,
+		bool           defVal = false,
+		size_t         rowSize = 16) :
+		rel_(size, defVal, rowSize)
+	{
+		assert(false);
+	}
+
+	/**
+	 * @brief  Output stream operator
+	 */
+	friend std::ostream& operator<<(
+		std::ostream&                     os,
+		const DiscontBinaryRelation&      rel)
+	{
+		for (size_t i = 0; i < rel.rel_.size(); ++i)
+		{
+			for (size_t j = 0; j < rel.rel_.size(); ++j)
+			{
+				os << rel.rel_.get(i, j);
+			}
+			os << std::endl;
+		}
+
+		return os;
+	}
+
+	void buildIndex(IndexType& dst) const
+	{
+		rel_.buildIndex(dst);
+	}
+
+	// relation index
+	void buildIndex(IndexType& ind, IndexType& inv) const
+	{
+		rel_.buildIndex(ind, inv);
+	}
+
+	bool get(size_t row, size_t column) const
+	{
+		// this should do a translation
+		assert(false);
+		return rel_.get(row, column);
+	}
+
+	void set(size_t row, size_t column, bool value)
+	{
+		rel_.set(row, column, value);
+	}
+
+	size_t size() const
+	{
+		return rel_.size();
 	}
 };
 

@@ -157,7 +157,7 @@ namespace VATA
 		/**
 		 * @brief  The simulation relation (if present)
 		 */
-		const AutBase::StateBinaryRelation* simulation_;
+		const AutBase::StateDiscontBinaryRelation* simulation_;
 
 	public:   // methods
 
@@ -266,13 +266,13 @@ namespace VATA
 			return flags_;
 		}
 
-		const AutBase::StateBinaryRelation& GetSimulation() const
+		const AutBase::StateDiscontBinaryRelation& GetSimulation() const
 		{
 			assert(nullptr != simulation_);
 			return *simulation_;
 		}
 
-		void SetSimulation(const AutBase::StateBinaryRelation* sim)
+		void SetSimulation(const AutBase::StateDiscontBinaryRelation* sim)
 		{
 			assert(nullptr != sim);
 			simulation_ = sim;

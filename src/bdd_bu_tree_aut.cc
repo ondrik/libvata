@@ -25,7 +25,7 @@ using VATA::Parsing::AbstrParser;
 using VATA::Util::AutDescription;
 using VATA::Util::Convert;
 
-using StateBinaryRelation = VATA::BDDBottomUpTreeAut::StateBinaryRelation;
+using StateDiscontBinaryRelation = VATA::BDDBottomUpTreeAut::StateDiscontBinaryRelation;
 
 
 BDDBottomUpTreeAut::BDDBottomUpTreeAut() :
@@ -212,7 +212,7 @@ BDDBottomUpTreeAut BDDBottomUpTreeAut::RemoveUnreachableStates(
 }
 
 
-StateBinaryRelation BDDBottomUpTreeAut::ComputeSimulation(
+StateDiscontBinaryRelation BDDBottomUpTreeAut::ComputeSimulation(
 	const SimParam&                 params) const
 {
 	assert(nullptr != core_);

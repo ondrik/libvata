@@ -162,7 +162,7 @@ int performOperation(
 	Aut autInput2;
 	Aut autResult;
 	bool boolResult = false;
-	VATA::AutBase::StateBinaryRelation relResult;
+	VATA::AutBase::StateDiscontBinaryRelation relResult;
 
 	StateDict stateDict1;
 	StateDict stateDict2;

@@ -33,6 +33,9 @@ namespace VATA
 			{
 				return this->operator()(value);
 			}
+
+			virtual ~AbstractTranslator()
+			{ }
 		};
 	}
 }

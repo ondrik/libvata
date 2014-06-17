@@ -252,7 +252,7 @@ public:   // methods
 	}
 
 
-	StateBinaryRelation ComputeSimulation(
+	StateDiscontBinaryRelation ComputeSimulation(
 		const VATA::SimParam&              params) const;
 };
 

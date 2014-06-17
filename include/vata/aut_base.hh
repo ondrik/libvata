@@ -82,6 +82,7 @@ public:   // data types
 		std::unordered_map<StatePair, StateType, boost::hash<StatePair>>;
 
 	using StateBinaryRelation = Util::BinaryRelation;
+	using StateDiscontBinaryRelation = Util::DiscontBinaryRelation;
 
 protected:// methods
 
@@ -288,6 +289,9 @@ public:   // data types
 		virtual FwdTranslatorPtr GetSymbolTransl() = 0;
 		virtual BwdTranslatorPtr GetSymbolBackTransl() = 0;
 		virtual SymbolDict& GetSymbolDict() = 0;
+
+		virtual ~AbstractAlphabet()
+		{ }
 	};
 
 
@@ -320,6 +324,26 @@ public:   // data types
 		virtual SymbolDict& GetSymbolDict() override
 		{
 			return symbolDict_;
+		}
+	};
+
+	class DirectAlphabet : public AbstractAlphabet
+	{
+	public:
+
+		virtual FwdTranslatorPtr GetSymbolTransl() override
+		{
+			throw NotImplementedException(__func__);
+		}
+
+		virtual BwdTranslatorPtr GetSymbolBackTransl() override
+		{
+			throw NotImplementedException(__func__);
+		}
+
+		virtual SymbolDict& GetSymbolDict() override
+		{
+			throw NotImplementedException(__func__);
 		}
 	};
 

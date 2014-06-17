@@ -85,10 +85,11 @@ bool VATA::ExplicitFiniteAutCore::CheckInclusion(
 		{
 			assert(static_cast<typename AutBase::StateType>(-1) == states);
 
-			typedef VATA::AutBase::StateBinaryRelation Rel;
+			typedef VATA::AutBase::StateDiscontBinaryRelation Rel;
 			typedef VATA::ExplicitFAStateSetComparatorSimulation<Rel> Comparator;
 			typedef VATA::ExplicitFAInclusionFunctorCache<Rel,Comparator> FunctorType;
 
+			// TODO: is it necessary to explicitly provide the template parameters?
 			return VATA::CheckFiniteAutInclusion<Rel,FunctorType>(smaller, bigger, params.GetSimulation());
 		}
 		case InclParam::CONGR_BREADTH_NOSIM:
@@ -119,7 +120,7 @@ bool VATA::ExplicitFiniteAutCore::CheckInclusion(
 		}
 		case InclParam::CONGR_DEPTH_SIM:
 		{
-			typedef VATA::AutBase::StateBinaryRelation Rel;
+			typedef VATA::AutBase::StateDiscontBinaryRelation Rel;
 			typedef typename VATA::ExplicitFiniteAutCore::StateSet StateSet;
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;
 			typedef VATA::ProductStateSetDepth<StateSet,ProductState> ProductSet;

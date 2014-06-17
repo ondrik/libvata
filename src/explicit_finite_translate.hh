@@ -13,22 +13,60 @@
 
 // VATA headers
 #include <vata/vata.hh>
-
-#include "explicit_finite_aut_core.hh"
-
 #include <vata/explicit_lts.hh>
 #include <vata/util/transl_weak.hh>
 
+#include "explicit_finite_aut_core.hh"
+
+
+template <class Index>
+VATA::ExplicitLTS VATA::ExplicitFiniteAutCore::TranslateToLTS(
+	const Index&        stateIndex) const
+{
+	std::unordered_map<SymbolType, size_t> symbolMap;
+
+	size_t symbolCnt = 0;
+	Util::TranslatorWeak2<std::unordered_map<SymbolType, size_t>>
+		symbolTranslator(symbolMap, [&symbolCnt](const SymbolType&){ return symbolCnt++; });
+
+	assert(nullptr != transitions_);
+
+	ExplicitLTS result;
+
+	// Iterates through all transitions and adds them to the LTS.
+	for (auto& stateClusterPair : *transitions_)
+	{
+		assert(nullptr != stateClusterPair.second);
+
+		StateType srcState = stateIndex[stateClusterPair.first];
+
+		for (auto& symbolStateSetPair : *stateClusterPair.second)
+		{
+			size_t symbol = symbolTranslator(symbolStateSetPair.first);
+
+			for (const StateType& dstStateRaw : symbolStateSetPair.second)
+			{
+				result.addTransition(srcState, symbol, stateIndex[dstStateRaw]);
+			}
+		}
+	}
+
+	result.init();
+
+	return result;
+}
+
+#if 0
 /*
  * Function translates given nfa to lts and
  * creates partition and set relation
  */
 template <class Index>
-VATA::ExplicitLTS VATA::ExplicitFiniteAutCore::Translate(
-	std::vector<std::vector<size_t>>& partition,
-	Util::BinaryRelation& relation,
-	const Index& stateIndex) {
-
+VATA::ExplicitLTS VATA::ExplicitFiniteAutCore::TranslateToLTS(
+	std::vector<std::vector<size_t>>&    partition,
+	Util::BinaryRelation&                relation,
+	const Index&                         stateIndex) const
+{
 	VATA::ExplicitLTS res;
 
 	std::unordered_map<SymbolType, size_t> symbolMap;
@@ -130,5 +168,6 @@ VATA::ExplicitLTS VATA::ExplicitFiniteAutCore::Translate(
 
 	return res;
 }
+#endif
 
 #endif

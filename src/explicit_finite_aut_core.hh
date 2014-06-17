@@ -42,13 +42,13 @@ GCC_DIAG_ON(effc++)
 
 	template <class SymbolType, class Dict>
 	friend ExplicitFiniteAutCore Complement(
-			const ExplicitFiniteAutCore &,
-			const Dict &);
+		const ExplicitFiniteAutCore &,
+		const Dict &);
 
 	friend bool CheckEquivalence(
-			 const ExplicitFiniteAutCore& smaller,
-			 const ExplicitFiniteAutCore& bigger,
-			 const InclParam& params);
+		const ExplicitFiniteAutCore& smaller,
+		const ExplicitFiniteAutCore& bigger,
+		const InclParam& params);
 
 	/*
 	 * Functors for inclusion checking functions
@@ -100,12 +100,8 @@ public:
 
 private: // private type definitions
 
-	typedef std::string string;
-
 	using Convert      = VATA::Util::Convert;
-
 	using AlphabetType = ExplicitFiniteAut::AlphabetType;
-
 	using StateSet     = ExplicitFiniteAut::StateSet;
 
 	typedef AutDescription::State State;
@@ -113,7 +109,7 @@ private: // private type definitions
 	typedef std::unordered_map<StateType,SymbolSet> StateToSymbols;
 
 	// The states on the right side of transitions
-	typedef StateSet RStateSet;
+	using RStateSet    = StateSet;
 
 	/*
 	 * Transition cluster maps symbol to set of states when
@@ -574,11 +570,10 @@ public:   // methods
 	}
 
 
-	template <class Index = Util::IdentityTranslator<AutBase::StateType>>
-	VATA::ExplicitLTS Translate(
-		std::vector<std::vector<size_t>>&     partition,
-		VATA::Util::BinaryRelation&           relation,
-		const Index&                          stateIndex = Index());
+	template <
+		class Index = Util::IdentityTranslator<StateType>>
+	VATA::ExplicitLTS TranslateToLTS(
+		const Index&                          stateIndex = Index()) const;
 
 
 	/*
@@ -615,56 +610,36 @@ public:   // methods
 		const Rel&                          preorder);
 
 	ExplicitFiniteAutCore Reverse(
-			AutBase::StateToStateMap* pTranslMap = nullptr) const;
+		AutBase::StateToStateMap* pTranslMap = nullptr) const;
 
 	/***************************************************
 	 * Simulation functions
 	 */
 public:   // methods
 
-	template <class Index>
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		size_t              size,
-		const Index&        index)
-	{
-		AutBase::StateBinaryRelation relation;
-		std::vector<std::vector<size_t>> partition(1);
-		return Translate(partition, relation, index).computeSimulation(size);
-	}
-
+	AutBase::StateDiscontBinaryRelation ComputeSimulation(
+		const SimParam&     params) const;
 
 	AutBase::StateBinaryRelation ComputeForwardSimulation(
-		const SimParam&     /* params */) const
-	{
-		throw NotImplementedException(__func__);
-	}
+		const SimParam&     params) const;
 
+	AutBase::StateBinaryRelation ComputeForwardSimulation(
+		size_t              size) const;
+
+	template <class Index>
+	AutBase::StateBinaryRelation ComputeForwardSimulation(
+		size_t              size,
+		const Index&        index);
 
 	AutBase::StateBinaryRelation ComputeBackwardSimulation(
-		const SimParam&     /* params */) const
-	{
-		throw NotImplementedException(__func__);
-	}
+		const SimParam&     params) const;
 
+	AutBase::StateBinaryRelation ComputeBackwardSimulation(
+		size_t              size) const;
 
-	AutBase::StateBinaryRelation ComputeSimulation(
-		const SimParam&     params) const
-	{
-		switch (params.GetRelation())
-		{
-			case SimParam::e_sim_relation::FA_FORWARD:
-			{
-				return this->ComputeForwardSimulation(params);
-			}
-			case SimParam::e_sim_relation::FA_BACKWARD:
-			{
-				return this->ComputeBackwardSimulation(params);
-			}
-			default:
-			{
-				throw std::runtime_error("Unknown simulation parameters: " + params.toString());
-			}
-		}
-	}
+	template <class Index>
+	AutBase::StateBinaryRelation ComputeBackwardSimulation(
+		size_t              size,
+		const Index&        index);
 };
 #endif

@@ -54,6 +54,9 @@ namespace VATA
 	{
 	public:
 		virtual VATA::AutBase::StateType operator[](const VATA::AutBase::StateType&) = 0;
+
+		virtual ~AbstractReindexF()
+		{ }
 	};
 }
 
@@ -110,6 +113,9 @@ public:   // public data types
 	{
 	public:
 		virtual bool operator()(const Transition&) = 0;
+
+		virtual ~AbstractCopyF()
+		{ }
 	};
 
 
@@ -729,13 +735,17 @@ public:   // methods
 	 * @brief  Computes the specified simulation relation on the automaton
 	 *
 	 * This method computes the simulation relation specified in the @p params
-	 * structure among the states of the automaton.
+	 * structure among the states of the automaton. The relation is output as a
+	 * matrix, indexed from 0. The mapping of indices of columns and rows to the
+	 * states of the automaton is output by the @p transl translator.
 	 *
 	 * @param[in]  params  Parameters specifying which simulation is to be computed.
+	 * @param[out] transl  Translator of the output matrix's row and column
+	 *                     numbers to states of the automaton
 	 *
-	 * @returns  The computed simulation relation
+	 * @returns  The computed simulation relation, as a matrix indexed from 0
 	 */
-	AutBase::StateBinaryRelation ComputeSimulation(
+	AutBase::StateDiscontBinaryRelation ComputeSimulation(
 		const VATA::SimParam&                  params) const;
 
 

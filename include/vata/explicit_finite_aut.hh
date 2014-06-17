@@ -68,6 +68,9 @@ public: // public data types
 
 		virtual FwdTranslatorPtr GetSymbolTransl() = 0;
 		virtual BwdTranslatorPtr GetSymbolBackTransl() = 0;
+
+		virtual ~AbstractAlphabet()
+		{ }
 	};
 
 	class OnTheFlyAlphabet : public AbstractAlphabet
@@ -263,7 +266,7 @@ public: // public methods
 		throw NotImplementedException(__func__);
 	}
 
-	AutBase::StateBinaryRelation ComputeSimulation(
+	AutBase::StateDiscontBinaryRelation ComputeSimulation(
 		const SimParam&            params) const;
 };
 

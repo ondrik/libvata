@@ -635,7 +635,7 @@ ExplicitTreeAut ExplicitTreeAut::Intersection(
 }
 
 
-AutBase::StateBinaryRelation ExplicitTreeAut::ComputeSimulation(
+AutBase::StateDiscontBinaryRelation ExplicitTreeAut::ComputeSimulation(
 	const VATA::SimParam&                  params) const
 {
 	assert(nullptr != core_);

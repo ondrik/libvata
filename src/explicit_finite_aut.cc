@@ -276,16 +276,16 @@ ExplicitFiniteAut ExplicitFiniteAut::GetCandidateTree() const
 	return ExplicitFiniteAut(core_->GetCandidateTree());
 }
 
-template <class Index>
-VATA::ExplicitLTS ExplicitFiniteAut::Translate(
-	std::vector<std::vector<size_t>>&     partition,
-	Util::BinaryRelation&                 relation,
-	const Index&                          stateIndex) const
-{
-	assert(nullptr != core_);
-
-	return core_->Translate(partition,relation,stateIndex);
-}
+// template <class Index>
+// VATA::ExplicitLTS ExplicitFiniteAut::TranslateToLTS(
+// 	std::vector<std::vector<size_t>>&     partition,
+// 	Util::BinaryRelation&                 relation,
+// 	const Index&                          stateIndex) const
+// {
+// 	assert(nullptr != core_);
+//
+// 	return core_->TranslateToLTS(partition,relation,stateIndex);
+// }
 
 ExplicitFiniteAut ExplicitFiniteAut::Union(
 	const ExplicitFiniteAut&          lhs,
@@ -343,7 +343,7 @@ ExplicitFiniteAut ExplicitFiniteAut::Reverse(
 	return ExplicitFiniteAut(core_->Reverse(pTranslMap));
 }
 
-AutBase::StateBinaryRelation ExplicitFiniteAut::ComputeSimulation(
+AutBase::StateDiscontBinaryRelation ExplicitFiniteAut::ComputeSimulation(
 	const SimParam&             params) const
 {
 	assert(nullptr != core_);

@@ -984,15 +984,20 @@ public:   // methods
 	//
 	// simulation computation
 	//
-
-	AutBase::StateBinaryRelation ComputeSimulation(
+	AutBase::StateDiscontBinaryRelation ComputeSimulation(
 		const VATA::SimParam&          params) const;
 
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const SimParam&          params) const;
+	AutBase::StateBinaryRelation ComputeSimulation(
+		const VATA::SimParam&          params,
+		StateToStateTranslStrict&      transl) const;
 
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		size_t            size) const;
+		const VATA::SimParam&          params,
+		StateToStateTranslStrict&      transl) const;
+
+	AutBase::StateBinaryRelation ComputeDownwardSimulation(
+		size_t                         size,
+		StateToStateTranslStrict&      transl) const;
 
 	template <class Index>
 	AutBase::StateBinaryRelation ComputeDownwardSimulation(
@@ -1001,10 +1006,12 @@ public:   // methods
 
 
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const SimParam&          params) const;
+		const VATA::SimParam&          params,
+		StateToStateTranslStrict&      transl) const;
 
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		size_t             size) const;
+		size_t                         size,
+		StateToStateTranslStrict&      transl) const;
 
 	template <class Index>
 	AutBase::StateBinaryRelation ComputeUpwardSimulation(
