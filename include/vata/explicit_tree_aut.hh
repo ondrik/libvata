@@ -363,7 +363,10 @@ private:  // data members
 public:   // methods
 
 	ExplicitTreeAut();
-	ExplicitTreeAut(const ExplicitTreeAut& aut);
+	ExplicitTreeAut(
+            const ExplicitTreeAut& aut,
+	        bool                   copyTrans = true,
+	        bool                   copyFinal = true);
 	ExplicitTreeAut(ExplicitTreeAut&& aut);
 
 	ExplicitTreeAut& operator=(const ExplicitTreeAut& rhs);
@@ -391,6 +394,8 @@ public:   // methods
 	 */
 	void SetStateFinal(const StateType& state);
 
+    void SetStatesFinal(const std::set<StateType>& states);
+
 	/**
 	 * @brief  Checks whether a state is accepting
 	 *
@@ -406,6 +411,8 @@ public:   // methods
 	 * @returns  The set of accepting states of the automaton
 	 */
 	const FinalStateSet& GetFinalStates() const;
+	
+    StateType GetFinalState() const;
 
 	/**
 	 * @brief  Clears the set of final states
@@ -453,7 +460,6 @@ public:   // methods
 
 	void AddTransition(
 		const Transition&         trans);
-
 
 	bool ContainsTransition(
 		const Transition&         trans) const;
@@ -666,7 +672,8 @@ public:   // methods
    */
 	static ExplicitTreeAut UnionDisjointStates(
 		const ExplicitTreeAut&           lhs,
-		const ExplicitTreeAut&           rhs);
+		const ExplicitTreeAut&           rhs,
+        bool                             copyFinal=true);
 
 
 	/**

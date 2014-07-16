@@ -142,8 +142,10 @@ ExplicitTreeAut::ExplicitTreeAut(
 
 
 ExplicitTreeAut::ExplicitTreeAut(
-	const ExplicitTreeAut&         aut) :
-	core_(new CoreAut(*aut.core_))
+	const ExplicitTreeAut&         aut,
+	bool                           copyTrans,
+	bool                           copyFinal) :
+	core_(new CoreAut(*aut.core_, copyTrans, copyFinal))
 { }
 
 
@@ -249,6 +251,12 @@ void ExplicitTreeAut::SetStateFinal(const StateType& state)
 	core_->SetStateFinal(state);
 }
 
+void ExplicitTreeAut::SetStatesFinal(const std::set<StateType>& states)
+{
+	assert(nullptr != core_);
+
+	core_->SetStatesFinal(states);
+}
 
 bool ExplicitTreeAut::IsStateFinal(const StateType& state) const
 {
@@ -262,6 +270,12 @@ const ExplicitTreeAut::FinalStateSet& ExplicitTreeAut::GetFinalStates() const
 	assert(nullptr != core_);
 
 	return core_->GetFinalStates();
+}
+
+ExplicitTreeAut::StateType ExplicitTreeAut::GetFinalState() const
+{
+	assert(nullptr != core_);
+	return core_->GetFinalState();
 }
 
 void ExplicitTreeAut::EraseFinalStates()
@@ -317,7 +331,6 @@ void ExplicitTreeAut::AddTransition(
 
 	core_->AddTransition(children, symbol, state);
 }
-
 
 ExplicitTreeAut::DownAccessor ExplicitTreeAut::operator[](
 	const StateType&           state) const
@@ -612,13 +625,14 @@ ExplicitTreeAut ExplicitTreeAut::Union(
 
 ExplicitTreeAut ExplicitTreeAut::UnionDisjointStates(
 	const ExplicitTreeAut&                lhs,
-	const ExplicitTreeAut&                rhs)
+	const ExplicitTreeAut&                rhs,
+    bool                                  copyFinal)
 {
 	assert(nullptr != lhs.core_);
 	assert(nullptr != rhs.core_);
 
 	return ExplicitTreeAut(
-		CoreAut::UnionDisjointStates(*lhs.core_, *rhs.core_));
+		CoreAut::UnionDisjointStates(*lhs.core_, *rhs.core_, copyFinal));
 }
 
 

@@ -548,16 +548,27 @@ public:   // methods
 	~ExplicitTreeAutCore()
 	{ }
 
-
 	const FinalStateSet& GetFinalStates() const
 	{
 		return finalStates_;
+	}
+
+	StateType GetFinalState() const
+	{
+        assert(finalStates_.size() == 1);
+		return *finalStates_.begin();
 	}
 
 	void SetStateFinal(
 		const StateType&          state)
 	{
 		finalStates_.insert(state);
+	}
+
+	void SetStatesFinal(
+        const std::set<StateType>&    states)
+	{
+		finalStates_.insert(states.begin(), states.end());
 	}
 
 	bool IsStateFinal(
@@ -640,7 +651,6 @@ public:   // methods
 
 		return false;
 	}
-
 
 	bool ContainsTransition(
 		const Transition&         trans)
@@ -1029,7 +1039,8 @@ public:   // methods
 
 	static ExplicitTreeAutCore UnionDisjointStates(
 		const ExplicitTreeAutCore&        lhs,
-		const ExplicitTreeAutCore&        rhs);
+		const ExplicitTreeAutCore&        rhs,
+        bool                              copyFinal=true);
 
 
 	static ExplicitTreeAutCore Intersection(

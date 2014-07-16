@@ -13,6 +13,7 @@ set(flex_bison_compiler_flags_list
   -Wfloat-equal
   -Wctor-dtor-privacy
   -Weffc++
+  -fPIC
   -Woverloaded-virtual
   -fdiagnostics-show-option
   -march=native
