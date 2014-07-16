@@ -10,34 +10,67 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_bu_tree_aut.hh>
-#include <vata/bdd_bu_tree_aut_op.hh>
-#include <vata/bdd_td_tree_aut_op.hh>
-#include <vata/tree_incl_up.hh>
+
+#include "bdd_bu_tree_aut_core.hh"
+#include "bdd_bu_tree_aut_incl.hh"
+
+#include "bdd_td_tree_aut_core.hh"
+
+#include "tree_incl_up.hh"
+#include "up_tree_incl_fctor.hh"
 
 using VATA::AutBase;
-using VATA::BDDBottomUpTreeAut;
-using VATA::BDDTopDownTreeAut;
+using VATA::BDDBUTreeAutCore;
+using VATA::BDDTDTreeAutCore;
 using VATA::Util::Convert;
 
-bool VATA::CheckDownwardInclusion(const BDDBottomUpTreeAut& smaller,
-	const BDDBottomUpTreeAut& bigger)
+
+bool BDDBUTreeAutCore::CheckInclusion(
+	const BDDBUTreeAutCore&     smaller,
+	const BDDBUTreeAutCore&     bigger,
+	const VATA::InclParam&      params)
 {
-	BDDTopDownTreeAut invSmaller = smaller.GetTopDownAut();
-	BDDTopDownTreeAut invBigger = bigger.GetTopDownAut();
+	BDDBUTreeAutCore newSmaller;
+	BDDBUTreeAutCore newBigger;
+	typename AutBase::StateType states = static_cast<typename AutBase::StateType>(-1);
 
-	return CheckDownwardInclusion(invSmaller, invBigger);
-}
+	if (InclParam::e_direction::downward == params.GetDirection())
+	{	// for the other direction translate the automaton to the top-down encoding
+		return BDDTDTreeAutCore::CheckInclusion(smaller.GetTopDownAut(), bigger.GetTopDownAut(), params);
+	}
 
-bool VATA::CheckUpwardInclusion(const BDDBottomUpTreeAut& smaller,
-	const BDDBottomUpTreeAut& bigger)
-{
-	BDDBottomUpTreeAut newSmaller = smaller;
-	BDDBottomUpTreeAut newBigger = bigger;
+	if (!params.GetUseSimulation())
+	{
+		newSmaller = smaller;
+		newBigger = bigger;
 
-	AutBase::StateType states =
-		AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
+		states = AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
+	}
 
-	return CheckUpwardInclusionWithPreorder(newSmaller, newBigger,
-		VATA::Util::Identity(states));
+	switch (params.GetOptions())
+	{
+		case InclParam::ANTICHAINS_UP_NOSIM:
+		{
+			assert(static_cast<typename AutBase::StateType>(-1) != states);
+
+			return CheckUpwardTreeInclusion<BDDBUTreeAutCore,
+				VATA::UpwardInclusionFunctor>(newSmaller, newBigger,
+					Util::Identity(states));
+		}
+
+		case InclParam::ANTICHAINS_UP_SIM:
+		{
+			assert(static_cast<typename AutBase::StateType>(-1) == states);
+
+			return CheckUpwardTreeInclusion<BDDBUTreeAutCore,
+				VATA::UpwardInclusionFunctor>(smaller, bigger,
+					params.GetSimulation());
+		}
+
+		default:
+		{
+			throw NotImplementedException("Inclusion:\n" +
+				params.toString());
+		}
+	}
 }

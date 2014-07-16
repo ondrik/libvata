@@ -4,9 +4,9 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 set(CMAKE_COLOR_MAKEFILE ON)
 #set(CMAKE_VERBOSE_MAKEFILE ON)
 
-set(REQUIRED_GCC_VERSION 4.6.0)
+set(REQUIRED_GCC_VERSION 4.8.0)
 
-set(GCC_ALTERNATIVES g++ g++-4.6)
+set(GCC_ALTERNATIVES g++ g++-4.8)
 
 # Uncomment to avoid dynamic linking of libraries
 #set(MAKE_STATIC_VATA ON)
@@ -36,13 +36,17 @@ if (NOT(GCC_VERSION VERSION_GREATER ${REQUIRED_GCC_VERSION}
   endforeach(GCC_CANDIDATE)
 
   if (NOT FOUND_COMPILER)
-    message(FATAL_ERROR "GCC Version >= ${REQUIRED_GCC_VERSION} required!")
+    message(FATAL_ERROR "GCC and G++ Version >= ${REQUIRED_GCC_VERSION} required!")
   endif()
 endif()
 
 # You can force the GCC version here
-#set(CMAKE_C_COMPILER "gcc-4.6")
-#set(CMAKE_CXX_COMPILER "g++-4.6")
+#set(CMAKE_C_COMPILER "gcc-4.8")
+#set(CMAKE_CXX_COMPILER "g++-4.8")
+
+# Uncomment for profiling with Callgrind
+#set(CMAKE_C_FLAGS_RELEASE  "${CMAKE_C_FLAGS_RELEASE} -g")
+#set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g")
 
 project(libvata)
 
@@ -51,24 +55,24 @@ include(CTest)
 
 # Necessary packages
 find_package(FLEX REQUIRED)
-find_package(BISON REQUIRED)
+find_package(BISON 3.0.0 REQUIRED)
 find_package(Doxygen REQUIRED)
 
 set(Boost_USE_MULTITHREADED OFF)
-find_package(Boost 1.42.0 COMPONENTS
+find_package(Boost 1.54.0 COMPONENTS
   filesystem
   system
   unit_test_framework
   REQUIRED)
 
-if (DOXYGEN_FOUND)
-  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
-    ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
-  add_custom_target(doc
-    ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
-    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-    COMMENT "Generating API documentation with Doxygen" VERBATIM)
-endif()
+#if (DOXYGEN_FOUND)
+#  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in
+#    ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
+#  add_custom_target(doc
+#    ${DOXYGEN_EXECUTABLE} ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile
+#    WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+#    COMMENT "Generating API documentation with Doxygen" VERBATIM)
+#endif()
 
 
 

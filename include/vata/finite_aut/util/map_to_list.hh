@@ -75,7 +75,7 @@ public:
 			return &map.find(k)->second;
 		}
 		else {
-			return NULL;
+			return nullptr;
 		}
 	}
 };

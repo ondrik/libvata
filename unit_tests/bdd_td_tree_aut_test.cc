@@ -11,7 +11,6 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_td_tree_aut.hh>
-#include <vata/bdd_td_tree_aut_op.hh>
 
 // testing headers
 #include "log_fixture.hh"
@@ -55,4 +54,3 @@ protected:// methods
 #include "tree_aut_test.hh"
 
 BOOST_AUTO_TEST_SUITE_END()
-

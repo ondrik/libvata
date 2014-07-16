@@ -11,79 +11,90 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_bu_tree_aut_op.hh>
+
+#include "bdd_bu_tree_aut_core.hh"
+#include "mtbdd/void_apply1func.hh"
 
 using VATA::AutBase;
-using VATA::BDDBottomUpTreeAut;
+using VATA::BDDBUTreeAutCore;
 using VATA::Util::Convert;
 
-typedef VATA::AutBase::StateType StateType;
-typedef VATA::BDDBottomUpTreeAut::StateSet StateSet;
-typedef VATA::BDDBottomUpTreeAut::StateHT StateHT;
-typedef VATA::BDDBottomUpTreeAut::StateTuple StateTuple;
-typedef VATA::BDDBottomUpTreeAut::TransMTBDD TransMTBDD;
+using StateType   = BDDBUTreeAutCore::StateType;
+using StateSet    = BDDBUTreeAutCore::StateSet;
+using StateHT     = BDDBUTreeAutCore::StateHT;
+using StateTuple  = BDDBUTreeAutCore::StateTuple;
+using TransMTBDD  = BDDBUTreeAutCore::TransMTBDD;
 
-typedef std::unordered_map<StateTuple, TransMTBDD, boost::hash<StateTuple>>
-	TupleHT;
+using TupleHT = std::unordered_map<StateTuple, TransMTBDD, boost::hash<StateTuple>>;
 
 
 namespace
+{	// anonymous namespace
+GCC_DIAG_OFF(effc++)
+class ReachableCollectorFctor : public VATA::MTBDDPkg::VoidApply1Functor<
+	ReachableCollectorFctor,
+	StateSet>
 {
-	GCC_DIAG_OFF(effc++)
-	class ReachableCollectorFctor :
-		public VATA::MTBDDPkg::VoidApply1Functor<ReachableCollectorFctor,
-		StateSet>
+GCC_DIAG_ON(effc++)
+
+private:  // data members
+
+	StateHT& reachable_;
+	StateHT& workset_;
+
+public:   // methods
+
+	ReachableCollectorFctor(StateHT& reachable, StateHT& workset) :
+		reachable_(reachable),
+		workset_(workset)
+	{ }
+
+	inline void ApplyOperation(const StateSet& value)
 	{
-	GCC_DIAG_ON(effc++)
-
-	private:  // data members
-
-		StateHT& reachable_;
-		StateHT& workset_;
-
-	public:   // methods
-
-		ReachableCollectorFctor(StateHT& reachable, StateHT& workset) :
-			reachable_(reachable),
-			workset_(workset)
-		{ }
-
-		inline void ApplyOperation(const StateSet& value)
+		for (const StateType& state : value)
 		{
-			for (const StateType& state : value)
-			{
-				if (reachable_.insert(state).second)
-				{	// if the value was inserted
-					if (!workset_.insert(state).second)
-					{	// if it is already in the workset
-						assert(false);     // fail gracefully
-					}
+			if (reachable_.insert(state).second)
+			{	// if the value was inserted
+				if (!workset_.insert(state).second)
+				{	// if it is already in the workset
+					assert(false);     // fail gracefully
 				}
 			}
 		}
-	};
-}
+	}
+};
+} // namespace
 
 
-BDDBottomUpTreeAut VATA::RemoveUnreachableStates(const BDDBottomUpTreeAut& aut)
+BDDBUTreeAutCore BDDBUTreeAutCore::RemoveUnreachableStates(
+	StateHT*                   reachableStates) const
 {
-	BDDBottomUpTreeAut result;
+	BDDBUTreeAutCore result;
 
-	StateHT reachable;
+	StateHT* reachable = nullptr;
+	if (nullptr != reachableStates)
+	{
+		reachable = reachableStates;
+	}
+	else
+	{
+		reachable = new StateHT;
+	}
+
 	StateHT workset;
 
 	TupleHT tuples;
 
-	for (auto tupleBddPair : aut.GetTransTable())
+	for (auto tupleBddPair : this->GetTransTable())
 	{
 		tuples.insert(tupleBddPair);
 	}
 
 	tuples.erase(StateTuple());
 
-	ReachableCollectorFctor reachFunc(reachable, workset);
+	ReachableCollectorFctor reachFunc(*reachable, workset);
 
-	const TransMTBDD& nullaryBdd = aut.GetMtbdd(StateTuple());
+	const TransMTBDD& nullaryBdd = this->GetMtbdd(StateTuple());
 	reachFunc(nullaryBdd);
 	result.SetMtbdd(StateTuple(), nullaryBdd);
 
@@ -102,7 +113,7 @@ BDDBottomUpTreeAut VATA::RemoveUnreachableStates(const BDDBottomUpTreeAut& aut)
 				size_t i;
 				for (i = 0; i < tuple.size(); ++i)
 				{
-					if (reachable.find(tuple[i]) == reachable.end())
+					if (reachable->find(tuple[i]) == reachable->end())
 					{
 						break;
 					}
@@ -128,12 +139,18 @@ BDDBottomUpTreeAut VATA::RemoveUnreachableStates(const BDDBottomUpTreeAut& aut)
 		}
 	}
 
-	for (const StateType& fst : aut.GetFinalStates())
+	for (const StateType& fst : this->GetFinalStates())
 	{
-		if (reachable.find(fst) != reachable.end())
+		if (reachable->find(fst) != reachable->end())
 		{
 			result.SetStateFinal(fst);
 		}
+	}
+
+
+	if (nullptr == reachableStates)
+	{
+		delete reachable;
 	}
 
 	return result;

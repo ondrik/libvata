@@ -15,6 +15,11 @@
 #include <stdexcept>
 #include <cstdlib>
 
+// to make open_memstream() work on the majority of systems
+#include "memstream.h"
+
+// to make fmemopen() work on the majority of systems
+#include "fmemopen.h"
 
 using VATA::Util::FakeFile;
 

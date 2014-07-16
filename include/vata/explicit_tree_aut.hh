@@ -4,7 +4,7 @@
  *  Copyright (c) 2011  Jiri Simacek <isimacek@fit.vutbr.cz>
  *
  *  Description:
- *    Header file for a explicitly represented tree automaton.
+ *    Header file for an explicitly represented tree automaton.
  *
  *****************************************************************************/
 
@@ -14,14 +14,15 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/aut_base.hh>
-#include <vata/explicit_lts.hh>
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
+#include <vata/incl_param.hh>
+#include <vata/sim_param.hh>
+
 #include <vata/util/ord_vector.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
-#include <vata/util/convert.hh>
-#include <vata/util/cache.hh>
+#include <vata/util/util.hh>
 
 // Standard library headers
 #include <cstdint>
@@ -29,98 +30,48 @@
 #include <unordered_set>
 #include <unordered_map>
 
-namespace VATA {
 
-	template <class Symbol> class ExplicitTreeAut;
+namespace VATA
+{
+	class ExplicitTreeAut;
 
-	struct Explicit {
+	template <
+		class>
+	class LoadableAut;
 
-		typedef AutBase::StateType StateType;
+	class ExplicitTreeAutCore;
 
-		typedef std::vector<StateType> StateTuple;
-		typedef std::shared_ptr<StateTuple> TuplePtr;
-		typedef std::set<StateTuple> TupleSet;
-		typedef std::unordered_set<StateType> StateSet;
+	namespace ExplicitTreeAutCoreUtil
+	{
+		class Iterator;
+		class AcceptTrans;
+	 	class AcceptTransIterator;
+		class DownAccessor;
+		class DownAccessorIterator;
+	}
 
-		typedef Util::Cache<StateTuple> TupleCache;
-
-		static TupleCache tupleCache;
-
+	class AbstractReindexF
+	{
+	public:
+		virtual VATA::AutBase::StateType operator[](const VATA::AutBase::StateType&) = 0;
 	};
-
 }
 
+
 GCC_DIAG_OFF(effc++)
-template <class Symbol>
-class VATA::ExplicitTreeAut : public AutBase {
+class VATA::ExplicitTreeAut : public TreeAutBase
+{
 GCC_DIAG_ON(effc++)
 
-	template <class SymbolType>
-	friend ExplicitTreeAut<SymbolType> Union(
-		const ExplicitTreeAut<SymbolType>&,
-		const ExplicitTreeAut<SymbolType>&,
-		AutBase::StateToStateMap*,
-		AutBase::StateToStateMap*);
+private:  // data types
 
-	template <class SymbolType>
-	friend ExplicitTreeAut<SymbolType> UnionDisjointStates(
-		const ExplicitTreeAut<SymbolType>&,
-		const ExplicitTreeAut<SymbolType>&);
-
-	template <class SymbolType>
-	friend ExplicitTreeAut<SymbolType> Intersection(
-		const ExplicitTreeAut<SymbolType>&,
-		const ExplicitTreeAut<SymbolType>&,
-		AutBase::ProductTranslMap*);
-
-	template <class SymbolType>
-	friend ExplicitTreeAut<SymbolType> GetCandidateTree(const ExplicitTreeAut<SymbolType>& aut);
-
-	template <class SymbolType>
-	friend ExplicitTreeAut<SymbolType> RemoveUselessStates(
-		const ExplicitTreeAut<SymbolType>&,
-		AutBase::StateToStateMap*);
-
-	template <class SymbolType>
-	friend ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
-		const ExplicitTreeAut<SymbolType>&,
-		AutBase::StateToStateMap*);
-
-	template <class SymbolType, class Rel, class Index>
-	friend ExplicitTreeAut<SymbolType> RemoveUnreachableStates(
-		const ExplicitTreeAut<SymbolType>&,
-		const Rel&,
-		const Index&);
-
-	template <class SymbolType, class Index>
-	friend ExplicitLTS TranslateDownward(const ExplicitTreeAut<SymbolType>&, const Index&);
-
-	template <class SymbolType, class Rel, class Index>
-	friend ExplicitLTS TranslateUpward(const ExplicitTreeAut<SymbolType>&,
-		std::vector<std::vector<size_t>>&, Util::BinaryRelation&, const Rel&, const Index&);
-
-	template <class SymbolType, class Rel, class Index>
-	friend ExplicitTreeAut<SymbolType> CollapseStates(const ExplicitTreeAut<SymbolType>&,
-		const Rel&, const Index&);
-
-	friend class ExplicitUpwardInclusion;
-	friend class ExplicitDownwardComplementation;
-	friend class ExplicitDownwardInclusion;
+	using CoreAut        = VATA::LoadableAut<ExplicitTreeAutCore>;
 
 public:   // public data types
 
-	typedef VATA::Util::OrdVector<StateType> StateSetLight;
-	typedef Explicit::StateType StateType;
-	typedef Explicit::StateTuple StateTuple;
-	typedef Explicit::TuplePtr TuplePtr;
-	typedef std::vector<TuplePtr> StateTupleSet;
-	typedef std::set<TuplePtr> DownInclStateTupleSet;
-	typedef std::vector<TuplePtr> DownInclStateTupleVector;
+	using SymbolType     = uintptr_t;
+	using StateSet       = std::unordered_set<StateType>;
 
-	typedef Explicit::StateSet StateSet;
-	typedef Explicit::TupleCache TupleCache;
-
-	typedef Symbol SymbolType;
 
 	struct StringRank
 	{
@@ -137,884 +88,679 @@ public:   // public data types
 			return ((rank < rhs.rank) ||
 				((rank == rhs.rank) && (symbolStr < rhs.symbolStr)));
 		}
-	};
 
-	typedef std::vector<std::pair<SymbolType, size_t>> AlphabetType;
-
-	typedef VATA::Util::TwoWayDict<StringRank, SymbolType> StringToSymbolDict;
-
-	typedef VATA::Util::TranslatorStrict<StringToSymbolDict> SymbolTranslatorStrict;
-	typedef VATA::Util::TranslatorStrict<typename StringToSymbolDict::MapBwdType>
-		SymbolBackTranslatorStrict;
-
-private:  // private data types
-
-	typedef VATA::Util::AutDescription AutDescription;
-	typedef std::set<TuplePtr> TuplePtrSet;
-	typedef std::shared_ptr<TuplePtrSet> TuplePtrSetPtr;
-
-	typedef VATA::Util::Convert Convert;
-
-	GCC_DIAG_OFF(effc++)
-	class TransitionCluster : public std::unordered_map<SymbolType, TuplePtrSetPtr> {
-	GCC_DIAG_ON(effc++)
-
-	public:
-
-		const TuplePtrSetPtr& uniqueTuplePtrSet(const SymbolType& symbol) {
-
-			auto& tupleSet = this->insert(
-				std::make_pair(symbol, TuplePtrSetPtr(nullptr))
-			).first->second;
-
-			if (!tupleSet) {
-
-				tupleSet = TuplePtrSetPtr(new TuplePtrSet());
-
-			} else if (!tupleSet.unique()) {
-
-				tupleSet = TuplePtrSetPtr(new TuplePtrSet(*tupleSet));
-
-			}
-
-			return tupleSet;
-
-		}
-
-	};
-
-	typedef std::shared_ptr<TransitionCluster> TransitionClusterPtr;
-
-	GCC_DIAG_OFF(effc++)
-	class StateToTransitionClusterMap : public std::unordered_map<StateType, TransitionClusterPtr> {
-	GCC_DIAG_ON(effc++)
-
-	public:
-
-		const TransitionClusterPtr& uniqueCluster(const StateType& state) {
-
-			auto& cluster = this->insert(
-				std::make_pair(state, TransitionClusterPtr(nullptr))
-			).first->second;
-
-			if (!cluster) {
-
-				cluster = TransitionClusterPtr(new TransitionCluster());
-
-			} else if (!cluster.unique()) {
-
-				cluster = TransitionClusterPtr(new TransitionCluster(*cluster));
-
-			}
-
-			return cluster;
-
-		}
-
-	};
-
-	typedef std::shared_ptr<StateToTransitionClusterMap> StateToTransitionClusterMapPtr;
-
-protected:
-
-	template <class T>
-	static const typename T::mapped_type::element_type* genericLookup(const T& cont,
-		const typename T::key_type& key) {
-
-		auto iter = cont.find(key);
-		if (iter == cont.end())
-			return nullptr;
-
-		return iter->second.get();
-
-	}
-
-	TuplePtr tupleLookup(const StateTuple& tuple) {
-
-		return this->cache_.lookup(tuple);
-
-	}
-
-	const StateToTransitionClusterMapPtr& uniqueClusterMap() {
-
-		assert(this->transitions_);
-
-		if (!this->transitions_.unique()) {
-
-			this->transitions_ = StateToTransitionClusterMapPtr(
-				new StateToTransitionClusterMap(*transitions_)
-			);
-
-		}
-
-		return this->transitions_;
-
-	}
-
-	void internalAddTransition(const TuplePtr& children, const SymbolType& symbol, const StateType& state) {
-
-		this->uniqueClusterMap()->uniqueCluster(state)->uniqueTuplePtrSet(symbol)->insert(children);
-
-	}
-
-public:
-
-	class Transition {
-
-		friend class ExplicitTreeAut;
-
-		const StateTuple& children_;
-		const SymbolType& symbol_;
-		const StateType& state_;
-
-		Transition(const StateTuple& children, const SymbolType& symbol, const StateType& state)
-			 : children_(children), symbol_(symbol), state_(state) {}
-
-	public:
-
-		const StateTuple& children() const { return this->children_; }
-		const SymbolType& symbol() const { return this->symbol_; }
-		const StateType& state() const { return this->state_; }
-
-	};
-
-	struct Iterator {
-
-		typedef std::input_iterator_tag iterator_category;
-		typedef size_t difference_type;
-		typedef Transition value_type;
-		typedef Transition* pointer;
-		typedef Transition& reference;
-
-		const ExplicitTreeAut& aut_;
-		typename StateToTransitionClusterMap::const_iterator stateClusterIterator_;
-		typename TransitionCluster::const_iterator symbolSetIterator_;
-		TuplePtrSet::const_iterator tupleIterator_;
-
-		Iterator(int, const ExplicitTreeAut& aut) : aut_(aut), stateClusterIterator_(),
-			symbolSetIterator_(), tupleIterator_() {}
-
-		Iterator(const ExplicitTreeAut& aut) : aut_(aut),
-			stateClusterIterator_(aut.transitions_->begin()), symbolSetIterator_(), tupleIterator_()
+		friend std::ostream& operator<<(std::ostream& os, const StringRank& strRank)
 		{
-
-			if (this->stateClusterIterator_ == aut.transitions_->end())
-				return;
-
-			this->symbolSetIterator_ = this->stateClusterIterator_->second->begin();
-
-			assert(this->symbolSetIterator_ != this->stateClusterIterator_->second->end());
-
-			this->tupleIterator_ = this->symbolSetIterator_->second->begin();
-
-			assert(this->tupleIterator_ != this->symbolSetIterator_->second->end());
-
+			return os << strRank.symbolStr << ":" << strRank.rank;
 		}
-
-		Iterator& operator++() {
-
-			if (++this->tupleIterator_ != this->symbolSetIterator_->second->end())
-				return *this;
-
-			if (++this->symbolSetIterator_ != this->stateClusterIterator_->second->end()) {
-				this->tupleIterator_ = this->symbolSetIterator_->second->begin();
-				return *this;
-			}
-
-			if (++this->stateClusterIterator_ != this->aut_.transitions_->end()) {
-				this->symbolSetIterator_ = this->stateClusterIterator_->second->begin();
-				this->tupleIterator_ = this->symbolSetIterator_->second->begin();
-				return *this;
-			}
-
-			this->tupleIterator_ = TuplePtrSet::const_iterator();
-
-			return *this;
-
-		}
-
-		Iterator operator++(int) {
-
-			return ++Iterator(*this);
-
-		}
-
-		bool operator==(const Iterator& rhs) const {
-
-			return this->tupleIterator_ == rhs.tupleIterator_;
-
-		}
-
-		bool operator!=(const Iterator& rhs) const {
-
-			return this->tupleIterator_ != rhs.tupleIterator_;
-
-		}
-
-		Transition operator*() const {
-
-			assert(*this->tupleIterator_);
-
-			return Transition(
-				**this->tupleIterator_,
-				this->symbolSetIterator_->first,
-				this->stateClusterIterator_->first
-			);
-
-		}
-
 	};
 
-	typedef Iterator iterator;
-	typedef Iterator const_iterator;
 
-	Iterator begin() const { return Iterator(*this); }
-	Iterator end() const { return Iterator(0, *this); }
+	using StringSymbolType   = StringRank;
+	using Transition         = TreeAutBase::TTransition<SymbolType>;
 
-public:
+	using SymbolDict                      =
+		VATA::Util::TwoWayDict<StringSymbolType, SymbolType>;
+	using StringSymbolToSymbolTranslWeak  = Util::TranslatorWeak<SymbolDict>;
+	using StringSymbolToSymbolTranslStrict= Util::TranslatorStrict<SymbolDict>;
+	using SymbolBackTranslStrict          = Util::TranslatorStrict<SymbolDict::MapBwdType>;
 
-	struct AcceptingTransitions {
 
-		const ExplicitTreeAut& aut_;
+	class AbstractCopyF
+	{
+	public:
+		virtual bool operator()(const Transition&) = 0;
+	};
 
-		AcceptingTransitions(const ExplicitTreeAut& aut) : aut_(aut) {}
 
-		struct Iterator {
+	class AbstractAlphabet
+	{
+	public:  // data types
 
-			typedef std::input_iterator_tag iterator_category;
-			typedef size_t difference_type;
-			typedef Transition value_type;
-			typedef Transition* pointer;
-			typedef Transition& reference;
+		using FwdTranslator    = VATA::Util::AbstractTranslator<StringSymbolType, SymbolType>;
+		using FwdTranslatorPtr = std::unique_ptr<FwdTranslator>;
+		using BwdTranslator    = VATA::Util::AbstractTranslator<SymbolType, StringSymbolType>;
+		using BwdTranslatorPtr = std::unique_ptr<BwdTranslator>;
 
-			const ExplicitTreeAut& aut_;
+	public:  // methods
 
-			StateSet::const_iterator stateSetIterator_;
-			typename StateToTransitionClusterMap::const_iterator stateClusterIterator_;
-			typename TransitionCluster::const_iterator symbolSetIterator_;
-			TuplePtrSet::const_iterator tupleIterator_;
+		virtual FwdTranslatorPtr GetSymbolTransl() = 0;
+		virtual BwdTranslatorPtr GetSymbolBackTransl() = 0;
 
-			Iterator(int, const ExplicitTreeAut& aut) : aut_(aut), stateSetIterator_(),
-				stateClusterIterator_(), symbolSetIterator_(), tupleIterator_() {}
+		virtual ~AbstractAlphabet()
+		{ }
+	};
 
-			Iterator(const ExplicitTreeAut& aut) : aut_(aut),
-				stateSetIterator_(aut.finalStates_.begin()), stateClusterIterator_(),
-				symbolSetIterator_(), tupleIterator_() {
 
-				this->_init();
+	class OnTheFlyAlphabet : public AbstractAlphabet
+	{
+	private:  // data members
 
+		SymbolDict symbolDict_{};
+		SymbolType nextSymbol_ = 0;
+
+	public:   // methods
+
+		virtual FwdTranslatorPtr GetSymbolTransl() override
+		{
+			FwdTranslator* fwdTransl = new
+				StringSymbolToSymbolTranslWeak{symbolDict_,
+				[&](const StringSymbolType&){return nextSymbol_++;}};
+
+			return FwdTranslatorPtr(fwdTransl);
+		}
+
+		virtual BwdTranslatorPtr GetSymbolBackTransl() override
+		{
+			BwdTranslator* bwdTransl =
+				new SymbolBackTranslStrict(symbolDict_.GetReverseMap());
+
+			return BwdTranslatorPtr(bwdTransl);
+		}
+
+		virtual ~OnTheFlyAlphabet() override
+		{ }
+	};
+
+	class DirectAlphabet : public AbstractAlphabet
+	{
+	public:  // data types
+
+		class DirectTranslator : public FwdTranslator
+		{ };
+
+		class DirectBackTranslator : public BwdTranslator
+		{
+			virtual StringSymbolType operator()(const SymbolType& value) override
+			{
+				return const_cast<const DirectBackTranslator*>(this)->operator()(value);
 			}
 
-			void _init() {
-
-				for (; this->stateSetIterator_ != this->aut.finalStates_->end();
-					++this->stateSetIterator_) {
-
-					this->stateClusterIterator_ =
-						this->aut_.transitions_.find(*this->stateSetIterator_);
-
-					if (this->stateClusterIterator_ != this->aut_.transitions_.end())
-						break;
-
-				}
-
-				if (this->stateSetIterator_ == this->aut.finalStates_->end()) {
-					this->tupleIterator_ = TuplePtrSet::const_iterator();
-					return;
-				}
-
-				this->symbolSetIterator_ = this->stateClusterIterator_->second->begin();
-				this->tupleIterator_ = this->symbolSetIterator_->second->begin();
-
+			virtual StringSymbolType operator()(const SymbolType& value) const override
+			{
+				return StringSymbolType(VATA::Util::Convert::ToString(value), 0);
 			}
-
-			Iterator& operator++() {
-
-				if (++this->tupleIterator_ != this->symbolSetIterator_->second->end())
-					return *this;
-
-				if (++this->symbolSetIterator_ != this->stateClusterIterator_->second->end()) {
-					this->tupleIterator_ = this->symbolSetIterator_->second->begin();
-					return *this;
-				}
-
-				++this->stateSetIterator_;
-
-				this->_init();
-
-				return *this;
-
-			}
-
-			Iterator operator++(int) {
-
-				return ++Iterator(*this);
-
-			}
-
-			bool operator==(const Iterator& rhs) const {
-
-				return this->tupleIterator_ == rhs.tupleIterator_;
-
-			}
-
-			bool operator!=(const Iterator& rhs) const {
-
-				return this->tupleIterator_ != rhs.tupleIterator_;
-
-			}
-
-			Transition operator*() const {
-
-				assert(*this->tupleIterator_);
-
-				return Transition(
-					**this->tupleIterator_,
-					this->symbolSetIterator_->first,
-					this->stateClusterIterator_->first
-				);
-
-			}
-
 		};
 
-		typedef Iterator iterator;
-		typedef Iterator const_iterator;
+	public:  // methods
 
-		Iterator begin() const { return Iterator(this->aut_); }
-		Iterator end() const { return Iterator(0, this->aut_); }
+		virtual FwdTranslatorPtr GetSymbolTransl() override
+		{
+			throw NotImplementedException(__func__);
+		}
 
+		virtual BwdTranslatorPtr GetSymbolBackTransl() override
+		{
+			return BwdTranslatorPtr(new DirectBackTranslator);
+		}
+
+		virtual ~DirectAlphabet() override
+		{ }
 	};
 
-	AcceptingTransitions accepting;
+	/**
+	 * @brief  Base class for translation of symbols
+	 *
+	 * This is the base class for functors translating symbols, see @fn TranslateSymbols.
+	 */
+	class AbstractSymbolTranslateF
+	{
+	public:
+		virtual SymbolType operator()(const SymbolType&) = 0;
 
-public:
+		virtual ~AbstractSymbolTranslateF()
+		{ }
+	};
 
-	struct ClusterAccessor {
+	using AlphabetType = std::shared_ptr<AbstractAlphabet>;
 
-		const size_t& state_;
-		const TransitionCluster* cluster_;
+	class Iterator
+	{
+	private:  // data types
 
-		ClusterAccessor(const size_t& state, const TransitionCluster* cluster) : state_(state),
-			cluster_(cluster) {}
+		using CoreIterator  = ExplicitTreeAutCoreUtil::Iterator;
 
-		struct Iterator {
+	private:  // data members
 
-			typedef std::input_iterator_tag iterator_category;
-			typedef size_t difference_type;
-			typedef Transition value_type;
-			typedef Transition* pointer;
-			typedef Transition& reference;
+		/**
+		 * @brief  Pointer to iterator in the core automaton
+		 */
+		std::unique_ptr<CoreIterator> coreIter_;
 
-			const ClusterAccessor& accessor_;
+	public:   // methods
 
-			typename TransitionCluster::const_iterator symbolSetIterator_;
-			TuplePtrSet::const_iterator tupleIterator_;
+		Iterator(const Iterator& iter);
+		explicit Iterator(const CoreIterator& coreIter);
+		~Iterator();
 
-			Iterator(int, ClusterAccessor& accessor) : accessor_(accessor), symbolSetIterator_(),
-				tupleIterator_() {}
+		bool operator!=(const Iterator& rhs) const;
+		Iterator& operator++();
+		const Transition& operator*() const;
+	};
 
-			Iterator(ClusterAccessor& accessor) : accessor_(accessor), symbolSetIterator_(),
-				tupleIterator_() {
+	using iterator       = Iterator;
+	using const_iterator = Iterator;
 
-				if (!accessor.cluster_)
-					return;
+	class AcceptTrans
+	{
+	public:  // data types
 
-				this->symbolSetIterator_ = accessor.cluster_->begin();
+		class Iterator
+		{
+		private:  // data types
 
-				assert(this->symbolSetIterator_ != this->stateClusterIterator_->second->end());
+			using CoreIterator = ExplicitTreeAutCoreUtil::AcceptTransIterator;
 
-				this->tupleIterator_ = this->symbolSetIterator_->second->begin();
+		private:  // data types
 
-				assert(this->tupleIterator_ != this->symbolSetIterator_->second->end());
+			std::unique_ptr<CoreIterator> coreAcceptTransIter_;
 
-			}
+		public:   // methods
 
-			Iterator& operator++() {
+			explicit Iterator(const ExplicitTreeAut& aut);
+			explicit Iterator(const CoreIterator& coreIter);
+			Iterator(const Iterator& iter);
+			~Iterator();
 
-				if (++this->tupleIterator_ != this->symbolSetIterator_->second->end())
-					return *this;
+			bool operator==(const Iterator& rhs) const;
+			bool operator!=(const Iterator& rhs) const;
+			const Transition& operator*() const;
+			const Transition* operator->() const;
 
-				if (++this->symbolSetIterator_ != this->stateClusterIterator_->second->end()) {
-					this->tupleIterator_ = this->symbolSetIterator_->second->begin();
-					return *this;
-				}
-
-				this->tupleIterator_ = TuplePtrSet::const_iterator();
-
-				return *this;
-
-			}
-
-			Iterator operator++(int) {
-
-				return ++Iterator(*this);
-
-			}
-
-			bool operator==(const Iterator& rhs) const {
-
-				return this->tupleIterator_ == rhs.tupleIterator_;
-
-			}
-
-			bool operator!=(const Iterator& rhs) const {
-
-				return this->tupleIterator_ != rhs.tupleIterator_;
-
-			}
-
-			Transition operator*() const {
-
-				assert(*this->tupleIterator_);
-
-				return Transition(
-					**this->tupleIterator_, this->symbolSetIterator_->first, this->accessor.state_
-				);
-
-			}
-
+			/**
+			 * @brief  Prefix increment operator
+			 */
+			Iterator& operator++();
 		};
 
-		typedef Iterator iterator;
-		typedef Iterator const_iterator;
+		using iterator         = Iterator;
+		using const_iterator   = Iterator;
 
-		Iterator begin() const { return Iterator(this->aut_); }
-		Iterator end() const { return Iterator(0, this->aut_); }
+		using CoreAcceptTrans  = ExplicitTreeAutCoreUtil::AcceptTrans;
 
-		bool empty() const { return this->cluster != nullptr; }
 
+	private:  // data members
+
+		std::unique_ptr<CoreAcceptTrans> coreAcceptTrans_;
+
+	public:   // methods
+
+		explicit AcceptTrans(
+			const CoreAcceptTrans&       coreAcceptTrans);
+
+		AcceptTrans(
+			AcceptTrans&&                acceptTrans);
+
+		~AcceptTrans();
+
+		Iterator begin() const;
+		Iterator end() const;
 	};
+
+
+	class DownAccessor
+	{
+	public:  // data types
+
+		class Iterator
+		{
+		private:  // data types
+
+			using CoreIterator = ExplicitTreeAutCoreUtil::DownAccessorIterator;
+
+		private:  // data types
+
+			std::unique_ptr<CoreIterator> coreDownAccessIter_;
+
+		public:   // methods
+
+			explicit Iterator(const ExplicitTreeAut& aut);
+			explicit Iterator(const CoreIterator& coreIter);
+			Iterator(const Iterator& iter);
+			~Iterator();
+
+			bool operator==(const Iterator& rhs) const;
+			bool operator!=(const Iterator& rhs) const;
+			const Transition& operator*() const;
+			const Transition* operator->() const;
+
+			/**
+			 * @brief  Prefix increment operator
+			 */
+			Iterator& operator++();
+		};
+
+		using iterator         = Iterator;
+		using const_iterator   = Iterator;
+
+		using CoreDownAccessor = ExplicitTreeAutCoreUtil::DownAccessor;
+
+	private:  // data members
+
+		std::unique_ptr<CoreDownAccessor> coreDownAccessor_;
+
+	public:   // methods
+
+		explicit DownAccessor(
+			const CoreDownAccessor&      coreDownAccessor);
+
+		DownAccessor(
+			DownAccessor&&               downAccessor);
+
+		~DownAccessor();
+
+		Iterator begin() const;
+		Iterator end() const;
+
+		bool empty() const;
+	};
+
 
 private:  // data members
 
-	TupleCache& cache_;
+	std::unique_ptr<CoreAut> core_;
 
-	StateSet finalStates_;
+public:   // methods
 
-	StateToTransitionClusterMapPtr transitions_;
+	ExplicitTreeAut();
+	ExplicitTreeAut(const ExplicitTreeAut& aut);
+	ExplicitTreeAut(ExplicitTreeAut&& aut);
 
-	static StringToSymbolDict* pSymbolDict_;
-	static SymbolType* pNextSymbol_;
+	ExplicitTreeAut& operator=(const ExplicitTreeAut& rhs);
+	ExplicitTreeAut& operator=(ExplicitTreeAut&& rhs);
 
-public:   // public methods
+	~ExplicitTreeAut();
 
-	ExplicitTreeAut(Explicit::TupleCache& tupleCache = Explicit::tupleCache) :
-		accepting(*this),
-		cache_(tupleCache),
-		finalStates_(),
-		transitions_(StateToTransitionClusterMapPtr(new StateToTransitionClusterMap()))
-	{ }
+	explicit ExplicitTreeAut(CoreAut&& core);
 
-	ExplicitTreeAut(const ExplicitTreeAut& aut) :
-		accepting(*this),
-		cache_(aut.cache_),
-		finalStates_(aut.finalStates_),
-		transitions_(aut.transitions_)
-	{ }
 
-	ExplicitTreeAut(const ExplicitTreeAut& aut, Explicit::TupleCache& tupleCache) :
-		accepting(*this),
-		cache_(tupleCache),
-		finalStates_(aut.finalStates_),
-		transitions_(aut.transitions)
-	{ }
-
-	ExplicitTreeAut& operator=(const ExplicitTreeAut& rhs) {
-
-		if (this != &rhs) {
-
-			this->finalStates_ = rhs.finalStates_;
-			this->transitions_ = rhs.transitions_;
-
-		}
-
-		return *this;
-
-	}
-
-	~ExplicitTreeAut() {}
-
-	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
-		StringToStateDict& stateDict)
+	static StringSymbolType ToStringSymbolType(const std::string& str, size_t rank)
 	{
-		LoadFromAutDesc(parser.ParseString(str), stateDict);
+		return StringRank(str, rank);
 	}
 
-	void LoadFromAutDesc(const AutDescription& desc, StringToStateDict& stateDict)
+	static SymbolType GetZeroSymbol()
 	{
-
-		typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
-			StateTranslator;
-		typedef VATA::Util::TranslatorWeak<StringToSymbolDict>
-			SymbolTranslator;
-
-		StateType stateCnt = 0;
-
-		LoadFromAutDesc(desc,
-			StateTranslator(stateDict,
-				[&stateCnt](const std::string&){return stateCnt++;}),
-			SymbolTranslator(GetSymbolDict(),
-				[this](const StringRank&){return this->AddSymbol();}));
+		return 0;
 	}
 
-	template <class StateTransFunc, class SymbolTransFunc>
-	void LoadFromString(VATA::Parsing::AbstrParser& parser, const std::string& str,
-		StateTransFunc stateTranslator, SymbolTransFunc symbolTranslator,
-		const std::string& params = "") {
+	/**
+	 * @brief  Sets a state as an accepting state
+	 *
+	 * @param[in]  state  The state to be set as accepting
+	 */
+	void SetStateFinal(const StateType& state);
 
-		LoadFromAutDesc(parser.ParseString(str), stateTranslator, symbolTranslator, params);
-	}
+	/**
+	 * @brief  Checks whether a state is accepting
+	 *
+	 * @param[in]  state  The state to be checked
+	 *
+	 * @returns  @p true in the case @p state is accepting, @p false otherwise
+	 */
+	bool IsStateFinal(const StateType& state) const;
 
-	template <class StateTransFunc, class SymbolTransFunc>
-	void LoadFromAutDesc(
-		const AutDescription&          desc,
-		StateTransFunc                 stateTranslator,
-		SymbolTransFunc                symbolTranslator,
-		const std::string&             /* params */ = "")
-	{
-		for (auto symbolRankPair : desc.symbols)
-			symbolTranslator(StringRank(symbolRankPair.first, symbolRankPair.second));
+	/**
+	 * @brief  Retrieves the set of accepting states
+	 *
+	 * @returns  The set of accepting states of the automaton
+	 */
+	const FinalStateSet& GetFinalStates() const;
 
-		for (auto s : desc.finalStates)
-			this->finalStates_.insert(stateTranslator(s));
+	/**
+	 * @brief  Clears the set of final states
+	 */
+	void EraseFinalStates();
 
-		for (auto t : desc.transitions) {
+	/**
+	 * @brief  Retrieves a container with accepting transitions
+	 *
+	 * @returns  An (iterable) container with accepting transitions
+	 */
+	AcceptTrans GetAcceptTrans() const;
 
-			// traverse the transitions
-			const AutDescription::StateTuple& childrenStr = t.first;
-			const std::string& symbolStr = t.second;
-			const AutDescription::State& parentStr = t.third;
+	/**
+	 * @brief  Retrieves the transitions where the state is a parent
+	 *
+	 * This method retrieves an iterable container of transitions where @p state
+	 * is the parent state.
+	 *
+	 * @param[in]  state  The parent state of the transitions to be retrieved
+	 *
+	 * @returns  A container of transitions going from @p state down
+	 */
+	DownAccessor GetDown(
+		const StateType&          state) const;
 
-			// translate children
-			StateTuple children;
-			for (auto c : childrenStr) {
-				// for all children states
-				children.push_back(stateTranslator(c));
-			}
+	/**
+	 * @brief  Retrieves the transitions where the state is a parent
+	 *
+	 * This method retrieves an iterable container of transitions where @p state
+	 * is the parent state.
+	 *
+	 * @param[in]  state  The parent state of the transitions to be retrieved
+	 *
+	 * @returns  A container of transitions going from @p state down
+	 */
+	DownAccessor operator[](
+		const StateType&          state) const;
 
-			this->AddTransition(
-				children,
-				symbolTranslator(StringRank(symbolStr, children.size())),
-				stateTranslator(parentStr));
-		}
-	}
+	void AddTransition(
+		const StateTuple&         children,
+		const SymbolType&         symbol,
+		const StateType&          state);
 
-	template <class SymbolTransFunc>
-	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
-		SymbolTransFunc symbolTranslator,
-		const std::string& params = "") const
-	{
-		return DumpToString(serializer,
-			[](const StateType& state){return Convert::ToString(state);},
-			symbolTranslator, params);
-	}
 
-	std::string DumpToString(VATA::Serialization::AbstrSerializer& serializer,
-		const StringToStateDict& stateDict) const
-	{
-		struct SymbolTranslatorPrinter
-		{
-			const SymbolBackTranslatorStrict* translator;
+	void AddTransition(
+		const Transition&         trans);
 
-			const std::string& operator()(const SymbolType& sym) const
-			{
-				throw std::runtime_error("unimplemented");
-			}
-		};
 
-		SymbolTranslatorPrinter printer;
-		printer.translator = SymbolBackTranslatorStrict(GetSymbolDict().GetReverseMap());
+	bool ContainsTransition(
+		const Transition&         trans) const;
 
-		return DumpToString(serializer,
-			StateBackTranslatorStrict(stateDict.GetReverseMap()),
-			printer);
-	}
 
-	template <class StatePrintFunc, class SymbolPrintFunc>
+	bool ContainsTransition(
+		const StateTuple&         children,
+		const SymbolType&         symbol,
+		const StateType&          state);
+
+
+	AlphabetType& GetAlphabet();
+
+
+	const AlphabetType& GetAlphabet() const;
+
+
+	ExplicitTreeAut Reduce() const;
+
+
+	ExplicitTreeAut ReindexStates(
+		StateToStateTranslWeak&     stateTransl) const;
+
+
+	ExplicitTreeAut ReindexStates(
+		AbstractReindexF&           fctor,
+		bool                        addFinalStates = true) const;
+
+
+	void ReindexStates(
+		ExplicitTreeAut&            dst,
+		AbstractReindexF&           fctor,
+		bool                        addFinalStates = true) const;
+
+
+	void CopyTransitionsFrom(
+		const ExplicitTreeAut&      src,
+		AbstractCopyF&              fctor);
+
+
+	ExplicitTreeAut RemoveUnreachableStates(
+		AutBase::StateToStateMap*            pTranslMap = nullptr) const;
+
+
+	template <
+		class Rel,
+		class Index = Util::IdentityTranslator<AutBase::StateType>
+	>
+	ExplicitTreeAut RemoveUnreachableStates(
+		const Rel&                           rel,
+		const Index&                         index = Index()) const;
+
+
+	ExplicitTreeAut RemoveUselessStates(
+		AutBase::StateToStateMap*          pTranslMap = nullptr) const;
+
+
+	ExplicitTreeAut GetCandidateTree() const;
+
+
+	void SetAlphabet(AlphabetType& alphabet);
+
+
 	std::string DumpToString(
 		VATA::Serialization::AbstrSerializer&     serializer,
-		StatePrintFunc                            statePrinter,
-		SymbolPrintFunc                           symbolPrinter,
-		const std::string&                        /* params */ = "") const
+		const std::string&                        params = "") const;
+
+
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&     serializer,
+		const StateDict&                          stateDict,
+		const std::string&                        params = "") const;
+
+
+	std::string DumpToString(
+		VATA::Serialization::AbstrSerializer&     serializer,
+		const StateBackTranslStrict&              stateTransl,
+		const std::string&                        params = "") const;
+
+
+	AutDescription DumpToAutDesc(
+		const std::string&                        params = "") const;
+
+
+	AutDescription DumpToAutDesc(
+		const StateDict&                          stateDict,
+		const std::string&                        params = "") const;
+
+
+	AutDescription DumpToAutDesc(
+		const StateBackTranslStrict&              stateTransl,
+		const std::string&                        params = "") const;
+
+
+	iterator begin();
+	iterator end();
+	const_iterator begin() const;
+	const_iterator end() const;
+
+
+	template <
+		class TranslIndex,
+		class SanitizeIndex>
+	std::string PrintSimulationMapping(
+		TranslIndex            /*index*/,
+		SanitizeIndex          /*sanitizeIndex*/)
 	{
-		struct SymbolTranslatorPrinter
+		throw NotImplementedException(__func__);
+
+#if 0
+		std::string res;
+		std::unordered_set<StateType> translatedStates;
+
+		for (auto trans : *this)
 		{
-			const SymbolPrintFunc& printFunc;
-
-			SymbolTranslatorPrinter(const SymbolPrintFunc& printFunc) :
-				printFunc(printFunc)
-			{ }
-
-			std::string operator()(const SymbolType& sym) const
+			for (auto& s : trans.children())
 			{
-				if (nullptr == &sym)
-				{ }
-
-				return printFunc(sym).symbolStr;
+				if (!translatedStates.count(s))
+				{
+					res = res + VATA::Util::Convert::ToString(index(s)) + " -> " +
+						VATA::Util::Convert::ToString(sanitizeIndex[s]) + "\n";
+					translatedStates.insert(s);
+				}
 			}
-		};
 
-		SymbolTranslatorPrinter printer(symbolPrinter);
-
-		AutDescription desc;
-
-		for (auto& s : this->finalStates_)
-		{
-			desc.finalStates.insert(statePrinter(s));
-		}
-
-		for (auto t : *this)
-		{
-			std::vector<std::string> tupleStr;
-
-			for (auto& s : t.children())
+			if (!translatedStates.count(trans.parent()))
 			{
-				tupleStr.push_back(statePrinter(s));
+				res = res + VATA::Util::Convert::ToString(index(trans.parent())) + " -> " +
+					VATA::Util::Convert::ToString(sanitizeIndex[trans.parent()]) + "\n";
+				translatedStates.insert(trans.parent());
 			}
-
-			AutDescription::Transition trans(
-				tupleStr,
-				printer(t.symbol()),
-				statePrinter(t.state()));
-
-			desc.transitions.insert(trans);
 		}
 
-		return serializer.Serialize(desc);
+		return res;
+#endif
 	}
 
-	inline const StateSet& GetFinalStates() const {
-		return this->finalStates_;
-	}
 
-	inline void SetStateFinal(const StateType& state) {
-		this->finalStates_.insert(state);
-	}
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&       parser,
+		const std::string&                str,
+		const std::string&                params = "");
 
-	inline bool IsFinalState(const StateType& state) const {
-		return this->finalStates_.count(state) > 0;
-	}
 
-	inline void AddTransition(const StateTuple& children, const SymbolType& symbol,
-		const StateType& state) {
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&       parser,
+		const std::string&                str,
+		StateDict&                        stateDict,
+		const std::string&                params = "");
 
-		this->internalAddTransition(this->tupleLookup(children), symbol, state);
 
-	}
+	void LoadFromString(
+		VATA::Parsing::AbstrParser&       parser,
+		const std::string&                str,
+		StringToStateTranslWeak&          stateTransl,
+		const std::string&                params = "");
 
-	inline static void CopyTransitions(ExplicitTreeAut& dst, const ExplicitTreeAut& src) {
 
-		dst.transitions_ = src.transitions_;
+	void LoadFromAutDesc(
+		const VATA::Util::AutDescription&   desc,
+		const std::string&                  params = "");
 
-	}
 
-	inline ClusterAccessor GetCluster(const StateType& state) const {
+	void LoadFromAutDesc(
+		const VATA::Util::AutDescription&   desc,
+		StateDict&                          stateDict,
+		const std::string&                  params = "");
 
-		return ClusterAccessor(state, ExplicitTreeAut::genericLookup(this->transitions_, state));
 
-	}
+	void LoadFromAutDesc(
+		const VATA::Util::AutDescription&   desc,
+		StringToStateTranslWeak&            stateTransl,
+		const std::string&                  params = "");
 
-	inline ClusterAccessor operator[](const StateType& state) const {
 
-		return this->GetCluster(state);
+	/**
+	 * @brief  Unites a pair of automata
+	 *
+	 * Function for the union of two automata. It takes a pair of automata,
+	 * renames their states and then merges them into a single automaton. States
+	 * are renamed by the default dictionary or by a user defined dictionary, so
+	 * they may be overlapping.
+   *
+   * @param[in]      lhs             Left automaton for union
+   * @param[in]      rhs             Right automaton for union
+   * @param[in,out]  pTranslMapLhs   Dictionary for renaming left automaton
+   * @param[in,out]  pTranslMapRhs   Dictionary for renaming right automaton
+	 *
+	 * @returns  An automaton accepting the union of languages of @p lhs and @p
+	 * rhs
+   */
+	static ExplicitTreeAut Union(
+		const ExplicitTreeAut&                lhs,
+		const ExplicitTreeAut&                rhs,
+		AutBase::StateToStateMap*             pTranslMapLhs = nullptr,
+		AutBase::StateToStateMap*             pTranslMapRhs = nullptr);
 
-	}
 
-	template <class Index>
-	void BuildStateIndex(Index& index) const {
+	/**
+	 * @brief  Unites two automata with disjoint sets of states
+	 *
+	 * Unites two automata. Note that these automata need to have disjoint sets of
+	 * states, otherwise the result is undefined.
+	 *
+   * @param[in]      lhs             Left automaton for union
+   * @param[in]      rhs             Right automaton for union
+	 *
+	 * @returns  An automaton accepting the union of languages of @p lhs and @p
+	 * rhs
+   */
+	static ExplicitTreeAut UnionDisjointStates(
+		const ExplicitTreeAut&           lhs,
+		const ExplicitTreeAut&           rhs);
 
-		for (auto& state : this->finalStates_)
-			index(state);
 
-		for (auto& stateClusterPair : *this->transitions_) {
+	/**
+	 * @brief  Intersection of languages of a pair of automata
+	 *
+	 * This function creates an automaton that accepts the languages defined as
+	 * the intersection of langauges of a pair of automata.
+	 *
+   * @param[in]   lhs             Left automaton
+   * @param[in]   rhs             Right automaton
+   * @param[out]  pTranslMapLhs   Dictionary for the result
+	 *
+	 * @returns  An automaton accepting the intersection of languages of @p lhs
+	 * and @p rhs
+   */
+	static ExplicitTreeAut Intersection(
+		const ExplicitTreeAut&            lhs,
+		const ExplicitTreeAut&            rhs,
+		AutBase::ProductTranslMap*        pTranslMap);
 
-			assert(stateClusterPair.second);
 
-			index(stateClusterPair.first);
+	/**
+	 * @brief  Dispatcher for calling correct inclusion checking function
+	 *
+	 * This function is a dispatcher that calls a proper inclusion checking
+	 * function between @p smaller and @p bigger according to the parameters in @p
+	 * params.
+	 *
+	 * @param[in]  smaller  The smaller automaton
+	 * @param[in]  bigger   The bigger automaton
+	 * @param[in]  params   Parameters for the inclusion
+	 *
+	 * @returns  @p true if the language of @p smaller is a subset of the language
+	 *           of @p bigger, @p false otherwise
+	 */
+	static bool CheckInclusion(
+		const ExplicitTreeAut&                 smaller,
+		const ExplicitTreeAut&                 bigger,
+		const VATA::InclParam&                 params);
 
-			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
 
-				assert(symbolTupleSetPair.second);
+	/**
+	 * @brief  Checks inclusion using default parameters
+	 *
+	 * This static method checks language inclusion of a pair of automata (@p
+	 * smaller, @p bigger) using default parameters.
+	 *
+	 * @param[in]  smaller  The smaller automaton
+	 * @param[in]  bigger   The bigger automaton
+	 *
+	 * @returns  @p true if the language of @p smaller is a subset of the language
+	 *           of @p bigger, @p false otherwise
+	 */
+	static bool CheckInclusion(
+		const ExplicitTreeAut&                 smaller,
+		const ExplicitTreeAut&                 bigger);
 
-				for (auto& tuple : *symbolTupleSetPair.second) {
 
-					assert(tuple);
+	/**
+	 * @brief  Computes the specified simulation relation on the automaton
+	 *
+	 * This method computes the simulation relation specified in the @p params
+	 * structure among the states of the automaton.
+	 *
+	 * @param[in]  params  Parameters specifying which simulation is to be computed.
+	 *
+	 * @returns  The computed simulation relation
+	 */
+	AutBase::StateBinaryRelation ComputeSimulation(
+		const VATA::SimParam&                  params) const;
 
-					for (auto& s : *tuple)
-						index(s);
 
-				}
-
-			}
-
-		}
-
-	}
-
-	template <class Index>
-	void ReindexStates(ExplicitTreeAut& dst, Index& index) const {
-
-		for (auto& state : this->finalStates_)
-			dst.SetStateFinal(index[state]);
-
-		auto clusterMap = dst.uniqueClusterMap();
-
-		for (auto& stateClusterPair : *this->transitions_) {
-
-			assert(stateClusterPair.second);
-
-			auto cluster = clusterMap->uniqueCluster(index[stateClusterPair.first]);
-
-			for (auto& symbolTupleSetPair : *stateClusterPair.second) {
-
-				assert(symbolTupleSetPair.second);
-
-				auto tuplePtrSet = cluster->uniqueTuplePtrSet(symbolTupleSetPair.first);
-
-				for (auto& tuple : *symbolTupleSetPair.second) {
-
-					assert(tuple);
-
-					StateTuple newTuple;
-
-					for (auto& s : *tuple)
-						newTuple.push_back(index[s]);
-
-					tuplePtrSet->insert(dst.tupleLookup(newTuple));
-
-				}
-
-			}
-
-		}
-
-	}
-
-	template <class OperationFunc>
-	static void ForeachDownSymbolFromStateAndStateSetDo(const ExplicitTreeAut& lhs,
-		const ExplicitTreeAut& rhs, const StateType& lhsState,
-		const StateSetLight& rhsSet, OperationFunc& opFunc)
+	template <class Dict>
+	ExplicitTreeAut Complement(
+		const Dict&                           /*alphabet*/) const
 	{
-
-		assert(lhs.transitions_);
-		assert(rhs.transitions_);
-
-		auto leftCluster = ExplicitTreeAut::genericLookup(*lhs.transitions_, lhsState);
-
-		if (!leftCluster)
-			return;
-
-		std::vector<const TransitionCluster*> rightClusters;
-
-		for (auto& rhsState : rhsSet) {
-
-			auto rightCluster = ExplicitTreeAut::genericLookup(*rhs.transitions_, rhsState);
-
-			if (rightCluster)
-				rightClusters.push_back(rightCluster);
-
-		}
-
-		for (auto& leftSymbolTupleSetPair : *leftCluster) {
-
-			TuplePtrSet rightTuples;
-
-			for (auto& rightCluster : rightClusters) {
-
-				auto rightTupleSet = ExplicitTreeAut::genericLookup(
-					*rightCluster, leftSymbolTupleSetPair.first
-				);
-
-				if (!rightTupleSet)
-					continue;
-
-				rightTuples.insert(rightTupleSet->begin(), rightTupleSet->end());
-
-			}
-
-			auto AccessElementF = [](const TuplePtr& tuplePtr){return *tuplePtr;};
-
-			assert(leftSymbolTupleSetPair.second);
-
-			opFunc(
-				*leftSymbolTupleSetPair.second, AccessElementF,
-				rightTuples, AccessElementF
-			);
-
-		}
-
+		throw NotImplementedException(__func__);
 	}
 
-public:
 
-	inline StateType AddState()
-	{
-		// Assertions
-		assert(pNextState_ != nullptr);
+	/**
+	 * @brief  Translates all symbols according to a translator
+	 *
+	 * This method translates symbols of all transitions according to the @p
+	 * transl functor passed to the method. The changed automaton is returned.
+	 *
+	 * @param[in,out]  transl  The functor for the translation
+	 *
+	 * @returns  The automaton with symbols in transitions changed
+	 */
+	ExplicitTreeAut TranslateSymbols(
+		AbstractSymbolTranslateF&       transl) const;
 
-		return (*pNextState_)++;
-	}
-
-	static inline SymbolType AddSymbol()
-	{
-		// Assertions
-		assert(pNextSymbol_ != nullptr);
-
-		return (*pNextSymbol_)++;
-	}
-
-	static inline StringToSymbolDict& GetSymbolDict()
-	{
-		// Assertions
-		assert(pSymbolDict_ != nullptr);
-
-		return *pSymbolDict_;
-	}
-
-	inline static void SetSymbolDictPtr(StringToSymbolDict* pSymbolDict)
-	{
-		// Assertions
-		assert(pSymbolDict != nullptr);
-
-		pSymbolDict_ = pSymbolDict;
-	}
-
-	inline static void SetNextSymbolPtr(SymbolType* pNextSymbol)
-	{
-		// Assertions
-		assert(pNextSymbol != nullptr);
-
-		pNextSymbol_ = pNextSymbol;
-	}
-
-	inline static DownInclStateTupleVector StateTupleSetToVector(
-		const DownInclStateTupleSet& tupleSet)
-	{
-		return DownInclStateTupleVector(tupleSet.begin(), tupleSet.end());
-	}
-
-	static AlphabetType GetAlphabet()
-	{
-		AlphabetType alphabet;
-		for (auto stringRankAndSymbolPair : GetSymbolDict())
-		{
-			alphabet.push_back(std::make_pair(
-				stringRankAndSymbolPair.second,
-				stringRankAndSymbolPair.first.rank));
-		}
-
-		return alphabet;
-	}
-
+	std::string ToString(const Transition& trans) const;
 };
-
-template <class Symbol>
-typename VATA::ExplicitTreeAut<Symbol>::StringToSymbolDict*
-	VATA::ExplicitTreeAut<Symbol>::pSymbolDict_ = nullptr;
-
-template <class Symbol>
-typename VATA::ExplicitTreeAut<Symbol>::SymbolType*
-	VATA::ExplicitTreeAut<Symbol>::pNextSymbol_ = nullptr;
 
 #endif

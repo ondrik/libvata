@@ -10,32 +10,76 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_td_tree_aut.hh>
-#include <vata/bdd_td_tree_aut_op.hh>
-#include <vata/down_tree_incl_fctor.hh>
-#include <vata/tree_incl_down.hh>
 
-using VATA::BDDTopDownTreeAut;
+#include "bdd_td_tree_aut_core.hh"
+
+#include "down_tree_incl_fctor.hh"
+#include "down_tree_opt_incl_fctor.hh"
+#include "tree_incl_down.hh"
+
+using VATA::BDDTDTreeAutCore;
 
 typedef VATA::AutBase::StateType StateType;
 
-bool VATA::CheckDownwardInclusion(
-	const BDDTopDownTreeAut& smaller, const BDDTopDownTreeAut& bigger)
+
+bool BDDTDTreeAutCore::CheckInclusion(
+	const BDDTDTreeAutCore&     smaller,
+	const BDDTDTreeAutCore&     bigger,
+	const VATA::InclParam&      params)
 {
-	BDDTopDownTreeAut newSmaller = smaller;
-	BDDTopDownTreeAut newBigger = bigger;
-	StateType states = AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
+	BDDTDTreeAutCore newSmaller;
+	BDDTDTreeAutCore newBigger;
+	typename AutBase::StateType states = static_cast<typename AutBase::StateType>(-1);
 
-	VATA::Util::Identity ident(states);
+	if (!params.GetUseSimulation())
+	{
+		newSmaller = smaller;
+		newBigger = bigger;
 
-	return CheckDownwardInclusionWithPreorder(newSmaller, newBigger, ident);
+		states = AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
+	}
+
+	switch (params.GetOptions())
+	{
+		case InclParam::ANTICHAINS_DOWN_REC_NOSIM:
+		{
+			assert(static_cast<typename AutBase::StateType>(-1) != states);
+
+			return CheckDownwardTreeInclusion<BDDTDTreeAutCore,
+				VATA::DownwardInclusionFunctor>(newSmaller, newBigger,
+					Util::Identity(states));
+		}
+
+		case InclParam::ANTICHAINS_DOWN_REC_OPT_NOSIM:
+		{
+			assert(static_cast<typename AutBase::StateType>(-1) != states);
+
+			return CheckDownwardTreeInclusion<BDDTDTreeAutCore,
+				VATA::OptDownwardInclusionFunctor>(newSmaller, newBigger,
+					Util::Identity(states));
+		}
+
+		case InclParam::ANTICHAINS_DOWN_REC_SIM:
+		{
+			assert(static_cast<typename AutBase::StateType>(-1) == states);
+
+			return CheckDownwardTreeInclusion<BDDTDTreeAutCore,
+				VATA::DownwardInclusionFunctor>(smaller, bigger,
+					params.GetSimulation());
+		}
+
+		case InclParam::ANTICHAINS_DOWN_REC_OPT_SIM:
+		{
+			assert(static_cast<typename AutBase::StateType>(-1) == states);
+
+			return CheckDownwardTreeInclusion<BDDTDTreeAutCore,
+				VATA::OptDownwardInclusionFunctor>(smaller, bigger,
+					params.GetSimulation());
+		}
+
+		default:
+		{
+			throw NotImplementedException("Inclusion:\n" + params.toString());
+		}
+	}
 }
-
-bool VATA::CheckUpwardInclusion(const BDDTopDownTreeAut& smaller,
-	const BDDTopDownTreeAut& bigger)
-{
-	if ((&smaller == nullptr) || (&bigger == nullptr)) { }
-
-	throw std::runtime_error("Unimplemented");
-}
-

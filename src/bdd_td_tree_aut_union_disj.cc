@@ -11,23 +11,20 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_td_tree_aut_op.hh>
 
-using VATA::BDDTopDownTreeAut;
-using VATA::Util::Convert;
+#include "bdd_td_tree_aut_core.hh"
 
+using VATA::BDDTDTreeAutCore;
 
-BDDTopDownTreeAut VATA::UnionDisjointStates(
-	const BDDTopDownTreeAut&   lhs,
-	const BDDTopDownTreeAut&   rhs)
+BDDTDTreeAutCore BDDTDTreeAutCore::UnionDisjointStates(
+	const BDDTDTreeAutCore&   lhs,
+	const BDDTDTreeAutCore&   rhs)
 {
-	typedef BDDTopDownTreeAut::StateType StateType;
+	BDDTDTreeAutCore::UnionApplyFunctor unionFunc;
 
-	BDDTopDownTreeAut::UnionApplyFunctor unionFunc;
-
-	if (BDDTopDownTreeAut::ShareTransTable(lhs, rhs))
+	if (BDDTDTreeAutCore::ShareTransTable(lhs, rhs))
 	{	// in case the automata share their transition table
-		BDDTopDownTreeAut result = lhs;
+		BDDTDTreeAutCore result = lhs;
 
 		for (const StateType& fst : rhs.GetFinalStates())
 		{
@@ -38,7 +35,7 @@ BDDTopDownTreeAut VATA::UnionDisjointStates(
 	}
 	else
 	{	// in case the automata have distinct transition tables
-		BDDTopDownTreeAut result = lhs;
+		BDDTDTreeAutCore result = lhs;
 
 		for (const StateType& rhsFst : rhs.GetFinalStates())
 		{

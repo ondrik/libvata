@@ -11,18 +11,15 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_bu_tree_aut.hh>
-#include <vata/bdd_bu_tree_aut_op.hh>
 #include <vata/bdd_td_tree_aut.hh>
-#include <vata/bdd_td_tree_aut_op.hh>
 #include <vata/explicit_tree_aut.hh>
-#include <vata/explicit_tree_aut_op.hh>
+#include <vata/explicit_finite_aut.hh>
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
 #include <vata/util/convert.hh>
 #include <vata/util/transl_strict.hh>
+#include <vata/util/two_way_dict.hh>
 #include <vata/util/util.hh>
-#include <vata/finite_aut/explicit_finite_aut.hh>
-#include <vata/finite_aut/explicit_finite_aut_op.hh>
 
 // standard library headers
 #include <cstdlib>
@@ -34,25 +31,24 @@
 
 
 using VATA::AutBase;
+using VATA::TreeAutBase;
+using VATA::SymbolicTreeAutBase;
 using VATA::BDDBottomUpTreeAut;
 using VATA::BDDTopDownTreeAut;
+using VATA::ExplicitTreeAut;
+using VATA::ExplicitFiniteAut;
 using VATA::Parsing::AbstrParser;
 using VATA::Parsing::TimbukParser;
 using VATA::Serialization::AbstrSerializer;
 using VATA::Serialization::TimbukSerializer;
 using VATA::Util::Convert;
+using VATA::Util::TwoWayDict;
 
+using StateDict                = AutBase::StateDict;
+using StringToStateTranslWeak  = AutBase::StringToStateTranslWeak;
+using StateBackTranslStrict    = AutBase::StateBackTranslStrict;
+using StateToStateTranslStrict = AutBase::StateToStateTranslStrict;
 
-typedef VATA::ExplicitTreeAut<size_t> ExplicitTreeAut;
-typedef VATA::ExplicitFiniteAut<size_t> ExplicitFiniteAut;
-
-typedef VATA::Util::TranslatorWeak<AutBase::StringToStateDict>
-	StateTranslatorWeak;
-typedef VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>
-	StateBackTranslatorStrict;
-
-typedef VATA::Util::TranslatorWeak<BDDTopDownTreeAut::StringToSymbolDict>
-	SymbolTranslatorWeak;
 
 const char VATA_USAGE_STRING[] =
 	"VATA: VATA Tree Automata library interface\n"
@@ -81,20 +77,28 @@ const char VATA_USAGE_COMMANDS[] =
 	"          'dir=down' : downward simulation (default)\n"
 	"          'dir=up'   : upward simulation\n"
 	"\n"
+	"    equiv <file1> <file2>   Checks language equivalence of finite automata from <file1>\n"
+	"                            and <file2>, i.e., whether L(<file1>) is a equal\n"
+	"                            to L(<file2>). Options\n"
+	"          'order=depth': use depth-first search for congruence algorithm (default)\n"
+	"          'order=breadth': use breadth-first search for congruence algorithm\n"
+	"\n"
 	"    incl <file1> <file2>    Checks language inclusion of automata from <file1>\n"
 	"                            and <file2>, i.e., whether L(<file1>) is a subset\n"
 	"                            of L(<file2>). Options:\n"
 	"\n"
+	"          'alg=antichains' : use an antichain-based algorithm (default)\n"
+	"          'alg=congr'      : use a bisimulation up-to congruence algorithm\n"
 	"          'dir=down' : downward inclusion checking\n"
 	"          'dir=up'   : upward inclusion checking (default)\n"
 	"          'sim=yes'  : use corresponding simulation\n"
 	"          'sim=no'   : do not use simulation (default)\n"
-	"          'congr=no' : do not use congruence closure computation (default)\n"
-	"          'congr=yes': use congruence closure computation\n"
+	"          'order=depth': use depth-first search for congruence algorithm (default)\n"
+	"          'order=breadth': use breadth-first search for congruence algorithm\n"
 	"          'optC=yes' : use optimised cache for downward direction\n"
 	"          'optC=no'  : without optimised cache (default)\n"
-	"          'rec=yes'  : recursive version of downward direction (default)\n"
-	"          'rec=no'   : non-recursive version (only for '-r expl' and 'optC=no')\n"
+	"          'rec=no'   : recursive version of the algorithm (default)\n"
+	"          'rec=yes'  : non-recursive version of the algorithm\n"
 	"          'timeS=yes': include time of simulation computation (default)\n"
 	"          'timeS=no' : do not include time of simulation computation\n"
 	;
@@ -145,32 +149,35 @@ void printHelp(bool full = false)
 
 
 template <class Aut>
-int performOperation(const Arguments& args, AbstrParser& parser,
-	AbstrSerializer& serializer)
+int performOperation(
+	const Arguments&        args,
+	AbstrParser&            parser,
+	AbstrSerializer&        serializer)
 {
-	typedef typename Aut::SymbolBackTranslatorStrict SymbolBackTranslatorStrict;
-
 	Aut autInput1;
 	Aut autInput2;
 	Aut autResult;
 	bool boolResult = false;
 	VATA::AutBase::StateBinaryRelation relResult;
 
-	VATA::AutBase::StringToStateDict stateDict1;
-	VATA::AutBase::StringToStateDict stateDict2;
+	StateDict stateDict1;
+	StateDict stateDict2;
 
-	VATA::AutBase::StateToStateMap translMap1;
-	VATA::AutBase::StateToStateMap translMap2;
+	AutBase::StateToStateMap translMap1;
 
 	if (args.operands >= 1)
 	{
-		autInput1.LoadFromString(parser, VATA::Util::ReadFile(args.fileName1),
+		autInput1.LoadFromString(
+			parser,
+			VATA::Util::ReadFile(args.fileName1),
 			stateDict1);
 	}
 
 	if (args.operands >= 2)
 	{
-		autInput2.LoadFromString(parser, VATA::Util::ReadFile(args.fileName2),
+		autInput2.LoadFromString(
+			parser,
+			VATA::Util::ReadFile(args.fileName2),
 			stateDict2);
 	}
 
@@ -184,24 +191,24 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 		{
 			if (args.operands >= 1)
 			{
-				autInput1 = RemoveUselessStates(autInput1);
+				autInput1 = autInput1.RemoveUselessStates();
 			}
 
 			if (args.operands >= 2)
 			{
-				autInput2 = RemoveUselessStates(autInput2);
+				autInput2 = autInput2.RemoveUselessStates();
 			}
 		}
 		else if (args.pruneUnreachable)
 		{
 			if (args.operands >= 1)
 			{
-				autInput1 = RemoveUnreachableStates(autInput1);
+				autInput1 = autInput1.RemoveUnreachableStates();
 			}
 
 			if (args.operands >= 2)
 			{
-				autInput2 = RemoveUnreachableStates(autInput2);
+				autInput2 = autInput2.RemoveUnreachableStates();
 			}
 		}
 	}
@@ -221,27 +228,31 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 	}
 	else if (args.command == COMMAND_WITNESS)
 	{
-		autResult = GetCandidateTree(autInput1);
+		autResult = autInput1.GetCandidateTree();
 	}
 	else if (args.command == COMMAND_COMPLEMENT)
 	{
-		autResult = Complement(autInput1, autInput1.GetAlphabet());
+		autResult = autInput1.Complement(autInput1.GetAlphabet());
 	}
 	else if (args.command == COMMAND_UNION)
 	{
-		autResult = Union(autInput1, autInput2, &opTranslMap1, &opTranslMap2);
+		autResult = Aut::Union(autInput1, autInput2, &opTranslMap1, &opTranslMap2);
 	}
 	else if (args.command == COMMAND_INTERSECTION)
 	{
-		autResult = Intersection(autInput1, autInput2, &prodTranslMap);
+		autResult = Aut::Intersection(autInput1, autInput2, &prodTranslMap);
 	}
 	else if (args.command == COMMAND_INCLUSION)
 	{
 		boolResult = CheckInclusion(autInput1, autInput2, args);
 	}
+	else if (args.command == COMMAND_EQUIV)
+	{
+		boolResult = CheckEquiv(autInput1, autInput2, args);
+	}
 	else if (args.command == COMMAND_SIM)
 	{
-		relResult = ComputeSimulation(autInput1, args);
+		relResult = ComputeSimulation(autInput1, args, stateDict1, translMap1);
 	}
 	else if (args.command == COMMAND_RED)
 	{
@@ -271,23 +282,18 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 			(args.command == COMMAND_WITNESS) ||
 			(args.command == COMMAND_RED))
 		{
-			std::cout << autResult.DumpToString(serializer,
-				StateBackTranslatorStrict(stateDict1.GetReverseMap()),
-				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
+			std::cout << autResult.DumpToString(serializer, stateDict1);
 		}
 
-		if (args.command == COMMAND_COMPLEMENT && args.representation != REPRESENTATION_EXPLICIT_FA)
+		if (args.command == COMMAND_COMPLEMENT &&
+			args.representation != REPRESENTATION_EXPLICIT_FA)
 		{
-			std::cout << autResult.DumpToString(serializer,
-				[](const AutBase::StateType& state){ return "q" + Convert::ToString(state); },
-				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
+			std::cout << autResult.DumpToString(serializer);
 		}
-    else if (args.command == COMMAND_COMPLEMENT) {
-      std::cout << autResult.DumpToString(serializer,
-				StateBackTranslatorStrict(stateDict1.GetReverseMap()),
-				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
-
-    }
+		else if (args.command == COMMAND_COMPLEMENT)
+		{
+			std::cout << autResult.DumpToString(serializer, stateDict1);
+		}
 
 		if (args.command == COMMAND_UNION)
 		{
@@ -304,17 +310,46 @@ int performOperation(const Arguments& args, AbstrParser& parser,
 		if ((args.command == COMMAND_UNION) ||
 			(args.command == COMMAND_INTERSECTION))
 		{
-			std::cout << autResult.DumpToString(serializer,
-				StateBackTranslatorStrict(stateDict1.GetReverseMap()),
-				SymbolBackTranslatorStrict(autResult.GetSymbolDict().GetReverseMap()));
+			std::cout << autResult.DumpToString(serializer, stateDict1);
 		}
-		if ((args.command == COMMAND_INCLUSION))
+		if ((args.command == COMMAND_INCLUSION) || (args.command == COMMAND_EQUIV))
 		{
 			std::cout << boolResult << "\n";
 		}
 
 		if (args.command == COMMAND_SIM)
 		{
+			// std::cout << autInput1.PrintSimulationMapping(
+			// 		StateBackTranslStrict(stateDict1.GetReverseMap()),
+			// 		StateToStateTranslStrict(translMap1))
+			// 	<< std::endl;
+
+			TwoWayDict<
+				AutBase::StateType,
+				AutBase::StateType,
+				AutBase::StateToStateMap
+			> stateToIndexDict(translMap1);
+
+			assert(stateDict1.size() == stateToIndexDict.size());
+			size_t i = 0;
+			for (const auto indexToStatePair : stateToIndexDict.GetReverseMap())
+			{
+				// check that the indices are correct
+				assert(indexToStatePair.first == i);
+
+				StateDict::ConstIteratorBwd it;
+				if ((it = stateDict1.FindBwd(indexToStatePair.second)) == stateDict1.EndBwd())
+				{
+					assert(false);
+				}
+
+				std::cout << i << ": " << it->second << ", ";
+				++i;
+			}
+
+			assert(stateDict1.size() == i);
+
+			std::cout << "\n";
 			std::cout << relResult << "\n";
 		}
 	}
@@ -388,41 +423,7 @@ int main(int argc, char* argv[])
 		return EXIT_SUCCESS;
 	}
 
-	// create the symbol directory for the BDD-based automata
-	BDDTopDownTreeAut::StringToSymbolDict bddSymbolDict;
-	BDDTopDownTreeAut::SetSymbolDictPtr(&bddSymbolDict);
-	BDDBottomUpTreeAut::SetSymbolDictPtr(&bddSymbolDict);
-
-	// create the ``next symbol'' variable for the BDD-based automata
-	BDDTopDownTreeAut::SymbolType bddNextSymbol(BDD_SIZE, 0);
-	BDDTopDownTreeAut::SetNextSymbolPtr(&bddNextSymbol);
-	BDDBottomUpTreeAut::SetNextSymbolPtr(&bddNextSymbol);
-
-	// create the symbol directory for explicit automata
-	ExplicitTreeAut::StringToSymbolDict explSymbolDict;
-	ExplicitTreeAut::SetSymbolDictPtr(&explSymbolDict);
-
-	// create the ``next symbol'' variable for the explicit automaton
-	ExplicitTreeAut::SymbolType explNextSymbol(0);
-	ExplicitTreeAut::SetNextSymbolPtr(&explNextSymbol);
-
-	// create the ``next state'' variable
-	AutBase::StateType nextState(0);
-	ExplicitTreeAut::SetNextStatePtr(&nextState);
-
-	// create the symbol directory for finite automata
-	ExplicitFiniteAut::StringToSymbolDict explFASymbolDict;
-	ExplicitFiniteAut::SetSymbolDictPtr(&explFASymbolDict);
-
-	// create the ``next symbol`` variable for the explicit finite automaton
-	ExplicitFiniteAut::SymbolType explFANextSymbol(0);
-	ExplicitFiniteAut::SetNextSymbolPtr(&explFANextSymbol);
-
-	// create the ``next state`` variable
-	AutBase::StateType explFANextState(0);
-	ExplicitFiniteAut::SetNextStatePtr(&explFANextState);
-
-	VATA::AutBase::StringToStateDict stateDict;
+	AutBase::StateDict stateDict;
 
 	try
 	{

@@ -13,37 +13,36 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/util/abstract_transl.hh>
+#include <vata/util/convert.hh>
+
+// Standard library headers
+#include <stdexcept>
 
 
 namespace VATA
 {
 	namespace Util
 	{
-		template
-		<
-			class Cont
-		>
+		template <
+			class Cont>
 		class TranslatorStrict;
 
-		template
-		<
-			class T
-		>
+		template <
+			class T>
 		class IdentityTranslator;
 	}
 }
 
 /**
  * @brief  Strict translator
- * 
+ *
  */
-template
-<
-	class Cont
->
-class VATA::Util::TranslatorStrict
+template <
+	class Cont>
+class VATA::Util::TranslatorStrict :
+	public AbstractTranslator<typename Cont::key_type, typename Cont::mapped_type>
 {
-
 private:  // data types
 
 	typedef Cont Container;
@@ -60,7 +59,7 @@ public:   // methods
 		container_(container)
 	{ }
 
-	inline ResultType operator()(const InputType& value) const
+	virtual ResultType operator()(const InputType& value) const override
 	{
 		typename Container::const_iterator itCont;
 		if ((itCont = container_.find(value)) != container_.end())
@@ -69,40 +68,44 @@ public:   // methods
 		}
 		else
 		{	// in case there is no translation for the value
-			throw std::runtime_error("No translation for " + Convert::ToString(value));
+			throw std::runtime_error("No translation for " +
+				VATA::Util::Convert::ToString(value));
 		}
 	}
 
-	inline ResultType operator[](const InputType& value) const
+	virtual ResultType operator()(const InputType& value) override
 	{
-		return this->operator()(value);
+		return const_cast<const TranslatorStrict*>(this)->operator()(value);
 	}
-	
+
+	const Container& GetContainer() const
+	{
+		return container_;
+	}
 };
 
 /**
  * @brief  Identity translator
- * 
+ *
  */
 template
 <
 	class T
 >
-class VATA::Util::IdentityTranslator
+class VATA::Util::IdentityTranslator :
+	public AbstractTranslator<T, T>
 {
-
 public:   // methods
 
-	inline T operator()(const T& value) const
+	virtual T operator()(const T& value) override
 	{
 		return value;
 	}
 
-	inline T operator[](const T& value) const
+	virtual T operator()(const T& value) const override
 	{
 		return value;
 	}
-	
 };
 
 #endif

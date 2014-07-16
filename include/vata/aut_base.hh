@@ -4,7 +4,7 @@
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
  *
  *  Description:
- *    Header file for the base class of automata.
+ *    Header file for base classes of automata.
  *
  *****************************************************************************/
 
@@ -13,8 +13,12 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/notimpl_except.hh>
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
+#include <vata/symbolic.hh>
+
+// Utilities
 #include <vata/util/binary_relation.hh>
 #include <vata/util/two_way_dict.hh>
 #include <vata/util/transl_weak.hh>
@@ -24,28 +28,25 @@
 namespace VATA
 {
 	class AutBase;
-
-	template <class Automaton>
-	Automaton Reduce(const Automaton&)
-	{
-		throw std::runtime_error("Unimplemented.");
-	}
+	class TreeAutBase;
+	class SymbolicTreeAutBase;
 
 	template <class Automaton>
 	Automaton GetCandidateTree(const Automaton&)
 	{
-		throw std::runtime_error("Unimplemented.");
+		throw NotImplementedException(__func__);
 	}
 
-	template <class Automaton, class Dict>
-	Automaton Complement(const Automaton& aut, const Dict& alphabet)
+	/**
+	 * @brief  Generic procedure for checking equivalence of automata
+	 *
+	 * To be used when a specific implementation is not available
+	 */
+	template <class Automaton>
+	bool CheckEquivalence(const Automaton& lhs, const Automaton& rhs)
 	{
-		if ((nullptr == &aut) && (nullptr == &alphabet))
-		{ }
-
-		throw std::runtime_error("Unimplemented.");
+		return CheckInclusion(lhs, rhs) && CheckInclusion(rhs, lhs);
 	}
-
 }
 
 
@@ -60,24 +61,27 @@ class VATA::AutBase
 {
 public:   // data types
 
-	typedef size_t StateType;
+	using StateType      = size_t;
+	using StateHT        = std::unordered_set<StateType>;
+	using FinalStateSet  = std::unordered_set<StateType>;
 
-	typedef VATA::Util::TwoWayDict<std::string, StateType> StringToStateDict;
-	typedef VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>
-		StateBackTranslatorStrict;
+	using AutDescription             = VATA::Util::AutDescription;
+	using StateDict                  = Util::TwoWayDict<std::string, StateType>;
+	using StringToStateTranslWeak    = Util::TranslatorWeak<StateDict>;
+	using StringToStateTranslStrict  = Util::TranslatorStrict<StateDict>;
+	using StateBackTranslStrict      = Util::TranslatorStrict<StateDict::MapBwdType>;
 
-	typedef std::unordered_map<StateType, StateType> StateToStateMap;
-	typedef VATA::Util::TranslatorWeak<StateToStateMap> StateToStateTranslator;
+	using StateToStateMap         = std::unordered_map<StateType, StateType>;
+	using StateToStateTranslWeak  = Util::TranslatorWeak<StateToStateMap>;
+	using StateToStateTranslStrict= Util::TranslatorStrict<StateToStateMap>;
+	using StateToStringConvFunc   = std::function<std::string(const StateType&)>;
 
-	typedef std::pair<StateType, StateType> StatePair;
-	typedef std::unordered_map<StatePair, StateType, boost::hash<StatePair>>
-		ProductTranslMap;
+	using StatePair = std::pair<StateType, StateType>;
 
-	typedef VATA::Util::BinaryRelation StateBinaryRelation;
+	using ProductTranslMap =
+		std::unordered_map<StatePair, StateType, boost::hash<StatePair>>;
 
-private:  // data members
-
-	static StateType* pNextState_;
+	using StateBinaryRelation = Util::BinaryRelation;
 
 protected:// methods
 
@@ -85,52 +89,255 @@ protected:// methods
 
 public:   // methods
 
-	inline static void SetNextStatePtr(StateType* pNextState)
-	{
-		// Assertions
-		assert(pNextState != nullptr);
-
-		pNextState_ = pNextState;
-	}
-
 	template <class Automaton>
-	static StateType SanitizeAutsForInclusion(Automaton& smaller, Automaton& bigger)
+	static StateType SanitizeAutsForInclusion(
+		Automaton&     smaller,
+		Automaton&     bigger)
 	{
 		StateType stateCnt = 0;
 		StateToStateMap stateMap;
-		StateToStateTranslator stateTrans(stateMap,
+		StateToStateTranslWeak stateTrans(stateMap,
 			[&stateCnt](const StateType&){return stateCnt++;});
 
-		Automaton tmpAut = RemoveUselessStates(smaller);
-		Automaton newSmaller;
-		tmpAut.ReindexStates(newSmaller, stateTrans);
+		Automaton tmpAut = smaller.RemoveUselessStates();
+		Automaton newSmaller = tmpAut.ReindexStates(stateTrans);
 
-		tmpAut = RemoveUselessStates(bigger);
+		tmpAut = bigger.RemoveUselessStates();
 		stateMap.clear();
-		Automaton newBigger;
-		tmpAut.ReindexStates(newBigger, stateTrans);
+		Automaton newBigger = tmpAut.ReindexStates(stateTrans);
 
 		smaller = newSmaller;
 		bigger = newBigger;
 
 		return stateCnt;
 	}
+};
 
-	template <class Automaton>
-	static StateType SanitizeAutForSimulation(Automaton& aut)
+GCC_DIAG_OFF(effc++)
+class VATA::TreeAutBase : public AutBase
+{
+GCC_DIAG_ON(effc++)
+
+protected:// methods
+
+	TreeAutBase() { }
+
+public:   // data types
+
+	using StateTuple     = std::vector<StateType>;
+
+protected:// data types
+
+	template <
+		class TSymbol>
+	class TTransition
 	{
-		StateType stateCnt = 0;
-		StateToStateMap stateMap;
-		StateToStateTranslator stateTrans(stateMap,
-			[&stateCnt](const StateType&){return stateCnt++;});
+	private:  // data types
 
-		Automaton newAut = RemoveUselessStates(aut);
-		Automaton reindexedAut;
-		newAut.ReindexStates(reindexedAut, stateTrans);
+		using SymbolType = TSymbol;
 
-		aut = reindexedAut;
+	private:  // data members
 
-		return stateCnt;
+		StateType parent_;
+		SymbolType symbol_;
+		StateTuple children_;
+
+	public:
+
+		TTransition() :
+			parent_(),
+			symbol_(),
+			children_()
+		{ }
+
+		TTransition(
+			const StateType&      parent,
+			const SymbolType&     symbol,
+			const StateTuple&     children) :
+			parent_(parent),
+			symbol_(symbol),
+			children_(children)
+		{ }
+
+		const StateType& GetParent()    const { return parent_;   }
+		const SymbolType& GetSymbol()   const { return symbol_;   }
+		const StateTuple& GetChildren() const { return children_; }
+
+		bool operator<(const TTransition& rhs) const
+		{
+			if (parent_ < rhs.parent_)
+			{
+				return true;
+			}
+			else if (parent_ == rhs.parent_)
+			{
+				if (symbol_ < rhs.symbol_)
+				{
+					return true;
+				}
+				else if (symbol_ == rhs.symbol_)
+				{
+					if (children_.size() != rhs.children_.size())
+					{
+						return children_.size() < rhs.children_.size();
+					}
+					else
+					{
+						for (size_t i = 0; i < children_.size(); ++i)
+						{
+							if (children_[i] != rhs.children_[i])
+							{
+								return children_[i] < rhs.children_[i];
+							}
+						}
+					}
+				}
+			}
+
+			return false;
+		}
+
+
+		bool operator==(const TTransition& rhs) const
+		{
+			if ((parent_ == rhs.parent_) && (symbol_ == rhs.symbol_))
+			{
+				if (children_.size() == rhs.children_.size())
+				{
+					size_t i;
+					for (i = 0; i < children_.size(); ++i)
+					{
+						if (children_[i] != rhs.children_[i])
+						{
+							break;
+						}
+					}
+
+					if (children_.size() == i)
+					{
+						return true;
+					}
+				}
+			}
+
+			return false;
+		}
+
+		bool operator!=(const TTransition& rhs) const
+		{
+			return !(*this == rhs);
+		}
+
+		friend std::ostream& operator<<(
+			std::ostream&              os,
+			const TTransition&         trans)
+		{
+			os << trans.GetSymbol();
+
+			os << "(";
+
+			for (auto it = trans.GetChildren().cbegin();
+				it != trans.GetChildren().cend(); ++it)
+			{
+				if (it != trans.GetChildren().cbegin())
+				{
+					os << ", ";
+				}
+
+				os << *it;
+			}
+
+			os << ") -> ";
+			os << trans.GetParent();
+
+			return os;
+		}
+	};
+};
+
+
+GCC_DIAG_OFF(effc++)
+class VATA::SymbolicTreeAutBase :
+	public TreeAutBase,
+	public Symbolic
+{
+GCC_DIAG_ON(effc++)
+
+public:   // data types
+
+	using StringSymbolType = std::string;
+
+	using SymbolDict                      = Util::TwoWayDict<std::string, SymbolType>;
+	using StringSymbolToSymbolTranslStrict= Util::TranslatorStrict<SymbolDict>;
+	using StringSymbolToSymbolTranslWeak  = Util::TranslatorWeak<SymbolDict>;
+	using SymbolBackTranslStrict          =
+		Util::TranslatorStrict<typename SymbolDict::MapBwdType>;
+
+	// TODO: merge with ExplicitTreeAut
+	class AbstractAlphabet
+	{
+	public:  // data types
+
+		using FwdTranslator    = VATA::Util::AbstractTranslator<StringSymbolType, SymbolType>;
+		using FwdTranslatorPtr = std::unique_ptr<FwdTranslator>;
+		using BwdTranslator    = VATA::Util::AbstractTranslator<SymbolType, StringSymbolType>;
+		using BwdTranslatorPtr = std::unique_ptr<BwdTranslator>;
+
+	public:  // methods
+
+		virtual FwdTranslatorPtr GetSymbolTransl() = 0;
+		virtual BwdTranslatorPtr GetSymbolBackTransl() = 0;
+		virtual SymbolDict& GetSymbolDict() = 0;
+	};
+
+
+	class OnTheFlyAlphabet : public AbstractAlphabet
+	{
+	private:  // data members
+
+		SymbolDict symbolDict_{};
+		SymbolType nextSymbol_;
+
+	public:   // methods
+
+		OnTheFlyAlphabet() :
+			nextSymbol_(Symbolic::GetZeroSymbol())
+		{ }
+
+		virtual FwdTranslatorPtr GetSymbolTransl() override
+		{
+			FwdTranslator* fwdTransl = new
+				StringSymbolToSymbolTranslWeak{symbolDict_,
+				[&](const StringSymbolType&){return nextSymbol_++;}};
+			return FwdTranslatorPtr(fwdTransl);
+		}
+
+		virtual BwdTranslatorPtr GetSymbolBackTransl() override
+		{
+			throw NotImplementedException(__func__);
+		}
+
+		virtual SymbolDict& GetSymbolDict() override
+		{
+			return symbolDict_;
+		}
+	};
+
+	using AlphabetType = std::shared_ptr<AbstractAlphabet>;
+
+	using Transition = TreeAutBase::TTransition<SymbolType>;
+
+protected:// methods
+
+	SymbolicTreeAutBase() { }
+
+public:   // methods
+
+	static const StringSymbolType& ToStringSymbolType(
+		const std::string&         str,
+		size_t                     /* rank */)
+	{
+		return str;
 	}
 };
 

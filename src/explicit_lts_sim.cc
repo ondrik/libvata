@@ -8,23 +8,28 @@
  *
  *****************************************************************************/
 
+// Standard library headers
 #include <ostream>
 #include <vector>
 #include <list>
 #include <algorithm>
 #include <memory>
 #include <unordered_set>
-
 #include <cstddef>
 
-#include <vata/util/binary_relation.hh>
-#include <vata/util/splitting_relation.hh>
-#include <vata/util/smart_set.hh>
-#include <vata/util/caching_allocator.hh>
-#include <vata/util/shared_list.hh>
-#include <vata/util/shared_counter.hh>
-#include <vata/util/convert.hh>
+
+// VATA headers
 #include <vata/explicit_lts.hh>
+#include <vata/util/binary_relation.hh>
+#include <vata/util/smart_set.hh>
+#include <vata/util/convert.hh>
+
+
+#include "util/caching_allocator.hh"
+#include "util/shared_counter.hh"
+#include "util/shared_list.hh"
+#include "util/splitting_relation.hh"
+
 
 using VATA::Util::BinaryRelation;
 using VATA::Util::SplittingRelation;
@@ -514,7 +519,7 @@ protected:
 
 				if (mask[q]) {
 
-					VATA_LOGGER_INFO("state " + Convert::ToString(q) + " appears in more than one block");
+					VATA_INFO("state " << q << " appears in more than one block");
 
 					return false;
 
@@ -530,7 +535,7 @@ protected:
 
 			if (!mask[i]) {
 
-				VATA_LOGGER_INFO("state " + Convert::ToString(i) + " does not appear anywhere");
+				VATA_INFO("state " << i << " does not appear anywhere");
 
 				return false;
 
@@ -547,7 +552,7 @@ protected:
 
 		if (part.size() != rel.size()) {
 
-			VATA_LOGGER_INFO("partition and relation sizes differ");
+			VATA_INFO("partition and relation sizes differ");
 
 			return false;
 
@@ -557,7 +562,7 @@ protected:
 
 			if (!rel.get(i, i)) {
 
-				VATA_LOGGER_INFO("relation is not reflexive");
+				VATA_INFO("relation is not reflexive");
 
 				return false;
 
@@ -870,8 +875,10 @@ BinaryRelation VATA::ExplicitLTS::computeSimulation(
 	size_t outputSize
 ) {
 
-	if (this->states_ == 0)
+	if (0 == states_)
+	{
 		return BinaryRelation();
+	}
 
 	SimulationEngine engine(*this);
 
@@ -883,5 +890,4 @@ BinaryRelation VATA::ExplicitLTS::computeSimulation(
 	engine.buildResult(result, outputSize);
 
 	return result;
-
 }

@@ -13,6 +13,5 @@
 #include <vata/aut_base.hh>
 
 using VATA::AutBase;
-
-AutBase::StateType* AutBase::pNextState_ = nullptr;
-
+using VATA::TreeAutBase;
+using VATA::SymbolicTreeAutBase;

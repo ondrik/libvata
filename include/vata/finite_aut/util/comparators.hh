@@ -18,11 +18,11 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/util/antichain1c.hh>
-#include <vata/finite_aut/explicit_finite_aut.hh>
+#include <vata/explicit_finite_aut.hh>
 
 namespace VATA {
-	template <class SymbolType,class Rel> class ExplicitFAStateSetComparatorIdentity;
-	template <class SymbolType,class Rel> class ExplicitFAStateSetComparatorSimulation;
+	template <class Rel> class ExplicitFAStateSetComparatorIdentity;
+	template <class Rel> class ExplicitFAStateSetComparatorSimulation;
 }
 
 /**
@@ -32,11 +32,11 @@ namespace VATA {
  * @note	is it necessary to reference to VATA::ExplicitFA?
  *
  */
-template<class SymbolType, class Rel>
+template<class Rel>
 class VATA::ExplicitFAStateSetComparatorIdentity {
 
 public:
-	typedef ExplicitFiniteAut<SymbolType> ExplicitFA;
+	typedef ExplicitFiniteAut ExplicitFA;
 	typedef typename ExplicitFA::StateType StateType;
 	typedef typename ExplicitFA::StateSet StateSet;
 	typedef VATA::Util::Antichain1C<StateType> Antichain1Type;
@@ -82,17 +82,30 @@ public: // public methods
 			Antichain1Type& /*antichain*/) {
 		candidates.push_back(state);
 	}
+
+	inline void getCandidateRev(std::vector<StateType>& candidates, StateType state,
+			Antichain1Type& /*antichain*/) {
+		candidates.push_back(state);
+	}
+
+	inline bool checkSmallerInBigger(const StateType& /*smaller*/, const StateSet& /*biggerSet*/)
+	{
+		// something should be implemented here?
+		assert(false);
+
+		return false;
+	}
 };
 
 /*
  * Class for comparing macrostates during inclusion checking
  * using simulation
  */
-template<class SymbolType, class Rel>
+template<class Rel>
 class VATA::ExplicitFAStateSetComparatorSimulation {
 
 public:
-	typedef ExplicitFiniteAut<SymbolType> ExplicitFA;
+	typedef ExplicitFiniteAut ExplicitFA;
 	typedef typename ExplicitFA::StateSet StateSet;
 	typedef typename ExplicitFA::StateType StateType;
 	typedef VATA::Util::Antichain1C<StateType> Antichain1Type;
@@ -132,10 +145,29 @@ public: // public methods
 	inline void getCandidate(std::vector<StateType>& candidates, StateType state,
 			Antichain1Type& antichain) {
 		for (StateType candidate : antichain.data()) {
+			if (preorder_.get(state,candidate)) {
+				candidates.push_back(candidate);
+			}
+		}
+	}
+
+	inline void getCandidateRev(std::vector<StateType>& candidates, StateType state,
+			Antichain1Type& antichain) {
+		for (StateType candidate : antichain.data()) {
 			if (preorder_.get(candidate,state)) {
 				candidates.push_back(candidate);
 			}
 		}
+	}
+
+	inline bool checkSmallerInBigger(const StateType& smaller, const StateSet& biggerSet)
+	{
+		for (const StateType& s : biggerSet) {
+			if (preorder_.get(smaller,s)) {
+				return true;
+			}
+		}
+		return false;
 	}
 };
 

@@ -82,11 +82,13 @@ struct VATA::Util::Triple
 		return third < rhs.third;
 	}
 
+
 	friend std::ostream& operator<<(std::ostream& os, const Triple& trip)
 	{
-		os << "(" << Convert::ToString(trip.first) << ", " <<
-			Convert::ToString(trip.second) << ", " <<
-			Convert::ToString(trip.third) << ")";
+		os << "(" <<
+			VATA::Util::Convert::ToString(trip.first)  << ", " <<
+			VATA::Util::Convert::ToString(trip.second) << ", " <<
+			VATA::Util::Convert::ToString(trip.third)  << ")";
 
 		return os;
 	}

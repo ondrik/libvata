@@ -11,77 +11,89 @@
 #ifndef _VATA_SMART_SET_HH_
 #define _VATA_SMART_SET_HH_
 
+// VATA headers
+#include <vata/vata.hh>
+#include <vata/util/convert.hh>
+
+// Standard library headers
 #include <ostream>
 #include <vector>
 
-namespace VATA {
-		namespace Util {
-				class SmartSet;
-		}
+namespace VATA
+{
+	namespace Util
+	{
+		class SmartSet;
+	}
 }
 
-class VATA::Util::SmartSet {
-
+class VATA::Util::SmartSet
+{
 public:
 
 	typedef size_t Key;
 
 private:
 
-	struct Element {
+	struct Element
+	{
+		Element* next;
+		Key key;
+		size_t count;
 
-		Element* next_;
-		Key key_;
-		size_t count_;
-
-		Element(const Key& key, size_t count = 0) : next_(nullptr), key_(key), count_(count) {}
-
+		Element(
+			const Key&         key,
+			size_t             count = 0) :
+			next(nullptr),
+			key(key),
+			count(count)
+		{ }
 	};
 
 	GCC_DIAG_OFF(effc++)
-	struct Iterator : public std::iterator<std::input_iterator_tag, Key> {
+	class Iterator : public std::iterator<std::input_iterator_tag, Key>
+	{
 	GCC_DIAG_ON(effc++)
+
+	private:
 
 		const Element* element_;
 
-		Iterator(const Element* element) : element_(element) {}
+	public:
 
-		Iterator& operator++() {
+		Iterator(const Element* element) :
+			element_(element)
+		{ }
 
-			assert(this->element_);
+		Iterator& operator++()
+		{
+			assert(nullptr != element_);
 
-			this->element_ = this->element_->next_;
-
+			element_ = element_->next;
 			return *this;
-
 		}
 
-		Iterator operator++(int) const {
-
-			return ++Iterator(this->element_);
-
+		Iterator operator++(int) const
+		{
+			return ++Iterator(element_);
 		}
 
-		const Key& operator*() {
+		const Key& operator*()
+		{
+			assert(nullptr != element_);
 
-			assert(this->element_);
-
-			return this->element_->key_;
-
+			return element_->key;
 		}
 
-		bool operator==(const Iterator& rhs) const {
-
-			return this->element_ == rhs.element_;
-
+		bool operator==(const Iterator& rhs) const
+		{
+			return element_ == rhs.element_;
 		}
 
-		bool operator!=(const Iterator& rhs) const {
-
-			return this->element_ != rhs.element_;
-
+		bool operator!=(const Iterator& rhs) const
+		{
+			return element_ != rhs.element_;
 		}
-
 	};
 
 public:
@@ -98,252 +110,266 @@ private:
 
 protected:
 
-	size_t& insert(const Key& key) {
+	size_t& insert(const Key& key)
+	{
+		assert(key < index_.size());
 
-		assert(key < this->index_.size());
+		Element*& prev = index_[key];
 
-		auto& prev = this->index_[key];
+		if (nullptr == prev)
+		{
+			prev = last_;
+			prev->next = new Element(key);
+			last_ = prev->next;
 
-		if (!prev) {
-
-			prev = this->last_;
-			prev->next_ = new Element(key);
-			this->last_ = prev->next_;
-
-			++this->size_;
-
+			++size_;
 		}
 
-		assert(key == prev->next_->key_);
+		assert(key == prev->next->key);
 
-		return prev->next_->count_;
-
+		return prev->next->count;
 	}
 
-	void erase(Element*& prev) {
+	void erase(Element*& prev)
+	{
+		assert(nullptr != prev);
 
-		assert(prev);
+		--size_;
+		Element* el = prev->next;
 
-		--this->size_;
+		assert(nullptr != el);
 
-		auto el = prev->next_;
+		prev->next = el->next;
 
-		assert(el);
+		if (nullptr != prev->next)
+		{
+			assert(prev->next->key < index_.size());
+			assert(index_[prev->next->key] == el);
 
-		prev->next_ = el->next_;
-
-		if (prev->next_) {
-
-			assert(prev->next_->key_ < this->index_.size());
-			assert(this->index_[prev->next_->key_] == el);
-
-			this->index_[prev->next_->key_] = prev;
-
+			index_[prev->next->key] = prev;
 		}
 
 		delete el;
-
 		prev = nullptr;
-
 	}
 
 public:
 
-	SmartSet(size_t range = 0) : head_(Key(), 0), last_(&head_), size_(0), index_(range, nullptr) {}
+	SmartSet(
+		size_t         range = 0) :
+		head_(Key(), 0),
+		last_(&head_), size_(0),
+		index_(range, nullptr)
+	{ }
 
-	SmartSet(const SmartSet& s) : head_(Key(), 0), last_(&head_), size_(s.size_),
-		index_(s.index_.size(), nullptr) {
-
-		for (auto el = s.head_.next_ ; el; el = el->next_) {
-
-			this->index_[el->key_] = this->last_;
-			this->last_->next_ = new Element(el->key_, el->count_);
-			this->last_ = this->last_->next_;
-
+	SmartSet(const SmartSet& s) :
+		head_(Key(), 0),
+		last_(&head_),
+		size_(s.size_),
+		index_(s.index_.size(), nullptr)
+	{
+		for (const Element* el = s.head_.next; nullptr != el; el = el->next)
+		{
+			index_[el->key] = last_;
+			last_->next = new Element(el->key, el->count);
+			last_ = last_->next;
 		}
-
 	}
 
-	SmartSet& operator=(const SmartSet& s) {
+	SmartSet& operator=(const SmartSet& s)
+	{
+		if (this != &s)
+		{
+			assert(nullptr == head_.next);
 
-		std::fill(this->index_.begin(), this->index_.end(), nullptr);
+			std::fill(index_.begin(), index_.end(), nullptr);
+			index_.resize(s.index_.size(), nullptr);
+			last_ = &head_;
 
-		this->index_.resize(s.index_.size(), nullptr);
+			for (const Element* el = s.head_.next; nullptr != el; el = el->next)
+			{
+				index_[el->key] = last_;
+				last_->next = new Element(el->key, el->count);
+				last_ = last_->next;
+			}
 
-		this->last_ = &this->head_;
-
-		for (auto el = s.head_.next_ ; el; el = el->next_) {
-
-			this->index_[el->key_] = this->last_;
-			this->last_->next_ = new Element(el->key_, el->count_);
-			this->last_ = this->last_->next_;
-
+			size_ = s.size();
 		}
-
-		this->size_ = s.size();
 
 		return *this;
-
 	}
 
-	void assignFlat(const SmartSet& s) {
+	~SmartSet()
+	{
+		this->clear();
+	}
 
-		std::fill(this->index_.begin(), this->index_.end(), nullptr);
+	void assignFlat(const SmartSet& s)
+	{
+		this->clear();
+		assert(nullptr == head_.next);
+		assert(std::all_of(index_.cbegin(), index_.cend(), [](const Element* elem){return nullptr == elem;}));
 
-		this->index_.resize(s.index_.size(), nullptr);
+		index_.resize(s.index_.size(), nullptr);
+		last_ = &head_;
 
-		this->last_ = &this->head_;
-
-		for (auto el = s.head_.next_ ; el; el = el->next_) {
-
-			this->index_[el->key_] = this->last_;
-			this->last_->next_ = new Element(el->key_, 1);
-			this->last_ = this->last_->next_;
-
+		for (const Element* el = s.head_.next; nullptr != el; el = el->next)
+		{
+			index_[el->key] = last_;
+			last_->next = new Element(el->key, 1);
+			last_ = last_->next;
 		}
 
-		this->size_ = s.size();
-
+		size_ = s.size();
 	}
 
-	SmartSet::iterator begin() const { return SmartSet::Iterator(this->head_.next_); }
-	SmartSet::iterator end() const { return SmartSet::Iterator(nullptr); }
+	SmartSet::iterator begin() const
+	{
+		return SmartSet::Iterator(head_.next);
+	}
 
-	bool contains(const Key& key) const {
+	SmartSet::iterator end() const
+	{
+		return SmartSet::Iterator(nullptr);
+	}
 
-		assert(key < this->index_.size());
+	bool contains(const Key& key) const
+	{
+		assert(key < index_.size());
 
-		if (!this->index_[key])
+		if (nullptr == index_[key])
+		{
 			return false;
+		}
 
-		assert(this->index_[key]->next_);
-		assert(this->index_[key]->next_->key_ == key);
+		assert(index_[key]->next);
+		assert(index_[key]->next->key == key);
 
 		return true;
-
 	}
 
-	size_t count(const Key& key) const {
+	size_t count(const Key& key) const
+	{
+		assert(key < index_.size());
 
-		assert(key < this->index_.size());
-
-		if (!this->index_[key])
+		if (nullptr == index_[key])
+		{
 			return 0;
+		}
 
-		assert(this->index_[key]->next_);
-		assert(this->index_[key]->next_->key_ == key);
+		assert(index_[key]->next);
+		assert(index_[key]->next->key == key);
 
-		return this->index_[key]->next_->count_;
-
+		return index_[key]->next->count;
 	}
 
-	void init(const Key& key, size_t count) {
-
-		if (count) {
-
+	void init(const Key& key, size_t count)
+	{
+		if (count > 0)
+		{
 			this->insert(key) = count;
-
 			return;
-
 		}
 
-		assert(key < this->index_.size());
+		assert(key < index_.size());
 
-		auto& prev = this->index_[key];
+		Element*& prev = index_[key];
 
-		if (prev)
+		if (nullptr != prev)
+		{
 			this->erase(prev);
-
+		}
 	}
 
-	void add(const Key& key) {
-
+	void add(const Key& key)
+	{
 		++this->insert(key);
-
 	}
 
-	void remove(const Key& key) {
+	void remove(const Key& key)
+	{
+		assert(key < index_.size());
 
-		assert(key < this->index_.size());
+		Element*& prev = index_[key];
 
-		auto& prev = this->index_[key];
-
-		if (!prev)
+		if (nullptr == prev)
+		{
 			return;
-
-		auto el = prev->next_;
-
-		assert(el);
-		assert(key == el->key_);
-
-		if (el->count_ == 1)
-
-			this->erase(prev);
-
-		else
-
-			--el->count_;
-
-	}
-
-	void removeStrict(const Key& key) {
-
-		assert(key < this->index_.size());
-
-		auto& prev = this->index_[key];
-
-		assert(prev);
-
-		auto el = prev->next_;
-
-		assert(key == el->key_);
-
-		if (el->count_ == 1)
-
-			this->erase(prev);
-
-		else
-
-			--el->count_;
-
-	}
-
-	bool empty() const { return this->head_.next_ == nullptr; }
-
-	size_t size() const { return this->size_; }
-
-	void clear() {
-
-		for (auto el = this->head_.next_; el; ) {
-
-			auto tmp = el;
-
-			el = el->next_;
-
-			assert(tmp->key_ < this->index_.size());
-
-			this->index_[tmp->key_] = nullptr;
-
-			delete tmp;
-
 		}
 
-		this->last_ = &this->head_;
-		this->size_ = 0;
+		Element* el = prev->next;
 
+		assert(nullptr != el);
+		assert(key == el->key);
+
+		if (el->count == 1)
+		{
+			this->erase(prev);
+		}
+		else
+		{
+			--el->count;
+		}
 	}
 
-	friend std::ostream& operator<<(std::ostream& os, const SmartSet& s) {
+	void removeStrict(const Key& key)
+	{
+		assert(key < index_.size());
+		Element*& prev = index_[key];
+		assert(nullptr != prev);
 
+		Element* el = prev->next;
+		assert(key == el->key);
+
+		if (el->count == 1)
+		{
+			this->erase(prev);
+		}
+		else
+		{
+			--el->count;
+		}
+	}
+
+	bool empty() const
+	{
+		return head_.next == nullptr;
+	}
+
+	size_t size() const
+	{
+		return size_;
+	}
+
+	void clear()
+	{
+		for (Element* el = head_.next; nullptr != el; )
+		{
+			Element* tmp = el;
+			el = el->next;
+
+			assert(tmp->key < index_.size());
+
+			index_[tmp->key] = nullptr;
+			delete tmp;
+		}
+
+		last_ = &head_;
+		head_.next = nullptr;
+		size_ = 0;
+	}
+
+	friend std::ostream& operator<<(std::ostream& os, const SmartSet& s)
+	{
 		os << '{';
 
-		for (auto el = s.head_.next_; el; el = el->next_)
-			os << ' ' << el->key_ << ':' << el->count_;
+		for (const Element* el = s.head_.next; nullptr != el; el = el->next)
+		{
+			os << ' ' << el->key << ':' << el->count;
+		}
 
 		return os << " }";
-
 	}
-
 };
 
 #endif

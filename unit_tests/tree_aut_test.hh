@@ -18,6 +18,8 @@
 #include <vata/util/util.hh>
 
 using VATA::AutBase;
+using VATA::InclParam;
+using VATA::SimParam;
 using VATA::Parsing::TimbukParser;
 using VATA::Serialization::TimbukSerializer;
 using VATA::Util::AutDescription;
@@ -68,69 +70,73 @@ class TreeAutFixture : public LogFixture, public AutTypeFixture
 {
 protected:// data types
 
-	typedef AutTypeFixture::AutType AutType;
+	using StateDict = AutBase::StateDict;
+	using SymbolDict = AutType::SymbolDict;
 
-	typedef AutBase::StringToStateDict StringToStateDict;
+	using StateToStateMap        = AutBase::StateToStateMap;
+	using StateToStateTranslWeak = AutType::StateToStateTranslWeak;
+	using StateType              = AutBase::StateType;
+	using StateTuple             = AutType::StateTuple;
+	using SymbolType             = AutType::SymbolType;
+	using StringSymbolType       = AutType::StringSymbolType;
+	using StateBinaryRelation    = AutType::StateBinaryRelation;
 
-	typedef AutBase::StateToStateMap StateToStateMap;
-	typedef AutType::StateToStateTranslator StateToStateTranslator;
-	typedef AutBase::StateType StateType;
-	typedef AutType::StateTuple StateTuple;
-	typedef AutType::StateBinaryRelation StateBinaryRelation;
-	typedef VATA::Util::TranslatorStrict<StringToStateDict>
-		StringToStateStrictTranslator;
+	using StringToStateTranslStrict  = AutType::StringToStateTranslStrict;
+	using StringToStateTranslWeak    = AutType::StringToStateTranslWeak;
 
+	using StateBackTranslStrict         = AutType::StateBackTranslStrict;
+	using SymbolBackTranslStrict        = AutType::SymbolBackTranslStrict;
+	using StringSymbolToSymbolTranslWeak= AutType::StringSymbolToSymbolTranslWeak;
 
-	typedef VATA::Util::TranslatorStrict<AutBase::StringToStateDict::MapBwdType>
-		StateBackTranslatorStrict;
-
-	typedef VATA::Util::TranslatorStrict<AutType::StringToSymbolDict::MapBwdType>
-		SymbolBackTranslatorStrict;
+	using Transition = AutType::Transition;
 
 protected:// data members
 
 	TimbukParser parser_;
 	TimbukSerializer serializer_;
 
-	AutType::StateType nextState_;
-
-	AutType::StringToSymbolDict symbolDict_;
-
 protected:// methods
 
 	TreeAutFixture() :
 		parser_(),
-		serializer_(),
-		nextState_(0),
-		symbolDict_()
+		serializer_()
+	{ }
+
+	template <class Automaton>
+	void readAut(
+		Automaton&                       aut,
+		StringToStateTranslWeak&         stateTransl,
+		const std::string&               str)
 	{
-		AutType::SetNextStatePtr(&nextState_);
-		AutType::SetSymbolDictPtr(&symbolDict_);
-		AutType::SetNextSymbolPtr(&nextSymbol_);
+		aut.LoadFromString(parser_, str, stateTransl);
 	}
 
 	template <class Automaton>
-	void readAut(Automaton& aut, StringToStateDict& stateDict, const std::string& str)
+	void readAut(
+		Automaton&              aut,
+		StateDict&              stateDict,
+		const std::string&      str)
 	{
 		aut.LoadFromString(parser_, str, stateDict);
 	}
 
 	template <class Automaton>
-	void readAut(Automaton& aut, const std::string& str)
+	void readAut(
+		Automaton&              aut,
+		const std::string&      str)
 	{
-		StringToStateDict dict;
-		readAut(aut, dict, str);
+		aut.LoadFromString(parser_, str);
 	}
 
 	template <class Automaton>
-	std::string dumpAut(const Automaton& aut, const StringToStateDict& stateDict)
+	std::string dumpAut(
+		const Automaton&           aut,
+		const StateDict&           stateDict)
 	{
-		return aut.DumpToString(serializer_,
-			StateBackTranslatorStrict(stateDict.GetReverseMap()),
-			SymbolBackTranslatorStrict(Automaton::GetSymbolDict().GetReverseMap()));
+		return aut.DumpToString(serializer_, stateDict);
 	}
 
-	void testInclusion(bool (*inclFunc)(AutType, AutType))
+	void testInclusion(VATA::InclParam& ip)
 	{
 		auto testfileContent = ParseTestFile(INCLUSION_TIMBUK_FILE.string());
 
@@ -150,84 +156,51 @@ protected:// methods
 			std::string autSmallerStr = VATA::Util::ReadFile(inputSmallerFile);
 			std::string autBiggerStr = VATA::Util::ReadFile(inputBiggerFile);
 
-			StringToStateDict stateDictSmaller;
 			AutType autSmaller;
-			readAut(autSmaller, stateDictSmaller, autSmallerStr);
+			readAut(autSmaller, autSmallerStr);
 
-			StringToStateDict stateDictBigger;
 			AutType autBigger;
-			readAut(autBigger, stateDictBigger, autBiggerStr);
+			readAut(autBigger, autBiggerStr);
 
-			bool doesInclusionHold = inclFunc(autSmaller, autBigger);
+			// prepare the automata
+			AutBase::StateType states =
+				AutBase::SanitizeAutsForInclusion(autSmaller, autBigger);
+
+			// the simulation (if present)
+			StateBinaryRelation sim;
+
+			if (ip.GetUseSimulation())
+			{	// if there is simulation, we need to compute it
+				AutType unionAut = AutType::UnionDisjointStates(autSmaller, autBigger);
+				if (InclParam::e_direction::downward == ip.GetDirection())
+				{	// downward direction
+					VATA::SimParam sp;
+					sp.SetRelation(VATA::SimParam::e_sim_relation::TA_DOWNWARD);
+					sp.SetNumStates(states);
+					sim = unionAut.ComputeSimulation(sp);
+				}
+				else if (InclParam::e_direction::upward == ip.GetDirection())
+				{	// upward direction
+					VATA::SimParam sp;
+					sp.SetRelation(VATA::SimParam::e_sim_relation::TA_UPWARD);
+					sp.SetNumStates(states);
+					sim = unionAut.ComputeSimulation(sp);
+				}
+				else
+				{
+					assert(false);       // fail gracefully
+				}
+
+				ip.SetSimulation(&sim);
+			}
+
+			bool doesInclusionHold = AutType::CheckInclusion(autSmaller, autBigger, ip);
 
 			BOOST_CHECK_MESSAGE(expectedResult == doesInclusionHold,
 				"\n\nError checking inclusion " + inputSmallerFile + " <= " +
 				inputBiggerFile + ": expected " + Convert::ToString(expectedResult) +
 				", got " + Convert::ToString(doesInclusionHold));
 		}
-	}
-
-	static bool checkDownInclusion(AutType smaller, AutType bigger)
-	{
-		AutBase::StateType states =
-			AutBase::SanitizeAutsForInclusion(smaller, bigger);
-
-		VATA::Util::Identity ident(states);
-
-		return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, ident);
-	}
-
-	static bool checkOptDownInclusion(AutType smaller, AutType bigger)
-	{
-		AutBase::StateType states =
-			AutBase::SanitizeAutsForInclusion(smaller, bigger);
-
-		VATA::Util::Identity ident(states);
-
-		return VATA::CheckOptDownwardInclusionWithPreorder(smaller, bigger, ident);
-	}
-
-	static bool checkDownInclusionWithSimulation(AutType smaller, AutType bigger)
-	{
-		AutBase::StateType states =
-			AutBase::SanitizeAutsForInclusion(smaller, bigger);
-
-		AutType unionAut = VATA::UnionDisjointStates(smaller, bigger);
-		StateBinaryRelation sim = VATA::ComputeDownwardSimulation(unionAut, states);
-
-		return VATA::CheckDownwardInclusionWithPreorder(smaller, bigger, sim);
-	}
-
-	static bool checkOptDownInclusionWithSimulation(AutType smaller, AutType bigger)
-	{
-		AutBase::StateType states =
-			AutBase::SanitizeAutsForInclusion(smaller, bigger);
-
-		AutType unionAut = VATA::UnionDisjointStates(smaller, bigger);
-		StateBinaryRelation sim = VATA::ComputeDownwardSimulation(unionAut, states);
-
-		return VATA::CheckOptDownwardInclusionWithPreorder(smaller, bigger, sim);
-	}
-
-	static bool checkUpInclusion(AutType smaller, AutType bigger)
-	{
-		AutBase::StateType states =
-			AutBase::SanitizeAutsForInclusion(smaller, bigger);
-
-		VATA::Util::Identity ident(states);
-
-		return VATA::CheckUpwardInclusionWithPreorder(smaller, bigger, ident);
-	}
-
-	static bool checkUpInclusionWithSimulation(AutType smaller, AutType bigger)
-	{
-		AutBase::StateType states =
-			AutBase::SanitizeAutsForInclusion(smaller, bigger);
-
-		AutType unionAut = VATA::UnionDisjointStates(smaller, bigger);
-		StateBinaryRelation sim = VATA::ComputeUpwardSimulation(unionAut, states);
-
-		return VATA::CheckUpwardInclusionWithPreorder(smaller, bigger, sim);
 	}
 
 	void testDownwardSimulation()
@@ -247,28 +220,29 @@ protected:// methods
 			std::string autStr = VATA::Util::ReadFile(inputFile);
 			std::string correctSimStr = VATA::Util::ReadFile(resultFile);
 
-			StringToStateDict stateDict;
+			StateDict stateDict;
 			AutType aut;
 			readAut(aut, stateDict, autStr);
 
 			StateType stateCnt = 0;
 			StateToStateMap stateMap;
-			StateToStateTranslator stateTrans(stateMap,
+			StateToStateTranslWeak stateTrans(stateMap,
 				[&stateCnt](const StateType&){return stateCnt++;});
 
-			aut = VATA::RemoveUselessStates(aut);
-			AutType reindexedAut;
-			aut.ReindexStates(reindexedAut, stateTrans);
+			aut = aut.RemoveUselessStates();
+			AutType reindexedAut = aut.ReindexStates(stateTrans);
 
 			stateDict = RebindMap(stateDict, stateMap);
 
-			StateBinaryRelation sim = VATA::ComputeDownwardSimulation(
-				reindexedAut, stateCnt);
+			SimParam sp;
+			sp.SetRelation(VATA::SimParam::e_sim_relation::TA_DOWNWARD);
+			sp.SetNumStates(stateCnt);
+			StateBinaryRelation sim = reindexedAut.ComputeSimulation(sp);
 
 			auto simulationContent = ParseTestFile(resultFile);
 			StateBinaryRelation refSim(stateCnt);
 
-			StringToStateStrictTranslator stateStrictTrans(stateDict);
+			StringToStateTranslStrict stateStrictTrans(stateDict);
 
 			for (auto& simulationLine : simulationContent)
 			{	// load the reference relation
@@ -278,8 +252,8 @@ protected:// methods
 				StateType firstState;
 				StateType secondState;
 
-				StringToStateDict::const_iterator itDictFirst;
-				StringToStateDict::const_iterator itDictSecond;
+				StateDict::const_iterator itDictFirst;
+				StateDict::const_iterator itDictSecond;
 				if (((itDictFirst = stateDict.FindFwd(simulationLine[0]))
 					== stateDict.EndFwd()) ||
 					((itDictSecond = stateDict.FindFwd(simulationLine[2]))
@@ -313,6 +287,28 @@ protected:// methods
 			}
 		}
 	}
+
+	template <
+		class AutProcFunc>
+	void runOnAutomataSet(
+		AutProcFunc           procFunc)
+	{
+		auto testfileContent = ParseTestFile(LOAD_TIMBUK_FILE.string());
+		for (auto testcase : testfileContent)
+		{
+			BOOST_REQUIRE_MESSAGE(testcase.size() == 1, "Invalid format of a testcase: " +
+				Convert::ToString(testcase));
+
+			std::string filename = (AUT_DIR / testcase[0]).string();
+			std::string autStr = VATA::Util::ReadFile(filename);
+
+			StateDict stateDict;
+			AutType aut;
+			readAut(aut, stateDict, autStr);
+
+			procFunc(aut, stateDict, filename);
+		}
+	}
 };
 
 /******************************************************************************
@@ -335,7 +331,7 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 		BOOST_MESSAGE("Loading automaton " + filename + "...");
 		std::string autStr = VATA::Util::ReadFile(filename);
 
-		StringToStateDict stateDict;
+		StateDict stateDict;
 		AutType aut;
 		readAut(aut, stateDict, autStr);
 
@@ -351,132 +347,119 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 	}
 }
 
-//BOOST_AUTO_TEST_CASE(adding_transitions)
-//{
-//	auto testfileContent = ParseTestFile(ADD_TRANS_TIMBUK_FILE.string());
+BOOST_AUTO_TEST_CASE(adding_transitions)
+{
+	auto testfileContent = ParseTestFile(ADD_TRANS_TIMBUK_FILE.string());
+
+	for (auto testcase : testfileContent)
+	{
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 3, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
+
+		std::string inputAutFile = (AUT_DIR / testcase[0]).string();
+		std::string inputTransFile = (AUT_DIR / testcase[1]).string();
+		std::string resultFile = (AUT_DIR / testcase[2]).string();
+
+		BOOST_MESSAGE("Adding transitions from " + inputTransFile + " to " +
+			inputAutFile + "...");
+
+		std::string autStr = VATA::Util::ReadFile(inputAutFile);
+		std::string transStr = VATA::Util::ReadFile(inputTransFile);
+		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
+
+		StateType state(0);
+
+		AutType aut;
+		StateDict stateDict;
+		StringToStateTranslWeak stateTransl(
+			/* state dictionary */ stateDict,
+			/* generator of new states */ [&state](const std::string&){return state++;});
+
+		readAut(aut, stateTransl, autStr);
+
+		AutDescription autDesc = parser_.ParseString(autStr);
+
+		AutDescription transDesc = parser_.ParseString(transStr);
+
+		for (const AutDescription::Transition& trans : transDesc.transitions)
+		{
+			const std::string& parStr = trans.third;
+			const std::string& symbolStr = trans.second;
+
+			// get the parent state
+			StateType parState = stateTransl(parStr);
+
+			if (transDesc.finalStates.find(parStr) != transDesc.finalStates.end())
+			{	// if the parent state is final
+				aut.SetStateFinal(parState);
+			}
+
+			SymbolType symbol = (*aut.GetAlphabet()->GetSymbolTransl())(AutType::ToStringSymbolType(symbolStr, trans.first.size()));
+
+			StateTuple children;
+			for (const std::string& childStr : trans.first)
+			{	// for each child
+				StateType childState = stateTransl(childStr);
+
+				if (transDesc.finalStates.find(childStr) != transDesc.finalStates.end())
+				{	// if the child state is final
+					aut.SetStateFinal(childState);
+				}
+
+				children.push_back(childState);
+			}
+
+			aut.AddTransition(children, symbol, parState);
+		}
+
+		std::string autTransStr = aut.DumpToString(serializer_, stateDict);
+
+		AutDescription descOut = parser_.ParseString(autTransStr);
+		AutDescription descCorrect = parser_.ParseString(autCorrectStr);
+
+		BOOST_CHECK_MESSAGE(descOut == descCorrect,
+			"\n\nExpecting:\n===========\n" + autCorrectStr +
+			"===========\n\nGot:\n===========\n" + autTransStr + "\n===========");
+	}
+
+
+
+//	// get state "q"
+//	//BDDTopDownTreeAut::StateType stateQ = stateDict.TranslateFwd("q");
+//	// get state "p"
+//	BDDTopDownTreeAut::StateType stateP = stateDict.TranslateFwd("p");
+//	// insert state "qa"
+//	BDDTopDownTreeAut::StateType stateQA = aut.AddState();
+//	stateDict.Insert(std::make_pair("qa", stateQA));
 //
-//	for (auto testcase : testfileContent)
-//	{
-//		BOOST_REQUIRE_MESSAGE(testcase.size() == 3, "Invalid format of a testcase: " +
-//			Convert::ToString(testcase));
+//	// add the following transition: a -> qa, to the description ...
+//	AutDescription::Transition newTransition(std::vector<std::string>(), "a", "qa");
+//	descCorrect.transitions.insert(newTransition);
+//	// ... and to the automaton
+//	aut.AddSimplyTransition(BDDTopDownTreeAut::StateTuple(),
+//		BDDTopDownTreeAut::TranslateStringToSymbol("a"), stateQA);
 //
-//		std::string inputAutFile = (AUT_DIR / testcase[0]).string();
-//		std::string inputTransFile = (AUT_DIR / testcase[1]).string();
-//		std::string resultFile = (AUT_DIR / testcase[2]).string();
+//	// add the following transition: a(qa, qa) -> p, to the description ...
+//	std::vector<std::string> childrenStr;
+//	childrenStr.push_back("qa");
+//	childrenStr.push_back("qa");
+//	newTransition = AutDescription::Transition(childrenStr, "a", "p");
+//	descCorrect.transitions.insert(newTransition);
+//	// ... and to the automaton
+//	BDDTopDownTreeAut::StateTuple children;
+//	children.push_back(stateQA);
+//	children.push_back(stateQA);
+//	aut.AddSimplyTransition(children, BDDTopDownTreeAut::TranslateStringToSymbol("a"),
+//		stateP);
 //
-//		BOOST_MESSAGE("Adding transitions from " + inputTransFile + " to " +
-//			inputAutFile + "...");
+//	std::string autOut = aut.DumpToString(serializer_, &stateDict);
+//	AutDescription descOut = parser_.ParseString(autOut);
 //
-//		std::string autStr = VATA::Util::ReadFile(inputAutFile);
-//		std::string transStr = VATA::Util::ReadFile(inputTransFile);
-//		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
-//
-//		AutType aut;
-//		StringToStateDict stateDict;
-//		aut.LoadFromString(parser_, autStr, &stateDict);
-//		AutDescription autDesc = parser_.ParseString(autStr);
-//
-//		AutDescription transDesc = parser_.ParseString(transStr);
-//
-//		for (const AutDescription::Transition& trans : transDesc.transitions)
-//		{
-//			const std::string& parStr = trans.third;
-//			const std::string& symbolStr = trans.second;
-//
-//			// get the parent state
-//			StateType parState;
-//			StringToStateDict::const_iterator itDict;
-//			if ((itDict = stateDict.FindFwd(parStr)) == stateDict.EndFwd())
-//			{
-//				parState = aut.AddState();
-//				stateDict.insert(std::make_pair(parStr, parState));
-//			}
-//			else
-//			{
-//				parState = itDict->second;
-//			}
-//
-//			if (transDesc.finalStates.find(parStr) != transDesc.finalStates.end())
-//			{	// if the parent state is made final
-//				aut.SetStateFinal(parState);
-//			}
-//
-//			const AutType::SymbolType& symbol =
-//				aut.SafelyTranslateStringToSymbol(symbolStr);
-//
-//			StateTuple children;
-//			for (auto childStr : trans.first)
-//			{	// for each child
-//				StateType childState;
-//				if ((itDict = stateDict.FindFwd(childStr)) == stateDict.EndFwd())
-//				{
-//					childState = aut.AddState();
-//					stateDict.insert(std::make_pair(childStr, childState));
-//				}
-//				else
-//				{
-//					childState = itDict->second;
-//				}
-//
-//				if (transDesc.finalStates.find(childStr) != transDesc.finalStates.end())
-//				{	// if the parent state is made final
-//					aut.SetStateFinal(childState);
-//				}
-//
-//				children.push_back(childState);
-//			}
-//
-//			aut.AddSimplyTransition(children, symbol, parState);
-//		}
-//
-//		std::string autTransStr = aut.DumpToString(serializer_, &stateDict);
-//
-//		AutDescription descOut = parser_.ParseString(autTransStr);
-//		AutDescription descCorrect = parser_.ParseString(autCorrectStr);
-//
-//		BOOST_CHECK_MESSAGE(descOut == descCorrect,
-//			"\n\nExpecting:\n===========\n" + autCorrectStr +
-//			"===========\n\nGot:\n===========\n" + autTransStr + "\n===========");
-//	}
-//
-//
-//
-////	// get state "q"
-////	//BDDTopDownTreeAut::StateType stateQ = stateDict.TranslateFwd("q");
-////	// get state "p"
-////	BDDTopDownTreeAut::StateType stateP = stateDict.TranslateFwd("p");
-////	// insert state "qa"
-////	BDDTopDownTreeAut::StateType stateQA = aut.AddState();
-////	stateDict.Insert(std::make_pair("qa", stateQA));
-////
-////	// add the following transition: a -> qa, to the description ...
-////	AutDescription::Transition newTransition(std::vector<std::string>(), "a", "qa");
-////	descCorrect.transitions.insert(newTransition);
-////	// ... and to the automaton
-////	aut.AddSimplyTransition(BDDTopDownTreeAut::StateTuple(),
-////		BDDTopDownTreeAut::TranslateStringToSymbol("a"), stateQA);
-////
-////	// add the following transition: a(qa, qa) -> p, to the description ...
-////	std::vector<std::string> childrenStr;
-////	childrenStr.push_back("qa");
-////	childrenStr.push_back("qa");
-////	newTransition = AutDescription::Transition(childrenStr, "a", "p");
-////	descCorrect.transitions.insert(newTransition);
-////	// ... and to the automaton
-////	BDDTopDownTreeAut::StateTuple children;
-////	children.push_back(stateQA);
-////	children.push_back(stateQA);
-////	aut.AddSimplyTransition(children, BDDTopDownTreeAut::TranslateStringToSymbol("a"),
-////		stateP);
-////
-////	std::string autOut = aut.DumpToString(serializer_, &stateDict);
-////	AutDescription descOut = parser_.ParseString(autOut);
-////
-////	BOOST_CHECK_MESSAGE(descCorrect == descOut,
-////		"\n\nExpecting:\n===========\n" +
-////		serializer_.Serialize(descCorrect) +
-////		"===========\n\nGot:\n===========\n" + autOut + "\n===========");
-//}
+//	BOOST_CHECK_MESSAGE(descCorrect == descOut,
+//		"\n\nExpecting:\n===========\n" +
+//		serializer_.Serialize(descCorrect) +
+//		"===========\n\nGot:\n===========\n" + autOut + "\n===========");
+}
 
 
 #if 0
@@ -500,18 +483,18 @@ BOOST_AUTO_TEST_CASE(aut_union_simple)
 		std::string autRhsStr = VATA::Util::ReadFile(inputRhsFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-		StringToStateDict stateDictLhs;
+		StateDict stateDictLhs;
 		AutType autLhs;
 		readAut(autLhs, stateDictLhs, autLhsStr);
 		AutDescription autLhsDesc = parser_.ParseString(autLhsStr);
 
-		StringToStateDict stateDictRhs;
+		StateDict stateDictRhs;
 		AutType autRhs(autLhs.GetTransTable());
 		readAut(autRhs, stateDictRhs, autRhsStr);
 		AutDescription autRhsDesc = parser_.ParseString(autRhsStr);
 
 		AutType autUnion = VATA::Union(autLhs, autRhs);
-		StringToStateDict stateDictUnion =
+		StateDict stateDictUnion =
 			VATA::Util::CreateUnionStringToStateMap(stateDictLhs, stateDictRhs);
 
 		std::string autUnionStr = dumpAut(autUnion, stateDictUnion);
@@ -547,21 +530,21 @@ BOOST_AUTO_TEST_CASE(aut_union_trans_table_copy)
 		std::string autRhsStr = VATA::Util::ReadFile(inputRhsFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-		StringToStateDict stateDictLhs;
+		StateDict stateDictLhs;
 		AutType autLhs;
 		readAut(autLhs, stateDictLhs, autLhsStr);
 		AutDescription autLhsDesc = parser_.ParseString(autLhsStr);
 
-		StringToStateDict stateDictRhs;
+		StateDict stateDictRhs;
 		AutType autRhs;
 		readAut(autRhs, stateDictRhs, autRhsStr);
 		AutDescription autRhsDesc = parser_.ParseString(autRhsStr);
 
 		AutBase::StateToStateMap stateTranslMapLhs;
 		AutBase::StateToStateMap stateTranslMapRhs;
-		AutType autUnion = VATA::Union(autLhs, autRhs, &stateTranslMapLhs,
+		AutType autUnion = AutType::Union(autLhs, autRhs, &stateTranslMapLhs,
 			&stateTranslMapRhs);
-		StringToStateDict stateDictUnion =
+		StateDict stateDictUnion =
 			VATA::Util::CreateUnionStringToStateMap(stateDictLhs, stateDictRhs,
 				&stateTranslMapLhs, &stateTranslMapRhs);
 
@@ -597,20 +580,20 @@ BOOST_AUTO_TEST_CASE(aut_intersection)
 		std::string autRhsStr = VATA::Util::ReadFile(inputRhsFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-		StringToStateDict stateDictLhs;
+		StateDict stateDictLhs;
 		AutType autLhs;
 		readAut(autLhs, stateDictLhs, autLhsStr);
 		AutDescription autLhsDesc = parser_.ParseString(autLhsStr);
 
-		StringToStateDict stateDictRhs;
+		StateDict stateDictRhs;
 		AutType autRhs;
 		readAut(autRhs, stateDictRhs, autRhsStr);
 		AutDescription autRhsDesc = parser_.ParseString(autRhsStr);
 
 		AutBase::ProductTranslMap translMap;
-		AutType autIntersect = VATA::Intersection(autLhs, autRhs, &translMap);
+		AutType autIntersect = AutType::Intersection(autLhs, autRhs, &translMap);
 
-		StringToStateDict stateDictIsect = VATA::Util::CreateProductStringToStateMap(
+		StateDict stateDictIsect = VATA::Util::CreateProductStringToStateMap(
 			stateDictLhs, stateDictRhs, translMap);
 
 		std::string autIntersectStr = dumpAut(autIntersect, stateDictIsect);
@@ -641,13 +624,13 @@ BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
 		std::string autStr = VATA::Util::ReadFile(inputFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-		StringToStateDict stateDict;
+		StateDict stateDict;
 		AutType aut;
 		readAut(aut, stateDict, autStr);
 		AutDescription autDesc = parser_.ParseString(autStr);
 
 		StateToStateMap translMap;
-		AutType autNoUnreach = VATA::RemoveUnreachableStates(aut);
+		AutType autNoUnreach = aut.RemoveUnreachableStates();
 		std::string autNoUnreachStr = dumpAut(autNoUnreach, stateDict);
 
 		AutDescription descOutNoUnreach = parser_.ParseString(autNoUnreachStr);
@@ -677,12 +660,12 @@ BOOST_AUTO_TEST_CASE(aut_remove_useless)
 		std::string autStr = VATA::Util::ReadFile(inputFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
 
-		StringToStateDict stateDict;
+		StateDict stateDict;
 		AutType aut;
 		readAut(aut, stateDict, autStr);
 		AutDescription autDesc = parser_.ParseString(autStr);
 
-		AutType autNoUseless = VATA::RemoveUselessStates(aut);
+		AutType autNoUseless = aut.RemoveUselessStates();
 		std::string autNoUselessStr = dumpAut(autNoUseless, stateDict);
 
 		AutDescription descOutNoUseless = parser_.ParseString(autNoUselessStr);
@@ -695,12 +678,33 @@ BOOST_AUTO_TEST_CASE(aut_remove_useless)
 	}
 }
 
-BOOST_AUTO_TEST_CASE(aut_down_inclusion)
+BOOST_AUTO_TEST_CASE(aut_down_inclusion_rec_nosim)
 {
-	testInclusion(checkDownInclusion);
+	VATA::InclParam ip;
+	ip.SetDirection(InclParam::e_direction::downward);
+	ip.SetUseRecursion(true);
+	testInclusion(ip);
 }
 
-BOOST_AUTO_TEST_CASE(aut_down_inclusion_opt)
+BOOST_AUTO_TEST_CASE(aut_down_inclusion_opt_rec_nosim)
 {
-	testInclusion(checkOptDownInclusion);
+	VATA::InclParam ip;
+	ip.SetDirection(InclParam::e_direction::downward);
+	ip.SetUseDownwardCacheImpl(true);
+	ip.SetUseRecursion(true);
+	testInclusion(ip);
+}
+
+BOOST_AUTO_TEST_CASE(final_states_test)
+{
+	this->runOnAutomataSet(
+		[](const AutType& aut, const StateDict& stateDict, const std::string& filename)
+		{
+			BOOST_MESSAGE("Checking final states for " + filename + "...");
+			for (const StateType& state : aut.GetFinalStates())
+			{
+				BOOST_REQUIRE_MESSAGE(aut.IsStateFinal(state),
+					"Inconsistent final state: " + Convert::ToString(state));
+			}
+		});
 }

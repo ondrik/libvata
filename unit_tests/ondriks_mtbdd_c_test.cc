@@ -1,4 +1,5 @@
 /*****************************************************************************
+ *
  *  VATA Tree Automata Library
  *
  *  Copyright (c) 2011  Ondra Lengal <ilengal@fit.vutbr.cz>
@@ -10,12 +11,13 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/mtbdd/apply1func.hh>
-#include <vata/mtbdd/apply2func.hh>
-#include <vata/mtbdd/apply3func.hh>
-#include <vata/mtbdd/ondriks_mtbdd.hh>
-#include <vata/mtbdd/var_asgn.hh>
+#include <vata/sym_var_asgn.hh>
 #include <vata/util/convert.hh>
+
+#include "../src/mtbdd/apply1func.hh"
+#include "../src/mtbdd/apply2func.hh"
+#include "../src/mtbdd/apply3func.hh"
+#include "../src/mtbdd/ondriks_mtbdd.hh"
 
 using VATA::MTBDDPkg::OndriksMTBDD;
 using VATA::MTBDDPkg::Apply1Functor;
@@ -89,6 +91,80 @@ const unsigned VAR_COUNT = 64;
 const unsigned STANDARD_FAIL_CASES_SIZE =
 	sizeof(STANDARD_FAIL_CASES) / sizeof(const char* const);
 
+
+/**
+ * Formulae for standard test cases with 'x3' projected
+ */
+const char* const STANDARD_TEST_CASES_PROJECTION_X3_RESULT[] =
+{
+	"~x0 * ~x1 *  x2 =  3",
+	"~x0 *  x1 * ~x2 =  4",
+	" x0 * ~x1 * ~x2 =  9",
+	" x0 *  x1 *  x2 = 29"
+};
+
+
+/**
+ * Number of formulae for standard test cases 'x3' projection result
+ */
+const unsigned STANDARD_TEST_CASES_PROJECTION_X3_RESULT_SIZE =
+	sizeof(STANDARD_TEST_CASES_PROJECTION_X3_RESULT) / sizeof(const char* const);
+
+
+/**
+ * Formulae for standard test cases with 'x1' projected
+ */
+const char* const STANDARD_TEST_CASES_PROJECTION_X1_RESULT[] =
+{
+	"~x0 *  x2 *  x3 =  3",
+	"~x0 * ~x2 * ~x3 =  4",
+	" x0 * ~x2 *  x3 =  9",
+	" x0 *  x2 * ~x3 = 14",
+	" x0 *  x2 *  x3 = 15"
+};
+
+
+/**
+ * Number of formulae for standard test cases 'x1' projection result
+ */
+const unsigned STANDARD_TEST_CASES_PROJECTION_X1_RESULT_SIZE =
+	sizeof(STANDARD_TEST_CASES_PROJECTION_X1_RESULT) / sizeof(const char* const);
+
+/**
+ * Formulae for standard test cases with all variables projected
+ */
+const char* const STANDARD_TEST_CASES_PROJECTION_ALL_RESULT[] =
+{
+	" = 45"
+};
+
+
+/**
+ * Number of formulae for standard test cases all projection result
+ */
+const unsigned STANDARD_TEST_CASES_PROJECTION_ALL_RESULT_SIZE =
+	sizeof(STANDARD_TEST_CASES_PROJECTION_ALL_RESULT) / sizeof(const char* const);
+
+
+/**
+ * Formulae for standard test cases with 'x'es renamed to 'y's
+ */
+const char* const STANDARD_TEST_CASES_RENAMING_X_TO_Y_RESULT[] =
+{
+	"~y0 * ~y1 *  y2 *  y3 =  3",
+	"~y0 *  y1 * ~y2 * ~y3 =  4",
+	" y0 * ~y1 * ~y2 *  y3 =  9",
+	" y0 *  y1 *  y2 * ~y3 = 14",
+	" y0 *  y1 *  y2 * ~y3 = 14",
+	" y0 *  y1 *  y2 *  y3 = 15"
+};
+
+
+/**
+ * Number of formulae for standard test cases 'x' to 'y' renaming result
+ */
+const unsigned STANDARD_TEST_CASES_RENAMING_X_TO_Y_RESULT_SIZE =
+	sizeof(STANDARD_TEST_CASES_RENAMING_X_TO_Y_RESULT) / sizeof(const char* const);
 
 /**
  * Formulae for standard test cases with trimmed variables
@@ -166,7 +242,7 @@ public:   // public types
 	 *
 	 * Type for variable assignment used in the test.
 	 */
-	typedef VATA::MTBDDPkg::VarAsgn VarAsgn;
+	typedef VATA::SymbolicVarAsgn VarAsgn;
 
 	/**
 	 * @brief  Ondrik's MTBDD type
@@ -302,7 +378,7 @@ protected:// protected methods
 		for (FormulaParser::VariableListType::const_iterator itVar =
 			varList.begin(); itVar != varList.end(); ++itVar)
 		{	// for each variable in the list, change the corresponding assignment
-			size_t index = translateVarNameToIndex(itVar->first);
+			size_t index = this->translateVarNameToIndex(itVar->first);
 			asgn.SetIthVariableValue(index, (itVar->second)?
 				VarAsgn::ONE : VarAsgn::ZERO);
 		}
@@ -719,199 +795,176 @@ BOOST_AUTO_TEST_CASE(ternary_apply)
 	}
 }
 
+BOOST_AUTO_TEST_CASE(projection)
+{
+	GCC_DIAG_OFF(effc++)
+	class AdditionApplyFunctor :
+		public Apply2Functor<AdditionApplyFunctor, DataType, DataType, DataType>
+	{
+	GCC_DIAG_ON(effc++)
 
-// BOOST_AUTO_TEST_CASE(variable_renaming)
-// {
-// 	ASMTBDDCC* bdd = new CuddMTBDDCC();
-// 	bdd->SetBottomValue(0);
-// 
-// 	for (unsigned i = 0; i < NUM_VARIABLES; ++i)
-// 	{	// fill the table of variables
-// 		translateVarNameToIndex("x" + Convert::ToString(i));
-// 	}
-// 
-// 	// load test cases
-// 	ListOfTestCasesType testCases;
-// 	ListOfTestCasesType failedCases;
-// 	loadStandardTests(testCases, failedCases);
-// 
-// 	RootType root = createMTBDDForTestCases(bdd, testCases);
-// 
-// 	class MovingUpVariableRenamingFunctor
-// 		: public ASMTBDDCC::AbstractVariableRenamingFunctorType
-// 	{
-// 	public:
-// 
-// 		virtual ASMTBDDCC::VariableType operator()(const ASMTBDDCC::VariableType& var)
-// 		{
-// 			if (var < NUM_VARIABLES/2)
-// 			{
-// 				return var + NUM_VARIABLES/2;
-// 			}
-// 			else
-// 			{
-// 				return var;
-// 			}
-// 		}
-// 	};
-// 
-// 	MovingUpVariableRenamingFunctor funcMovingUp;
-// 	RootType renamedRoot = bdd->RenameVariables(root, &funcMovingUp);
-// 
-// 	class MovingDownVariableRenamingFunctor
-// 		: public ASMTBDDCC::AbstractVariableRenamingFunctorType
-// 	{
-// 	public:
-// 
-// 		virtual ASMTBDDCC::VariableType operator()(const ASMTBDDCC::VariableType& var)
-// 		{
-// 			if ((var >= NUM_VARIABLES/2) && (var < NUM_VARIABLES))
-// 			{
-// 				return 2 * (var - NUM_VARIABLES/2) + 1;
-// 			}
-// 			else
-// 			{
-// 				return var;
-// 			}
-// 		}
-// 	};
-// 
-// 	MovingDownVariableRenamingFunctor funcMovingDown;
-// 	renamedRoot = bdd->RenameVariables(renamedRoot, &funcMovingDown);
-// 
-// 
-// 	ListOfTestCasesType renamedTestCases;
-// 	for (ListOfTestCasesType::const_iterator itTests = testCases.begin();
-// 		itTests != testCases.end(); ++itTests)
-// 	{	// for each test case create new with properly renamed variables
-// 		std::string renamedCase = *itTests;
-// 
-// 		for (unsigned i = 0; i < NUM_VARIABLES/2; ++i)
-// 		{	// double the name of each variable, 
-// 			boost::algorithm::replace_all(renamedCase, "x" + Convert::ToString(i) + " ",
-// 				"x" + Convert::ToString(i+NUM_VARIABLES/2) + " ");
-// 		}
-// 
-// 		for (unsigned i = NUM_VARIABLES/2; i < NUM_VARIABLES; ++i)
-// 		{	// for each variable
-// 			boost::algorithm::replace_all(renamedCase, "x" + Convert::ToString(i) + " ",
-// 				"x" + Convert::ToString(2*(i-static_cast<int>(NUM_VARIABLES)/2)+1) + " ");
-// 		}
-// 
-// 		renamedTestCases.push_back(renamedCase);
-// 	}
-// 
-// 	for (ListOfTestCasesType::const_iterator itTests = renamedTestCases.begin();
-// 		itTests != renamedTestCases.end(); ++itTests)
-// 	{	// test that the test cases have been stored properly
-// #if DEBUG
-// 		BOOST_TEST_MESSAGE("Finding stored " + *itTests);
-// #endif
-// 		FormulaParser::ParserResultUnsignedType prsRes =
-// 			FormulaParser::ParseExpressionUnsigned(*itTests);
-// 		LeafType leafValue = static_cast<LeafType>(prsRes.first);
-// 		VariableAssignment asgn = varListToAsgn(prsRes.second);
-// 
-// 		ASMTBDDCC::LeafContainer res;
-// 		res.push_back(&leafValue);
-// 
-// 		BOOST_CHECK_MESSAGE(
-// 			compareTwoLeafContainers(bdd->GetValue(renamedRoot, asgn), res), *itTests
-// 			+ " != " + leafContainerToString(bdd->GetValue(renamedRoot, asgn)));
-// 	}
-// 
-// 
-// 	delete bdd;
-// }
-// 
-// BOOST_AUTO_TEST_CASE(variable_trimming)
-// {
-// 	ASMTBDDCC* bdd = new CuddMTBDDCC();
-// 	bdd->SetBottomValue(0);
-// 
-// 	for (unsigned i = 0; i < NUM_VARIABLES; ++i)
-// 	{	// fill the table of variables
-// 		translateVarNameToIndex("x" + Convert::ToString(i));
-// 	}
-// 
-// 	// load test cases
-// 	ListOfTestCasesType testCases;
-// 	ListOfTestCasesType failedCases;
-// 	loadStandardTests(testCases, failedCases);
-// 
-// 	RootType root = createMTBDDForTestCases(bdd, testCases);
-// 
-// 	class OddVariablePredicateFunctorType
-// 		: public ASMTBDDCC::AbstractVariablePredicateFunctorType
-// 	{
-// 	public:
-// 
-// 		virtual bool operator()(const ASMTBDDCC::VariableType& var)
-// 		{
-// 			return var % 2 == 0;
-// 		}
-// 	};
-// 
-// 	OddVariablePredicateFunctorType oddPred;
-// 
-// 	class AdditionApplyFunctorType: public ASMTBDDCC::AbstractApplyFunctorType
-// 	{
-// 	public:
-// 		virtual LeafType operator()(const LeafType& lhs, const LeafType& rhs)
-// 		{
-// 			return lhs + rhs;
-// 		}
-// 	};
-// 
-// 	AdditionApplyFunctorType addApply;
-// 
-// 	RootType trimmedRoot = bdd->TrimVariables(root, &oddPred, &addApply);
-// 
-// 	ListOfTestCasesType trimmedTestCases;
-// 	// formulae that we wish to check
-// 	for (size_t i = 0; i < TRIMMED_STANDARD_TEST_CASES_SIZE; ++i)
-// 	{	// load test cases
-// 		trimmedTestCases.push_back(TRIMMED_STANDARD_TEST_CASES[i]);
-// 	}
-// 
-// 	for (ListOfTestCasesType::const_iterator itTests = trimmedTestCases.begin();
-// 		itTests != trimmedTestCases.end(); ++itTests)
-// 	{	// test that the test cases have been stored properly
-// #if DEBUG
-// 		BOOST_TEST_MESSAGE("Finding stored " + *itTests);
-// #endif
-// 		FormulaParser::ParserResultUnsignedType prsRes =
-// 			FormulaParser::ParseExpressionUnsigned(*itTests);
-// 		LeafType leafValue = static_cast<LeafType>(prsRes.first);
-// 		VariableAssignment asgn = varListToAsgn(prsRes.second);
-// 
-// 		ASMTBDDCC::LeafContainer res;
-// 		res.push_back(&leafValue);
-// 
-// 		BOOST_CHECK_MESSAGE(
-// 			compareTwoLeafContainers(bdd->GetValue(trimmedRoot, asgn), res), *itTests
-// 			+ " != " + leafContainerToString(bdd->GetValue(trimmedRoot, asgn)));
-// 	}
-// 	delete bdd;
-// }
+	public:
 
-//BOOST_AUTO_TEST_CASE(serialization)
-//{
-//	ASMTBDDCC* bdd = new CuddMTBDDCC();
-//
-//	// load test cases
-//	ListOfTestCasesType testCases;
-//	ListOfTestCasesType failedCases;
-//	loadStandardTests(testCases, failedCases);
-//
-//	RootType root = createMTBDDForTestCases(bdd, testCases);
-//
-//	std::string str = bdd->Serialize();
-//
-//	BOOST_TEST_MESSAGE("BDD:\n" + str);
-//
-//	delete bdd;
-//}
+		inline DataType ApplyOperation(const DataType& lhs, const DataType& rhs)
+		{
+			return lhs + rhs;
+		}
+	};
+
+	// load test cases
+	ListOfTestCasesType testCases;
+	ListOfTestCasesType failedCases;
+	loadStandardTests(testCases, failedCases);
+
+	AdditionApplyFunctor blackAdder;
+
+	MTBDD bdd = createMTBDDForTestCases(testCases);
+
+	{
+		MTBDD projBdd = bdd.Project(
+			[this](size_t var){return (this->translateVarNameToIndex("x3") == var);},
+			blackAdder);
+		// BOOST_TEST_MESSAGE("dot before proj:\n" + MTBDD::DumpToDot(std::vector<const MTBDD*>({&bdd})));
+		// BOOST_TEST_MESSAGE("dot after proj:\n" + MTBDD::DumpToDot(std::vector<const MTBDD*>({&projBdd})));
+
+		ListOfTestCasesType projectionResult;
+		for (size_t i = 0; i < STANDARD_TEST_CASES_PROJECTION_X3_RESULT_SIZE; ++i)
+		{	// load test cases
+			projectionResult.push_back(STANDARD_TEST_CASES_PROJECTION_X3_RESULT[i]);
+		}
+
+		for (const std::string& projRes : projectionResult)
+		{	// check the result
+			// BOOST_TEST_MESSAGE("Finding stored " + projRes);
+			FormulaParser::ParserResultUnsignedType prsRes =
+				FormulaParser::ParseExpressionUnsigned(projRes);
+			DataType leafValue = static_cast<DataType>(prsRes.first);
+			VarAsgn asgn = varListToAsgn(prsRes.second);
+
+			BOOST_CHECK_MESSAGE(projBdd.GetValue(asgn) == leafValue,
+				projRes + " != " + Convert::ToString(projBdd.GetValue(asgn)));
+		}
+	}
+
+	{
+		MTBDD projBdd = bdd.Project(
+			[this](size_t var){return (this->translateVarNameToIndex("x1") == var);},
+			blackAdder);
+		// BOOST_TEST_MESSAGE("dot before proj:\n" + MTBDD::DumpToDot(std::vector<const MTBDD*>({&bdd})));
+		// BOOST_TEST_MESSAGE("dot after proj:\n" + MTBDD::DumpToDot(std::vector<const MTBDD*>({&projBdd})));
+
+		ListOfTestCasesType projectionResult;
+		for (size_t i = 0; i < STANDARD_TEST_CASES_PROJECTION_X1_RESULT_SIZE; ++i)
+		{	// load test cases
+			projectionResult.push_back(STANDARD_TEST_CASES_PROJECTION_X1_RESULT[i]);
+		}
+
+		for (const std::string& projRes : projectionResult)
+		{	// check the result
+			// BOOST_TEST_MESSAGE("Finding stored " + projRes);
+			FormulaParser::ParserResultUnsignedType prsRes =
+				FormulaParser::ParseExpressionUnsigned(projRes);
+			DataType leafValue = static_cast<DataType>(prsRes.first);
+			VarAsgn asgn = varListToAsgn(prsRes.second);
+
+			BOOST_CHECK_MESSAGE(projBdd.GetValue(asgn) == leafValue,
+				projRes + " != " + Convert::ToString(projBdd.GetValue(asgn)));
+		}
+	}
+
+	{
+		MTBDD projBdd = bdd.Project([this](size_t var){return true;}, blackAdder);
+		// BOOST_TEST_MESSAGE("dot before proj:\n" + MTBDD::DumpToDot(std::vector<const MTBDD*>({&bdd})));
+		// BOOST_TEST_MESSAGE("dot after proj:\n" + MTBDD::DumpToDot(std::vector<const MTBDD*>({&projBdd})));
+
+		ListOfTestCasesType projectionResult;
+		for (size_t i = 0; i < STANDARD_TEST_CASES_PROJECTION_ALL_RESULT_SIZE; ++i)
+		{	// load test cases
+			projectionResult.push_back(STANDARD_TEST_CASES_PROJECTION_ALL_RESULT[i]);
+		}
+
+		for (const std::string& projRes : projectionResult)
+		{	// check the result
+			// BOOST_TEST_MESSAGE("Finding stored " + projRes);
+			FormulaParser::ParserResultUnsignedType prsRes =
+				FormulaParser::ParseExpressionUnsigned(projRes);
+			DataType leafValue = static_cast<DataType>(prsRes.first);
+			VarAsgn asgn = varListToAsgn(prsRes.second);
+
+			BOOST_CHECK_MESSAGE(projBdd.GetValue(asgn) == leafValue,
+				projRes + " != " + Convert::ToString(projBdd.GetValue(asgn)));
+		}
+	}
+}
+
+
+BOOST_AUTO_TEST_CASE(renaming)
+{
+	// load test cases
+	ListOfTestCasesType testCases;
+	ListOfTestCasesType failedCases;
+	loadStandardTests(testCases, failedCases);
+
+	MTBDD bdd = createMTBDDForTestCases(testCases);
+	MTBDD renamedBdd = bdd.Rename(
+		[this]
+		(size_t var){
+			if (this->translateVarNameToIndex("x0") == var)
+			{
+				return this->translateVarNameToIndex("y0");
+			}
+			else if (this->translateVarNameToIndex("x1") == var)
+			{
+				return this->translateVarNameToIndex("y1");
+			}
+			else if (this->translateVarNameToIndex("x2") == var)
+			{
+				return this->translateVarNameToIndex("y2");
+			}
+			else if (this->translateVarNameToIndex("x3") == var)
+			{
+				return this->translateVarNameToIndex("y3");
+			}
+			else
+			{
+				assert(false);
+			}
+		});
+
+	ListOfTestCasesType renamingResult;
+	for (size_t i = 0; i < STANDARD_TEST_CASES_RENAMING_X_TO_Y_RESULT_SIZE; ++i)
+	{	// load test cases
+		renamingResult.push_back(STANDARD_TEST_CASES_RENAMING_X_TO_Y_RESULT[i]);
+	}
+
+	for (const std::string& renRes : renamingResult)
+	{	// check the result
+		#if DEBUG
+			BOOST_TEST_MESSAGE("Finding stored " + renRes);
+		#endif
+		FormulaParser::ParserResultUnsignedType prsRes =
+			FormulaParser::ParseExpressionUnsigned(renRes);
+		DataType leafValue = static_cast<DataType>(prsRes.first);
+		VarAsgn asgn = varListToAsgn(prsRes.second);
+
+		BOOST_CHECK_MESSAGE(renamedBdd.GetValue(asgn) == leafValue,
+			renRes + " != " + Convert::ToString(renamedBdd.GetValue(asgn)));
+	}
+}
+
+
+BOOST_AUTO_TEST_CASE(equality)
+{
+	// load test cases
+	ListOfTestCasesType testCases;
+	ListOfTestCasesType failedCases;
+	loadStandardTests(testCases, failedCases);
+
+	MTBDD bdd1 = createMTBDDForTestCases(testCases);
+	MTBDD bdd2 = createMTBDDForTestCases(testCases);
+
+	BOOST_CHECK_MESSAGE(bdd1 == bdd2, "BDDs are not equal!");
+}
+
 
 BOOST_AUTO_TEST_SUITE_END()
-

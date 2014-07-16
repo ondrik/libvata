@@ -15,37 +15,32 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/util/abstract_transl.hh>
 
 
 namespace VATA
 {
 	namespace Util
 	{
-		template
-		<
-			class Cont
-		>
+		template <
+			class Cont>
 		class TranslatorWeak;
 
-		template
-		<
-			class Cont
-		>
+		template <
+			class Cont>
 		class TranslatorWeak2;
 	}
 }
 
 /**
  * @brief  Weak translator
- * 
+ *
  */
-template
-<
-	class Cont
->
-class VATA::Util::TranslatorWeak
+template <
+	class Cont>
+class VATA::Util::TranslatorWeak :
+	public AbstractTranslator<typename Cont::key_type, typename Cont::mapped_type>
 {
-
 private:  // data types
 
 	typedef Cont Container;
@@ -61,12 +56,14 @@ private:  // data members
 
 public:   // methods
 
-	TranslatorWeak(Container& container, ResultAllocFuncType resultAllocFunc) :
+	TranslatorWeak(
+		Container&               container,
+		ResultAllocFuncType      resultAllocFunc) :
 		container_(container),
 		resultAllocFunc_(resultAllocFunc)
 	{ }
 
-	inline ResultType operator()(const InputType& value)
+	virtual ResultType operator()(const InputType& value) override
 	{
 		typename Container::const_iterator itCont;
 		if ((itCont = container_.find(value)) != container_.end())
@@ -82,24 +79,31 @@ public:   // methods
 		}
 	}
 
-	inline ResultType operator[](const InputType& value)
+	virtual ResultType operator()(const InputType& value) const override
 	{
-		return this->operator()(value);
+		typename Container::const_iterator itCont;
+		if ((itCont = container_.find(value)) != container_.end())
+		{	// in case the value is known
+			return itCont->second;
+		}
+		else
+		{
+			throw std::runtime_error("Cannot insert value into const translator.");
+		}
 	}
-
 };
 
 /**
  * @brief  Weak translator (ver 2)
- * 
+ *
  */
 template
 <
 	class Cont
 >
-class VATA::Util::TranslatorWeak2
+class VATA::Util::TranslatorWeak2 :
+	public AbstractTranslator<typename Cont::key_type, typename Cont::mapped_type>
 {
-
 private:  // data types
 
 	typedef Cont Container;
@@ -115,12 +119,14 @@ private:  // data members
 
 public:   // methods
 
-	TranslatorWeak2(Container& container, ResultAllocFuncType resultAllocFunc) :
+	TranslatorWeak2(
+		Container&               container,
+		ResultAllocFuncType      resultAllocFunc) :
 		container_(container),
 		resultAllocFunc_(resultAllocFunc)
 	{ }
 
-	inline const ResultType& operator()(const InputType& value)
+	virtual ResultType operator()(const InputType& value) override
 	{
 		auto p = container_.insert(std::make_pair(value, ResultType()));
 
@@ -132,11 +138,23 @@ public:   // methods
 		return p.first->second;
 	}
 
-	inline const ResultType& operator[](const InputType& value)
+	virtual ResultType operator()(const InputType& value) const override
 	{
-		return this->operator()(value);
+		typename Container::const_iterator itCont;
+		if ((itCont = container_.find(value)) != container_.end())
+		{	// in case the value is known
+			return itCont->second;
+		}
+		else
+		{
+			throw std::runtime_error("Cannot insert value into const translator.");
+		}
 	}
 
+	const Container& GetContainer() const
+	{
+		return container_;
+	}
 };
 
 #endif

@@ -11,9 +11,8 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/bdd_bu_tree_aut.hh>
-#include <vata/bdd_bu_tree_aut_op.hh>
+
 #include <vata/bdd_td_tree_aut.hh>
-#include <vata/bdd_td_tree_aut_op.hh>
 
 // testing headers
 #include "log_fixture.hh"
@@ -40,7 +39,7 @@ protected:// data types
 	typedef VATA::BDDBottomUpTreeAut AutType;
 	typedef VATA::BDDTopDownTreeAut AutTypeInverted;
 
-	typedef AutType::StringToStateDict StringToStateDict;
+	typedef AutType::StateDict StateDict;
 
 private:  // constants
 
@@ -64,7 +63,6 @@ protected:// methods
 
 BOOST_AUTO_TEST_CASE(aut_inversion)
 {
-	AutTypeInverted::SetSymbolDictPtr(&AutType::GetSymbolDict());
 	auto testfileContent = ParseTestFile(INVERT_TIMBUK_FILE.string());
 
 	for (auto testcase : testfileContent)
@@ -76,17 +74,17 @@ BOOST_AUTO_TEST_CASE(aut_inversion)
 		BOOST_MESSAGE("Inverting automaton " + filename + "...");
 		std::string autStr = VATA::Util::ReadFile(filename);
 
-		StringToStateDict stateDict;
+		StateDict stateDict;
 		AutType aut;
 		readAut(aut, stateDict, autStr);
-		aut = RemoveUselessStates(aut);
+		aut = aut.RemoveUselessStates();
 		AutTypeInverted invertAut = aut.GetTopDownAut();
 		std::string autOut = dumpAut(invertAut, stateDict);
 
-		StringToStateDict stateDictRef;
+		StateDict stateDictRef;
 		AutTypeInverted refAut;
 		readAut(refAut, stateDictRef, autStr);
-		refAut = RemoveUselessStates(refAut);
+		refAut = refAut.RemoveUselessStates();
 		std::string refOut = dumpAut(refAut, stateDictRef);
 
 		AutDescription descOrig = parser_.ParseString(refOut);
@@ -103,19 +101,11 @@ BOOST_AUTO_TEST_CASE(aut_down_simulation)
 	testDownwardSimulation();
 }
 
-BOOST_AUTO_TEST_CASE(aut_down_inclusion_sim)
-{
-	testInclusion(&checkDownInclusionWithSimulation);
-}
-
-BOOST_AUTO_TEST_CASE(aut_down_inclusion_sim_opt)
-{
-	testInclusion(checkOptDownInclusionWithSimulation);
-}
-
 BOOST_AUTO_TEST_CASE(aut_up_inclusion)
 {
-	testInclusion(checkUpInclusion);
+	VATA::InclParam ip;
+	ip.SetDirection(InclParam::e_direction::upward);
+	testInclusion(ip);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

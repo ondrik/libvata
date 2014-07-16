@@ -13,6 +13,10 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/util/convert.hh>
+
+// Standard library headers
+#include <map>
 
 
 namespace VATA
@@ -79,10 +83,32 @@ public:   // Public methods
 		bwdMap_()
 	{ }
 
-	inline const Type2& TranslateFwd(const Type1& t1) const
+
+	/**
+	 * @brief  Constructor from the forward map
+	 *
+	 * This constructor copies the forward map and attempts to infer the backward map.
+	 *
+	 * @param[in]  fwdMap  The forward mapping
+	 */
+	explicit TwoWayDict(const MapFwdType& fwdMap) :
+		fwdMap_(fwdMap),
+		bwdMap_()
+	{
+		for (auto mappingPair : fwdMap_)
+		{
+			if (!bwdMap_.insert(std::make_pair(mappingPair.second, mappingPair.first)).second)
+			{
+				throw std::runtime_error(std::string(__func__) +
+					": failed to construct reverse mapping");
+			}
+		}
+	}
+
+	const Type2& TranslateFwd(const Type1& t1) const
 	{
 		ConstIteratorFwd itFwd;
-		if ((itFwd = fwdMap_.find(t1)) == EndFwd())
+		if ((itFwd = fwdMap_.find(t1)) == this->EndFwd())
 		{	// in case the value that should be stored there is not
 			assert(false);      // fail gracefully
 		}
@@ -90,7 +116,7 @@ public:   // Public methods
 		return itFwd->second;
 	}
 
-	inline const Type1& TranslateBwd(const Type2& t2) const
+	const Type1& TranslateBwd(const Type2& t2) const
 	{
 		ConstIteratorBwd itBwd;
 		if ((itBwd = bwdMap_.find(t2)) == EndBwd())
@@ -101,59 +127,59 @@ public:   // Public methods
 		return itBwd->second;
 	}
 
-	inline const_iterator find(const Type1& t1) const
+	const_iterator find(const Type1& t1) const
 	{
-		return FindFwd(t1);
+		return this->FindFwd(t1);
 	}
 
-	inline ConstIteratorFwd FindFwd(const Type1& t1) const
+	ConstIteratorFwd FindFwd(const Type1& t1) const
 	{
 		return fwdMap_.find(t1);
 	}
 
-	inline ConstIteratorBwd FindBwd(const Type2& t2) const
+	ConstIteratorBwd FindBwd(const Type2& t2) const
 	{
 		return bwdMap_.find(t2);
 	}
 
-	inline const_iterator begin() const
+	const_iterator begin() const
 	{
-		return BeginFwd();
+		return this->BeginFwd();
 	}
 
-	inline const_iterator end() const
+	const_iterator end() const
 	{
-		return EndFwd();
+		return this->EndFwd();
 	}
 
-	inline ConstIteratorFwd BeginFwd() const
+	ConstIteratorFwd BeginFwd() const
 	{
 		return fwdMap_.begin();
 	}
 
-	inline ConstIteratorBwd BeginBwd() const
+	ConstIteratorBwd BeginBwd() const
 	{
 		return bwdMap_.begin();
 	}
 
-	inline ConstIteratorFwd EndFwd() const
+	ConstIteratorFwd EndFwd() const
 	{
 		return fwdMap_.end();
 	}
 
-	inline ConstIteratorBwd EndBwd() const
+	ConstIteratorBwd EndBwd() const
 	{
 		return bwdMap_.end();
 	}
 
-	inline std::pair<ConstIteratorFwd, bool> insert(
+	std::pair<ConstIteratorFwd, bool> insert(
 		const std::pair<Type1, Type2>& value)
 	{
-		return Insert(value);
+		return this->Insert(value);
 	}
 
-	inline std::pair<ConstIteratorFwd, bool> Insert(
-		const std::pair<Type1, Type2>& value)
+	std::pair<ConstIteratorFwd, bool> Insert(
+		const std::pair<Type1, Type2>&    value)
 	{
 		auto resPair = fwdMap_.insert(value);
 		if (!(resPair.second))
@@ -163,13 +189,19 @@ public:   // Public methods
 
 		if (!(bwdMap_.insert(std::make_pair(value.second, value.first)).second))
 		{	// in case there is already some backward mapping for given value
+			VATA_ERROR("backward mapping for "
+				<< Convert::ToString(value.second)
+				<< " already found: "
+				<< Convert::ToString(bwdMap_.find(value.second)->second));
+
 			assert(false);      // fail gracefully
 		}
 
 		return resPair;
 	}
 
-	TwoWayDict Union(const TwoWayDict& rhs) const
+	TwoWayDict Union(
+		const TwoWayDict&         rhs) const
 	{
 		TwoWayDict result = *this;
 
@@ -188,18 +220,19 @@ public:   // Public methods
 		return result;
 	}
 
-	inline const MapBwdType& GetReverseMap() const
+	const MapBwdType& GetReverseMap() const
 	{
 		return bwdMap_;
 	}
 
-	inline size_t size() const
+	size_t size() const
 	{
 		return this->fwdMap_.size();
 	}
 
-	friend std::ostream& operator<<(std::ostream& os,
-		const TwoWayDict& dict)
+	friend std::ostream& operator<<(
+		std::ostream&         os,
+		const TwoWayDict&     dict)
 	{
 		return (os << Convert::ToString(dict.fwdMap_));
 	}

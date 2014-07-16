@@ -1,0 +1,85 @@
+#!/bin/bash
+
+################################# CONSTANTS ##################################
+
+SELF="$0"
+
+# this makes 7x speedup (according to Kamil) in case 'grep' was compiled with multi-byte support
+export LC_ALL=C
+
+VATA=@PROJECT_BINARY_DIR@/cli/vata
+
+################################# FUNCTIONS ##################################
+
+# Function that terminates the script with a message
+die() {
+  exit -1;
+}
+
+print_help() {
+  echo "usage:  $SELF value '<VATA parameters>' <value>"
+  echo "        $SELF exact '<VATA parameters>' <ref-output>"
+  echo "        $SELF equiv '<VATA parameters>' <ref-output>"
+  echo 
+  echo "where"
+  echo
+  echo "  value   tests for the output being <value>"
+  echo "  exact   tests whether the output exactly matches the file <ref-output>"
+  echo "  equiv   tests whether the output is an automaton language-equal to the"
+  echo "          automaton in the file <ref-output>"
+  echo
+#  echo "and"
+#  echo "  <VATA parameters>   are the command line parameters to be given to VATA"
+#  echo "                      enclosed in quotes, and"
+#  echo "  <value>             is the value expected as the output"
+#  echo "  <reference output>  is the path to a file with the reference output"
+#  echo
+  echo "Example:"
+  echo
+  echo "   $SELF value '-r expl incl aut1 aut2' 1"
+  echo
+}
+
+################################## PROGRAM ###################################
+
+if [ "$#" -ne 3 ]; then
+  echo "invalid number of parameters: $#"
+  echo
+  print_help
+  die
+fi
+
+# input arguments
+METHOD=$1
+PARAMS=$2
+REF_OUT=$3
+
+# the command to be executed
+EXEC_STR="${VATA} ${PARAMS}"
+
+case "${METHOD}" in
+  value)
+    OUTPUT=$(eval ${EXEC_STR})
+    if [ $? != 0 ] ; then
+      echo "VATA error!" >&2
+      exit 1
+    elif [ ${REF_OUT} == ${OUTPUT} ] ; then
+      # everything fine
+      exit 0
+    else
+      # error
+      echo "Inconsistent results!" >&2
+      exit 1
+    fi
+    ;;
+  exact)
+    ;;
+  equiv)
+    ;;
+  *)
+    echo "invalid method ${METHOD}"
+    echo
+    print_help
+    die
+    ;;
+esac

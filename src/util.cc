@@ -36,26 +36,26 @@ std::string VATA::Util::ReadFile(const std::string& fileName)
 }
 
 
-VATA::AutBase::StringToStateDict VATA::Util::CreateProductStringToStateMap(
-	const VATA::AutBase::StringToStateDict& lhsCont,
-	const VATA::AutBase::StringToStateDict& rhsCont,
+VATA::AutBase::StateDict VATA::Util::CreateProductStringToStateMap(
+	const VATA::AutBase::StateDict& lhsCont,
+	const VATA::AutBase::StateDict& rhsCont,
 	const AutBase::ProductTranslMap& translMap)
 {
-	typedef VATA::AutBase::StringToStateDict StringToStateDict;
+	typedef VATA::AutBase::StateDict StateDict;
 
-	StringToStateDict result;
+	StateDict result;
 
 	for (auto mapElem : translMap)
 	{
 		const auto& key = mapElem.first;
 
-		StringToStateDict::ConstIteratorBwd itLhs;
+		StateDict::ConstIteratorBwd itLhs;
 		if ((itLhs = lhsCont.FindBwd(key.first)) == lhsCont.EndBwd())
 		{
 			assert(false);  // fail gracefully
 		}
 
-		StringToStateDict::ConstIteratorBwd itRhs;
+		StateDict::ConstIteratorBwd itRhs;
 		if ((itRhs = rhsCont.FindBwd(key.second)) == rhsCont.EndBwd())
 		{
 			assert(false);  // fail gracefully
@@ -70,17 +70,17 @@ VATA::AutBase::StringToStateDict VATA::Util::CreateProductStringToStateMap(
 }
 
 
-VATA::AutBase::StringToStateDict VATA::Util::CreateUnionStringToStateMap(
-	const VATA::AutBase::StringToStateDict& lhsCont,
-	const VATA::AutBase::StringToStateDict& rhsCont,
+VATA::AutBase::StateDict VATA::Util::CreateUnionStringToStateMap(
+	const VATA::AutBase::StateDict& lhsCont,
+	const VATA::AutBase::StateDict& rhsCont,
 	const AutBase::StateToStateMap* translMapLhs,
 	const AutBase::StateToStateMap* translMapRhs)
 {
 	typedef VATA::AutBase::StateType StateType;
 	typedef VATA::AutBase::StateToStateMap StateToStateMap;
-	typedef VATA::AutBase::StringToStateDict StringToStateDict;
+	typedef VATA::AutBase::StateDict StateDict;
 
-	StringToStateDict result;
+	StateDict result;
 
 	for (auto dictElem : lhsCont)
 	{
@@ -96,7 +96,11 @@ VATA::AutBase::StringToStateDict VATA::Util::CreateUnionStringToStateMap(
 			state = itTransl->second;
 		}
 
-		result.insert(std::make_pair(dictElem.first + "_1", state));
+		if (!result.insert(std::make_pair(dictElem.first + "_1", state)).second)
+		{	// in the case there is already something
+			assert(false);
+		}
+
 	}
 
 	for (auto dictElem : rhsCont)
@@ -113,7 +117,10 @@ VATA::AutBase::StringToStateDict VATA::Util::CreateUnionStringToStateMap(
 			state = itTransl->second;
 		}
 
-		result.insert(std::make_pair(dictElem.first + "_2", state));
+		if (!result.insert(std::make_pair(dictElem.first + "_2", state)).second)
+		{	// in the case there is already something
+			assert(false);
+		}
 	}
 
 	return result;

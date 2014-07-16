@@ -11,26 +11,25 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/bdd_bu_tree_aut_op.hh>
 
-using VATA::BDDBottomUpTreeAut;
-using VATA::Util::Convert;
+#include "bdd_bu_tree_aut_core.hh"
+
+using BDDBUTreeAutCore   = VATA::BDDBUTreeAutCore;
+
+using StateType     = BDDBUTreeAutCore::StateType;
+using StateTuple    = BDDBUTreeAutCore::StateTuple;
+using TransMTBDD    = BDDBUTreeAutCore::TransMTBDD;
 
 
-BDDBottomUpTreeAut VATA::UnionDisjointStates(
-	const BDDBottomUpTreeAut&   lhs,
-	const BDDBottomUpTreeAut&   rhs)
+BDDBUTreeAutCore BDDBUTreeAutCore::UnionDisjointStates(
+	const BDDBUTreeAutCore&   lhs,
+	const BDDBUTreeAutCore&   rhs)
 {
-	typedef BDDBottomUpTreeAut::StateType StateType;
-	typedef BDDBottomUpTreeAut::StateTuple StateTuple;
-	typedef BDDBottomUpTreeAut::TransMTBDD TransMTBDD;
+	BDDBUTreeAutCore::UnionApplyFunctor unionFunc;
 
-
-	BDDBottomUpTreeAut::UnionApplyFunctor unionFunc;
-
-	if (BDDBottomUpTreeAut::ShareTransTable(lhs, rhs))
+	if (BDDBUTreeAutCore::ShareTransTable(lhs, rhs))
 	{	// in case the automata share their transition table
-		BDDBottomUpTreeAut result = lhs;
+		BDDBUTreeAutCore result = lhs;
 
 		StateTuple tuple;
 		const TransMTBDD& lhsMTBDD = lhs.GetMtbdd(tuple);
@@ -42,7 +41,7 @@ BDDBottomUpTreeAut VATA::UnionDisjointStates(
 	}
 	else
 	{	// in case the automata have distinct transition tables
-		BDDBottomUpTreeAut result = lhs;
+		BDDBUTreeAutCore result = lhs;
 
 		for (const StateType& rhsFst : rhs.GetFinalStates())
 		{
