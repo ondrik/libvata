@@ -457,7 +457,6 @@ public:   // methods
 		const SymbolType&         symbol,
 		const StateType&          state);
 
-
 	void AddTransition(
 		const Transition&         trans);
 
@@ -468,7 +467,7 @@ public:   // methods
 	bool ContainsTransition(
 		const StateTuple&         children,
 		const SymbolType&         symbol,
-		const StateType&          state);
+		const StateType&          state) const;
 
 
 	AlphabetType& GetAlphabet();

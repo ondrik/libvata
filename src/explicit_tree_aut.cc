@@ -332,6 +332,14 @@ void ExplicitTreeAut::AddTransition(
 	core_->AddTransition(children, symbol, state);
 }
 
+
+void ExplicitTreeAut::AddTransition(const Transition& trans)
+{
+	assert(nullptr != core_);
+
+	core_->AddTransition(trans);
+}
+
 ExplicitTreeAut::DownAccessor ExplicitTreeAut::operator[](
 	const StateType&           state) const
 {
@@ -433,6 +441,15 @@ bool ExplicitTreeAut::ContainsTransition(
 	return core_->ContainsTransition(trans);
 }
 
+bool ExplicitTreeAut::ContainsTransition(
+	const StateTuple&         children,
+	const SymbolType&         symbol,
+	const StateType&          state) const
+{
+	assert(nullptr != core_);
+
+	return core_->ContainsTransition(children, symbol, state);
+}
 
 void ExplicitTreeAut::LoadFromString(
 	VATA::Parsing::AbstrParser&       parser,
