@@ -469,6 +469,7 @@ public:   // methods
 		const SymbolType&         symbol,
 		const StateType&          state) const;
 
+    bool AreTransitionsEmpty();
 
 	AlphabetType& GetAlphabet();
 

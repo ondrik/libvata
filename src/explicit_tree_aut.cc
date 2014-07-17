@@ -451,6 +451,13 @@ bool ExplicitTreeAut::ContainsTransition(
 	return core_->ContainsTransition(children, symbol, state);
 }
 
+bool ExplicitTreeAut::AreTransitionsEmpty()
+{
+    assert(nullptr != core_);
+
+	core_->AreTransitionsEmpty();
+}
+
 void ExplicitTreeAut::LoadFromString(
 	VATA::Parsing::AbstrParser&       parser,
 	const std::string&                str,

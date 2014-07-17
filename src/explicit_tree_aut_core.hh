@@ -661,6 +661,10 @@ public:   // methods
 			trans.GetParent());
 	}
 
+    bool AreTransitionsEmpty()
+    {
+        return this->uniqueClusterMap()->size() == 0;
+    }
 
 //	static void CopyTransitions(
 //		ExplicitTreeAutCore&           dst,
