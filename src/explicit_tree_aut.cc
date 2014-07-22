@@ -292,6 +292,12 @@ ExplicitTreeAut::AcceptTrans ExplicitTreeAut::GetAcceptTrans() const
 	return AcceptTrans(core_->GetAcceptTrans());
 }
 
+void ExplicitTreeAut::Clear()
+{
+    assert(nullptr != core_);
+
+    core_->Clear();
+}
 
 ExplicitTreeAut::AcceptTrans::Iterator&
 	ExplicitTreeAut::AcceptTrans::Iterator::operator++()

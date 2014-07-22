@@ -426,6 +426,11 @@ public:   // methods
 	 */
 	AcceptTrans GetAcceptTrans() const;
 
+    /**
+     * @brief Clears automaton. It clears its final states and trasitions.
+     */
+    void Clear();
+
 	/**
 	 * @brief  Retrieves the transitions where the state is a parent
 	 *
