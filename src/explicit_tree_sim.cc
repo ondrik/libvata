@@ -23,34 +23,33 @@ using StateDiscontBinaryRelation  = AutBase::StateDiscontBinaryRelation;
 
 
 StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeSimulation(
-	const VATA::SimParam&                  /* params */) const
+	const VATA::SimParam&                  params) const
 {
-	assert(false);
-	// switch (params.GetRelation())
-	// {
-	// 	case SimParam::e_sim_relation::TA_UPWARD:
-	// 	{
-	// 		return this->ComputeUpwardSimulation(params, transl);
-	// 	}
-	// 	case SimParam::e_sim_relation::TA_DOWNWARD:
-	// 	{
-	// 		return this->ComputeDownwardSimulation(params, transl);
-	// 	}
-	// 	default:
-	// 	{
-	// 		throw std::runtime_error("Unknown simulation parameters: " + params.toString());
-	// 	}
-	// }
+	switch (params.GetRelation())
+	{
+		case SimParam::e_sim_relation::TA_UPWARD:
+		{
+			return this->ComputeUpwardSimulation(params);
+		}
+		case SimParam::e_sim_relation::TA_DOWNWARD:
+		{
+			assert(false);
+			// return this->ComputeDownwardSimulation(params, transl);
+		}
+		default:
+		{
+			throw std::runtime_error("Unknown simulation parameters: " + params.toString());
+		}
+	}
 }
 
 
-StateBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
-	const SimParam&                        params,
-	StateToStateTranslStrict&              transl) const
+StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
+	const SimParam&                        params) const
 {
 	if (params.GetNumStates() != static_cast<size_t>(-1))
 	{
-		return this->ComputeUpwardSimulation(params.GetNumStates(), transl);
+		return this->ComputeUpwardSimulation(params.GetNumStates());
 	}
 	else
 	{
@@ -59,18 +58,22 @@ StateBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
 }
 
 
-AutBase::StateBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
-	size_t                                 size,
-	StateToStateTranslStrict&              /* transl */) const
+AutBase::StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
+	size_t                                 size) const
 {
 	assert(false);
 	std::vector<std::vector<size_t>> partition;
 
 	AutBase::StateBinaryRelation relation;
 
-	return this->TranslateUpward(
-		partition, relation, Util::Identity(size)
-	).computeSimulation(partition, relation, size);
+	StateToStateMap translMap;
+	size_t stateCnt = 0;
+	StateToStateTranslWeak transl(translMap, [&stateCnt](const StateType&)
+		{return stateCnt++;});
+
+	ExplicitLTS lts = this->TranslateUpward(partition, relation, VATA::Util::Identity(size), transl);
+	StateBinaryRelation ltsSim = lts.computeSimulation(partition, relation, size);
+	return StateDiscontBinaryRelation(ltsSim, translMap);
 }
 
 

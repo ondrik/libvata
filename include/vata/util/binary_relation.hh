@@ -13,11 +13,13 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/util/transl_weak.hh>
 //#include <vata/util/convert.hh>
 
 // Standard library headers
 #include <vector>
 #include <algorithm>
+#include <unordered_map>
 
 namespace VATA
 {
@@ -519,11 +521,22 @@ class VATA::Util::DiscontBinaryRelation
 public:   // data types
 
 	using IndexType    = BinaryRelation::IndexType;
+	using DictType     = std::unordered_map<size_t, size_t>;
+	using TranslType   = VATA::Util::TranslatorWeak<DictType>;
 
 private:  // data members
 
 	/// The underlying binary relation, indexed from 0
 	BinaryRelation rel_;
+
+	/// The counter of allocated indices
+	size_t indexCnt_;
+
+	/// The mapping of inputs to the range 0..size-1
+	DictType dict_;
+
+	/// The translator for indices
+	TranslType transl_;
 
 public:   // methods
 
@@ -534,10 +547,101 @@ public:   // methods
 		size_t         size = 0,
 		bool           defVal = false,
 		size_t         rowSize = 16) :
-		rel_(size, defVal, rowSize)
+		rel_(size, defVal, rowSize),
+		indexCnt_(0),
+		dict_(),
+		transl_(dict_, [this](const size_t&){return indexCnt_++;})
+	{ }
+
+
+	/**
+	 * @brief  Constructor from a binary relation and a dictionary with copy semantics
+	 */
+	DiscontBinaryRelation(
+		const BinaryRelation&      rel,
+		const DictType&            dict) :
+		rel_(rel),
+		indexCnt_(0),
+		dict_(dict),
+		transl_(dict_, [this](const size_t&){return indexCnt_++;})
+	{ }
+
+
+	/**
+	 * @brief  Constructor from a binary relation and a dictionary with move semantics
+	 */
+	DiscontBinaryRelation(
+		BinaryRelation&&      rel,
+		DictType&&            dict) :
+		rel_(rel),
+		indexCnt_(0),
+		dict_(dict),
+		transl_(dict_, [this](const size_t&){return indexCnt_++;})
+	{ }
+
+
+	/**
+	 * @brief  Copy constructor
+	 */
+	DiscontBinaryRelation(const DiscontBinaryRelation& rhs) :
+		rel_(rhs.rel_),
+		indexCnt_(rhs.indexCnt_),
+		dict_(rhs.dict_),
+		transl_(dict_, [this](const size_t&){return indexCnt_++;})
+	{ }
+
+
+	/**
+	 * @brief  Move constructor
+	 */
+	DiscontBinaryRelation(DiscontBinaryRelation&& rhs) :
+		rel_(rhs.rel_),
+		indexCnt_(rhs.indexCnt_),
+		dict_(rhs.dict_),
+		transl_(dict_, [this](const size_t&){return indexCnt_++;})
+	{ }
+
+
+	/**
+	 * @brief  Assignment operator
+	 */
+	DiscontBinaryRelation& operator=(const DiscontBinaryRelation& rhs)
 	{
-		assert(false);
+		if (this != &rhs)
+		{
+			rel_ = rhs.rel_;
+			dict_ = rhs.dict_;
+			indexCnt_ = rhs.indexCnt_;
+
+			// the following (or a similar thing because this does not work) should
+			// not be necessary because dict_ is used as a reference
+			//
+			// transl_ = TranslType(dict_, [this](const size_t&){return indexCnt_++;});
+		}
+
+		return *this;
 	}
+
+
+	/**
+	 * @brief  Move assignment operator
+	 */
+	DiscontBinaryRelation& operator=(DiscontBinaryRelation&& rhs)
+	{
+		assert(this != &rhs);
+
+		rel_ = std::move(rhs.rel_);
+		dict_ = std::move(rhs.dict_);
+		indexCnt_ = std::move(rhs.indexCnt_);
+
+		// the following (or a similar thing because this does not work) should
+		// not be necessary because dict_ is used as a reference
+		//
+		// transl_ = TranslType(dict_, [this](const size_t&){return indexCnt_++;});
+
+		return *this;
+	}
+
 
 	/**
 	 * @brief  Output stream operator
@@ -546,11 +650,11 @@ public:   // methods
 		std::ostream&                     os,
 		const DiscontBinaryRelation&      rel)
 	{
-		for (size_t i = 0; i < rel.rel_.size(); ++i)
+		for (size_t i = 0; i < rel.size(); ++i)
 		{
-			for (size_t j = 0; j < rel.rel_.size(); ++j)
+			for (size_t j = 0; j < rel.size(); ++j)
 			{
-				os << rel.rel_.get(i, j);
+				os << rel.get(i, j);
 			}
 			os << std::endl;
 		}
@@ -560,24 +664,25 @@ public:   // methods
 
 	void buildIndex(IndexType& dst) const
 	{
+		assert(false);
 		rel_.buildIndex(dst);
 	}
 
 	// relation index
 	void buildIndex(IndexType& ind, IndexType& inv) const
 	{
+		assert(false);
 		rel_.buildIndex(ind, inv);
 	}
 
 	bool get(size_t row, size_t column) const
 	{
-		// this should do a translation
-		assert(false);
-		return rel_.get(row, column);
+		return rel_.get(transl_[row], transl_[column]);
 	}
 
 	void set(size_t row, size_t column, bool value)
 	{
+		assert(false);
 		rel_.set(row, column, value);
 	}
 

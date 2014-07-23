@@ -1005,18 +1005,16 @@ public:   // methods
 		const Index&      index) const;
 
 
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const VATA::SimParam&          params,
-		StateToStateTranslStrict&      transl) const;
+	AutBase::StateDiscontBinaryRelation ComputeUpwardSimulation(
+		const VATA::SimParam&          params) const;
 
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		size_t                         size,
-		StateToStateTranslStrict&      transl) const;
+	AutBase::StateDiscontBinaryRelation ComputeUpwardSimulation(
+		size_t                         size) const;
 
-	template <class Index>
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		size_t                   size,
-		const Index&             index) const;
+	// template <class Index>
+	// AutBase::StateBinaryRelation ComputeUpwardSimulation(
+	// 	size_t                   size,
+	// 	const Index&             index) const;
 
 
 	static ExplicitTreeAutCore Union(

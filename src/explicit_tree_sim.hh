@@ -26,18 +26,18 @@ VATA::AutBase::StateBinaryRelation VATA::ExplicitTreeAutCore::ComputeDownwardSim
 }
 
 
-template <class Index>
-VATA::AutBase::StateBinaryRelation VATA::ExplicitTreeAutCore::ComputeUpwardSimulation(
-	size_t                   size,
-	const Index&             index) const
-{
-	std::vector<std::vector<size_t>> partition;
-
-	AutBase::StateBinaryRelation relation;
-
-	return TranslateUpward(
-		*this, partition, relation, Util::Identity(size), index
-	).computeSimulation(partition, relation, size);
-}
+// template <class Index>
+// VATA::AutBase::StateBinaryRelation VATA::ExplicitTreeAutCore::ComputeUpwardSimulation(
+// 	size_t                   size,
+// 	const Index&             index) const
+// {
+// 	std::vector<std::vector<size_t>> partition;
+//
+// 	AutBase::StateBinaryRelation relation;
+//
+// 	return TranslateUpward(
+// 		*this, partition, relation, Util::Identity(size), index
+// 	).computeSimulation(partition, relation, size);
+// }
 
 #endif

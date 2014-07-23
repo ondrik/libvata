@@ -105,6 +105,11 @@ public:   // Public methods
 		}
 	}
 
+	/**
+	 * @brief  Copy constructor
+	 */
+	TwoWayDict(const TwoWayDict&) = default;
+
 	const Type2& TranslateFwd(const Type1& t1) const
 	{
 		ConstIteratorFwd itFwd;
