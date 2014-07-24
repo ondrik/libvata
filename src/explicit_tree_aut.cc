@@ -66,6 +66,13 @@ const ExplicitTreeAut::Transition& ExplicitTreeAut::Iterator::operator*() const
 	return **coreIter_;
 }
 
+const ExplicitTreeAut::Transition* ExplicitTreeAut::Iterator::operator->() const
+{
+	assert(nullptr != coreIter_);
+
+	return &(**coreIter_);
+}
+
 ExplicitTreeAut::AcceptTrans::AcceptTrans(
 	const CoreAcceptTrans&       coreAcceptTrans) :
 	coreAcceptTrans_(new CoreAcceptTrans(coreAcceptTrans))
@@ -83,6 +90,12 @@ ExplicitTreeAut::AcceptTrans::AcceptTrans(
 
 ExplicitTreeAut::AcceptTrans::Iterator::Iterator(const CoreIterator& coreIter) :
 	coreAcceptTransIter_(new CoreIterator(coreIter))
+{
+	assert(nullptr != coreAcceptTransIter_);
+}
+
+ExplicitTreeAut::AcceptTrans::Iterator::Iterator(const Iterator& iter) :
+	coreAcceptTransIter_(new CoreIterator(*iter.coreAcceptTransIter_))
 {
 	assert(nullptr != coreAcceptTransIter_);
 }
@@ -386,6 +399,11 @@ bool ExplicitTreeAut::DownAccessor::empty() const
 ExplicitTreeAut::DownAccessor::Iterator::Iterator(
 	const CoreIterator&          coreIter) :
 	coreDownAccessIter_(new CoreIterator(coreIter))
+{ }
+
+ExplicitTreeAut::DownAccessor::Iterator::Iterator(
+	const Iterator&             iter) :
+	coreDownAccessIter_(new CoreIterator(*iter.coreDownAccessIter_))
 { }
 
 const ExplicitTreeAut::Transition&
