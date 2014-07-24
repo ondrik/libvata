@@ -14,16 +14,16 @@
 
 #include "explicit_tree_transl.hh"
 
-template <class Index>
-VATA::AutBase::StateBinaryRelation VATA::ExplicitTreeAutCore::ComputeDownwardSimulation(
-	size_t            size,
-	const Index&      index) const
-{
-	VATA::AutBase::StateBinaryRelation sim =
-		this->TranslateDownward(index).computeSimulation(size);
-
-	return sim;
-}
+// template <class Index>
+// VATA::AutBase::StateBinaryRelation VATA::ExplicitTreeAutCore::ComputeDownwardSimulation(
+// 	size_t            size,
+// 	const Index&      index) const
+// {
+// 	VATA::AutBase::StateBinaryRelation sim =
+// 		this->TranslateDownward(index).computeSimulation(size);
+//
+// 	return sim;
+// }
 
 
 // template <class Index>

@@ -285,29 +285,42 @@ ExplicitTreeAutCore& ExplicitTreeAutCore::operator=(
 
 ExplicitTreeAutCore ExplicitTreeAutCore::Reduce() const
 {
-	typedef Util::TwoWayDict<
-		StateType,
-		StateType,
-		std::unordered_map<StateType, StateType>,
-		std::unordered_map<StateType, StateType>
-	> StateMap;
+	// typedef Util::TwoWayDict<
+	// 	StateType,
+	// 	StateType,
+	// 	std::unordered_map<StateType, StateType>,
+	// 	std::unordered_map<StateType, StateType>
+	// > StateMap;
+  //
+	// using StateMap = std::unordered_map<StateType, StateType>;
+  //
+	// size_t stateCnt = 0;
+  //
+	// StateMap stateMap;
+	// Util::TranslatorWeak<StateMap> stateTranslator(
+	// 	stateMap, [&stateCnt](const StateType&){ return stateCnt++; }
+	// );
+  //
+	// this->BuildStateIndex(stateTranslator);
 
-	size_t stateCnt = 0;
+	SimParam simParam;
+	simParam.SetRelation(SimParam::e_sim_relation::TA_DOWNWARD);
 
-	StateMap stateMap;
-	Util::TranslatorWeak<StateMap> stateTranslator(
-		stateMap, [&stateCnt](const StateType&){ return stateCnt++; }
-	);
+	StateDiscontBinaryRelation sim = this->ComputeDownwardSimulation(simParam);
 
-	this->BuildStateIndex(stateTranslator);
+	assert(false);
 
-	AutBase::StateBinaryRelation sim = this->ComputeDownwardSimulation(
-		stateMap.size(), Util::TranslatorStrict<StateMap>(stateMap)
-	);
+	// now we need to get an equivalence relation from the simulation
 
-	ExplicitTreeAutCore aut = this->CollapseStates(
-			sim, Util::TranslatorStrict<StateMap::MapBwdType>(stateMap.GetReverseMap())
-		);
+	// TODO: this is probably not optimal, we could probably get the mapping of
+	// states for collapsing in a faster way
+	sim.RestrictToSymmetric();       // sim is now an equivalence relation
+
+	using StateToStateMap = std::unordered_map<StateType, StateType>;
+	StateToStateMap collapseMap;
+	sim.GetQuotientProjection(collapseMap);
+
+	ExplicitTreeAutCore aut = this->CollapseStates(collapseMap);
 
 	aut = aut.RemoveUnreachableStates();
 	// TODO: we could probably refine using simulation... but this is not working now

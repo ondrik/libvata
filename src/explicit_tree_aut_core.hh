@@ -958,57 +958,68 @@ public:   // methods
 		const Index&                          stateIndex = Index()) const;
 
 
+	// template <
+	// 	class Rel,
+	// 	class Index = Util::IdentityTranslator<AutBase::StateType>>
+	// ExplicitTreeAutCore CollapseStates(
+	// 	const Rel&                       rel,
+	// 	const Index&                     bwIndex = Index()) const
+	// {
+	// 	std::vector<size_t> representatives;
+  //
+	// 	rel.buildClasses(representatives);
+  //
+	// 	std::vector<StateType> transl(representatives.size());
+  //
+	// 	Util::RebindMap2(transl, representatives, bwIndex);
+  //
+	// 	// TODO: directly return the output of ReindexStates?
+	// 	ExplicitTreeAutCore res(cache_);
+  //
+	// 	this->ReindexStates(res, transl);
+  //
+	// 	return res;
+	// }
+
+
+	/**
+	 * @brief  Collapses states according to the given mapping
+	 *
+	 * @param[in]  stateMap  Mapping of old states to new states (does not need
+	 *                       to be injective)
+	 *
+	 * @returns  The automaton with collapsed states
+	 */
 	template <
-		class Rel,
-		class Index = Util::IdentityTranslator<AutBase::StateType>>
+		class MapType>
 	ExplicitTreeAutCore CollapseStates(
-		const Rel&                       rel,
-		const Index&                     bwIndex = Index()) const
+		MapType&      stateMap) const
 	{
-		std::vector<size_t> representatives;
-
-		rel.buildClasses(representatives);
-
-		std::vector<StateType> transl(representatives.size());
-
-		Util::RebindMap2(transl, representatives, bwIndex);
-
-		// TODO: directly return the output of ReindexStates?
-		ExplicitTreeAutCore res(cache_);
-
-		this->ReindexStates(res, transl);
-
-		return res;
+		return this->ReindexStates(stateMap);
 	}
 
 	//
 	// simulation computation
 	//
-	AutBase::StateDiscontBinaryRelation ComputeSimulation(
+	StateDiscontBinaryRelation ComputeSimulation(
 		const VATA::SimParam&          params) const;
 
-	AutBase::StateBinaryRelation ComputeSimulation(
-		const VATA::SimParam&          params,
-		StateToStateTranslStrict&      transl) const;
-
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const VATA::SimParam&          params,
-		StateToStateTranslStrict&      transl) const;
-
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		size_t                         size,
-		StateToStateTranslStrict&      transl) const;
-
-	template <class Index>
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		size_t            size,
-		const Index&      index) const;
-
-
-	AutBase::StateDiscontBinaryRelation ComputeUpwardSimulation(
+	StateDiscontBinaryRelation ComputeDownwardSimulation(
 		const VATA::SimParam&          params) const;
 
-	AutBase::StateDiscontBinaryRelation ComputeUpwardSimulation(
+	StateDiscontBinaryRelation ComputeDownwardSimulation(
+		size_t                         size) const;
+
+	// template <class Index>
+	// AutBase::StateBinaryRelation ComputeDownwardSimulation(
+	// 	size_t            size,
+	// 	const Index&      index) const;
+
+
+	StateDiscontBinaryRelation ComputeUpwardSimulation(
+		const VATA::SimParam&          params) const;
+
+	StateDiscontBinaryRelation ComputeUpwardSimulation(
 		size_t                         size) const;
 
 	// template <class Index>

@@ -355,6 +355,68 @@ public:
 		}
 	}
 
+	/**
+	 * @brief  Restricts the relation to its symmetric fragment
+	 */
+	void RestrictToSymmetric()
+	{
+		for (size_t row = 0; row < this->size(); ++row)
+		{
+			for (size_t col = row + 1; col < this->size(); ++col)
+			{	// traverse the matrix (we do just the part above the diagonal)
+				bool res = this->get(row, col) && this->get(col, row);
+				this->set(row, col, res);
+				this->set(col, row, res);
+			}
+		}
+	}
+
+
+	/**
+	 * @brief  Gets the projection of elements to their representatives
+	 *
+	 * This method relies on the fact that @p *this represents an equivalance
+	 * relation (the result is undefined otherwise). The method creates the
+	 * projection of elements to their representatives in the quotient set
+	 * induced by the equivalence relation represented by @p *this.
+	 *
+	 * @param[out]  quotProj  The vector mapping elements to their
+	 *                        representatives in the quotient set, quotProj[i] is
+	 *                        the number that the i-th guy maps to
+	 */
+	void GetQuotientProjection(
+		std::vector<size_t>&             quotProj)
+	{
+		const size_t UNDEF_PROJ = static_cast<size_t>(-1);
+
+		quotProj.resize(this->size());
+		for (size_t& elem : quotProj)
+		{
+			elem = UNDEF_PROJ;
+		}
+
+		for (size_t row = 0; row < this->size(); ++row)
+		{	// traverse the matrix above the diagonal, only
+			assert(row < quotProj.size());
+			if (UNDEF_PROJ != quotProj[row])
+			{	// in the case 'row' is already in some equivalence class
+				continue;
+			}
+
+			quotProj[row] = row;
+			for (size_t col = row + 1; col < this->size(); ++col)
+			{
+				if (this->get(row, col))
+				{	// if 'col' is equivalent (w.r.t. the relation) to 'row'
+					assert(UNDEF_PROJ == quotProj[col]);
+
+					quotProj[col] = row;
+				}
+			}
+		}
+	}
+
+
 	friend std::ostream& operator<<(
 		std::ostream&             os,
 		const BinaryRelation&     v)
@@ -689,6 +751,54 @@ public:   // methods
 	size_t size() const
 	{
 		return rel_.size();
+	}
+
+	/**
+	 * @brief  Restricts the relation to its symmetric fragment
+	 */
+	void RestrictToSymmetric()
+	{
+		rel_.RestrictToSymmetric();
+	}
+
+
+	/**
+	 * @brief  Gets the projection of elements to their representatives
+	 *
+	 * This method relies on the fact that @p *this represents an equivalance
+	 * relation (the result is undefined otherwise). The method creates the
+	 * projection of elements to their representatives in the quotient set
+	 * induced by the equivalence relation represented by @p *this.
+	 *
+	 * @param[out]  quotProj  The projection of elements to their representatives
+	 *                        in the quotient set
+	 */
+	template <
+		class MapType>
+	void GetQuotientProjection(
+		MapType&       quotProj)
+	{
+		assert(quotProj.empty());
+
+		std::vector<size_t> innerProj;
+
+		// get the vector for continuous values
+		rel_.GetQuotientProjection(innerProj);
+
+		DictType backMap;
+		for (auto keyValPair  : dict_)
+		{	// build the backward translation (TODO: avoid this by using TwoWayDict?)
+			bool inserted = backMap.insert(
+				std::make_pair(keyValPair.second, keyValPair.first)).second;
+			if (!inserted)  assert(false);
+		}
+
+		for (size_t i = 0; i < innerProj.size(); ++i)
+		{	// go over all elements in the vector
+			bool inserted = quotProj.insert(
+				std::make_pair(backMap.at(i), backMap.at(innerProj[i]))).second;
+			if (!inserted)  assert(false);
+		}
 	}
 };
 

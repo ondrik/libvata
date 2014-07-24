@@ -33,8 +33,7 @@ StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeSimulation(
 		}
 		case SimParam::e_sim_relation::TA_DOWNWARD:
 		{
-			assert(false);
-			// return this->ComputeDownwardSimulation(params, transl);
+			return this->ComputeDownwardSimulation(params);
 		}
 		default:
 		{
@@ -58,7 +57,7 @@ StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
 }
 
 
-AutBase::StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
+StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
 	size_t                                 size) const
 {
 	assert(false);
@@ -77,13 +76,12 @@ AutBase::StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation
 }
 
 
-StateBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
-	const SimParam&                        params,
-	StateToStateTranslStrict&              transl) const
+StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
+	const SimParam&                        params) const
 {
 	if (params.GetNumStates() != static_cast<size_t>(-1))
 	{
-		return this->ComputeDownwardSimulation(params.GetNumStates(), transl);
+		return this->ComputeDownwardSimulation(params.GetNumStates());
 	}
 	else
 	{
@@ -92,10 +90,17 @@ StateBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
 }
 
 
-StateBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
-	size_t                                 size,
-	StateToStateTranslStrict&              /* transl */) const
+StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
+	size_t                                 size) const
 {
 	assert(false);
-	return this->TranslateDownward().computeSimulation(size);
+
+	StateToStateMap translMap;
+	size_t stateCnt = 0;
+	StateToStateTranslWeak transl(translMap, [&stateCnt](const StateType&)
+		{return stateCnt++;});
+
+	ExplicitLTS lts = this->TranslateDownward(transl);
+	StateBinaryRelation ltsSim = lts.computeSimulation(size);
+	return StateDiscontBinaryRelation(ltsSim, translMap);
 }
