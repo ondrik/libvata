@@ -93,8 +93,6 @@ StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
 StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
 	size_t                                 size) const
 {
-	assert(false);
-
 	StateToStateMap translMap;
 	size_t stateCnt = 0;
 	StateToStateTranslWeak transl(translMap, [&stateCnt](const StateType&)

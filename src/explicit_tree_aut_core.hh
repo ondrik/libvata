@@ -944,7 +944,7 @@ public:   // methods
 
 	template <class Index = Util::IdentityTranslator<StateType>>
 	ExplicitLTS TranslateDownward(
-		const Index&                 stateIndex = Index()) const;
+		Index&                 stateIndex = Index()) const;
 
 
 	template <
@@ -955,7 +955,7 @@ public:   // methods
 		std::vector<std::vector<size_t>>&     partition,
 		Util::BinaryRelation&                 relation,
 		const Rel&                            param,
-		const Index&                          stateIndex = Index()) const;
+		Index&                                stateIndex = Index()) const;
 
 
 	// template <

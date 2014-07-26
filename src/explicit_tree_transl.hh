@@ -27,7 +27,7 @@
 
 template <class Index>
 VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateDownward(
-	const Index&        stateIndex) const
+	Index&        stateIndex) const
 {
 	std::unordered_map<SymbolType, size_t> symbolMap;
 	std::unordered_map<const StateTuple*, size_t> lhsMap;
@@ -101,7 +101,7 @@ VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateUpward(
 	std::vector<std::vector<size_t>>&       partition,
 	Util::BinaryRelation&                   relation,
 	const Rel&                              param,
-	const Index&                            stateIndex) const
+	Index&                                  stateIndex) const
 {
 	struct Env
 	{
