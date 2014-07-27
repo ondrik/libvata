@@ -167,10 +167,10 @@ bool VATA::ExplicitFiniteAutCore::CheckInclusion(
  */
 template<class Rel, class Functor>
 bool VATA::CheckFiniteAutInclusion(
-	const VATA::ExplicitFiniteAutCore& smaller,
-	const VATA::ExplicitFiniteAutCore& bigger,
-	const Rel& preorder) {
-
+	const VATA::ExplicitFiniteAutCore&    smaller,
+	const VATA::ExplicitFiniteAutCore&    bigger,
+	const Rel&                            preorder)
+{
 	typedef Functor InclFunc;
 
 	typedef typename InclFunc::SmallerElementType SmallerElementType;

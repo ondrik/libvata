@@ -115,7 +115,7 @@ public:   // Public methods
 		ConstIteratorFwd itFwd;
 		if ((itFwd = fwdMap_.find(t1)) == this->EndFwd())
 		{	// in case the value that should be stored there is not
-			assert(false);      // fail gracefully
+			throw std::out_of_range(__func__);
 		}
 
 		return itFwd->second;
@@ -126,7 +126,7 @@ public:   // Public methods
 		ConstIteratorBwd itBwd;
 		if ((itBwd = bwdMap_.find(t2)) == EndBwd())
 		{	// in case the value that should be stored there is not
-			assert(false);      // fail gracefully
+			throw std::out_of_range(__func__);
 		}
 
 		return itBwd->second;
@@ -145,6 +145,19 @@ public:   // Public methods
 	ConstIteratorBwd FindBwd(const Type2& t2) const
 	{
 		return bwdMap_.find(t2);
+	}
+
+	const Type2& at(const Type1& t1) const
+	{
+		const_iterator it = this->find(t1);
+		if (this->end() == it)
+		{
+			throw std::out_of_range(__func__);
+		}
+		else
+		{
+			return it->second;
+		}
 	}
 
 	const_iterator begin() const
@@ -232,7 +245,7 @@ public:   // Public methods
 
 	size_t size() const
 	{
-		return this->fwdMap_.size();
+		return fwdMap_.size();
 	}
 
 	friend std::ostream& operator<<(

@@ -60,7 +60,6 @@ StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
 StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
 	size_t                                 size) const
 {
-	assert(false);
 	std::vector<std::vector<size_t>> partition;
 
 	AutBase::StateBinaryRelation relation;

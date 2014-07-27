@@ -13,8 +13,9 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/util/convert.hh>
 #include <vata/util/transl_weak.hh>
-//#include <vata/util/convert.hh>
+#include <vata/util/two_way_dict.hh>
 
 // Standard library headers
 #include <vector>
@@ -294,7 +295,17 @@ public:
 		return dst;
 	}
 
-	// relation index
+
+	/**
+	 * @brief  Creates a mapping from elements to their images
+	 *
+	 * This method maps elements to their images. Formally, it creates for each
+	 * element 'x' the mapping 'x -> Y' where 'Y = {y | xRy}'
+	 *
+	 * @param[out]  dst  The result mapping every element to its images
+	 *
+	 * @see  buildInvIndex
+	 */
 	void buildIndex(IndexType& dst) const
 	{
 		dst.resize(size_);
@@ -319,7 +330,16 @@ public:
 		}
 	}
 
-	// inverted relation index
+	/**
+	 * @brief  Creates a mapping from elements to their co-images
+	 *
+	 * This method maps elements to their co-images. Formally, it creates for each
+	 * element 'x' the mapping 'x -> Y' where 'Y = {y | yRx}'
+	 *
+	 * @param[out]  dst  The result mapping every element to its co-images
+	 *
+	 * @see buildIndex
+	 */
 	void buildInvIndex(IndexType& dst) const
 	{
 		dst.resize(size_);
@@ -336,7 +356,17 @@ public:
 		}
 	}
 
-	// relation index
+	/**
+	 * @brief  Creates a mapping from elements to their images and co-images
+	 *
+	 * This method the call to buildIndex and buildInvIndex, i.e. it maps
+	 * elements to their images (in @p ind) and their co-images (in @p inv).
+	 *
+	 * @param[out]  ind  The result mapping every element to its images
+	 * @param[out]  ind  The result mapping every element to its co-images
+	 *
+	 * @see buildIndex buildInvIndex
+	 */
 	void buildIndex(IndexType& ind, IndexType& inv) const
 	{
 		ind.resize(size_);
@@ -458,7 +488,7 @@ public:   // methods
 
 public:
 
-	typedef std::vector<std::vector<size_t>> IndexType;
+	using IndexType    = std::unordered_map<size_t, std::vector<size_t>>;
 
 	explicit Identity(size_t size) :
 		size_(size)
@@ -528,43 +558,39 @@ public:
 	// relation index
 	void buildIndex(IndexType& dst) const
 	{
-		dst.resize(size_, std::vector<size_t>(1));
+		assert(dst.empty());
+
 		for (size_t i = 0; i < size_; ++i)
 		{
-			dst[i][0] = i;
+			bool inserted = dst.insert(std::make_pair(i, std::vector<size_t>({i}))).second;
+			if (!inserted)  assert(false);
 		}
 	}
 
 	// inverted relation index
 	void buildInvIndex(IndexType& dst) const
 	{
-		dst.resize(size_, std::vector<size_t>(1));
-		for (size_t i = 0; i < size_; ++i)
-		{
-			dst[i][0] = i;
-		}
+		assert(dst.empty());
+		this->buildIndex(dst);
 	}
 
 	// relation index
 	void buildIndex(IndexType& ind, IndexType& inv) const
 	{
-		ind.resize(size_, std::vector<size_t>(1));
-		inv.resize(size_, std::vector<size_t>(1));
+		assert(ind.empty());
+		assert(inv.empty());
 
-		for (size_t i = 0; i < size_; ++i)
-		{
-			ind[i][0] = i;
-			inv[i][0] = i;
-		}
+		this->buildIndex(ind);
+		inv = ind;
 	}
 
 	friend std::ostream& operator<<(
 		std::ostream&        os,
 		const Identity&      v)
 	{
-		for (size_t i = 0; i < v.size_; ++i)
+		for (size_t i = 0; i < v.size(); ++i)
 		{
-			for (size_t j = 0; j < v.size_; ++j)
+			for (size_t j = 0; j < v.size(); ++j)
 			{
 				os << v.get(i, j);
 			}
@@ -582,8 +608,10 @@ class VATA::Util::DiscontBinaryRelation
 {
 public:   // data types
 
-	using IndexType    = BinaryRelation::IndexType;
-	using DictType     = std::unordered_map<size_t, size_t>;
+	using IndexType    = std::unordered_map<size_t, std::vector<size_t>>;
+	// using DictType     = std::unordered_map<size_t, size_t>;
+	using DictType     = VATA::Util::TwoWayDict<size_t, size_t,
+		std::unordered_map<size_t, size_t>, std::unordered_map<size_t, size_t>>;
 	using TranslType   = VATA::Util::TranslatorWeak<DictType>;
 
 private:  // data members
@@ -599,6 +627,43 @@ private:  // data members
 
 	/// The translator for indices
 	TranslType transl_;
+
+private:  // methods
+
+	/**
+	 * @brief  Translates index of internal relation to the discontinuous
+	 *
+	 * @param[in,out]  innerIndex  The index for the internal continuous relation
+	 *
+	 * @returns  The index in the discontinuous relation
+	 *
+	 * @note  Destroys @p innerIndex
+	 *
+	 * @note  Is this optimal?
+	 */
+	IndexType translateIndexToDiscont(
+		BinaryRelation::IndexType&      innerIndex) const
+	{
+		IndexType result;
+
+		for (size_t x = 0; x < innerIndex.size(); ++x)
+		{
+			std::vector<size_t>& images = innerIndex[x];
+
+			// 'std::transform' is C++ for 'map' in Haskell
+			std::transform(
+				/* where to start */ images.cbegin(),
+				/* where to finish */ images.cend(),
+				/* where to insert the results */ images.begin(),
+				/* what to compute */ [this](size_t img) { return dict_.TranslateBwd(img);});
+
+			bool inserted = result.insert(
+				std::make_pair(dict_.TranslateBwd(x), std::move(images))).second;
+			if (!inserted)  assert(false);
+		}
+
+		return result;
+	}
 
 public:   // methods
 
@@ -618,6 +683,23 @@ public:   // methods
 
 	/**
 	 * @brief  Constructor from a binary relation and a dictionary with copy semantics
+	 *
+	 * @note This allows a conversion from TDict to DictType
+	 */
+	template <
+		class TDict>
+	DiscontBinaryRelation(
+		const BinaryRelation&      rel,
+		const TDict&               dict) :
+		rel_(rel),
+		indexCnt_(0),
+		dict_(dict),
+		transl_(dict_, [this](const size_t&){return indexCnt_++;})
+	{ }
+
+
+	/**
+	 * @brief  Constructor from a binary relation and a dictionary with copy semantics
 	 */
 	DiscontBinaryRelation(
 		const BinaryRelation&      rel,
@@ -628,6 +710,22 @@ public:   // methods
 		transl_(dict_, [this](const size_t&){return indexCnt_++;})
 	{ }
 
+
+	/**
+	 * @brief  Constructor from a binary relation and a dictionary with move semantics
+	 *
+	 * @note This allows a conversion from TDict to DictType
+	 */
+	template <
+		class TDict>
+	DiscontBinaryRelation(
+		BinaryRelation&&      rel,
+		TDict&&               dict) :
+		rel_(rel),
+		indexCnt_(0),
+		dict_(dict),
+		transl_(dict_, [this](const size_t&){return indexCnt_++;})
+	{ }
 
 	/**
 	 * @brief  Constructor from a binary relation and a dictionary with move semantics
@@ -724,17 +822,40 @@ public:   // methods
 		return os;
 	}
 
+
+	/**
+	 * @brief  Creates a mapping from elements to their images
+	 *
+	 * This method maps elements to their images. Formally, it creates for each
+	 * element 'x' the mapping 'x -> Y' where 'Y = {y | xRy}'
+	 *
+	 * @param[out]  dst  The result mapping every element to its images
+	 */
 	void buildIndex(IndexType& dst) const
 	{
-		assert(false);
-		rel_.buildIndex(dst);
+		assert(dst.empty());
+
+		std::vector<std::vector<size_t>> innerIndex;
+
+		rel_.buildIndex(innerIndex);
+		dst = this->translateIndexToDiscont(innerIndex);
 	}
 
 	// relation index
-	void buildIndex(IndexType& ind, IndexType& inv) const
+	void buildIndex(
+		IndexType&           ind,
+		IndexType&           inv) const
 	{
-		assert(false);
-		rel_.buildIndex(ind, inv);
+		assert(ind.empty());
+		assert(inv.empty());
+
+		std::vector<std::vector<size_t>> innerInd;
+		std::vector<std::vector<size_t>> innerInv;
+
+		rel_.buildIndex(innerInd, innerInv);
+		assert(innerInd.size() == innerInv.size());
+		ind = translateIndexToDiscont(innerInd);
+		inv = translateIndexToDiscont(innerInv);
 	}
 
 	bool get(size_t row, size_t column) const
@@ -744,8 +865,7 @@ public:   // methods
 
 	void set(size_t row, size_t column, bool value)
 	{
-		assert(false);
-		rel_.set(row, column, value);
+		rel_.set(transl_[row], transl_[column], value);
 	}
 
 	size_t size() const
@@ -785,18 +905,10 @@ public:   // methods
 		// get the vector for continuous values
 		rel_.GetQuotientProjection(innerProj);
 
-		DictType backMap;
-		for (auto keyValPair  : dict_)
-		{	// build the backward translation (TODO: avoid this by using TwoWayDict?)
-			bool inserted = backMap.insert(
-				std::make_pair(keyValPair.second, keyValPair.first)).second;
-			if (!inserted)  assert(false);
-		}
-
 		for (size_t i = 0; i < innerProj.size(); ++i)
 		{	// go over all elements in the vector
 			bool inserted = quotProj.insert(
-				std::make_pair(backMap.at(i), backMap.at(innerProj[i]))).second;
+				std::make_pair(dict_.TranslateBwd(i), dict_.TranslateBwd(innerProj[i]))).second;
 			if (!inserted)  assert(false);
 		}
 	}
