@@ -479,7 +479,7 @@ bool ExplicitTreeAut::AreTransitionsEmpty()
 {
     assert(nullptr != core_);
 
-	core_->AreTransitionsEmpty();
+	return core_->AreTransitionsEmpty();
 }
 
 void ExplicitTreeAut::LoadFromString(
