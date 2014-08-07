@@ -162,6 +162,7 @@ public:   // public data types
 		{ }
 	};
 
+
 	class DirectAlphabet : public AbstractAlphabet
 	{
 	public:  // data types
