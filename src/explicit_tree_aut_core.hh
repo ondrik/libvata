@@ -679,10 +679,10 @@ public:   // methods
 			trans.GetParent());
 	}
 
-    bool AreTransitionsEmpty()
-    {
-        return this->uniqueClusterMap()->size() == 0;
-    }
+	bool AreTransitionsEmpty()
+	{
+		return this->uniqueClusterMap()->empty();
+	}
 
 //	static void CopyTransitions(
 //		ExplicitTreeAutCore&           dst,

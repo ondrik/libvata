@@ -395,7 +395,7 @@ public:   // methods
 	 */
 	void SetStateFinal(const StateType& state);
 
-    void SetStatesFinal(const std::set<StateType>& states);
+	void SetStatesFinal(const std::set<StateType>& states);
 
 	/**
 	 * @brief  Checks whether a state is accepting
@@ -412,7 +412,8 @@ public:   // methods
 	 * @returns  The set of accepting states of the automaton
 	 */
 	const FinalStateSet& GetFinalStates() const;
-	
+
+	// remove this (Forester-specific)
     StateType GetFinalState() const;
 
 	/**
