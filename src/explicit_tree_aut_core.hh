@@ -587,23 +587,22 @@ public:   // methods
 		return AcceptTrans(*this);
 	}
 
-    void Clear()
-    {
+	void Clear()
+	{
 		assert(nullptr != transitions_);
 
 		if (!transitions_.unique())
 		{
 			transitions_ = StateToTransitionClusterMapPtr(
 				new StateToTransitionClusterMap());
-
 		}
-        else
-        { // TODO Is this clear enough?
-            this->uniqueClusterMap()->clear();
-        }
+		else
+		{ // TODO Is this clear enough?
+			this->uniqueClusterMap()->clear();
+		}
 
-        EraseFinalStates();
-    }
+		this->EraseFinalStates();
+	}
 
 	DownAccessor GetDown(
 		const StateType&           state) const
