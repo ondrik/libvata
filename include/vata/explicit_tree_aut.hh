@@ -413,9 +413,6 @@ public:   // methods
 	 */
 	const FinalStateSet& GetFinalStates() const;
 
-	// remove this (Forester-specific)
-    StateType GetFinalState() const;
-
 	/**
 	 * @brief  Clears the set of final states
 	 */

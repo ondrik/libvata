@@ -553,12 +553,6 @@ public:   // methods
 		return finalStates_;
 	}
 
-	StateType GetFinalState() const
-	{
-        assert(finalStates_.size() == 1);
-		return *finalStates_.begin();
-	}
-
 	void SetStateFinal(
 		const StateType&          state)
 	{
