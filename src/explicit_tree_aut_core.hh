@@ -581,6 +581,31 @@ public:   // methods
 		return AcceptTrans(*this);
 	}
 
+    /**
+     * @brief Retrieves a container with all states of the automaton
+     *
+     * @return A vector with all used states
+     */
+    std::vector<size_t> GetUsedStates() const
+    {
+        std::vector<size_t> res;
+        for (auto trans : *this)
+        {
+            for (auto state : trans.GetChildren())
+            {
+                res.push_back(state);
+            }
+            res.push_back(trans.GetParent());
+        }
+
+        for (auto state : GetFinalStates())
+        {
+            res.push_back(state);
+        }
+
+        return res;
+    }
+
 	void Clear()
 	{
 		assert(nullptr != transitions_);

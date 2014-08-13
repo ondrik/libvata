@@ -299,6 +299,13 @@ ExplicitTreeAut::AcceptTrans ExplicitTreeAut::GetAcceptTrans() const
 	return AcceptTrans(core_->GetAcceptTrans());
 }
 
+std::vector<size_t> ExplicitTreeAut::GetUsedStates() const
+{
+    assert(nullptr != core_);
+
+    return core_->GetUsedStates();
+}
+
 void ExplicitTreeAut::Clear()
 {
     assert(nullptr != core_);

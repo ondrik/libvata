@@ -29,6 +29,7 @@
 #include <memory>
 #include <unordered_set>
 #include <unordered_map>
+#include <vector>
 
 
 namespace VATA
@@ -424,6 +425,13 @@ public:   // methods
 	 * @returns  An (iterable) container with accepting transitions
 	 */
 	AcceptTrans GetAcceptTrans() const;
+
+    /**
+     * @brief Retrieves a container with all states of the automaton
+     *
+     * @return A vector with all used states
+     */
+    std::vector<size_t> GetUsedStates() const;
 
     /**
      * @brief Clears automaton. It clears its final states and trasitions.
