@@ -46,6 +46,7 @@ StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeSimulation(
 StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
 	const SimParam&                        params) const
 {
+	assert(SimParam::e_sim_relation::TA_UPWARD == params.GetRelation());
 	if (params.GetNumStates() != static_cast<size_t>(-1))
 	{
 		return this->ComputeUpwardSimulation(params.GetNumStates());
@@ -78,6 +79,7 @@ StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
 StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
 	const SimParam&                        params) const
 {
+	assert(SimParam::e_sim_relation::TA_DOWNWARD == params.GetRelation());
 	if (params.GetNumStates() != static_cast<size_t>(-1))
 	{
 		return this->ComputeDownwardSimulation(params.GetNumStates());

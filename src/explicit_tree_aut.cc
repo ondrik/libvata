@@ -675,6 +675,24 @@ ExplicitTreeAut ExplicitTreeAut::Reduce() const
 }
 
 
+ExplicitTreeAut ExplicitTreeAut::Reduce(
+	const VATA::ReduceParam&    params) const
+{
+	assert(nullptr != core_);
+
+	return ExplicitTreeAut(core_->Reduce(params));
+}
+
+
+ExplicitTreeAut ExplicitTreeAut::CollapseStates(
+	const StateToStateMap&      collapseMap) const
+{
+	assert(nullptr != core_);
+
+	return ExplicitTreeAut(core_->CollapseStates(collapseMap));
+}
+
+
 ExplicitTreeAut ExplicitTreeAut::TranslateSymbols(
 	AbstractSymbolTranslateF&       transl) const
 {

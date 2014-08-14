@@ -283,7 +283,8 @@ ExplicitTreeAutCore& ExplicitTreeAutCore::operator=(
 }
 
 
-ExplicitTreeAutCore ExplicitTreeAutCore::Reduce() const
+ExplicitTreeAutCore ExplicitTreeAutCore::Reduce(
+	const ReduceParam&            params) const
 {
 	// typedef Util::TwoWayDict<
 	// 	StateType,
@@ -304,9 +305,21 @@ ExplicitTreeAutCore ExplicitTreeAutCore::Reduce() const
 	// this->BuildStateIndex(stateTranslator);
 
 	SimParam simParam;
-	simParam.SetRelation(SimParam::e_sim_relation::TA_DOWNWARD);
+	switch (params.GetRelation())
+	{
+		case ReduceParam::e_reduce_relation::TA_DOWNWARD:
+		{
+			simParam.SetRelation(SimParam::e_sim_relation::TA_DOWNWARD);
+			break;
+		}
 
-	StateDiscontBinaryRelation sim = this->ComputeDownwardSimulation(simParam);
+		default:
+		{
+			assert(false);
+		}
+	}
+
+	StateDiscontBinaryRelation sim = this->ComputeSimulation(simParam);
 
 	assert(false);
 

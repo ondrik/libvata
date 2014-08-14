@@ -24,12 +24,17 @@ namespace VATA
 			virtual ToT operator()(const FromT& value) = 0;
 			virtual ToT operator()(const FromT& value) const = 0;
 
-			ToT operator[](const FromT& value)
+			ToT at(const FromT& value) const
 			{
 				return this->operator()(value);
 			}
 
-			ToT operator[](const FromT& value) const
+			ToT at(const FromT& value)
+			{
+				return this->operator()(value);
+			}
+
+			ToT operator[](const FromT& value)
 			{
 				return this->operator()(value);
 			}

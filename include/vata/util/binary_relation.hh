@@ -860,7 +860,7 @@ public:   // methods
 
 	bool get(size_t row, size_t column) const
 	{
-		return rel_.get(transl_[row], transl_[column]);
+		return rel_.get(transl_.at(row), transl_.at(column));
 	}
 
 	void set(size_t row, size_t column, bool value)

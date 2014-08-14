@@ -789,7 +789,7 @@ public:   // methods
 		{
 			for (const StateType& state : finalStates_)
 			{
-				dst.SetStateFinal(index[state]);
+				dst.SetStateFinal(index.at(state));
 			}
 		}
 
@@ -799,7 +799,7 @@ public:   // methods
 		{
 			assert(stateClusterPair.second);
 
-			auto cluster = clusterMap->uniqueCluster(index[stateClusterPair.first]);
+			auto cluster = clusterMap->uniqueCluster(index.at(stateClusterPair.first));
 
 			for (auto& symbolTupleSetPair : *stateClusterPair.second)
 			{
@@ -815,7 +815,7 @@ public:   // methods
 
 					for (const StateType& s : *tuple)
 					{
-						newTuple.push_back(index[s]);
+						newTuple.push_back(index.at(s));
 					}
 
 					tuplePtrSet->insert(dst.tupleLookup(newTuple));
@@ -1096,7 +1096,16 @@ public:   // methods
 		const Dict&                         alphabet) const;
 
 
-	ExplicitTreeAutCore Reduce() const;
+	ExplicitTreeAutCore Reduce() const
+	{
+		ReduceParam params;
+		params.SetRelation(ReduceParam::e_reduce_relation::TA_DOWNWARD);
+		return this->Reduce(params);
+	}
+
+
+	ExplicitTreeAutCore Reduce(
+		const ReduceParam&            params) const;
 
 
 	template <

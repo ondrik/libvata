@@ -38,7 +38,7 @@ VATA::ExplicitLTS VATA::ExplicitFiniteAutCore::TranslateToLTS(
 	{
 		assert(nullptr != stateClusterPair.second);
 
-		StateType srcState = stateIndex[stateClusterPair.first];
+		StateType srcState = stateIndex.at(stateClusterPair.first);
 
 		for (auto& symbolStateSetPair : *stateClusterPair.second)
 		{
@@ -46,7 +46,7 @@ VATA::ExplicitLTS VATA::ExplicitFiniteAutCore::TranslateToLTS(
 
 			for (const StateType& dstStateRaw : symbolStateSetPair.second)
 			{
-				result.addTransition(srcState, symbol, stateIndex[dstStateRaw]);
+				result.addTransition(srcState, symbol, stateIndex.at(dstStateRaw));
 			}
 		}
 	}
