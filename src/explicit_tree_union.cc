@@ -48,8 +48,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::Union(
 
 ExplicitTreeAutCore ExplicitTreeAutCore::UnionDisjointStates(
 	const ExplicitTreeAutCore&        lhs,
-	const ExplicitTreeAutCore&        rhs,
-    bool                              copyFinal)
+	const ExplicitTreeAutCore&        rhs)
 {
 	ExplicitTreeAutCore res(lhs);
 
@@ -58,11 +57,8 @@ ExplicitTreeAutCore ExplicitTreeAutCore::UnionDisjointStates(
 	res.uniqueClusterMap()->insert(rhs.transitions_->begin(), rhs.transitions_->end());
 	assert(lhs.transitions_->size() + rhs.transitions_->size() == res.transitions_->size());
 
-    if (copyFinal)
-    {
-	    res.finalStates_.insert(rhs.finalStates_.begin(), rhs.finalStates_.end());
-	    assert(lhs.finalStates_.size() + rhs.finalStates_.size() == res.finalStates_.size());
-    }
+	res.finalStates_.insert(rhs.finalStates_.begin(), rhs.finalStates_.end());
+	assert(lhs.finalStates_.size() + rhs.finalStates_.size() == res.finalStates_.size());
 
 	return res;
 }

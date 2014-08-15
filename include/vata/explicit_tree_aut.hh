@@ -246,8 +246,6 @@ public:   // public data types
 		bool operator!=(const Iterator& rhs) const;
 		Iterator& operator++();
 		Transition operator*() const;
-		const Transition& operator*() const;
-		const Transition* operator->() const;
 	};
 
 	using iterator       = Iterator;
@@ -723,16 +721,15 @@ public:   // methods
 	 * Unites two automata. Note that these automata need to have disjoint sets of
 	 * states, otherwise the result is undefined.
 	 *
-   * @param[in]      lhs             Left automaton for union
-   * @param[in]      rhs             Right automaton for union
+     * @param[in]      lhs             Left automaton for union
+     * @param[in]      rhs             Right automaton for union
 	 *
 	 * @returns  An automaton accepting the union of languages of @p lhs and @p
 	 * rhs
    */
 	static ExplicitTreeAut UnionDisjointStates(
 		const ExplicitTreeAut&           lhs,
-		const ExplicitTreeAut&           rhs,
-        bool                             copyFinal=true);
+		const ExplicitTreeAut&           rhs);
 
 
 	/**
