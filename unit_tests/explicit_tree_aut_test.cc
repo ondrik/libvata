@@ -149,6 +149,75 @@ BOOST_AUTO_TEST_CASE(accept_iterators)
 		});
 }
 
+// this should make sure that the obtained transition is not a temporary object
+BOOST_AUTO_TEST_CASE(iterator_return_val)
+{
+	AutType ta;
+	ta.AddTransition(StateTuple({}), 42, 1337);
+	ta.AddTransition(StateTuple({}), 43, 1337);
+
+	AutType::Iterator it = ta.begin();
+	assert(it != ta.end());
+	const Transition& trans = *it;
+
+	// store the transition
+	StateType parent = trans.GetParent();
+	SymbolType symbol = trans.GetSymbol();
+	StateTuple children = trans.GetChildren();
+
+	// move the iterator
+	++it;
+	assert(it != ta.end());
+	++it;
+	assert(it == ta.end());
+
+	// check second time
+	BOOST_REQUIRE_MESSAGE(parent == trans.GetParent(),
+		"Bad parent state of a transition: " + Convert::ToString(trans.GetParent())
+		+ ", expected " + Convert::ToString(parent));
+	BOOST_REQUIRE_MESSAGE(symbol == trans.GetSymbol(),
+		"Bad symbol of a transition: " + Convert::ToString(trans.GetSymbol())
+		+ ", expected " + Convert::ToString(symbol));
+	BOOST_REQUIRE_MESSAGE(trans.GetChildren() == children,
+		"Bad children of a transition: " + Convert::ToString(trans.GetChildren())
+		+ ", expected " + Convert::ToString(children));
+}
+
+// this should make sure that the obtained transition is not a temporary object
+BOOST_AUTO_TEST_CASE(accept_iterator_return_val)
+{
+	AutType ta;
+	ta.SetStateFinal(1337);
+	ta.AddTransition(StateTuple({}), 42, 1337);
+	ta.AddTransition(StateTuple({}), 43, 1337);
+
+	AutType::AcceptTrans::AcceptTrans::Iterator it = ta.GetAcceptTrans().begin();
+	const Transition& trans = *it;
+	assert(it != ta.GetAcceptTrans().end());
+
+	// store the transition
+	StateType parent = trans.GetParent();
+	SymbolType symbol = trans.GetSymbol();
+	StateTuple children = trans.GetChildren();
+
+	// move the iterator
+	++it;
+	assert(it != ta.GetAcceptTrans().end());
+	++it;
+	assert(it == ta.GetAcceptTrans().end());
+
+	// check second time
+	BOOST_REQUIRE_MESSAGE(parent == trans.GetParent(),
+		"Bad parent state of a transition: " + Convert::ToString(trans.GetParent())
+		+ ", expected " + Convert::ToString(parent));
+	BOOST_REQUIRE_MESSAGE(symbol == trans.GetSymbol(),
+		"Bad symbol of a transition: " + Convert::ToString(trans.GetSymbol())
+		+ ", expected " + Convert::ToString(symbol));
+	BOOST_REQUIRE_MESSAGE(trans.GetChildren() == children,
+		"Bad children of a transition: " + Convert::ToString(trans.GetChildren())
+		+ ", expected " + Convert::ToString(children));
+}
+
 BOOST_AUTO_TEST_CASE(accept_iterators_dereference)
 {
 	this->runOnAutomataSet(

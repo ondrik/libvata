@@ -40,6 +40,15 @@ ExplicitTreeAut::Iterator::~Iterator()
 }
 
 
+bool ExplicitTreeAut::Iterator::operator==(const Iterator& rhs) const
+{
+	assert(nullptr != coreIter_);
+	assert(nullptr != rhs.coreIter_);
+
+	return *coreIter_ == *rhs.coreIter_;
+}
+
+
 bool ExplicitTreeAut::Iterator::operator!=(const Iterator& rhs) const
 {
 	assert(nullptr != coreIter_);

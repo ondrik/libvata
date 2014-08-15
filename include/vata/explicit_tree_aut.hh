@@ -241,6 +241,7 @@ public:   // public data types
 		explicit Iterator(const CoreIterator& coreIter);
 		~Iterator();
 
+		bool operator==(const Iterator& rhs) const;
 		bool operator!=(const Iterator& rhs) const;
 		Iterator& operator++();
 		const Transition& operator*() const;
