@@ -140,8 +140,6 @@ protected:  // data members
 	TransitionCluster::const_iterator symbolSetIterator_;
 	TuplePtrSet::const_iterator tupleIterator_;
 
-	Transition trans_{};
-
 protected:// methods
 
 	BaseTransIterator(
@@ -161,15 +159,14 @@ protected:// methods
 		aut_(baseTransIter.aut_),
 		stateClusterIterator_(baseTransIter.stateClusterIterator_),
 		symbolSetIterator_(baseTransIter.symbolSetIterator_),
-		tupleIterator_(baseTransIter.tupleIterator_),
-		trans_(baseTransIter.trans_)
+		tupleIterator_(baseTransIter.tupleIterator_)
 	{ }
 
-	void updateTrans()
+	Transition getTrans() const
 	{
 		assert(*tupleIterator_);
 
-		trans_ = Transition(
+		return Transition(
 			stateClusterIterator_->first,
 			symbolSetIterator_->first,
 			**tupleIterator_
@@ -178,18 +175,11 @@ protected:// methods
 
 public:   // methods
 
-	const Transition& operator*() const
+	Transition operator*() const
 	{
 		assert(*tupleIterator_);
 
-		return trans_;
-	}
-
-	const Transition* operator->() const
-	{
-		assert(*tupleIterator_);
-
-		return &trans_;
+		return this->getTrans();
 	}
 
 	bool operator==(const BaseTransIterator& rhs) const
@@ -265,11 +255,9 @@ private:  // data members
 	TransitionCluster::const_iterator symbolSetIterator_;
 	TuplePtrSet::const_iterator tupleIterator_;
 
-	Transition trans_{};
-
 private:  // methods
 
-	void updateTrans();
+	Transition getTrans() const;
 
 public:   // methods
 
@@ -296,18 +284,11 @@ public:   // methods
 		return tupleIterator_ != rhs.tupleIterator_;
 	}
 
-	const Transition& operator*() const
+	Transition operator*() const
 	{
 		assert(*tupleIterator_);
 
-		return trans_;
-	}
-
-	const Transition* operator->() const
-	{
-		assert(*tupleIterator_);
-
-		return &trans_;
+		return this->getTrans();
 	}
 };
 
@@ -839,7 +820,7 @@ public:   // methods
 		{
 			for (const StateType& state : finalStates_)
 			{
-				dst.SetStateFinal(index[state]);
+				dst.SetStateFinal(index.at(state));
 			}
 		}
 
@@ -849,7 +830,7 @@ public:   // methods
 		{
 			assert(stateClusterPair.second);
 
-			auto cluster = clusterMap->uniqueCluster(index[stateClusterPair.first]);
+			auto cluster = clusterMap->uniqueCluster(index.at(stateClusterPair.first));
 
 			for (auto& symbolTupleSetPair : *stateClusterPair.second)
 			{
@@ -865,7 +846,7 @@ public:   // methods
 
 					for (const StateType& s : *tuple)
 					{
-						newTuple.push_back(index[s]);
+						newTuple.push_back(index.at(s));
 					}
 
 					tuplePtrSet->insert(dst.tupleLookup(newTuple));
@@ -994,7 +975,7 @@ public:   // methods
 
 	template <class Index = Util::IdentityTranslator<StateType>>
 	ExplicitLTS TranslateDownward(
-		const Index&                 stateIndex = Index()) const;
+		Index&                 stateIndex = Index()) const;
 
 
 	template <
@@ -1005,69 +986,77 @@ public:   // methods
 		std::vector<std::vector<size_t>>&     partition,
 		Util::BinaryRelation&                 relation,
 		const Rel&                            param,
-		const Index&                          stateIndex = Index()) const;
+		Index&                                stateIndex = Index()) const;
 
 
+	// template <
+	// 	class Rel,
+	// 	class Index = Util::IdentityTranslator<AutBase::StateType>>
+	// ExplicitTreeAutCore CollapseStates(
+	// 	const Rel&                       rel,
+	// 	const Index&                     bwIndex = Index()) const
+	// {
+	// 	std::vector<size_t> representatives;
+  //
+	// 	rel.buildClasses(representatives);
+  //
+	// 	std::vector<StateType> transl(representatives.size());
+  //
+	// 	Util::RebindMap2(transl, representatives, bwIndex);
+  //
+	// 	// TODO: directly return the output of ReindexStates?
+	// 	ExplicitTreeAutCore res(cache_);
+  //
+	// 	this->ReindexStates(res, transl);
+  //
+	// 	return res;
+	// }
+
+
+	/**
+	 * @brief  Collapses states according to the given mapping
+	 *
+	 * @param[in]  stateMap  Mapping of old states to new states (does not need
+	 *                       to be injective)
+	 *
+	 * @returns  The automaton with collapsed states
+	 */
 	template <
-		class Rel,
-		class Index = Util::IdentityTranslator<AutBase::StateType>>
+		class MapType>
 	ExplicitTreeAutCore CollapseStates(
-		const Rel&                       rel,
-		const Index&                     bwIndex = Index()) const
+		MapType&      stateMap) const
 	{
-		std::vector<size_t> representatives;
-
-		rel.buildClasses(representatives);
-
-		std::vector<StateType> transl(representatives.size());
-
-		Util::RebindMap2(transl, representatives, bwIndex);
-
-		// TODO: directly return the output of ReindexStates?
-		ExplicitTreeAutCore res(cache_);
-
-		this->ReindexStates(res, transl);
-
-		return res;
+		return this->ReindexStates(stateMap);
 	}
 
-	AutBase::StateBinaryRelation ComputeSimulation(
+	//
+	// simulation computation
+	//
+	StateDiscontBinaryRelation ComputeSimulation(
 		const VATA::SimParam&          params) const;
 
-	template <class Index>
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		size_t            size,
-		const Index&      index) const;
+	StateDiscontBinaryRelation ComputeDownwardSimulation(
+		const VATA::SimParam&          params) const;
 
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		size_t            size) const;
+	StateDiscontBinaryRelation ComputeDownwardSimulation(
+		size_t                         size) const;
 
-
-	template <class Index>
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		size_t                   size,
-		const Index&             index) const
-	{
-		std::vector<std::vector<size_t>> partition;
-
-		AutBase::StateBinaryRelation relation;
-
-		return TranslateUpward(
-			*this, partition, relation, Util::Identity(size), index
-		).computeSimulation(partition, relation, size);
-	}
+	// template <class Index>
+	// AutBase::StateBinaryRelation ComputeDownwardSimulation(
+	// 	size_t            size,
+	// 	const Index&      index) const;
 
 
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		size_t             size) const;
+	StateDiscontBinaryRelation ComputeUpwardSimulation(
+		const VATA::SimParam&          params) const;
 
+	StateDiscontBinaryRelation ComputeUpwardSimulation(
+		size_t                         size) const;
 
-	AutBase::StateBinaryRelation ComputeUpwardSimulation(
-		const SimParam&          params) const;
-
-
-	AutBase::StateBinaryRelation ComputeDownwardSimulation(
-		const SimParam&          params) const;
+	// template <class Index>
+	// AutBase::StateBinaryRelation ComputeUpwardSimulation(
+	// 	size_t                   size,
+	// 	const Index&             index) const;
 
 
 	static ExplicitTreeAutCore Union(
@@ -1078,15 +1067,15 @@ public:   // methods
 
 
 	static ExplicitTreeAutCore UnionDisjointStates(
-		const ExplicitTreeAutCore&        lhs,
-		const ExplicitTreeAutCore&        rhs,
-        bool                              copyFinal=true);
+		const ExplicitTreeAutCore&           lhs,
+		const ExplicitTreeAutCore&           rhs);
 
 
 	static ExplicitTreeAutCore Intersection(
 		const ExplicitTreeAutCore&           lhs,
 		const ExplicitTreeAutCore&           rhs,
 		VATA::AutBase::ProductTranslMap*     pTranslMap = nullptr);
+
 
 	ExplicitTreeAutCore GetCandidateTree() const;
 
@@ -1096,7 +1085,7 @@ public:   // methods
 
 
 	ExplicitTreeAutCore RemoveUselessStates(
-		StateToStateMap*            pTranslMap = nullptr) const;
+		StateToStateMap*                    pTranslMap = nullptr) const;
 
 
 	template <
@@ -1104,13 +1093,13 @@ public:   // methods
 		class Index
 	>
 	ExplicitTreeAutCore RemoveUnreachableStates(
-		const Rel&                                 rel,
-		const Index&                               index) const;
+		const Rel&                          rel,
+		const Index&                        index) const;
 
 
 	static bool CheckInclusion(
-		const ExplicitTreeAutCore&             smaller,
-		const ExplicitTreeAutCore&             bigger)
+		const ExplicitTreeAutCore&          smaller,
+		const ExplicitTreeAutCore&          bigger)
 	{
 		InclParam inclParam;
 		// TODO: set more sensible defaults
@@ -1120,31 +1109,40 @@ public:   // methods
 
 
 	static bool CheckInclusion(
-		const ExplicitTreeAutCore&             smaller,
-		const ExplicitTreeAutCore&             bigger,
-		const VATA::InclParam&                 params);
+		const ExplicitTreeAutCore&          smaller,
+		const ExplicitTreeAutCore&          bigger,
+		const VATA::InclParam&              params);
 
 
 	template <
 		class Dict,
 		class Rel>
 	ExplicitTreeAutCore ComplementWithPreorder(
-		const Dict&                            alphabet,
-		const Rel&                             preorder) const;
+		const Dict&                         alphabet,
+		const Rel&                          preorder) const;
 
 
 	template <class Dict>
 	ExplicitTreeAutCore Complement(
-		const Dict&                           alphabet) const;
+		const Dict&                         alphabet) const;
 
 
-	ExplicitTreeAutCore Reduce() const;
+	ExplicitTreeAutCore Reduce() const
+	{
+		ReduceParam params;
+		params.SetRelation(ReduceParam::e_reduce_relation::TA_DOWNWARD);
+		return this->Reduce(params);
+	}
+
+
+	ExplicitTreeAutCore Reduce(
+		const ReduceParam&            params) const;
 
 
 	template <
 		class SymbolTranslateF>
 	ExplicitTreeAutCore TranslateSymbols(
-		SymbolTranslateF&                     symbTransl) const
+		SymbolTranslateF&                   symbTransl) const
 	{
 		// copy the environment from this
 		ExplicitTreeAutCore aut(*this, false, true);
@@ -1159,7 +1157,8 @@ public:   // methods
 		return aut;
 	}
 
-	std::string ToString(const Transition& trans) const;
+	std::string ToString(
+		const Transition&                   trans) const;
 };
 
 #endif

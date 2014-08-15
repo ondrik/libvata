@@ -30,14 +30,14 @@ namespace VATA
 {
 	template<class Rel, class Functor>
 	bool CheckFiniteAutInclusion(
-		const ExplicitFiniteAutCore& smaller,
-		const ExplicitFiniteAutCore& bigger,
-		const Rel& preorder);
+		const ExplicitFiniteAutCore&   smaller,
+		const ExplicitFiniteAutCore&   bigger,
+		const Rel&                     preorder);
 
 	bool CheckEquivalence(
-		const ExplicitFiniteAutCore& smaller,
-		const ExplicitFiniteAutCore& bigger,
-		const InclParam&                  params);
+		const ExplicitFiniteAutCore&   smaller,
+		const ExplicitFiniteAutCore&   bigger,
+		const InclParam&               params);
 
 }
 
@@ -48,7 +48,7 @@ namespace VATA
 bool VATA::ExplicitFiniteAutCore::CheckInclusion(
 	const VATA::ExplicitFiniteAutCore&    smaller,
 	const VATA::ExplicitFiniteAutCore&    bigger,
-	const VATA::InclParam&												params)
+	const VATA::InclParam&                params)
 {
 	VATA::ExplicitFiniteAutCore newSmaller;
 	VATA::ExplicitFiniteAutCore newBigger;
@@ -85,10 +85,11 @@ bool VATA::ExplicitFiniteAutCore::CheckInclusion(
 		{
 			assert(static_cast<typename AutBase::StateType>(-1) == states);
 
-			typedef VATA::AutBase::StateBinaryRelation Rel;
+			typedef VATA::AutBase::StateDiscontBinaryRelation Rel;
 			typedef VATA::ExplicitFAStateSetComparatorSimulation<Rel> Comparator;
 			typedef VATA::ExplicitFAInclusionFunctorCache<Rel,Comparator> FunctorType;
 
+			// TODO: is it necessary to explicitly provide the template parameters?
 			return VATA::CheckFiniteAutInclusion<Rel,FunctorType>(smaller, bigger, params.GetSimulation());
 		}
 		case InclParam::CONGR_BREADTH_NOSIM:
@@ -119,7 +120,7 @@ bool VATA::ExplicitFiniteAutCore::CheckInclusion(
 		}
 		case InclParam::CONGR_DEPTH_SIM:
 		{
-			typedef VATA::AutBase::StateBinaryRelation Rel;
+			typedef VATA::AutBase::StateDiscontBinaryRelation Rel;
 			typedef typename VATA::ExplicitFiniteAutCore::StateSet StateSet;
 			typedef typename std::pair<StateSet*,StateSet*> ProductState;
 			typedef VATA::ProductStateSetDepth<StateSet,ProductState> ProductSet;
@@ -166,10 +167,10 @@ bool VATA::ExplicitFiniteAutCore::CheckInclusion(
  */
 template<class Rel, class Functor>
 bool VATA::CheckFiniteAutInclusion(
-	const VATA::ExplicitFiniteAutCore& smaller,
-	const VATA::ExplicitFiniteAutCore& bigger,
-	const Rel& preorder) {
-
+	const VATA::ExplicitFiniteAutCore&    smaller,
+	const VATA::ExplicitFiniteAutCore&    bigger,
+	const Rel&                            preorder)
+{
 	typedef Functor InclFunc;
 
 	typedef typename InclFunc::SmallerElementType SmallerElementType;

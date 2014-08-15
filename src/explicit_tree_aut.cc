@@ -40,6 +40,15 @@ ExplicitTreeAut::Iterator::~Iterator()
 }
 
 
+bool ExplicitTreeAut::Iterator::operator==(const Iterator& rhs) const
+{
+	assert(nullptr != coreIter_);
+	assert(nullptr != rhs.coreIter_);
+
+	return *coreIter_ == *rhs.coreIter_;
+}
+
+
 bool ExplicitTreeAut::Iterator::operator!=(const Iterator& rhs) const
 {
 	assert(nullptr != coreIter_);
@@ -59,7 +68,7 @@ ExplicitTreeAut::Iterator& ExplicitTreeAut::Iterator::operator++()
 }
 
 
-const ExplicitTreeAut::Transition& ExplicitTreeAut::Iterator::operator*() const
+ExplicitTreeAut::Transition ExplicitTreeAut::Iterator::operator*() const
 {
 	assert(nullptr != coreIter_);
 
@@ -125,21 +134,11 @@ ExplicitTreeAut::AcceptTrans::Iterator ExplicitTreeAut::AcceptTrans::end() const
 }
 
 
-const ExplicitTreeAut::Transition&
-ExplicitTreeAut::AcceptTrans::Iterator::operator*() const
+ExplicitTreeAut::Transition ExplicitTreeAut::AcceptTrans::Iterator::operator*() const
 {
 	assert(nullptr != coreAcceptTransIter_);
 
 	return **coreAcceptTransIter_;
-}
-
-
-const ExplicitTreeAut::Transition*
-ExplicitTreeAut::AcceptTrans::Iterator::operator->() const
-{
-	assert(nullptr != coreAcceptTransIter_);
-
-	return coreAcceptTransIter_->operator->();
 }
 
 
@@ -402,25 +401,13 @@ ExplicitTreeAut::DownAccessor::Iterator::Iterator(
 	coreDownAccessIter_(new CoreIterator(coreIter))
 { }
 
-ExplicitTreeAut::DownAccessor::Iterator::Iterator(
-	const Iterator&             iter) :
-	coreDownAccessIter_(new CoreIterator(*iter.coreDownAccessIter_))
-{ }
 
-const ExplicitTreeAut::Transition&
+ExplicitTreeAut::Transition
 ExplicitTreeAut::DownAccessor::Iterator::operator*() const
 {
 	assert(nullptr != coreDownAccessIter_);
 
 	return **coreDownAccessIter_;
-}
-
-const ExplicitTreeAut::Transition*
-ExplicitTreeAut::DownAccessor::Iterator::operator->() const
-{
-	assert(nullptr != coreDownAccessIter_);
-
-	return coreDownAccessIter_->operator->();
 }
 
 
@@ -698,7 +685,7 @@ ExplicitTreeAut ExplicitTreeAut::Intersection(
 }
 
 
-AutBase::StateBinaryRelation ExplicitTreeAut::ComputeSimulation(
+AutBase::StateDiscontBinaryRelation ExplicitTreeAut::ComputeSimulation(
 	const VATA::SimParam&                  params) const
 {
 	assert(nullptr != core_);
@@ -735,6 +722,24 @@ ExplicitTreeAut ExplicitTreeAut::Reduce() const
 	assert(nullptr != core_);
 
 	return ExplicitTreeAut(core_->Reduce());
+}
+
+
+ExplicitTreeAut ExplicitTreeAut::Reduce(
+	const VATA::ReduceParam&    params) const
+{
+	assert(nullptr != core_);
+
+	return ExplicitTreeAut(core_->Reduce(params));
+}
+
+
+ExplicitTreeAut ExplicitTreeAut::CollapseStates(
+	const StateToStateMap&      collapseMap) const
+{
+	assert(nullptr != core_);
+
+	return ExplicitTreeAut(core_->CollapseStates(collapseMap));
 }
 
 

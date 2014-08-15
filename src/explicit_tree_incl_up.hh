@@ -21,6 +21,7 @@ class VATA::ExplicitUpwardInclusion
 	using StateType      = ExplicitTreeAutCore::StateType;
 	using SymbolType     = ExplicitTreeAutCore::SymbolType;
 	using StateTuple     = ExplicitTreeAutCore::StateTuple;
+	using StateDiscontBinaryRelation = ExplicitTreeAutCore::StateDiscontBinaryRelation;
 
 	class Transition
 	{
@@ -276,7 +277,8 @@ public:
 			bigger, biggerIndex, biggerLeaves, symbolTranslator
 		);
 
-		std::vector<std::vector<size_t>> ind, inv;
+
+		typename Rel::IndexType ind, inv;
 
 		preorder.buildIndex(ind, inv);
 
@@ -301,8 +303,8 @@ private:
 		const SymbolToTransitionListMap&                  biggerLeaves,
 		const SymbolToDoubleIndexedTransitionListMap&     biggerIndex,
 		const ExplicitTreeAutCore::FinalStateSet&         biggerFinalStates,
-		const std::vector<std::vector<size_t>>&           ind,
-		const std::vector<std::vector<size_t>>&           inv
+		const StateDiscontBinaryRelation::IndexType&      ind,
+		const StateDiscontBinaryRelation::IndexType&      inv
 	);
 };
 

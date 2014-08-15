@@ -118,7 +118,7 @@ BOOST_AUTO_TEST_CASE(iterators)
 BOOST_AUTO_TEST_CASE(iterators_dereference)
 {
 	this->runOnAutomataSet(
-		[](const AutType& aut, const StateDict& stateDict, const std::string& filename)
+		[](const AutType& aut, const StateDict& /* stateDict */, const std::string& filename)
 		{
 			BOOST_MESSAGE("Checking iterators dereference for " + filename + "...");
 			for (AutType::const_iterator it = aut.begin(); it != aut.end(); ++it)
@@ -133,7 +133,7 @@ BOOST_AUTO_TEST_CASE(iterators_dereference)
 BOOST_AUTO_TEST_CASE(accept_iterators)
 {
 	this->runOnAutomataSet(
-		[](const AutType& aut, const StateDict& stateDict, const std::string& filename)
+		[](const AutType& aut, const StateDict& /* stateDict */, const std::string& filename)
 		{
 			BOOST_MESSAGE("Checking accepting transitions iterators for " + filename + "...");
 			for (const Transition& trans : aut.GetAcceptTrans())
@@ -149,10 +149,79 @@ BOOST_AUTO_TEST_CASE(accept_iterators)
 		});
 }
 
+// this should make sure that the obtained transition is not a temporary object
+BOOST_AUTO_TEST_CASE(iterator_return_val)
+{
+	AutType ta;
+	ta.AddTransition(StateTuple({}), 42, 1337);
+	ta.AddTransition(StateTuple({}), 43, 1337);
+
+	AutType::Iterator it = ta.begin();
+	assert(it != ta.end());
+	const Transition& trans = *it;
+
+	// store the transition
+	StateType parent = trans.GetParent();
+	SymbolType symbol = trans.GetSymbol();
+	StateTuple children = trans.GetChildren();
+
+	// move the iterator
+	++it;
+	assert(it != ta.end());
+	++it;
+	assert(it == ta.end());
+
+	// check second time
+	BOOST_REQUIRE_MESSAGE(parent == trans.GetParent(),
+		"Bad parent state of a transition: " + Convert::ToString(trans.GetParent())
+		+ ", expected " + Convert::ToString(parent));
+	BOOST_REQUIRE_MESSAGE(symbol == trans.GetSymbol(),
+		"Bad symbol of a transition: " + Convert::ToString(trans.GetSymbol())
+		+ ", expected " + Convert::ToString(symbol));
+	BOOST_REQUIRE_MESSAGE(trans.GetChildren() == children,
+		"Bad children of a transition: " + Convert::ToString(trans.GetChildren())
+		+ ", expected " + Convert::ToString(children));
+}
+
+// this should make sure that the obtained transition is not a temporary object
+BOOST_AUTO_TEST_CASE(accept_iterator_return_val)
+{
+	AutType ta;
+	ta.SetStateFinal(1337);
+	ta.AddTransition(StateTuple({}), 42, 1337);
+	ta.AddTransition(StateTuple({}), 43, 1337);
+
+	AutType::AcceptTrans::AcceptTrans::Iterator it = ta.GetAcceptTrans().begin();
+	const Transition& trans = *it;
+	assert(it != ta.GetAcceptTrans().end());
+
+	// store the transition
+	StateType parent = trans.GetParent();
+	SymbolType symbol = trans.GetSymbol();
+	StateTuple children = trans.GetChildren();
+
+	// move the iterator
+	++it;
+	assert(it != ta.GetAcceptTrans().end());
+	++it;
+	assert(it == ta.GetAcceptTrans().end());
+
+	// check second time
+	BOOST_REQUIRE_MESSAGE(parent == trans.GetParent(),
+		"Bad parent state of a transition: " + Convert::ToString(trans.GetParent())
+		+ ", expected " + Convert::ToString(parent));
+	BOOST_REQUIRE_MESSAGE(symbol == trans.GetSymbol(),
+		"Bad symbol of a transition: " + Convert::ToString(trans.GetSymbol())
+		+ ", expected " + Convert::ToString(symbol));
+	BOOST_REQUIRE_MESSAGE(trans.GetChildren() == children,
+		"Bad children of a transition: " + Convert::ToString(trans.GetChildren())
+		+ ", expected " + Convert::ToString(children));
+}
+
 BOOST_AUTO_TEST_CASE(accept_iterators_dereference)
 {
 	this->runOnAutomataSet(
-		[](const AutType& aut, const StateDict& stateDict, const std::string& filename)
+		[](const AutType& aut, const StateDict& /* stateDict */, const std::string& filename)
 		{
 			BOOST_MESSAGE("Checking accepting transitions iterators dereference for " + filename + "...");
 			for (AutType::AcceptTrans::const_iterator it = aut.GetAcceptTrans().begin();
@@ -162,7 +231,7 @@ BOOST_AUTO_TEST_CASE(accept_iterators_dereference)
 					"Inconsistent iterator output: " + aut.ToString(*it) +
 					" is claimed not to be in aut");
 
-				BOOST_REQUIRE_MESSAGE(aut.IsStateFinal(it->GetParent()),
+				BOOST_REQUIRE_MESSAGE(aut.IsStateFinal((*it).GetParent()),
 					"Inconsistent iterator output: " + aut.ToString(*it) +
 					" is not accepting");
 			}
@@ -173,7 +242,7 @@ BOOST_AUTO_TEST_CASE(accept_iterators_dereference)
 BOOST_AUTO_TEST_CASE(iterators_for_state)
 {
 	this->runOnAutomataSet(
-		[](const AutType& aut, const StateDict& stateDict, const std::string& filename)
+		[](const AutType& aut, const StateDict& /* stateDict */, const std::string& filename)
 		{
 			BOOST_MESSAGE("Checking state iterators for " + filename + "...");
 
@@ -216,7 +285,11 @@ BOOST_AUTO_TEST_CASE(reindex_states_functor)
 			offset_(offset)
 		{ }
 
-		virtual StateType operator[](const StateType& state)
+		virtual StateType operator[](const StateType& state) override
+		{
+			return this->at(state);
+		}
+		virtual StateType at(const StateType& state) const override
 		{
 			return state + offset_;
 		}
@@ -385,6 +458,95 @@ BOOST_AUTO_TEST_CASE(translate_symbols)
 			TimbukSerializer().Serialize(descManual) + "\nGot:\n===========\n" +
 			TimbukSerializer().Serialize(descTransl) + "\n===========");
 	}
+}
+
+BOOST_AUTO_TEST_CASE(collapsing_states)
+{
+	this->runOnAutomataSet(
+		[](const AutType& aut, const StateDict& /* stateDict */, const std::string& filename)
+		{
+			BOOST_MESSAGE("Checking CollapseStates() for " + filename + "...");
+
+			AutType::StateToStateMap colMap;
+			for (size_t i = 0; i < 1000; ++i)
+			{
+				// rounds to the lower even number
+				colMap.insert(std::make_pair(i, (i / 2) * 2));
+			}
+
+			AutType res = aut.CollapseStates(colMap);
+			for (const Transition& trans : aut)
+			{	// check that for every transition in 'aut' there is an corresponding
+				// transition in 'res'
+				const StateType& parent = trans.GetParent();
+				const SymbolType& symbol = trans.GetSymbol();
+				StateTuple children = trans.GetChildren();
+
+				std::transform(children.begin(), children.end(), children.begin(),
+					[](const StateType& state) { return (state / 2) * 2;});
+
+				Transition resTrans(
+					(parent / 2) * 2,
+					symbol,
+					children);
+
+				BOOST_REQUIRE_MESSAGE(res.ContainsTransition(resTrans),
+					"The result does not contain the counterpart of the transition "
+					+ aut.ToString(trans) + ": the transition " + res.ToString(resTrans));
+			}
+
+			for (const Transition& resTrans : res)
+			{	// check that for every transition in 'res' there is a corresponding
+				// transition in 'aut' from which the transition was obtained
+				const StateType& parent = resTrans.GetParent();
+				const SymbolType& symbol = resTrans.GetSymbol();
+				const StateTuple& children = resTrans.GetChildren();
+
+				bool found = false;
+				for (StateType newParent : std::vector<StateType>({parent, parent+1}))
+				{
+					for (const Transition& trans : aut[newParent])
+					{	// we try to find the original transition in 'aut'
+						assert(trans.GetParent() == newParent);
+						if (trans.GetChildren().size() != children.size()) continue;
+						if (trans.GetSymbol() != symbol) continue;
+
+						found = true;    // optimistic assumption
+						for (size_t i = 0; i < children.size(); ++i)
+						{
+							if ((trans.GetChildren()[i] / 2) * 2 != children[i])
+							{	// if the child does not match
+								found = false;
+								break;
+							}
+						}
+
+						if (found) break;
+					}
+
+					if (found) break;
+				}
+
+				BOOST_REQUIRE_MESSAGE(found,
+					"The origin does not contain the counterpart of the transition "
+					+ aut.ToString(resTrans));
+			}
+
+			for (StateType finSt : aut.GetFinalStates())
+			{	// check that all final states of 'aut' are also in 'res' (after translation)
+				BOOST_REQUIRE_MESSAGE(res.IsStateFinal((finSt / 2) * 2),
+					"The result does not contain the counterpart of the final state "
+					+ Convert::ToString(finSt));
+			}
+
+			for (StateType finSt : res.GetFinalStates())
+			{	// check that all final states of 'res' are originally in 'aut' (before translation)
+				BOOST_REQUIRE_MESSAGE(aut.IsStateFinal(finSt) || aut.IsStateFinal(finSt + 1),
+					"The result contains the state " + Convert::ToString(finSt) +
+					" as final whereas neither " + Convert::ToString(finSt) + " nor " +
+					Convert::ToString(finSt + 1) + " are final in the origin.");
+			}
+		});
 }
 
 BOOST_AUTO_TEST_SUITE_END()

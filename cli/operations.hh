@@ -132,7 +132,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	// set the timer
 	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);
 
-	AutBase::StateBinaryRelation sim;
+	AutBase::StateDiscontBinaryRelation sim;
 
 	if (ip.GetUseSimulation())
 	{	// if simulation is desired, then compute it here!
@@ -148,6 +148,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 			unionAut = Automaton::UnionDisjointStates(smaller, bigger);
 		}
 
+		// TODO: why so much code duplicity?
 		if (InclParam::e_direction::upward == ip.GetDirection())
 		{	// for upward algorithm compute the upward simulation
 			SimParam sp;
@@ -183,7 +184,7 @@ template <
 	class Automaton,
 	class StringToStateMap,
 	class StateToStateMap>
-VATA::AutBase::StateBinaryRelation ComputeSimulation(
+VATA::AutBase::StateDiscontBinaryRelation ComputeSimulation(
 	Automaton                aut,
 	const Arguments&         args,
 	const StringToStateMap   /* index */,    // TODO: why is this here?
@@ -222,6 +223,14 @@ VATA::AutBase::StateBinaryRelation ComputeSimulation(
 	else if (options["dir"] == "down")
 	{
 		sp.SetRelation(VATA::SimParam::e_sim_relation::TA_DOWNWARD);
+	}
+	else if (options["dir"] == "fwd")
+	{
+		sp.SetRelation(VATA::SimParam::e_sim_relation::FA_FORWARD);
+	}
+	else if (options["dir"] == "bwd")
+	{
+		sp.SetRelation(VATA::SimParam::e_sim_relation::FA_BACKWARD);
 	}
 	else
 	{

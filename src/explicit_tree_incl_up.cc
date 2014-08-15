@@ -215,8 +215,8 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 	const SymbolToTransitionListMap&                  biggerLeaves,
 	const SymbolToDoubleIndexedTransitionListMap&     biggerIndex,
 	const ExplicitTreeAutCore::FinalStateSet&         biggerFinalStates,
-	const std::vector<std::vector<size_t>>&           ind,
-	const std::vector<std::vector<size_t>>&           inv)
+	const StateDiscontBinaryRelation::IndexType&      ind,
+	const StateDiscontBinaryRelation::IndexType&      inv)
 {
 	auto noncachedLte = [&ind](const StateSet* x, const StateSet* y) -> bool
 	{
@@ -226,7 +226,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 		{
 			assert(s1 < ind.size());
 
-			if (!checkIntersection(ind[s1], *y))
+			if (!checkIntersection(ind.at(s1), *y))
 			{
 				return false;
 			}
@@ -337,14 +337,14 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 			assert(transition->children().empty());
 			assert(transition->state() < ind.size());
 
-			if (post.contains(ind[transition->state()]))
+			if (post.contains(ind.at(transition->state())))
 			{
 				continue;
 			}
 
 			assert(transition->state() < inv.size());
 
-			post.refine(inv[transition->state()]);
+			post.refine(inv.at(transition->state()));
 			post.insert(transition->state());
 
 			isAccepting = isAccepting || biggerFinalStates.count(transition->state());
@@ -367,19 +367,19 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 			assert(transition->state() < ind.size());
 
-			if (checkIntersection(ind[transition->state()], tmp))
+			if (checkIntersection(ind.at(transition->state()), tmp))
 			{
 				continue;
 			}
 
-			if (processed.contains(ind[transition->state()], ptr, lte))
+			if (processed.contains(ind.at(transition->state()), ptr, lte))
 			{
 				continue;
 			}
 
 			assert(transition->state() < inv.size());
 
-			processed.refine(inv[transition->state()], ptr, gte, Eraser(next));
+			processed.refine(inv.at(transition->state()), ptr, gte, Eraser(next));
 
 			Antichain2C::TList::iterator iter = processed.insert(transition->state(), ptr);
 
@@ -456,14 +456,14 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 							assert(biggerTransition);
 							assert(biggerTransition->state() < ind.size());
 
-							if (post.contains(ind[biggerTransition->state()]))
+							if (post.contains(ind.at(biggerTransition->state())))
 							{
 								continue;
 							}
 
 							assert(biggerTransition->state() < inv.size());
 
-							post.refine(inv[biggerTransition->state()]);
+							post.refine(inv.at(biggerTransition->state()));
 							post.insert(biggerTransition->state());
 
 							isAccepting = isAccepting ||
@@ -486,21 +486,21 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 						assert(smallerTransition->state() < ind.size());
 
-						if (checkIntersection(ind[smallerTransition->state()], tmp))
+						if (checkIntersection(ind.at(smallerTransition->state()), tmp))
 						{
 							continue;
 						}
 
 						auto ptr = biggerTypeCache.lookup(tmp);
 
-						if (temporary.contains(ind[smallerTransition->state()], ptr, lte))
+						if (temporary.contains(ind.at(smallerTransition->state()), ptr, lte))
 						{
 							continue;
 						}
 
 						assert(smallerTransition->state() < inv.size());
 
-						temporary.refine(inv[smallerTransition->state()], ptr, gte);
+						temporary.refine(inv.at(smallerTransition->state()), ptr, gte);
 						temporary.insert(smallerTransition->state(), ptr);
 
 					} while (choiceVector.next());
@@ -511,7 +511,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 						{
 							assert(smallerBiggerListPair.first < ind.size());
 
-							if (processed.contains(ind[smallerBiggerListPair.first], bigger, lte))
+							if (processed.contains(ind.at(smallerBiggerListPair.first), bigger, lte))
 							{
 								continue;
 							}
@@ -519,7 +519,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 							assert(smallerBiggerListPair.first < inv.size());
 
 							processed.refine(
-								inv[smallerBiggerListPair.first], bigger, gte, Eraser(next)
+								inv.at(smallerBiggerListPair.first), bigger, gte, Eraser(next)
 							);
 
 							Antichain2C::TList::iterator iter =

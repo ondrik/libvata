@@ -179,7 +179,7 @@ public:   // public methods
 	}
 
 
-	AutBase::StateBinaryRelation ComputeSimulation(
+	StateDiscontBinaryRelation ComputeSimulation(
 		const SimParam&        params) const;
 
 

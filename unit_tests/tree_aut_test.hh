@@ -79,7 +79,7 @@ protected:// data types
 	using StateTuple             = AutType::StateTuple;
 	using SymbolType             = AutType::SymbolType;
 	using StringSymbolType       = AutType::StringSymbolType;
-	using StateBinaryRelation    = AutType::StateBinaryRelation;
+	using StateDiscontBinaryRelation= AutType::StateDiscontBinaryRelation;
 
 	using StringToStateTranslStrict  = AutType::StringToStateTranslStrict;
 	using StringToStateTranslWeak    = AutType::StringToStateTranslWeak;
@@ -167,7 +167,7 @@ protected:// methods
 				AutBase::SanitizeAutsForInclusion(autSmaller, autBigger);
 
 			// the simulation (if present)
-			StateBinaryRelation sim;
+			StateDiscontBinaryRelation sim;
 
 			if (ip.GetUseSimulation())
 			{	// if there is simulation, we need to compute it
@@ -237,10 +237,10 @@ protected:// methods
 			SimParam sp;
 			sp.SetRelation(VATA::SimParam::e_sim_relation::TA_DOWNWARD);
 			sp.SetNumStates(stateCnt);
-			StateBinaryRelation sim = reindexedAut.ComputeSimulation(sp);
+			StateDiscontBinaryRelation sim = reindexedAut.ComputeSimulation(sp);
 
 			auto simulationContent = ParseTestFile(resultFile);
-			StateBinaryRelation refSim(stateCnt);
+			StateDiscontBinaryRelation refSim(stateCnt);
 
 			StringToStateTranslStrict stateStrictTrans(stateDict);
 

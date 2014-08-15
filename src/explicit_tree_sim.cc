@@ -19,37 +19,10 @@ using VATA::AutBase;
 using VATA::ExplicitTreeAutCore;
 
 using StateBinaryRelation  = AutBase::StateBinaryRelation;
+using StateDiscontBinaryRelation  = AutBase::StateDiscontBinaryRelation;
 
 
-StateBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
-	const SimParam&          params) const
-{
-	if (params.GetNumStates() != static_cast<size_t>(-1))
-	{
-		return this->ComputeUpwardSimulation(params.GetNumStates());
-	}
-	else
-	{
-		throw NotImplementedException(__func__);
-	}
-}
-
-
-StateBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
-	const SimParam&          params) const
-{
-	if (params.GetNumStates() != static_cast<size_t>(-1))
-	{
-		return this->ComputeDownwardSimulation(params.GetNumStates());
-	}
-	else
-	{
-		throw NotImplementedException(__func__);
-	}
-}
-
-
-StateBinaryRelation ExplicitTreeAutCore::ComputeSimulation(
+StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeSimulation(
 	const VATA::SimParam&                  params) const
 {
 	switch (params.GetRelation())
@@ -69,9 +42,64 @@ StateBinaryRelation ExplicitTreeAutCore::ComputeSimulation(
 	}
 }
 
-StateBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
-	size_t            size) const
+
+StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
+	const SimParam&                        params) const
 {
-	return this->TranslateDownward().computeSimulation(size);
+	assert(SimParam::e_sim_relation::TA_UPWARD == params.GetRelation());
+	if (params.GetNumStates() != static_cast<size_t>(-1))
+	{
+		return this->ComputeUpwardSimulation(params.GetNumStates());
+	}
+	else
+	{
+		throw NotImplementedException(__func__);
+	}
 }
 
+
+StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
+	size_t                                 size) const
+{
+	std::vector<std::vector<size_t>> partition;
+
+	AutBase::StateBinaryRelation relation;
+
+	StateToStateMap translMap;
+	size_t stateCnt = 0;
+	StateToStateTranslWeak transl(translMap, [&stateCnt](const StateType&)
+		{return stateCnt++;});
+
+	ExplicitLTS lts = this->TranslateUpward(partition, relation, VATA::Util::Identity(size), transl);
+	StateBinaryRelation ltsSim = lts.computeSimulation(partition, relation, size);
+	return StateDiscontBinaryRelation(ltsSim, translMap);
+}
+
+
+StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
+	const SimParam&                        params) const
+{
+	assert(SimParam::e_sim_relation::TA_DOWNWARD == params.GetRelation());
+	if (params.GetNumStates() != static_cast<size_t>(-1))
+	{
+		return this->ComputeDownwardSimulation(params.GetNumStates());
+	}
+	else
+	{
+		throw NotImplementedException(__func__);
+	}
+}
+
+
+StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
+	size_t                                 size) const
+{
+	StateToStateMap translMap;
+	size_t stateCnt = 0;
+	StateToStateTranslWeak transl(translMap, [&stateCnt](const StateType&)
+		{return stateCnt++;});
+
+	ExplicitLTS lts = this->TranslateDownward(transl);
+	StateBinaryRelation ltsSim = lts.computeSimulation(size);
+	return StateDiscontBinaryRelation(ltsSim, translMap);
+}
