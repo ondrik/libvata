@@ -244,7 +244,7 @@ public:   // public data types
 		bool operator==(const Iterator& rhs) const;
 		bool operator!=(const Iterator& rhs) const;
 		Iterator& operator++();
-		const Transition& operator*() const;
+		Transition operator*() const;
 	};
 
 	using iterator       = Iterator;
@@ -273,8 +273,7 @@ public:   // public data types
 
 			bool operator==(const Iterator& rhs) const;
 			bool operator!=(const Iterator& rhs) const;
-			const Transition& operator*() const;
-			const Transition* operator->() const;
+			Transition operator*() const;
 
 			/**
 			 * @brief  Prefix increment operator
@@ -330,8 +329,7 @@ public:   // public data types
 
 			bool operator==(const Iterator& rhs) const;
 			bool operator!=(const Iterator& rhs) const;
-			const Transition& operator*() const;
-			const Transition* operator->() const;
+			Transition operator*() const;
 
 			/**
 			 * @brief  Prefix increment operator

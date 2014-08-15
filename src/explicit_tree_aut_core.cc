@@ -48,8 +48,6 @@ BaseTransIterator::BaseTransIterator(
 
 	tupleIterator_ = symbolSetIterator_->second->begin();
 	assert(symbolSetIterator_->second->end() != tupleIterator_);
-
-	this->updateTrans();
 }
 
 
@@ -57,14 +55,12 @@ Iterator& Iterator::operator++()
 {
 	if (symbolSetIterator_->second->end() != ++tupleIterator_)
 	{
-		this->updateTrans();
 		return *this;
 	}
 
 	if (stateClusterIterator_->second->end() != ++symbolSetIterator_)
 	{
 		tupleIterator_ = symbolSetIterator_->second->begin();
-		this->updateTrans();
 		return *this;
 	}
 
@@ -72,7 +68,6 @@ Iterator& Iterator::operator++()
 	{
 		symbolSetIterator_ = stateClusterIterator_->second->begin();
 		tupleIterator_ = symbolSetIterator_->second->begin();
-		this->updateTrans();
 		return *this;
 	}
 
@@ -88,11 +83,11 @@ DownAccessor::DownAccessor(
 	cluster_(ExplicitTreeAutCore::genericLookup(*aut.transitions_, state))
 { }
 
-void DownAccessorIterator::updateTrans()
+Transition DownAccessorIterator::getTrans() const
 {
 	assert(*tupleIterator_);
 
-	trans_ = Transition(
+	return Transition(
 		accessor_.state_,
 		symbolSetIterator_->first,
 		**tupleIterator_
@@ -115,22 +110,18 @@ DownAccessorIterator::DownAccessorIterator(
 
 	tupleIterator_ = symbolSetIterator_->second->begin();
 	assert(tupleIterator_ != symbolSetIterator_->second->end());
-
-	this->updateTrans();
 }
 
 DownAccessorIterator& DownAccessorIterator::operator++()
 {
 	if (++tupleIterator_ != symbolSetIterator_->second->end())
 	{
-		this->updateTrans();
 		return *this;
 	}
 
 	if (++symbolSetIterator_ != accessor_.cluster_->end())
 	{
 		tupleIterator_ = symbolSetIterator_->second->begin();
-		this->updateTrans();
 		return *this;
 	}
 
@@ -173,8 +164,6 @@ void AcceptTransIterator::init()
 
 	symbolSetIterator_ = stateClusterIterator_->second->begin();
 	tupleIterator_ = symbolSetIterator_->second->begin();
-
-	this->updateTrans();
 }
 
 
@@ -182,14 +171,12 @@ AcceptTransIterator& AcceptTransIterator::operator++()
 {
 	if (++tupleIterator_ != symbolSetIterator_->second->end())
 	{
-		this->updateTrans();
 		return *this;
 	}
 
 	if (++symbolSetIterator_ != stateClusterIterator_->second->end())
 	{
 		tupleIterator_ = symbolSetIterator_->second->begin();
-		this->updateTrans();
 		return *this;
 	}
 

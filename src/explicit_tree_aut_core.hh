@@ -140,8 +140,6 @@ protected:  // data members
 	TransitionCluster::const_iterator symbolSetIterator_;
 	TuplePtrSet::const_iterator tupleIterator_;
 
-	Transition trans_{};
-
 protected:// methods
 
 	BaseTransIterator(
@@ -161,15 +159,14 @@ protected:// methods
 		aut_(baseTransIter.aut_),
 		stateClusterIterator_(baseTransIter.stateClusterIterator_),
 		symbolSetIterator_(baseTransIter.symbolSetIterator_),
-		tupleIterator_(baseTransIter.tupleIterator_),
-		trans_(baseTransIter.trans_)
+		tupleIterator_(baseTransIter.tupleIterator_)
 	{ }
 
-	void updateTrans()
+	Transition getTrans() const
 	{
 		assert(*tupleIterator_);
 
-		trans_ = Transition(
+		return Transition(
 			stateClusterIterator_->first,
 			symbolSetIterator_->first,
 			**tupleIterator_
@@ -178,18 +175,11 @@ protected:// methods
 
 public:   // methods
 
-	const Transition& operator*() const
+	Transition operator*() const
 	{
 		assert(*tupleIterator_);
 
-		return trans_;
-	}
-
-	const Transition* operator->() const
-	{
-		assert(*tupleIterator_);
-
-		return &trans_;
+		return this->getTrans();
 	}
 
 	bool operator==(const BaseTransIterator& rhs) const
@@ -265,11 +255,9 @@ private:  // data members
 	TransitionCluster::const_iterator symbolSetIterator_;
 	TuplePtrSet::const_iterator tupleIterator_;
 
-	Transition trans_{};
-
 private:  // methods
 
-	void updateTrans();
+	Transition getTrans() const;
 
 public:   // methods
 
@@ -296,18 +284,11 @@ public:   // methods
 		return tupleIterator_ != rhs.tupleIterator_;
 	}
 
-	const Transition& operator*() const
+	Transition operator*() const
 	{
 		assert(*tupleIterator_);
 
-		return trans_;
-	}
-
-	const Transition* operator->() const
-	{
-		assert(*tupleIterator_);
-
-		return &trans_;
+		return this->getTrans();
 	}
 };
 

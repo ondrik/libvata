@@ -68,7 +68,7 @@ ExplicitTreeAut::Iterator& ExplicitTreeAut::Iterator::operator++()
 }
 
 
-const ExplicitTreeAut::Transition& ExplicitTreeAut::Iterator::operator*() const
+ExplicitTreeAut::Transition ExplicitTreeAut::Iterator::operator*() const
 {
 	assert(nullptr != coreIter_);
 
@@ -121,21 +121,11 @@ ExplicitTreeAut::AcceptTrans::Iterator ExplicitTreeAut::AcceptTrans::end() const
 }
 
 
-const ExplicitTreeAut::Transition&
-ExplicitTreeAut::AcceptTrans::Iterator::operator*() const
+ExplicitTreeAut::Transition ExplicitTreeAut::AcceptTrans::Iterator::operator*() const
 {
 	assert(nullptr != coreAcceptTransIter_);
 
 	return **coreAcceptTransIter_;
-}
-
-
-const ExplicitTreeAut::Transition*
-ExplicitTreeAut::AcceptTrans::Iterator::operator->() const
-{
-	assert(nullptr != coreAcceptTransIter_);
-
-	return coreAcceptTransIter_->operator->();
 }
 
 
@@ -370,20 +360,12 @@ ExplicitTreeAut::DownAccessor::Iterator::Iterator(
 	coreDownAccessIter_(new CoreIterator(coreIter))
 { }
 
-const ExplicitTreeAut::Transition&
+ExplicitTreeAut::Transition
 ExplicitTreeAut::DownAccessor::Iterator::operator*() const
 {
 	assert(nullptr != coreDownAccessIter_);
 
 	return **coreDownAccessIter_;
-}
-
-const ExplicitTreeAut::Transition*
-ExplicitTreeAut::DownAccessor::Iterator::operator->() const
-{
-	assert(nullptr != coreDownAccessIter_);
-
-	return coreDownAccessIter_->operator->();
 }
 
 
