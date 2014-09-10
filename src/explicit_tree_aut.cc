@@ -584,6 +584,15 @@ void ExplicitTreeAut::CopyTransitionsFrom(
 	core_->CopyTransitionsFrom(*src.core_, fctor);
 }
 
+template <class Index>
+void ExplicitTreeAut::BuildStateIndex(
+	Index&                      index) const
+{
+	assert(nullptr != core_);
+
+	core_->BuildStateIndex(index);
+}
+
 
 ExplicitTreeAut ExplicitTreeAut::ReindexStates(
 	AbstractReindexF&           fctor,

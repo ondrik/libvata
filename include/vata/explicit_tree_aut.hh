@@ -536,6 +536,9 @@ public:   // methods
 	ExplicitTreeAut CollapseStates(
 		const StateToStateMap&      collapseMap) const;
 
+	template <class Index>
+	void BuildStateIndex(
+		Index&                     index) const;
 
 	ExplicitTreeAut ReindexStates(
 		StateToStateTranslWeak&     stateTransl) const;
