@@ -584,9 +584,8 @@ void ExplicitTreeAut::CopyTransitionsFrom(
 	core_->CopyTransitionsFrom(*src.core_, fctor);
 }
 
-template <class Index>
 void ExplicitTreeAut::BuildStateIndex(
-	Index&                      index) const
+	Util::TranslatorWeak<StateMap>&    index) const
 {
 	assert(nullptr != core_);
 

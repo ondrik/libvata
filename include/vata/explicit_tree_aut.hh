@@ -72,6 +72,7 @@ GCC_DIAG_ON(effc++)
 private:  // data types
 
 	using CoreAut        = VATA::LoadableAut<ExplicitTreeAutCore>;
+	using StateMap       = std::unordered_map<StateType, StateType>;
 
 public:   // public data types
 
@@ -536,9 +537,10 @@ public:   // methods
 	ExplicitTreeAut CollapseStates(
 		const StateToStateMap&      collapseMap) const;
 
-	template <class Index>
+
 	void BuildStateIndex(
-		Index&                     index) const;
+	  Util::TranslatorWeak<StateMap>&    index) const;
+
 
 	ExplicitTreeAut ReindexStates(
 		StateToStateTranslWeak&     stateTransl) const;
