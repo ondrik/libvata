@@ -433,17 +433,17 @@ public:   // methods
 	 */
 	AcceptTrans GetAcceptTrans() const;
 
-    /**
-     * @brief Retrieves a container with all states of the automaton
-     *
-     * @return A vector with all used states
-     */
-    std::vector<size_t> GetUsedStates() const;
+  /**
+    * @brief Retrieves a container with all states of the automaton
+    *
+    * @return A vector with all used states
+    */
+  std::unordered_set<size_t> GetUsedStates() const;
 
-    /**
-     * @brief Clears automaton. It clears its final states and trasitions.
-     */
-    void Clear();
+  /**
+    * @brief Clears automaton. It clears its final states and trasitions.
+    */
+  void Clear();
 
 	/**
 	 * @brief  Retrieves the transitions where the state is a parent

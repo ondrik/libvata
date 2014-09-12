@@ -31,6 +31,26 @@ ExplicitTreeAutCore::AlphabetType ExplicitTreeAutCore::globalAlphabet_ =
 	AlphabetType(new ExplicitTreeAut::OnTheFlyAlphabet);
 
 
+std::unordered_set<size_t> ExplicitTreeAutCore::GetUsedStates() const
+{
+	std::unordered_set<size_t> res;
+	for (auto trans : *this)
+	{
+		for (auto state : trans.GetChildren())
+		{
+ 			res.insert(state);
+		}
+		res.insert(trans.GetParent());
+	}
+
+	for (auto state : GetFinalStates())
+	{
+		res.insert(state);
+	}
+
+	return res;
+}
+
 BaseTransIterator::BaseTransIterator(
 	const ExplicitTreeAutCore&        aut) :
 	aut_(aut),
