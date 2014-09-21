@@ -5,31 +5,51 @@ set(CMAKE_COLOR_MAKEFILE ON)
 
 project(vata)
 
-set(flex_bison_compiler_flags_list
-  -std=c++11
+# Flags for basic C files
+set(basic_c_compiler_flags_list
   -pedantic-errors
   -Wextra
   -Wall
   -Wfloat-equal
-  -Wctor-dtor-privacy
-  -Weffc++
-  -Woverloaded-virtual
   -fdiagnostics-show-option
   -march=native
 )
 
-set(vata_compiler_add_flags_list
+# Additional flags for basic C++ files
+set(basic_cxx_compiler_add_flags_list
+  -std=c++11
+  -Wctor-dtor-privacy
+  -Weffc++
+  -Woverloaded-virtual
+)
+
+# Additional flags for VATA C++ files
+set(vata_cxx_compiler_add_flags_list
   -Wold-style-cast
 )
 
+# Setting GCC flags for C++ compilation of Bison & Flex outputs
 set(flex_bison_compiler_flags "")
-foreach(param ${flex_bison_compiler_flags_list})
+foreach(param ${basic_c_compiler_flags_list})
+  set(flex_bison_compiler_flags "${flex_bison_compiler_flags} ${param}")
+endforeach(param)
+foreach(param ${basic_cxx_compiler_add_flags_list})
   set(flex_bison_compiler_flags "${flex_bison_compiler_flags} ${param}")
 endforeach(param)
 
-set(vata_compiler_flags ${flex_bison_compiler_flags})
-foreach(param ${vata_compiler_add_flags_list})
-  set(vata_compiler_flags "${vata_compiler_flags} ${param}")
+# Setting GCC flags for compilation of VATA C files
+set(vata_c_compiler_flags "")
+foreach(param ${basic_c_compiler_flags_list})
+  set(vata_c_compiler_flags "${vata_c_compiler_flags} ${param}")
+endforeach(param)
+
+# Setting GCC flags for compilation of VATA C++ files
+set(vata_cxx_compiler_flags ${vata_c_compiler_flags})
+foreach(param ${basic_cxx_compiler_add_flags_list})
+  set(vata_cxx_compiler_flags "${vata_cxx_compiler_flags} ${param}")
+endforeach(param)
+foreach(param ${vata_cxx_compiler_add_flags_list})
+  set(vata_cxx_compiler_flags "${vata_cxx_compiler_flags} ${param}")
 endforeach(param)
 
 # uncomment for profiling
@@ -110,6 +130,11 @@ set(scanner_parser_files
   ${BISON_timbuk_parser_OUTPUTS}
 )
 
+set(c_files
+	fmemopen.c
+	memstream.c
+)
+
 get_target_property(libvata_sources libvata SOURCES)
 
 foreach(src ${libvata_sources})
@@ -121,12 +146,24 @@ foreach(src ${libvata_sources})
     endif()
   endforeach()
 
+	unset(is_c_file)
+  foreach (checked_file ${c_files})
+    if (${src} STREQUAL ${checked_file})
+      set(is_c_file 1)
+    endif()
+  endforeach()
+
   if (is_scanner_parser_file)
     set_source_files_properties(
       ${src} PROPERTIES COMPILE_FLAGS ${flex_bison_compiler_flags})
   else()
-    set_source_files_properties(
-      ${src} PROPERTIES COMPILE_FLAGS ${vata_compiler_flags})
+		if (is_c_file)
+			set_source_files_properties(
+				${src} PROPERTIES COMPILE_FLAGS ${vata_c_compiler_flags})
+		else()
+			set_source_files_properties(
+				${src} PROPERTIES COMPILE_FLAGS ${vata_cxx_compiler_flags})
+		endif()
   endif()
 endforeach()
 
