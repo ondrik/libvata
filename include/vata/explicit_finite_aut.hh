@@ -254,9 +254,7 @@ public: // public methods
 	ExplicitFiniteAut Reverse(
 			AutBase::StateToStateMap* pTranslMap = nullptr) const;
 
-	template <class Dict>
-	ExplicitFiniteAut Complement(
-			const Dict &)
+	ExplicitFiniteAut Complement()
 	{
 		throw NotImplementedException(__func__);
 	}

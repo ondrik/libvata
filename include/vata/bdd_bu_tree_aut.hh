@@ -219,9 +219,7 @@ public:   // methods
 	BDDBottomUpTreeAut GetCandidateTree() const;
 
 
-	template <class Dict>
-	BDDBottomUpTreeAut Complement(
-		const Dict&                  /*alphabet*/) const
+	BDDBottomUpTreeAut Complement() const
 	{
 		throw NotImplementedException(__func__);
 	}

@@ -699,3 +699,9 @@ std::string ExplicitTreeAut::ToString(const Transition& trans) const
 
 	return core_->ToString(trans);
 }
+
+
+ExplicitTreeAut ExplicitTreeAut::Complement() const
+{
+	throw NotImplementedException(__func__);
+}

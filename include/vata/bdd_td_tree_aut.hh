@@ -189,9 +189,7 @@ public:   // public methods
 	BDDTopDownTreeAut RemoveUselessStates() const;
 
 
-	template <class Dict>
-	BDDTopDownTreeAut Complement(
-		const Dict&                     /*alphabet*/) const
+	BDDTopDownTreeAut Complement() const
 	{
 		throw NotImplementedException(__func__);
 	}

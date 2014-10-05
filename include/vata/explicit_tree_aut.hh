@@ -789,12 +789,15 @@ public:   // methods
 		const VATA::SimParam&                  params) const;
 
 
-	template <class Dict>
-	ExplicitTreeAut Complement(
-		const Dict&                           /*alphabet*/) const
-	{
-		throw NotImplementedException(__func__);
-	}
+	/**
+	 * @brief  Computes the complement of the automaton
+	 *
+	 * This method computes the complement of the automaton with respect to the
+	 * alphabet associated with the automaton.
+	 *
+	 * @returns  The complement of the automaton
+	 */
+	ExplicitTreeAut Complement() const;
 
 
 	/**

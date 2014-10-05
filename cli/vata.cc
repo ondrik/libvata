@@ -236,7 +236,7 @@ int performOperation(
 	}
 	else if (args.command == COMMAND_COMPLEMENT)
 	{
-		autResult = autInput1.Complement(autInput1.GetAlphabet());
+		autResult = autInput1.Complement();
 	}
 	else if (args.command == COMMAND_UNION)
 	{
