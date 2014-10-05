@@ -94,6 +94,7 @@ add_library(libvata STATIC
 	explicit_finite_compl.cc
 	explicit_finite_sim.cc
   explicit_tree_aut_core.cc
+	explicit_tree_comp_down.cc
   explicit_tree_incl_down.cc
   explicit_tree_incl_up.cc
   explicit_lts_sim.cc

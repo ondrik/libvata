@@ -1065,16 +1065,12 @@ public:   // methods
 
 
 	template <
-		class Dict,
 		class Rel>
 	ExplicitTreeAutCore ComplementWithPreorder(
-		const Dict&                         alphabet,
 		const Rel&                          preorder) const;
 
 
-	template <class Dict>
-	ExplicitTreeAutCore Complement(
-		const Dict&                         alphabet) const;
+	ExplicitTreeAutCore Complement() const;
 
 
 	ExplicitTreeAutCore Reduce() const

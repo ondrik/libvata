@@ -166,6 +166,14 @@ public:   // public data types
 			return BwdTranslatorPtr(bwdTransl);
 		}
 
+		/**
+		 * @brief  Returns the dictionary
+		 */
+		const SymbolDict& GetSymbolDict() const
+		{
+			return symbolDict_;
+		}
+
 		virtual ~OnTheFlyAlphabet() override
 		{ }
 	};
