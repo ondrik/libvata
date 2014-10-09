@@ -18,6 +18,7 @@
 // MTBDD headers
 #include "mtbdd/apply1func.hh"
 #include "mtbdd/apply2func.hh"
+#include "mtbdd/set_union_apply2func.hh"
 #include "mtbdd/ondriks_mtbdd.hh"
 #include "mtbdd/void_apply2func.hh"
 
@@ -47,7 +48,7 @@ private:  // data types
 
 	GCC_DIAG_OFF(effc++)    // suppress missing virtual destructor warning
 	class UnionApplyFunctor :
-		public VATA::MTBDDPkg::Apply2Functor<UnionApplyFunctor, StateSet,
+		public VATA::MTBDDPkg::SetUnionApply2Functor<UnionApplyFunctor, StateSet,
 		StateSet, StateSet>
 	{
 	GCC_DIAG_ON(effc++)
