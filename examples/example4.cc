@@ -53,5 +53,5 @@ int main()
 	std::cout << "BDD: \n\n" << TransMTBDD::DumpToDot({bdd}) << "\n\n";
 
 	// dump the automaton
-	std::cout << aut.DumpToString(*serializer);
+	std::cout << aut.DumpToString(*serializer, "symbolic");
 }
