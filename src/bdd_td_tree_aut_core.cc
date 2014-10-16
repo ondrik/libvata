@@ -106,10 +106,10 @@ void BDDTDTreeAutCore::AddTransition(
 
 std::string BDDTDTreeAutCore::DumpToDot() const
 {
-	std::vector<const TransMTBDD*> stateVec;
+	std::vector<TransMTBDD> stateVec;
 	for (auto stateBddPair : GetStates())
 	{
-		stateVec.push_back(&GetMtbdd(stateBddPair.first));
+		stateVec.push_back(GetMtbdd(stateBddPair.first));
 	}
 
 	return TransMTBDD::DumpToDot(stateVec);

@@ -53,7 +53,7 @@ void BDDBUTreeAutCore::AddTransition(
 	const StateType&       parent)
 {
 	// Assertions
-	assert(symbol.length() == SYMBOL_SIZE);
+	//assert(symbol.length() == SYMBOL_SIZE);
 
 	if (transTable_.unique())
 	{
@@ -222,10 +222,10 @@ BDDTDTreeAutCore BDDBUTreeAutCore::GetTopDownAut() const
 
 std::string BDDBUTreeAutCore::DumpToDot() const
 {
-	std::vector<const TransMTBDD*> tupleVec;
+	std::vector<TransMTBDD> tupleVec;
 	for (auto tupleHandlePair : transTable_)
 	{
-		tupleVec.push_back(&tupleHandlePair.second);
+		tupleVec.push_back(tupleHandlePair.second);
 	}
 
 	return TransMTBDD::DumpToDot(tupleVec);

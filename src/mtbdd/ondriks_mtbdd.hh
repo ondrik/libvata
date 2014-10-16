@@ -618,17 +618,18 @@ public:   // public methods
 	}
 
 	static std::string DumpToDot(
-		const std::vector<const OndriksMTBDD*>&           mtbdds)
+		const std::vector<OndriksMTBDD>&           mtbdds)
 	{
 		std::string result = "digraph mtbdd {\n";
 
 		NodePtrSet cache;
 
-		for (const OndriksMTBDD* bdd : mtbdds)
+		for (const OndriksMTBDD& bdd : mtbdds)
 		{
-			assert(bdd != nullptr);
-
-			result +=	mtbddNodeToDotString(bdd->getRoot(), cache);
+			if (!IsNull(bdd.getRoot()))
+			{
+				result +=	mtbddNodeToDotString(bdd.getRoot(), cache);
+			}
 		}
 
 		return result + "}";

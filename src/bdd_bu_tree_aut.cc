@@ -314,3 +314,11 @@ BDDBottomUpTreeAut BDDBottomUpTreeAut::GetCandidateTree() const
 {
 	throw NotImplementedException(__func__);
 }
+
+
+std::string BDDBottomUpTreeAut::DumpToDot() const
+{
+	assert(nullptr != core_);
+
+	return core_->DumpToDot();
+}
