@@ -350,12 +350,17 @@ private:  // private methods
 		{
 			assert(IsInternal(ptr));
 
-			return Convert::ToString(ptr) + " -> " +
+			std::string result = Convert::ToString(ptr) + "[label=\"var:"
+				+ Convert::ToString(GetVarFromInternal(ptr)) + "\"];\n";
+
+			result += Convert::ToString(ptr) + " -> " +
 				Convert::ToString(GetLowFromInternal(ptr)) + " [style = dashed];\n" +
 				Convert::ToString(ptr) + " -> " +
 				Convert::ToString(GetHighFromInternal(ptr)) + " [style = solid];\n" +
 				mtbddNodeToDotString(GetLowFromInternal(ptr), cache) +
 				mtbddNodeToDotString(GetHighFromInternal(ptr), cache);
+
+			return result;
 		}
 	}
 
