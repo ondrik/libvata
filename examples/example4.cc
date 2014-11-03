@@ -50,7 +50,7 @@ int main()
 
 	uintptr_t bddAsInt = aut.GetTransMTBDDForTuple(Automaton::StateTuple({0, 0}));
 	const TransMTBDD* bdd = reinterpret_cast<const TransMTBDD*>(bddAsInt);
-	std::cout << "BDD: \n\n" << TransMTBDD::DumpToDot({bdd}) << "\n\n";
+	std::cout << "BDD: \n\n" << TransMTBDD::DumpToDot({*bdd}) << "\n\n";
 
 	// dump the automaton
 	std::cout << aut.DumpToString(*serializer, "symbolic");
