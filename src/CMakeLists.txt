@@ -167,5 +167,3 @@ foreach(src ${libvata_sources})
 		endif()
   endif()
 endforeach()
-
-get_target_property(vata_sources vata SOURCES)

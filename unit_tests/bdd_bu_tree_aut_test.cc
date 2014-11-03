@@ -96,10 +96,10 @@ BOOST_AUTO_TEST_CASE(aut_inversion)
 	}
 }
 
-BOOST_AUTO_TEST_CASE(aut_down_simulation)
-{
-	testDownwardSimulation();
-}
+// BOOST_AUTO_TEST_CASE(aut_down_simulation)
+// {
+// 	testDownwardSimulation();
+// }
 
 BOOST_AUTO_TEST_CASE(aut_up_inclusion)
 {
