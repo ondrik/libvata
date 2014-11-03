@@ -27,7 +27,7 @@ LIBS=-lvata
 
 .PHONY: all clean
 
-all: $(patsubst %.cc,%,$(wildcard *.cc))
+all: $(patsubst %.cc,%,$(wildcard *.cc)) ../build/src/libvata.a
 
 %: %.cc
 	g++ $(CFLAGS) $(INCLUDE) $(LIBS_ADD) $< $(LIBS) -o $@
