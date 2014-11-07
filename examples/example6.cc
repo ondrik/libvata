@@ -63,6 +63,25 @@ int main()
 		std::cout << "]\n";
 	}
 
+	std::cout << "And now all transitions with mapping to the input automaton:\n";
+	for (const Transition trans : aut)
+	{	// for every transition in 'aut', print the internal representation
+		std::cout << "Transition: " << trans;
+		std::cout << " [parent state = " << stateDict.TranslateBwd(trans.GetParent());
+		std::cout << ", symbol = " << trans.GetSymbol();
+
+		// how to do Haskell map in C++ ...
+		std::vector<std::string> childrenStr(trans.GetChildren().size());
+		std::transform(
+			trans.GetChildren().cbegin(),
+			trans.GetChildren().cend(),
+			childrenStr.begin(),
+			[&stateDict](const State s){return stateDict.TranslateBwd(s);});
+
+		std::cout << ", children states = " << Convert::ToString(childrenStr);
+		std::cout << "]\n";
+	}
+
 	// // create the serializer for the Timbuk format
 	// VATA::Serialization::AbstrSerializer* serializer =
 	// 	new VATA::Serialization::TimbukSerializer();
