@@ -53,10 +53,11 @@ int main()
 		std::cout << "]\n";
 	}
 
-	State s = 2;
+	std::string strState = "q1";
+	State s = stateDict.TranslateFwd(strState);
 	for (const Transition trans : aut[s])
 	{	// for every transition in 'aut' from state 's' (top-down), print the internal representation
-		std::cout << "Transition from state " << s << ": " << trans;
+		std::cout << "Transition from state " << strState << ": " << trans;
 		std::cout << " [parent state = " << trans.GetParent();
 		std::cout << ", symbol = " << trans.GetSymbol();
 		std::cout << ", children states = " << Convert::ToString(trans.GetChildren());
