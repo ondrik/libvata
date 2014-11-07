@@ -3,7 +3,6 @@
 // VATA headers
 #include <vata/explicit_tree_aut.hh>
 #include <vata/parsing/timbuk_parser.hh>
-#include <vata/serialization/timbuk_serializer.hh>
 
 const char* autStr =
 	"Ops           a:0 b:2 c:2\n"
@@ -63,30 +62,4 @@ int main()
 		std::cout << ", children states = " << Convert::ToString(trans.GetChildren());
 		std::cout << "]\n";
 	}
-
-	std::cout << "And now all transitions with mapping to the input automaton:\n";
-	for (const Transition trans : aut)
-	{	// for every transition in 'aut', print the internal representation
-		std::cout << "Transition: " << trans;
-		std::cout << " [parent state = " << stateDict.TranslateBwd(trans.GetParent());
-		std::cout << ", symbol = " << trans.GetSymbol();
-
-		// how to do Haskell map in C++ ...
-		std::vector<std::string> childrenStr(trans.GetChildren().size());
-		std::transform(
-			trans.GetChildren().cbegin(),
-			trans.GetChildren().cend(),
-			childrenStr.begin(),
-			[&stateDict](const State s){return stateDict.TranslateBwd(s);});
-
-		std::cout << ", children states = " << Convert::ToString(childrenStr);
-		std::cout << "]\n";
-	}
-
-	// // create the serializer for the Timbuk format
-	// VATA::Serialization::AbstrSerializer* serializer =
-	// 	new VATA::Serialization::TimbukSerializer();
-  //
-	// // dump the automaton
-	// std::cout << aut.DumpToString(*serializer, stateDict);
 }
