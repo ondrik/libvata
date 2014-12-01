@@ -345,8 +345,6 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 	OrderedType next;
 
-	bool isAccepting;
-
 	// Post(\emptyset)
 
 	if (biggerLeaves.size() < smallerLeaves.size())
@@ -357,7 +355,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 	for (size_t symbol = 0; symbol < smallerLeaves.size(); ++symbol)
 	{
 		post.clear();
-		isAccepting = false;
+		bool isAccepting = false;
 
 		for (auto& transition : biggerLeaves[symbol])
 		{
@@ -454,7 +452,6 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 					do
 					{
 						post.clear();
-						isAccepting = false;
 
 						assert(choiceVector(0));
 
@@ -479,6 +476,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 							intersectionByLookup(biggerTransitions, *transitions);
 						}
 
+						bool isBiggerAccepting = false;
 						for (auto& biggerTransition : biggerTransitions)
 						{
 							assert(biggerTransition);
@@ -494,12 +492,15 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 							post.refine(inv.at(biggerTransition->state()));
 							post.insert(biggerTransition->state());
 
-							isAccepting = isAccepting ||
-								biggerFinalStates.count(biggerTransition->state());
+							bool isThisAccepting = (biggerFinalStates.end()
+								!= biggerFinalStates.find(biggerTransition->state()));
+							isBiggerAccepting = isBiggerAccepting || isThisAccepting;
 						}
 
+						bool isSmallerAccepting = (smallerFinalStates.end()
+							!= smallerFinalStates.find(smallerTransition->state()));
 						if (post.data().empty() ||
-							(!isAccepting && smallerFinalStates.count(smallerTransition->state())))
+							(!isBiggerAccepting && isSmallerAccepting))
 						{
 							return false;
 						}
