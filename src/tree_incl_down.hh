@@ -14,6 +14,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/incl_ctx.hh>
 
 namespace VATA
 {
@@ -23,8 +24,11 @@ namespace VATA
 		template <class, class> class DownwardInclFctor,
 		class Rel
 	>
-	bool CheckDownwardTreeInclusion(const Aut& smaller, const Aut& bigger,
-		const Rel& preorder);
+	bool CheckDownwardTreeInclusion(
+		const Aut&     smaller,
+		const Aut&     bigger,
+		const Rel&     preorder,
+		InclContext&   context);
 }
 
 /**
@@ -44,8 +48,10 @@ template
 bool VATA::CheckDownwardTreeInclusion(
 	const Aut&     smaller,
 	const Aut&     bigger,
-	const Rel&     preorder)
+	const Rel&     preorder,
+	InclContext&   context)
 {
+	context.SetDescription(std::string(__func__) + ": Inclusion context unsupported");
 	typedef DownwardInclFctor<Aut, Rel> InclFctor;
 
 	typedef typename Aut::StateType StateType;

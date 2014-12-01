@@ -41,8 +41,7 @@ public:   // types
 
 	using SmallerStateType  = SmallerType;
 	using BiggerSetType     = Antichain2C::TList::iterator;
-	using TraceType         = VATA::ExplicitUpwardInclusion::TransitionList;
-	// using TraceType         = VATA::ExplicitUpwardInclusion::TransitionList;
+	using TraceType         = InclusionTraceType;
 
 private:  // data members
 
@@ -73,7 +72,7 @@ public:   // methods
 
 	void AppendToTrace(const TransitionPtr& trans)
 	{
-		trace_.push_back(trans);
+		trace_.insert(trans);
 	}
 
 	struct less
@@ -256,11 +255,13 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 	const SymbolToDoubleIndexedTransitionListMap&     biggerIndex,
 	const ExplicitTreeAutCore::FinalStateSet&         biggerFinalStates,
 	const StateDiscontBinaryRelation::IndexType&      ind,
-	const StateDiscontBinaryRelation::IndexType&      inv)
+	const StateDiscontBinaryRelation::IndexType&      inv,
+	InclusionTraceType&                               trace)
 {
 	auto noncachedLte = [&ind](const StateSet* x, const StateSet* y) -> bool
 	{
-		assert(x); assert(y);
+		assert(nullptr != x);
+		assert(nullptr != y);
 
 		for (auto& s1 : *x)
 		{
@@ -279,7 +280,8 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 	auto lte = [&noncachedLte, &lteCache](const BiggerType& x, const BiggerType& y) -> bool
 	{
-		assert(x); assert(y);
+		assert(nullptr != x);
+		assert(nullptr != y);
 
 		return (x.get() == y.get())?(true):(lteCache.lookup(x.get(), y.get(), noncachedLte));
 	};
@@ -293,7 +295,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 	auto noncachedEvalTransitions = [&biggerIndex](const std::pair<SymbolType, size_t>& key,
 		const StateSet* states) -> TransitionSetPtr
 	{
-		assert(states);
+		assert(nullptr != states);
 
 		TransitionSetPtr result = TransitionSetPtr(new TransitionSet());
 
@@ -332,19 +334,20 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 	> evalTransitionsCache;
 
 	auto evalTransitions = [&noncachedEvalTransitions, &evalTransitionsCache](
-		const SymbolType& symbol, size_t i, const StateSet* states)
-		-> TransitionSetPtr
+		const SymbolType& symbol, size_t i, const StateSet* states) -> TransitionSetPtr
 		{
-		assert(states);
+			assert(nullptr != states);
 
-		return evalTransitionsCache.lookup(
-			std::make_pair(symbol, i), states, noncachedEvalTransitions
-		);
-	};
+			return evalTransitionsCache.lookup(
+				std::make_pair(symbol, i), states, noncachedEvalTransitions
+			);
+		};
 
 	BiggerTypeCache biggerTypeCache(
 		[&lteCache, &evalTransitionsCache](const StateSet* v)
 		{
+			assert(nullptr != v);
+
 			lteCache.invalidateFirst(v);
 			lteCache.invalidateSecond(v);
 			evalTransitionsCache.invalidateSecond(v);
@@ -371,7 +374,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 		for (auto& transition : biggerLeaves[symbol])
 		{
-			assert(transition);
+			assert(nullptr != transition);
 			assert(transition->children().empty());
 			assert(transition->state() < ind.size());
 
@@ -396,7 +399,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 		for (auto& transition : smallerLeaves[symbol])
 		{
-			assert(transition);
+			assert(nullptr != transition);
 
 			if (!isAccepting && smallerFinalStates.count(transition->state()))
 			{
@@ -421,7 +424,9 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 			Antichain2C::TList::iterator iter = processed.insert(transition->state(), ptr);
 
-			next.insert(AntichainElem(transition->state(), iter));
+			AntichainElem newElem = AntichainElem(transition->state(), iter);
+			newElem.AppendToTrace(transition);
+			next.insert(newElem);
 		}
 	}
 

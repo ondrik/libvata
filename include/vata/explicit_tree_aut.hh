@@ -17,6 +17,7 @@
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
 #include <vata/incl_param.hh>
+#include <vata/incl_ctx.hh>
 #include <vata/reduce_param.hh>
 #include <vata/sim_param.hh>
 
@@ -752,6 +753,7 @@ public:   // methods
 	 * @param[in]  smaller  The smaller automaton
 	 * @param[in]  bigger   The bigger automaton
 	 * @param[in]  params   Parameters for the inclusion
+	 * @param[out] context  Output data from the inclusion testing run
 	 *
 	 * @returns  @p true if the language of @p smaller is a subset of the language
 	 *           of @p bigger, @p false otherwise
@@ -759,7 +761,27 @@ public:   // methods
 	static bool CheckInclusion(
 		const ExplicitTreeAut&                 smaller,
 		const ExplicitTreeAut&                 bigger,
-		const VATA::InclParam&                 params);
+		const InclParam&                       params,
+		InclContext&                           context);
+
+	/**
+	 * @brief  Dispatcher for calling correct inclusion checking function
+	 *
+	 * This function is a dispatcher that calls a proper inclusion checking
+	 * function between @p smaller and @p bigger according to the parameters in @p
+	 * params.
+	 *
+	 * @param[in]  smaller  The smaller automaton
+	 * @param[in]  bigger   The bigger automaton
+	 * @param[in]  params   Parameters for the inclusion
+	 *
+	 * @returns  @p true if the language of @p smaller is a subset of the language
+	 *           of @p bigger, @p false otherwise
+	 */
+	static bool CheckInclusion(
+		const ExplicitTreeAut&                 smaller,
+		const ExplicitTreeAut&                 bigger,
+		const InclParam&                       params);
 
 
 	/**

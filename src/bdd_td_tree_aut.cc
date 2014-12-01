@@ -182,12 +182,25 @@ BDDTopDownTreeAut BDDTopDownTreeAut::RemoveUselessStates() const
 bool BDDTopDownTreeAut::CheckInclusion(
 	const BDDTopDownTreeAut&    smaller,
 	const BDDTopDownTreeAut&    bigger,
-	const VATA::InclParam&      params)
+	const InclParam&            params)
 {
 	assert(nullptr != smaller.core_);
 	assert(nullptr != bigger.core_);
 
 	return CoreAut::CheckInclusion(*smaller.core_, *bigger.core_, params);
+}
+
+
+bool BDDTopDownTreeAut::CheckInclusion(
+	const BDDTopDownTreeAut&    smaller,
+	const BDDTopDownTreeAut&    bigger,
+	const InclParam&            params,
+	InclContext&                context)
+{
+	assert(nullptr != smaller.core_);
+	assert(nullptr != bigger.core_);
+
+	return CoreAut::CheckInclusion(*smaller.core_, *bigger.core_, params, context);
 }
 
 

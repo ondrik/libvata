@@ -25,7 +25,8 @@ typedef VATA::AutBase::StateType StateType;
 bool BDDTDTreeAutCore::CheckInclusion(
 	const BDDTDTreeAutCore&     smaller,
 	const BDDTDTreeAutCore&     bigger,
-	const VATA::InclParam&      params)
+	const VATA::InclParam&      params,
+	InclContext&                context)
 {
 	BDDTDTreeAutCore newSmaller;
 	BDDTDTreeAutCore newBigger;
@@ -47,7 +48,7 @@ bool BDDTDTreeAutCore::CheckInclusion(
 
 			return CheckDownwardTreeInclusion<BDDTDTreeAutCore,
 				VATA::DownwardInclusionFunctor>(newSmaller, newBigger,
-					Util::Identity(states));
+					Util::Identity(states), context);
 		}
 
 		case InclParam::ANTICHAINS_DOWN_REC_OPT_NOSIM:
@@ -56,7 +57,7 @@ bool BDDTDTreeAutCore::CheckInclusion(
 
 			return CheckDownwardTreeInclusion<BDDTDTreeAutCore,
 				VATA::OptDownwardInclusionFunctor>(newSmaller, newBigger,
-					Util::Identity(states));
+					Util::Identity(states), context);
 		}
 
 		case InclParam::ANTICHAINS_DOWN_REC_SIM:
@@ -65,7 +66,7 @@ bool BDDTDTreeAutCore::CheckInclusion(
 
 			return CheckDownwardTreeInclusion<BDDTDTreeAutCore,
 				VATA::DownwardInclusionFunctor>(smaller, bigger,
-					params.GetSimulation());
+					params.GetSimulation(), context);
 		}
 
 		case InclParam::ANTICHAINS_DOWN_REC_OPT_SIM:
@@ -74,7 +75,7 @@ bool BDDTDTreeAutCore::CheckInclusion(
 
 			return CheckDownwardTreeInclusion<BDDTDTreeAutCore,
 				VATA::OptDownwardInclusionFunctor>(smaller, bigger,
-					params.GetSimulation());
+					params.GetSimulation(), context);
 		}
 
 		default:

@@ -18,6 +18,7 @@
 #include <vata/symbolic.hh>
 #include <vata/notimpl_except.hh>
 #include <vata/incl_param.hh>
+#include <vata/incl_ctx.hh>
 #include <vata/sim_param.hh>
 
 // utilities
@@ -200,7 +201,30 @@ public:   // methods
 	static bool CheckInclusion(
 		const BDDBottomUpTreeAut&    smaller,
 		const BDDBottomUpTreeAut&    bigger,
-		const VATA::InclParam&       params);
+		const InclParam&             params);
+
+
+	/**
+	 * @brief  Dispatcher for calling correct inclusion checking function
+	 *
+	 * This function is a dispatcher that calls a proper inclusion checking
+	 * function between @p smaller and @p bigger according to the parameters in @p
+	 * params.
+	 *
+	 * @param[in]  smaller  The smaller automaton
+	 * @param[in]  bigger   The bigger automaton
+	 * @param[in]  params   Parameters for the inclusion
+	 * @param[out] context  Output data from the inclusion testing run
+	 *
+	 * @returns  @p true if the language of @p smaller is a subset of the language
+	 *           of @p bigger, @p false otherwise
+	 */
+	static bool CheckInclusion(
+		const BDDBottomUpTreeAut&    smaller,
+		const BDDBottomUpTreeAut&    bigger,
+		const InclParam&             params,
+		InclContext&                 context);
+
 
 
 	/**

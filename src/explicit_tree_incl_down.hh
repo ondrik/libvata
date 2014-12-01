@@ -80,8 +80,10 @@ public:
 	static bool Check(
 		const Aut&            smaller,
 		const Aut&            bigger,
-		const Rel&            preorder)
+		const Rel&            preorder,
+		InclContext&          context)
 	{
+		context.SetDescription(std::string(__func__) + ": Inclusion context unsupported");
 		DoubleIndexedTupleList smallerIndex, biggerIndex;
 
 		size_t symbolCnt = 0;

@@ -17,9 +17,15 @@
 
 namespace VATA
 {
-	template <class Aut, template <class> class UpwardInclFctor, class Rel>
-	bool CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger,
-		const Rel& preorder);
+	template <
+		class Aut,
+		template <class> class UpwardInclFctor,
+		class Rel>
+	bool CheckUpwardTreeInclusion(
+		const Aut&     smaller,
+		const Aut&     bigger,
+		const Rel&     preorder,
+		InclContext&   context);
 }
 
 /**
@@ -30,10 +36,18 @@ namespace VATA
  *
  * @todo  Write this documentation
  */
-template <class Aut, template <class> class UpwardInclFctor, class Rel>
-bool VATA::CheckUpwardTreeInclusion(const Aut& smaller, const Aut& bigger,
-	const Rel& /* preorder */)
+template <
+	class Aut,
+	template <class> class UpwardInclFctor,
+	class Rel>
+bool VATA::CheckUpwardTreeInclusion(
+	const Aut&      smaller,
+	const Aut&      bigger,
+	const Rel&      /* preorder */,
+	InclContext&    context)
 {
+	context.SetDescription(std::string(__func__) + ": Inclusion context unsupported");
+
 	typedef UpwardInclFctor<Aut> InclFctor;
 	typedef typename InclFctor::StateType StateType;
 	typedef typename InclFctor::StateSet StateSet;

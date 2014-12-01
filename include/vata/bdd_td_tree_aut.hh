@@ -17,6 +17,7 @@
 #include <vata/bdd_bu_tree_aut.hh>
 #include <vata/notimpl_except.hh>
 #include <vata/incl_param.hh>
+#include <vata/incl_ctx.hh>
 #include <vata/sim_param.hh>
 
 #include <vata/parsing/abstr_parser.hh>
@@ -165,7 +166,14 @@ public:   // public methods
 	static bool CheckInclusion(
 		const BDDTopDownTreeAut&    smaller,
 		const BDDTopDownTreeAut&    bigger,
-		const VATA::InclParam&      params);
+		const InclParam&            params);
+
+
+	static bool CheckInclusion(
+		const BDDTopDownTreeAut&    smaller,
+		const BDDTopDownTreeAut&    bigger,
+		const InclParam&            params,
+		InclContext&                context);
 
 
 	template <

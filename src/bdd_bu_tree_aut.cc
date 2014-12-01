@@ -254,7 +254,7 @@ bool BDDBottomUpTreeAut::CheckInclusion(
 bool BDDBottomUpTreeAut::CheckInclusion(
 	const BDDBottomUpTreeAut&    smaller,
 	const BDDBottomUpTreeAut&    bigger,
-	const VATA::InclParam&       params)
+	const InclParam&             params)
 {
 	assert(nullptr != smaller.core_);
 	assert(nullptr != bigger.core_);
@@ -262,6 +262,18 @@ bool BDDBottomUpTreeAut::CheckInclusion(
 	return CoreAut::CheckInclusion(*smaller.core_, *bigger.core_, params);
 }
 
+
+bool BDDBottomUpTreeAut::CheckInclusion(
+	const BDDBottomUpTreeAut&    smaller,
+	const BDDBottomUpTreeAut&    bigger,
+	const InclParam&             params,
+	InclContext&                 context)
+{
+	assert(nullptr != smaller.core_);
+	assert(nullptr != bigger.core_);
+
+	return CoreAut::CheckInclusion(*smaller.core_, *bigger.core_, params, context);
+}
 
 BDDBottomUpTreeAut BDDBottomUpTreeAut::Union(
 	const BDDBottomUpTreeAut&         lhs,

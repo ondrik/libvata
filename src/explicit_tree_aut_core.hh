@@ -21,6 +21,7 @@
 
 #include <vata/explicit_lts.hh>
 #include <vata/incl_param.hh>
+#include <vata/incl_ctx.hh>
 
 #include "util/cache.hh"
 
@@ -1051,18 +1052,26 @@ public:   // methods
 		const ExplicitTreeAutCore&          smaller,
 		const ExplicitTreeAutCore&          bigger)
 	{
-		InclParam inclParam;
 		// TODO: set more sensible defaults
-
-		return ExplicitTreeAutCore::CheckInclusion(smaller, bigger, inclParam);
+		return ExplicitTreeAutCore::CheckInclusion(smaller, bigger, InclParam());
 	}
 
 
 	static bool CheckInclusion(
 		const ExplicitTreeAutCore&          smaller,
 		const ExplicitTreeAutCore&          bigger,
-		const VATA::InclParam&              params);
+		const InclParam&                    params)
+	{
+		// create a context to be discarded
+		InclContext context;
+		return ExplicitTreeAutCore::CheckInclusion(smaller, bigger, params, context);
+	}
 
+	static bool CheckInclusion(
+		const ExplicitTreeAutCore&          smaller,
+		const ExplicitTreeAutCore&          bigger,
+		const InclParam&                    params,
+		InclContext&                        context);
 
 	template <
 		class Rel>

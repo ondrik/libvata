@@ -516,17 +516,24 @@ public:   // methods
 		const BDDBUTreeAutCore&     smaller,
 		const BDDBUTreeAutCore&     bigger)
 	{
-		InclParam inclParam;
 		// TODO: set some more sensible defaults
-
-		return BDDBUTreeAutCore::CheckInclusion(smaller, bigger, inclParam);
+		return BDDBUTreeAutCore::CheckInclusion(smaller, bigger, InclParam());
 	}
-
 
 	static bool CheckInclusion(
 		const BDDBUTreeAutCore&     smaller,
 		const BDDBUTreeAutCore&     bigger,
-		const VATA::InclParam&      params);
+		const VATA::InclParam&      params)
+	{
+		InclContext context;
+		return BDDBUTreeAutCore::CheckInclusion(smaller, bigger, params, context);
+	}
+
+	static bool CheckInclusion(
+		const BDDBUTreeAutCore&     smaller,
+		const BDDBUTreeAutCore&     bigger,
+		const VATA::InclParam&      params,
+		InclContext&                context);
 
 
 	BDDTDTreeAutCore GetTopDownAut() const;

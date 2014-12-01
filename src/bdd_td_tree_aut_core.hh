@@ -625,11 +625,21 @@ public:   // methods
 		AutBase::StateToStateMap*     pTranslMapLhs = nullptr,
 		AutBase::StateToStateMap*     pTranslMapRhs = nullptr);
 
+	static bool CheckInclusion(
+		const BDDTDTreeAutCore&       smaller,
+		const BDDTDTreeAutCore&       bigger,
+		const InclParam&              params)
+	{
+		InclContext context;
+
+		return CheckInclusion(smaller, bigger, params, context);
+	}
 
 	static bool CheckInclusion(
 		const BDDTDTreeAutCore&       smaller,
 		const BDDTDTreeAutCore&       bigger,
-		const VATA::InclParam&        params);
+		const InclParam&              params,
+		InclContext&                  context);
 };
 
 

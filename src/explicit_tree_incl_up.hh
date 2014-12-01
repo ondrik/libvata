@@ -75,6 +75,8 @@ class VATA::ExplicitUpwardInclusion
 	typedef std::vector<DoubleIndexedTransitionList> SymbolToDoubleIndexedTransitionListMap;
 	typedef std::vector<SymbolToIndexedTransitionListMap> IndexedSymbolToIndexedTransitionListMap;
 
+	using InclusionTraceType = std::set<TransitionPtr>;
+
 public:
 
 	class AntichainElem;
@@ -261,8 +263,11 @@ public:
 	static bool Check(
 		const Aut&        smaller,
 		const Aut&        bigger,
-		const Rel&        preorder)
+		const Rel&        preorder,
+		InclContext&      context)
 	{
+		context.SetDescription(std::string(__func__) + ": Inclusion context unsupported");
+
 		IndexedSymbolToIndexedTransitionListMap smallerIndex;
 		SymbolToDoubleIndexedTransitionListMap biggerIndex;
 		SymbolToTransitionListMap smallerLeaves, biggerLeaves;
@@ -288,6 +293,8 @@ public:
 
 		preorder.buildIndex(ind, inv);
 
+		InclusionTraceType trace;
+
 		return ExplicitUpwardInclusion::checkInternal(
 			smallerLeaves,
 			smallerIndex,
@@ -296,7 +303,8 @@ public:
 			biggerIndex,
 			bigger.GetFinalStates(),
 			ind,
-			inv
+			inv,
+			trace
 		);
 	}
 
@@ -310,8 +318,8 @@ private:
 		const SymbolToDoubleIndexedTransitionListMap&     biggerIndex,
 		const ExplicitTreeAutCore::FinalStateSet&         biggerFinalStates,
 		const StateDiscontBinaryRelation::IndexType&      ind,
-		const StateDiscontBinaryRelation::IndexType&      inv
-	);
+		const StateDiscontBinaryRelation::IndexType&      inv,
+		InclusionTraceType&                               trace);
 };
 
 #endif

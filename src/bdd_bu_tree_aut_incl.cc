@@ -28,7 +28,8 @@ using VATA::Util::Convert;
 bool BDDBUTreeAutCore::CheckInclusion(
 	const BDDBUTreeAutCore&     smaller,
 	const BDDBUTreeAutCore&     bigger,
-	const VATA::InclParam&      params)
+	const InclParam&            params,
+	InclContext&                context)
 {
 	BDDBUTreeAutCore newSmaller;
 	BDDBUTreeAutCore newBigger;
@@ -36,7 +37,11 @@ bool BDDBUTreeAutCore::CheckInclusion(
 
 	if (InclParam::e_direction::downward == params.GetDirection())
 	{	// for the other direction translate the automaton to the top-down encoding
-		return BDDTDTreeAutCore::CheckInclusion(smaller.GetTopDownAut(), bigger.GetTopDownAut(), params);
+		return BDDTDTreeAutCore::CheckInclusion(
+			smaller.GetTopDownAut(),
+			bigger.GetTopDownAut(),
+			params,
+			context);
 	}
 
 	if (!params.GetUseSimulation())
@@ -54,8 +59,11 @@ bool BDDBUTreeAutCore::CheckInclusion(
 			assert(static_cast<typename AutBase::StateType>(-1) != states);
 
 			return CheckUpwardTreeInclusion<BDDBUTreeAutCore,
-				VATA::UpwardInclusionFunctor>(newSmaller, newBigger,
-					Util::Identity(states));
+				VATA::UpwardInclusionFunctor>(
+					newSmaller,
+					newBigger,
+					Util::Identity(states),
+					context);
 		}
 
 		case InclParam::ANTICHAINS_UP_SIM:
@@ -63,8 +71,11 @@ bool BDDBUTreeAutCore::CheckInclusion(
 			assert(static_cast<typename AutBase::StateType>(-1) == states);
 
 			return CheckUpwardTreeInclusion<BDDBUTreeAutCore,
-				VATA::UpwardInclusionFunctor>(smaller, bigger,
-					params.GetSimulation());
+				VATA::UpwardInclusionFunctor>(
+					smaller,
+					bigger,
+					params.GetSimulation(),
+					context);
 		}
 
 		default:

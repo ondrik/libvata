@@ -24,7 +24,8 @@ using VATA::ExplicitUpwardInclusion;
 bool ExplicitTreeAutCore::CheckInclusion(
 	const ExplicitTreeAutCore&             smaller,
 	const ExplicitTreeAutCore&             bigger,
-	const VATA::InclParam&                 params)
+	const VATA::InclParam&                 params,
+	InclContext&                           context)
 {
 	ExplicitTreeAutCore newSmaller;
 	ExplicitTreeAutCore newBigger;
@@ -45,7 +46,7 @@ bool ExplicitTreeAutCore::CheckInclusion(
 			assert(static_cast<typename AutBase::StateType>(-1) != states);
 
 			return ExplicitUpwardInclusion::Check(newSmaller, newBigger,
-				Util::Identity(states));
+				Util::Identity(states), context);
 		}
 
 		case InclParam::ANTICHAINS_UP_SIM:
@@ -53,7 +54,7 @@ bool ExplicitTreeAutCore::CheckInclusion(
 			assert(static_cast<typename AutBase::StateType>(-1) == states);
 
 			return ExplicitUpwardInclusion::Check(smaller, bigger,
-				params.GetSimulation());
+				params.GetSimulation(), context);
 		}
 
 		case InclParam::ANTICHAINS_DOWN_NONREC_NOSIM:
@@ -61,7 +62,7 @@ bool ExplicitTreeAutCore::CheckInclusion(
 			assert(static_cast<typename AutBase::StateType>(-1) != states);
 
 			return ExplicitDownwardInclusion::Check(newSmaller, newBigger,
-				Util::Identity(states));
+				Util::Identity(states), context);
 		}
 
 		case InclParam::ANTICHAINS_DOWN_NONREC_SIM:
@@ -69,7 +70,7 @@ bool ExplicitTreeAutCore::CheckInclusion(
 			assert(static_cast<typename AutBase::StateType>(-1) == states);
 
 			return ExplicitDownwardInclusion::Check(smaller, bigger,
-				params.GetSimulation());
+				params.GetSimulation(), context);
 		}
 
 		case InclParam::ANTICHAINS_DOWN_REC_NOSIM:
@@ -78,7 +79,7 @@ bool ExplicitTreeAutCore::CheckInclusion(
 
 			return CheckDownwardTreeInclusion<ExplicitTreeAutCore,
 				VATA::DownwardInclusionFunctor>(newSmaller, newBigger,
-					Util::Identity(states));
+					Util::Identity(states), context);
 		}
 
 		case InclParam::ANTICHAINS_DOWN_REC_OPT_NOSIM:
@@ -87,7 +88,7 @@ bool ExplicitTreeAutCore::CheckInclusion(
 
 			return CheckDownwardTreeInclusion<ExplicitTreeAutCore,
 				VATA::OptDownwardInclusionFunctor>(newSmaller, newBigger,
-					Util::Identity(states));
+					Util::Identity(states), context);
 		}
 
 		case InclParam::ANTICHAINS_DOWN_REC_SIM:
@@ -96,7 +97,7 @@ bool ExplicitTreeAutCore::CheckInclusion(
 
 			return CheckDownwardTreeInclusion<ExplicitTreeAutCore,
 				VATA::DownwardInclusionFunctor>(smaller, bigger,
-					params.GetSimulation());
+					params.GetSimulation(), context);
 		}
 
 		case InclParam::ANTICHAINS_DOWN_REC_OPT_SIM:
@@ -105,7 +106,7 @@ bool ExplicitTreeAutCore::CheckInclusion(
 
 			return CheckDownwardTreeInclusion<ExplicitTreeAutCore,
 				VATA::OptDownwardInclusionFunctor>(smaller, bigger,
-					params.GetSimulation());
+					params.GetSimulation(), context);
 		}
 
 		default:
