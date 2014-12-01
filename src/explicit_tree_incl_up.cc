@@ -498,12 +498,8 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 								biggerFinalStates.count(biggerTransition->state());
 						}
 
-						if (post.data().empty())
-						{
-							return false;
-						}
-
-						if (!isAccepting && smallerFinalStates.count(smallerTransition->state()))
+						if (post.data().empty() ||
+							(!isAccepting && smallerFinalStates.count(smallerTransition->state())))
 						{
 							return false;
 						}
