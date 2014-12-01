@@ -35,7 +35,35 @@ typedef typename BiggerTypeCache::TPtr BiggerType;
 typedef typename VATA::Util::Antichain1C<SmallerType> Antichain1C;
 typedef typename VATA::Util::Antichain2Cv2<SmallerType, BiggerType> Antichain2C;
 
-typedef std::pair<SmallerType, Antichain2C::TList::iterator> SmallerBiggerPair;
+class AntichainElem
+{
+public:   // types
+
+	using SmallerStateType  = SmallerType;
+	using BiggerSetType     = Antichain2C::TList::iterator;
+
+private:  // data members
+
+	SmallerStateType smaller_;
+	BiggerSetType bigger_;
+
+public:   // methods
+
+	AntichainElem(const SmallerStateType& smaller, const BiggerSetType& bigger) :
+		smaller_(smaller),
+		bigger_(bigger)
+	{ }
+
+	SmallerStateType GetSmallerState() const
+	{
+		return smaller_;
+	}
+
+	BiggerSetType GetBiggerSet() const
+	{
+		return bigger_;
+	}
+};
 
 
 namespace
@@ -73,18 +101,18 @@ void intersectionByLookup(T1& d, const T2& s)
 struct less
 {
 	bool operator()(
-		const SmallerBiggerPair&       p1,
-		const SmallerBiggerPair&       p2) const
+		const AntichainElem&       p1,
+		const AntichainElem&       p2) const
 	{
-		if ((*p1.second)->size() < (*p2.second)->size()) return true;
-		if ((*p1.second)->size() > (*p2.second)->size()) return false;
-		if (p1.first < p2.first) return true;
-		if (p1.first > p2.first) return false;
-		return (*p1.second).get() < (*p2.second).get();
+		if ((*p1.GetBiggerSet())->size() < (*p2.GetBiggerSet())->size()) return true;
+		if ((*p1.GetBiggerSet())->size() > (*p2.GetBiggerSet())->size()) return false;
+		if (p1.GetSmallerState() < p2.GetSmallerState()) return true;
+		if (p1.GetSmallerState() > p2.GetSmallerState()) return false;
+		return (*p1.GetBiggerSet()).get() < (*p2.GetBiggerSet()).get();
 	}
 };
 
-typedef std::set<SmallerBiggerPair, less> OrderedType;
+typedef std::set<AntichainElem, less> OrderedType;
 
 struct Eraser
 {
@@ -96,7 +124,7 @@ struct Eraser
 		const SmallerType&                               q,
 		const typename Antichain2C::TList::iterator&     Q) const
 	{
-		this->data_.erase(std::make_pair(q, Q));
+		this->data_.erase(AntichainElem(q, Q));
 	}
 };
 
@@ -383,7 +411,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 			Antichain2C::TList::iterator iter = processed.insert(transition->state(), ptr);
 
-			next.insert(std::make_pair(transition->state(), iter));
+			next.insert(AntichainElem(transition->state(), iter));
 		}
 	}
 
@@ -397,8 +425,8 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 	while (!next.empty())
 	{
-		q = next.begin()->first;
-		Q = *next.begin()->second;
+		q = next.begin()->GetSmallerState();
+		Q = *next.begin()->GetBiggerSet();
 
 		next.erase(next.begin());
 
@@ -525,7 +553,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 							Antichain2C::TList::iterator iter =
 								processed.insert(smallerBiggerListPair.first, bigger);
 
-							next.insert(std::make_pair(smallerBiggerListPair.first, iter));
+							next.insert(AntichainElem(smallerBiggerListPair.first, iter));
 						}
 					}
 
