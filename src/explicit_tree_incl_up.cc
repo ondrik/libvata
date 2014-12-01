@@ -35,24 +35,30 @@ typedef typename BiggerTypeCache::TPtr BiggerType;
 typedef typename VATA::Util::Antichain1C<SmallerType> Antichain1C;
 typedef typename VATA::Util::Antichain2Cv2<SmallerType, BiggerType> Antichain2C;
 
-class AntichainElem
+class VATA::ExplicitUpwardInclusion::AntichainElem
 {
 public:   // types
 
 	using SmallerStateType  = SmallerType;
 	using BiggerSetType     = Antichain2C::TList::iterator;
-	// using TraceType         = std::vector<
+	using TraceType         = VATA::ExplicitUpwardInclusion::TransitionList;
+	// using TraceType         = VATA::ExplicitUpwardInclusion::TransitionList;
 
 private:  // data members
 
 	SmallerStateType smaller_;
 	BiggerSetType bigger_;
+	TraceType trace_;
 
 public:   // methods
 
-	AntichainElem(const SmallerStateType& smaller, const BiggerSetType& bigger) :
+	AntichainElem(
+		const SmallerStateType&   smaller,
+		const BiggerSetType&      bigger,
+		const TraceType&          trace = {}) :
 		smaller_(smaller),
-		bigger_(bigger)
+		bigger_(bigger),
+		trace_(trace)
 	{ }
 
 	SmallerStateType GetSmallerState() const
@@ -64,8 +70,28 @@ public:   // methods
 	{
 		return bigger_;
 	}
+
+	void AppendToTrace(const TransitionPtr& trans)
+	{
+		trace_.push_back(trans);
+	}
+
+	struct less
+	{
+		bool operator()(
+			const AntichainElem&       p1,
+			const AntichainElem&       p2) const
+		{
+			if ((*p1.GetBiggerSet())->size() < (*p2.GetBiggerSet())->size()) return true;
+			if ((*p1.GetBiggerSet())->size() > (*p2.GetBiggerSet())->size()) return false;
+			if (p1.GetSmallerState() < p2.GetSmallerState()) return true;
+			if (p1.GetSmallerState() > p2.GetSmallerState()) return false;
+			return (*p1.GetBiggerSet()).get() < (*p2.GetBiggerSet()).get();
+		}
+	};
 };
 
+using AntichainElem = VATA::ExplicitUpwardInclusion::AntichainElem;
 
 namespace
 {	// anonymous namespace
@@ -98,22 +124,7 @@ void intersectionByLookup(T1& d, const T2& s)
 	}
 }
 
-
-struct less
-{
-	bool operator()(
-		const AntichainElem&       p1,
-		const AntichainElem&       p2) const
-	{
-		if ((*p1.GetBiggerSet())->size() < (*p2.GetBiggerSet())->size()) return true;
-		if ((*p1.GetBiggerSet())->size() > (*p2.GetBiggerSet())->size()) return false;
-		if (p1.GetSmallerState() < p2.GetSmallerState()) return true;
-		if (p1.GetSmallerState() > p2.GetSmallerState()) return false;
-		return (*p1.GetBiggerSet()).get() < (*p2.GetBiggerSet()).get();
-	}
-};
-
-typedef std::set<AntichainElem, less> OrderedType;
+using OrderedType = std::set<AntichainElem, AntichainElem::less>;
 
 struct Eraser
 {
@@ -443,7 +454,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 			{
 				for (const TransitionPtr& smallerTransition : smallerTransitions)
 				{
-					assert(smallerTransition);
+					assert(nullptr != smallerTransition);
 
 					if (!choiceVector.build(smallerTransition->children(), j))
 					{
@@ -454,11 +465,11 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 					{
 						post.clear();
 
-						assert(choiceVector(0));
+						assert(nullptr != choiceVector(0));
 
 						auto firstSet = evalTransitions(symbol, 0, choiceVector(0).get());
 
-						assert(firstSet);
+						assert(nullptr != firstSet);
 
 						std::list<const Transition*> biggerTransitions(
 							firstSet->begin(), firstSet->end()
@@ -466,13 +477,13 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 						for (size_t k = 1; k < choiceVector.size(); ++k)
 						{
-							assert(choiceVector(k));
+							assert(nullptr != choiceVector(k));
 
 							auto transitions = evalTransitions(
 								symbol, k, choiceVector(k).get()
 							);
 
-							assert(transitions);
+							assert(nullptr != transitions);
 
 							intersectionByLookup(biggerTransitions, *transitions);
 						}
@@ -480,7 +491,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 						bool isBiggerAccepting = false;
 						for (auto& biggerTransition : biggerTransitions)
 						{
-							assert(biggerTransition);
+							assert(nullptr != biggerTransition);
 							assert(biggerTransition->state() < ind.size());
 
 							if (post.contains(ind.at(biggerTransition->state())))
@@ -502,7 +513,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 							!= smallerFinalStates.find(smallerTransition->state()));
 						if (post.data().empty() ||
 							(!isBiggerAccepting && isSmallerAccepting))
-						{
+						{	// if the smaller can accept and the bigger cannot, we found a witness
 							return false;
 						}
 

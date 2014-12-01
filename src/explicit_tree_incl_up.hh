@@ -75,6 +75,12 @@ class VATA::ExplicitUpwardInclusion
 	typedef std::vector<DoubleIndexedTransitionList> SymbolToDoubleIndexedTransitionListMap;
 	typedef std::vector<SymbolToIndexedTransitionListMap> IndexedSymbolToIndexedTransitionListMap;
 
+public:
+
+	class AntichainElem;
+
+private:
+
 	// TODO: rewrite using the DownAccessor?
 	template <class Aut, class SymbolIndex>
 	static void bottomUpIndex(
