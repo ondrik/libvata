@@ -638,7 +638,20 @@ AutBase::StateDiscontBinaryRelation ExplicitTreeAut::ComputeSimulation(
 bool ExplicitTreeAut::CheckInclusion(
 	const ExplicitTreeAut&                 smaller,
 	const ExplicitTreeAut&                 bigger,
-	const VATA::InclParam&                 params)
+	const InclParam&                       params,
+	InclContext&                           context)
+{
+	assert(nullptr != smaller.core_);
+	assert(nullptr != bigger.core_);
+
+	return CoreAut::CheckInclusion(*smaller.core_, *bigger.core_, params, context);
+}
+
+
+bool ExplicitTreeAut::CheckInclusion(
+	const ExplicitTreeAut&                 smaller,
+	const ExplicitTreeAut&                 bigger,
+	const InclParam&                       params)
 {
 	assert(nullptr != smaller.core_);
 	assert(nullptr != bigger.core_);

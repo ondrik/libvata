@@ -25,6 +25,11 @@ namespace VATA
 		{
 			description_ = desc;
 		}
+
+		const std::string& GetDescription() const
+		{
+			return description_;
+		}
 	};
 }
 

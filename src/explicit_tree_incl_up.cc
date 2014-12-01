@@ -256,7 +256,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 	const ExplicitTreeAutCore::FinalStateSet&         biggerFinalStates,
 	const StateDiscontBinaryRelation::IndexType&      ind,
 	const StateDiscontBinaryRelation::IndexType&      inv,
-	InclusionTraceType&                               trace)
+	InclContext&                                      context)
 {
 	auto noncachedLte = [&ind](const StateSet* x, const StateSet* y) -> bool
 	{
@@ -364,6 +364,8 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 	if (biggerLeaves.size() < smallerLeaves.size())
 	{
+		context.SetDescription("Inclusion refuted! Reason: leaves set sizes incompatible");
+
 		return false;
 	}
 
@@ -403,6 +405,8 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 			if (!isAccepting && smallerFinalStates.count(transition->state()))
 			{
+				context.SetDescription("Inclusion refuted! Reason: leaves not covered");
+
 				return false;
 			}
 
@@ -519,6 +523,8 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 						if (post.data().empty() ||
 							(!isBiggerAccepting && isSmallerAccepting))
 						{	// if the smaller can accept and the bigger cannot, we found a witness
+							context.SetDescription("Inclusion refuted! Reason: smaller accepts, bigger does not");
+
 							return false;
 						}
 
@@ -578,6 +584,8 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 			}
 		}
 	}
+
+	context.SetDescription("Inclusion proved!");
 
 	return true;
 }

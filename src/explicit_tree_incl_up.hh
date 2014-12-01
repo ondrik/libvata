@@ -266,8 +266,6 @@ public:
 		const Rel&        preorder,
 		InclContext&      context)
 	{
-		context.SetDescription(std::string(__func__) + ": Inclusion context unsupported");
-
 		IndexedSymbolToIndexedTransitionListMap smallerIndex;
 		SymbolToDoubleIndexedTransitionListMap biggerIndex;
 		SymbolToTransitionListMap smallerLeaves, biggerLeaves;
@@ -293,9 +291,7 @@ public:
 
 		preorder.buildIndex(ind, inv);
 
-		InclusionTraceType trace;
-
-		return ExplicitUpwardInclusion::checkInternal(
+		bool isIncl = ExplicitUpwardInclusion::checkInternal(
 			smallerLeaves,
 			smallerIndex,
 			smaller.GetFinalStates(),
@@ -304,8 +300,10 @@ public:
 			bigger.GetFinalStates(),
 			ind,
 			inv,
-			trace
+			context
 		);
+
+		return isIncl;
 	}
 
 private:
@@ -319,7 +317,7 @@ private:
 		const ExplicitTreeAutCore::FinalStateSet&         biggerFinalStates,
 		const StateDiscontBinaryRelation::IndexType&      ind,
 		const StateDiscontBinaryRelation::IndexType&      inv,
-		InclusionTraceType&                               trace);
+		InclContext&                                      context);
 };
 
 #endif
