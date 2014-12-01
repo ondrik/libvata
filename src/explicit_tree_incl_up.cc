@@ -41,6 +41,7 @@ public:   // types
 
 	using SmallerStateType  = SmallerType;
 	using BiggerSetType     = Antichain2C::TList::iterator;
+	// using TraceType         = std::vector<
 
 private:  // data members
 
@@ -432,15 +433,15 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 		// Post(processed)
 
-		auto& smallerTransitionIndex = smallerIndex[q];
+		const SymbolToIndexedTransitionListMap& smallerTransitionIndex = smallerIndex[q];
 
 		for (size_t symbol = 0; symbol < smallerTransitionIndex.size(); ++symbol)
 		{
 			size_t j = 0;
 
-			for (auto& smallerTransitions : smallerTransitionIndex[symbol])
+			for (const TransitionList& smallerTransitions : smallerTransitionIndex[symbol])
 			{
-				for (auto& smallerTransition : smallerTransitions)
+				for (const TransitionPtr& smallerTransition : smallerTransitions)
 				{
 					assert(smallerTransition);
 
