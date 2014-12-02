@@ -3,6 +3,7 @@
 // VATA headers
 #include <vata/explicit_tree_aut.hh>
 #include <vata/parsing/timbuk_parser.hh>
+#include <vata/serialization/timbuk_serializer.hh>
 
 const char* aut1Str =
 	"Ops           a:0 b:2 c:2\n"
@@ -43,6 +44,10 @@ int main()
 	std::unique_ptr<VATA::Parsing::AbstrParser> parser(
 		new VATA::Parsing::TimbukParser());
 
+	// create the serializer for the Timbuk format
+	std::unique_ptr<VATA::Serialization::AbstrSerializer> serializer(
+		new VATA::Serialization::TimbukSerializer());
+
 	// create the dictionaries for translating state names to internal state numbers
 	VATA::AutBase::StateDict stateDict1;
 	VATA::AutBase::StateDict stateDict2;
@@ -62,5 +67,7 @@ int main()
 	if (!isIncl)
 	{	// if inclusion does not hold, print a witness
 		std::cout << context.GetDescription() << "\n";
+		std::cout << "Witness:\n";
+		std::cout << context.GetWitness().DumpToString(*serializer, stateDict1);
 	}
 }

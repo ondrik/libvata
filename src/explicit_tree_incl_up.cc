@@ -75,6 +75,26 @@ public:   // methods
 		trace_.insert(trans);
 	}
 
+	const TraceType& GetTrace() const
+	{
+		return trace_;
+	}
+
+	static ExplicitTreeAutCore ConvertTraceToAut(const TraceType& trace)
+	{
+		ExplicitTreeAutCore aut;
+
+		for (const TransitionPtr& trans : trace)
+		{
+			aut.AddTransition(
+				trans->children(),
+				trans->symbol(),
+				trans->state());
+		}
+
+		return aut;
+	}
+
 	struct less
 	{
 		bool operator()(
@@ -122,6 +142,7 @@ void intersectionByLookup(T1& d, const T2& s)
 			++i;
 	}
 }
+
 
 using OrderedType = std::set<AntichainElem, AntichainElem::less>;
 
@@ -364,7 +385,8 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 	if (biggerLeaves.size() < smallerLeaves.size())
 	{
-		context.SetDescription("Inclusion refuted! Reason: leaves set sizes incompatible");
+		context.SetDescription("Inclusion refuted! Reason: leaves set sizes incompatible.\n"
+			"Witness NOT provided");
 
 		return false;
 	}
@@ -405,7 +427,8 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 			if (!isAccepting && smallerFinalStates.count(transition->state()))
 			{
-				context.SetDescription("Inclusion refuted! Reason: leaves not covered");
+				context.SetDescription("Inclusion refuted! Reason: leaves not covered.\n"
+					"Witness NOT provided");
 
 				return false;
 			}
@@ -446,6 +469,10 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 	{
 		q = next.begin()->GetSmallerState();
 		Q = *next.begin()->GetBiggerSet();
+
+		// TODO: this might be done in a more efficient way...
+		AntichainElem::TraceType trace = next.begin()->GetTrace();
+
 
 		next.erase(next.begin());
 
@@ -524,6 +551,8 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 							(!isBiggerAccepting && isSmallerAccepting))
 						{	// if the smaller can accept and the bigger cannot, we found a witness
 							context.SetDescription("Inclusion refuted! Reason: smaller accepts, bigger does not");
+							// TODO: this is probably wrong...
+							context.SetWitness(AntichainElem::ConvertTraceToAut(trace));
 
 							return false;
 						}
