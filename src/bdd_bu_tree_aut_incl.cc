@@ -37,11 +37,18 @@ bool BDDBUTreeAutCore::CheckInclusion(
 
 	if (InclParam::e_direction::downward == params.GetDirection())
 	{	// for the other direction translate the automaton to the top-down encoding
-		return BDDTDTreeAutCore::CheckInclusion(
+		BDDTDTreeAutCore::InclContext inclCtx;
+		bool isIncl =  BDDTDTreeAutCore::CheckInclusion(
 			smaller.GetTopDownAut(),
 			bigger.GetTopDownAut(),
 			params,
-			context);
+			inclCtx);
+
+		context.SetDescription(std::string(__func__) +
+			": no conversion from BDDTDTreeAutCore::InclContext"
+			" to BDDBUTreeAutCore::InclContext");
+
+		return isIncl;
 	}
 
 	if (!params.GetUseSimulation())

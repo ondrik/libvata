@@ -41,6 +41,8 @@ public:   // data types
 	using TransTable      = Util::TransTableWrapper<MTBDDHandle, StateSet>;
 	using TransMTBDD      = TransTable::TransMTBDD;
 
+	using InclContext     = VATA::InclContext<BDDBUTreeAutCore>;
+
 private:  // data types
 
 	using BDD             = MTBDDPkg::OndriksMTBDD<bool>;

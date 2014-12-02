@@ -111,7 +111,7 @@ public:   // public data types
 	using StringSymbolToSymbolTranslStrict= Util::TranslatorStrict<SymbolDict>;
 	using SymbolBackTranslStrict          = Util::TranslatorStrict<SymbolDict::MapBwdType>;
 
-	using InclContext         = VATA::InclContext;
+	using InclContext         = VATA::InclContext<ExplicitTreeAut>;
 
 
 	class AbstractCopyF

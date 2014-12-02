@@ -50,6 +50,8 @@ public:   // data types
 
 	using TransMTBDD   = MTBDDPkg::OndriksMTBDD<StateTupleSet>;
 
+	using InclContext  = VATA::InclContext<BDDTDTreeAutCore>;
+
 private:  // data types
 
 	using StateSet                  = std::unordered_set<StateType>;

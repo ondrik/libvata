@@ -272,7 +272,11 @@ bool BDDBottomUpTreeAut::CheckInclusion(
 	assert(nullptr != smaller.core_);
 	assert(nullptr != bigger.core_);
 
-	return CoreAut::CheckInclusion(*smaller.core_, *bigger.core_, params, context);
+	CoreAut::InclContext ctx;
+	bool isIncl = CoreAut::CheckInclusion(*smaller.core_, *bigger.core_, params, ctx);
+
+	context.SetWitness(BDDBottomUpTreeAut(ctx.GetWitness()));
+	return isIncl;
 }
 
 BDDBottomUpTreeAut BDDBottomUpTreeAut::Union(

@@ -61,6 +61,8 @@ private:  // data types
 
 	using CoreAut        = VATA::LoadableAut<BDDTDTreeAutCore>;
 
+	using InclContext    = VATA::InclContext<BDDTopDownTreeAut>;
+
 private:  // data members
 
 	std::unique_ptr<CoreAut> core_;

@@ -383,6 +383,8 @@ public:   // data types
 
 	using AbstractAlphabet = ExplicitTreeAut::AbstractAlphabet;
 
+	using InclContext      = VATA::InclContext<ExplicitTreeAutCore>;
+
 private:  // data types
 
 

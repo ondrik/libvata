@@ -644,7 +644,12 @@ bool ExplicitTreeAut::CheckInclusion(
 	assert(nullptr != smaller.core_);
 	assert(nullptr != bigger.core_);
 
-	return CoreAut::CheckInclusion(*smaller.core_, *bigger.core_, params, context);
+	CoreAut::InclContext inclCtx;
+	bool isIncl = CoreAut::CheckInclusion(*smaller.core_, *bigger.core_, params, inclCtx);
+
+	context.CopyGeneralFrom(inclCtx);
+	context.SetWitness(ExplicitTreeAut(inclCtx.GetWitness()));
+	return isIncl;
 }
 
 

@@ -25,10 +25,10 @@ namespace VATA
 		class Rel
 	>
 	bool CheckDownwardTreeInclusion(
-		const Aut&     smaller,
-		const Aut&     bigger,
-		const Rel&     preorder,
-		InclContext&   context);
+		const Aut&                   smaller,
+		const Aut&                   bigger,
+		const Rel&                   preorder,
+		typename Aut::InclContext&   context);
 }
 
 /**
@@ -46,10 +46,10 @@ template
 	class Rel
 >
 bool VATA::CheckDownwardTreeInclusion(
-	const Aut&     smaller,
-	const Aut&     bigger,
-	const Rel&     preorder,
-	InclContext&   context)
+	const Aut&                   smaller,
+	const Aut&                   bigger,
+	const Rel&                   preorder,
+	typename Aut::InclContext&   context)
 {
 	context.SetDescription(std::string(__func__) + ": Inclusion context unsupported");
 	typedef DownwardInclFctor<Aut, Rel> InclFctor;

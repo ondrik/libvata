@@ -41,7 +41,7 @@ public:   // types
 
 	using SmallerStateType  = SmallerType;
 	using BiggerSetType     = Antichain2C::TList::iterator;
-	using TraceType         = InclusionTraceType;
+	using TraceType         = std::set<TransitionPtr>;
 
 private:  // data members
 

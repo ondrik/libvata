@@ -75,7 +75,7 @@ class VATA::ExplicitUpwardInclusion
 	typedef std::vector<DoubleIndexedTransitionList> SymbolToDoubleIndexedTransitionListMap;
 	typedef std::vector<SymbolToIndexedTransitionListMap> IndexedSymbolToIndexedTransitionListMap;
 
-	using InclusionTraceType = std::set<TransitionPtr>;
+	using InclContext = ExplicitTreeAutCore::InclContext;
 
 public:
 
@@ -261,10 +261,10 @@ public:
 		class Aut,
 		class Rel>
 	static bool Check(
-		const Aut&        smaller,
-		const Aut&        bigger,
-		const Rel&        preorder,
-		InclContext&      context)
+		const Aut&                      smaller,
+		const Aut&                      bigger,
+		const Rel&                      preorder,
+		typename Aut::InclContext&      context)
 	{
 		IndexedSymbolToIndexedTransitionListMap smallerIndex;
 		SymbolToDoubleIndexedTransitionListMap biggerIndex;

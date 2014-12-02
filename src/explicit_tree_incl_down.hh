@@ -78,10 +78,10 @@ public:
 		class Aut,
 		class Rel>
 	static bool Check(
-		const Aut&            smaller,
-		const Aut&            bigger,
-		const Rel&            preorder,
-		InclContext&          context)
+		const Aut&                     smaller,
+		const Aut&                     bigger,
+		const Rel&                     preorder,
+		typename Aut::InclContext&     context)
 	{
 		context.SetDescription(std::string(__func__) + ": Inclusion context unsupported");
 		DoubleIndexedTupleList smallerIndex, biggerIndex;
