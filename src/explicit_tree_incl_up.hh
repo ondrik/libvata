@@ -23,6 +23,8 @@ class VATA::ExplicitUpwardInclusion
 	using StateTuple     = ExplicitTreeAutCore::StateTuple;
 	using StateDiscontBinaryRelation = ExplicitTreeAutCore::StateDiscontBinaryRelation;
 
+public:   // data types
+
 	class Transition
 	{
 	private:  // data members
@@ -76,10 +78,6 @@ class VATA::ExplicitUpwardInclusion
 	typedef std::vector<SymbolToIndexedTransitionListMap> IndexedSymbolToIndexedTransitionListMap;
 
 	using InclContext = ExplicitTreeAutCore::InclContext;
-
-public:
-
-	class AntichainElem;
 
 private:
 

@@ -23,26 +23,60 @@
 #include "util/cached_binary_op.hh"
 
 using VATA::Util::Convert;
+using VATA::ExplicitUpwardInclusion;
+using VATA::ExplicitTreeAutCore;
 
 typedef VATA::ExplicitTreeAutCore::StateType SmallerType;
 typedef std::vector<VATA::ExplicitTreeAutCore::StateType> StateSet;
 
 typedef size_t SymbolType;
 
-typedef typename VATA::Util::Cache<StateSet> BiggerTypeCache;
+using WitnessTrace      = std::set<ExplicitUpwardInclusion::TransitionPtr>;
+
+namespace
+{
+	struct SetTracePair
+	{
+		StateSet        set = {};
+		WitnessTrace    trace = {};
+
+		size_t size() const
+		{
+			return set.size();
+		}
+
+		bool operator==(const SetTracePair& rhs) const
+		{
+			return set == rhs.set;
+		}
+	};
+
+	std::size_t hash_value(SetTracePair const& stp)
+	{
+		boost::hash<StateSet> hasher;
+		return hasher(stp.set);
+	}
+}
+
+
+typedef typename VATA::Util::Cache<SetTracePair> BiggerTypeCache;
+// typedef typename VATA::Util::Cache<StateSet> BiggerTypeCache;
 
 typedef typename BiggerTypeCache::TPtr BiggerType;
 
 typedef typename VATA::Util::Antichain1C<SmallerType> Antichain1C;
 typedef typename VATA::Util::Antichain2Cv2<SmallerType, BiggerType> Antichain2C;
 
-class VATA::ExplicitUpwardInclusion::AntichainElem
+
+class AntichainElem
 {
 public:   // types
 
 	using SmallerStateType  = SmallerType;
 	using BiggerSetType     = Antichain2C::TList::iterator;
-	using TraceType         = std::set<TransitionPtr>;
+	using TraceType         = WitnessTrace;
+	using TransitionPtr     = ExplicitUpwardInclusion::TransitionPtr;
+	using StateType         = ExplicitTreeAutCore::StateType;
 
 private:  // data members
 
@@ -114,8 +148,6 @@ public:   // methods
 		}
 	};
 };
-
-using AntichainElem = VATA::ExplicitUpwardInclusion::AntichainElem;
 
 namespace
 {	// anonymous namespace
@@ -309,7 +341,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 		assert(nullptr != x);
 		assert(nullptr != y);
 
-		return (x.get() == y.get())?(true):(lteCache.lookup(x.get(), y.get(), noncachedLte));
+		return (x.get() == y.get())?(true):(lteCache.lookup(&x.get()->set, &y.get()->set, noncachedLte));
 	};
 
 	auto gte = [&lte](const BiggerType& x, const BiggerType& y) { return lte(y, x); };
@@ -370,13 +402,13 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 		};
 
 	BiggerTypeCache biggerTypeCache(
-		[&lteCache, &evalTransitionsCache](const StateSet* v)
+		[&lteCache, &evalTransitionsCache](const SetTracePair* v)
 		{
 			assert(nullptr != v);
 
-			lteCache.invalidateFirst(v);
-			lteCache.invalidateSecond(v);
-			evalTransitionsCache.invalidateSecond(v);
+			lteCache.invalidateFirst(&v->set);
+			lteCache.invalidateSecond(&v->set);
+			evalTransitionsCache.invalidateSecond(&v->set);
 		}
 	);
 
@@ -424,7 +456,13 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 		std::sort(tmp.begin(), tmp.end());
 
-		auto ptr = biggerTypeCache.lookup(tmp);
+		// TODO: check if this is OK...
+		SetTracePair stp;
+		stp.set = tmp;
+		// TODO: I don't know whether the trace should stay empty here
+
+		auto ptr = biggerTypeCache.lookup(stp);
+		// auto ptr = biggerTypeCache.lookup(tmp);
 
 		for (auto& transition : smallerLeaves[symbol])
 		{
@@ -530,7 +568,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 						assert(nullptr != choiceVector(0));
 
-						auto firstSet = evalTransitions(symbol, 0, choiceVector(0).get());
+						auto firstSet = evalTransitions(symbol, 0, &choiceVector(0).get()->set);
 
 						assert(nullptr != firstSet);
 
@@ -545,7 +583,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 							assert(nullptr != choiceVector(k));
 
 							auto transitions = evalTransitions(
-								symbol, k, choiceVector(k).get()
+								symbol, k, &choiceVector(k).get()->set
 							);
 
 							assert(nullptr != transitions);
@@ -609,7 +647,14 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 							continue;
 						}
 
-						auto ptr = biggerTypeCache.lookup(tmp);
+						// TODO: check if this is OK...
+						SetTracePair stp;
+						stp.set = tmp;
+						stp.trace = trace;
+						stp.trace.insert(smallerTransition);
+
+						auto ptr = biggerTypeCache.lookup(stp);
+						// auto ptr = biggerTypeCache.lookup(tmp);
 
 						if (temporary.contains(ind.at(smallerTransition->state()), ptr, lte))
 						{
