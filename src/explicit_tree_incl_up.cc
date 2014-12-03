@@ -34,30 +34,29 @@ typedef size_t SymbolType;
 using WitnessTrace      = std::set<ExplicitUpwardInclusion::TransitionPtr>;
 
 namespace
+{	// anonymous namespace
+
+struct SetTracePair
 {
-	struct SetTracePair
+	StateSet        set = {};
+	WitnessTrace    trace = {};
+
+	size_t size() const
 	{
-		StateSet        set = {};
-		WitnessTrace    trace = {};
-
-		size_t size() const
-		{
-			return set.size();
-		}
-
-		bool operator==(const SetTracePair& rhs) const
-		{
-			return set == rhs.set;
-		}
-	};
-
-	std::size_t hash_value(SetTracePair const& stp)
-	{
-		boost::hash<StateSet> hasher;
-		return hasher(stp.set);
+		return set.size();
 	}
-}
 
+	bool operator==(const SetTracePair& rhs) const
+	{
+		return set == rhs.set;
+	}
+};
+
+std::size_t hash_value(SetTracePair const& stp)
+{
+	boost::hash<StateSet> hasher;
+	return hasher(stp.set);
+}
 
 typedef typename VATA::Util::Cache<SetTracePair> BiggerTypeCache;
 // typedef typename VATA::Util::Cache<StateSet> BiggerTypeCache;
@@ -148,9 +147,6 @@ public:   // methods
 		}
 	};
 };
-
-namespace
-{	// anonymous namespace
 
 template <class T1, class T2>
 bool checkIntersection(const T1& s1, const T2& s2)
@@ -468,7 +464,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 		{
 			assert(nullptr != transition);
 
-			VATA_DEBUG("Processing transition " + VATA::Util::Convert::ToString(*transition));
+			// VATA_DEBUG("Processing transition " + Convert::ToString(*transition));
 
 			if (!isAccepting && smallerFinalStates.count(transition->state()))
 			{
@@ -510,22 +506,22 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 	ChoiceVector choiceVector(processed, fixedList);
 
-	VATA_DEBUG("Printing transitions of the bigger guy:");
-	for (const auto& biggerTransitionIndex : biggerIndex)
-	{
-		for (size_t symbol = 0; symbol < biggerTransitionIndex.size(); ++symbol)
-		{
-			for (const TransitionList& biggerTransitions : biggerTransitionIndex[symbol])
-			{
-				for (const TransitionPtr& biggerTransition : biggerTransitions)
-				{
-					assert(nullptr != biggerTransition);
-
-					VATA_DEBUG("Transition " + Convert::ToString(*biggerTransition));
-				}
-			}
-		}
-	}
+	// VATA_DEBUG("Printing transitions of the bigger guy:");
+	// for (const auto& biggerTransitionIndex : biggerIndex)
+	// {
+	// 	for (size_t symbol = 0; symbol < biggerTransitionIndex.size(); ++symbol)
+	// 	{
+	// 		for (const TransitionList& biggerTransitions : biggerTransitionIndex[symbol])
+	// 		{
+	// 			for (const TransitionPtr& biggerTransition : biggerTransitions)
+	// 			{
+	// 				assert(nullptr != biggerTransition);
+  //
+	// 				VATA_DEBUG("Transition " + Convert::ToString(*biggerTransition));
+	// 			}
+	// 		}
+	// 	}
+	// }
 
 	while (!next.empty())
 	{
@@ -539,7 +535,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 		assert(q < inv.size());
 
-		VATA_DEBUG("Processing smaller state " + VATA::Util::Convert::ToString(q));
+		// VATA_DEBUG("Processing smaller state " + Convert::ToString(q));
 
 		// Post(processed)
 
@@ -555,7 +551,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 				{
 					assert(nullptr != smallerTransition);
 
-					VATA_DEBUG("Processing transition " + VATA::Util::Convert::ToString(*smallerTransition));
+					// VATA_DEBUG("Processing transition " + Convert::ToString(*smallerTransition));
 
 					if (!choiceVector.build(smallerTransition->children(), j))
 					{
@@ -572,7 +568,8 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 						assert(nullptr != firstSet);
 
-						VATA_DEBUG("firstSet = " + Convert::ToString(*firstSet));
+						// VATA_DEBUG("firstSet = " + Convert::ToString(*firstSet) +
+						// 	" (is this even relevant?)");
 
 						std::list<const Transition*> biggerTransitions(
 							firstSet->begin(), firstSet->end()
@@ -617,7 +614,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 						if (post.data().empty() ||
 							(!isBiggerAccepting && isSmallerAccepting))
 						{	// if the smaller can accept and the bigger cannot, we found a witness
-							VATA_DEBUG("Failing trans: " + VATA::Util::Convert::ToString(*smallerTransition));
+							// VATA_DEBUG("Failing trans: " + VATA::Util::Convert::ToString(*smallerTransition));
 							if (post.data().empty())
 							{
 								context.SetDescription("Inclusion refuted! Reason: bigger post() empty");
@@ -625,6 +622,15 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 							else
 							{
 								context.SetDescription("Inclusion refuted! Reason: smaller accepts, bigger does not");
+							}
+
+							// Now, we insert the relevant traces from all children of the transition
+							// TODO: fix, we are inserting again those that are already
+							// present in 'trace'
+							for (size_t i = 0; i < choiceVector.size(); ++i)
+							{
+								const WitnessTrace& oldTrace = choiceVector(i)->trace;
+								trace.insert(oldTrace.begin(), oldTrace.end());
 							}
 
 							trace.insert(smallerTransition);

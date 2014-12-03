@@ -68,6 +68,6 @@ int main()
 	{	// if inclusion does not hold, print a witness
 		std::cout << context.GetDescription() << "\n";
 		std::cout << "Witness:\n";
-		std::cout << context.GetWitness().DumpToString(*serializer, stateDict1);
+		std::cout << context.GetWitness().DumpToString(*serializer);
 	}
 }
