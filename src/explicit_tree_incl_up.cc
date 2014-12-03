@@ -22,6 +22,7 @@
 #include "util/cache.hh"
 #include "util/cached_binary_op.hh"
 
+using VATA::Util::Convert;
 
 typedef VATA::ExplicitTreeAutCore::StateType SmallerType;
 typedef std::vector<VATA::ExplicitTreeAutCore::StateType> StateSet;
@@ -80,7 +81,9 @@ public:   // methods
 		return trace_;
 	}
 
-	static ExplicitTreeAutCore ConvertTraceToAut(const TraceType& trace)
+	static ExplicitTreeAutCore ConvertTraceToAut(
+		const TraceType&    trace,
+		StateType           finalState)
 	{
 		ExplicitTreeAutCore aut;
 
@@ -91,6 +94,8 @@ public:   // methods
 				trans->symbol(),
 				trans->state());
 		}
+
+		aut.SetStateFinal(finalState);
 
 		return aut;
 	}
@@ -425,6 +430,8 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 		{
 			assert(nullptr != transition);
 
+			VATA_DEBUG("Processing transition " + VATA::Util::Convert::ToString(*transition));
+
 			if (!isAccepting && smallerFinalStates.count(transition->state()))
 			{
 				context.SetDescription("Inclusion refuted! Reason: leaves not covered.\n"
@@ -465,6 +472,23 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 	ChoiceVector choiceVector(processed, fixedList);
 
+	VATA_DEBUG("Printing transitions of the bigger guy:");
+	for (const auto& biggerTransitionIndex : biggerIndex)
+	{
+		for (size_t symbol = 0; symbol < biggerTransitionIndex.size(); ++symbol)
+		{
+			for (const TransitionList& biggerTransitions : biggerTransitionIndex[symbol])
+			{
+				for (const TransitionPtr& biggerTransition : biggerTransitions)
+				{
+					assert(nullptr != biggerTransition);
+
+					VATA_DEBUG("Transition " + Convert::ToString(*biggerTransition));
+				}
+			}
+		}
+	}
+
 	while (!next.empty())
 	{
 		q = next.begin()->GetSmallerState();
@@ -473,10 +497,11 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 		// TODO: this might be done in a more efficient way...
 		AntichainElem::TraceType trace = next.begin()->GetTrace();
 
-
 		next.erase(next.begin());
 
 		assert(q < inv.size());
+
+		VATA_DEBUG("Processing smaller state " + VATA::Util::Convert::ToString(q));
 
 		// Post(processed)
 
@@ -492,6 +517,8 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 				{
 					assert(nullptr != smallerTransition);
 
+					VATA_DEBUG("Processing transition " + VATA::Util::Convert::ToString(*smallerTransition));
+
 					if (!choiceVector.build(smallerTransition->children(), j))
 					{
 						continue;
@@ -506,6 +533,8 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 						auto firstSet = evalTransitions(symbol, 0, choiceVector(0).get());
 
 						assert(nullptr != firstSet);
+
+						VATA_DEBUG("firstSet = " + Convert::ToString(*firstSet));
 
 						std::list<const Transition*> biggerTransitions(
 							firstSet->begin(), firstSet->end()
@@ -550,9 +579,21 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 						if (post.data().empty() ||
 							(!isBiggerAccepting && isSmallerAccepting))
 						{	// if the smaller can accept and the bigger cannot, we found a witness
-							context.SetDescription("Inclusion refuted! Reason: smaller accepts, bigger does not");
+							VATA_DEBUG("Failing trans: " + VATA::Util::Convert::ToString(*smallerTransition));
+							if (post.data().empty())
+							{
+								context.SetDescription("Inclusion refuted! Reason: bigger post() empty");
+							}
+							else
+							{
+								context.SetDescription("Inclusion refuted! Reason: smaller accepts, bigger does not");
+							}
+
+							trace.insert(smallerTransition);
+
 							// TODO: this is probably wrong...
-							context.SetWitness(AntichainElem::ConvertTraceToAut(trace));
+							context.SetWitness(AntichainElem::ConvertTraceToAut(trace,
+								smallerTransition->state()));
 
 							return false;
 						}
@@ -602,7 +643,9 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 							Antichain2C::TList::iterator iter =
 								processed.insert(smallerBiggerListPair.first, bigger);
 
-							next.insert(AntichainElem(smallerBiggerListPair.first, iter));
+							AntichainElem newElem(smallerBiggerListPair.first, iter, trace);
+							newElem.AppendToTrace(smallerTransition);
+							next.insert(newElem);
 						}
 					}
 
