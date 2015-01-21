@@ -86,6 +86,7 @@ StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
 	}
 	else
 	{
+		// TODO: here, we should be able to compute the number of states in the TA
 		throw NotImplementedException(__func__);
 	}
 }

@@ -802,6 +802,29 @@ public:   // methods
 		return *this;
 	}
 
+	std::string ToString() const
+	{
+		std::ostringstream str;
+
+		str << "{";
+		bool placeComma = false;
+		for (auto firstStateToMappedPair : dict_)
+		{	// iterate over all pairs
+			for (auto secondStateToMappedPair : dict_)
+			{
+				if (this->get(firstStateToMappedPair.first, secondStateToMappedPair.first))
+				{	// if the pair is in the relation print
+					str << (placeComma? ", " : "");
+					str << "(" << firstStateToMappedPair.first << ", " <<
+						secondStateToMappedPair.first << ")";
+					placeComma = true;
+				}
+			}
+		}
+		str << "}";
+
+		return str.str();
+	}
 
 	/**
 	 * @brief  Output stream operator
@@ -810,14 +833,7 @@ public:   // methods
 		std::ostream&                     os,
 		const DiscontBinaryRelation&      rel)
 	{
-		for (size_t i = 0; i < rel.size(); ++i)
-		{
-			for (size_t j = 0; j < rel.size(); ++j)
-			{
-				os << rel.get(i, j);
-			}
-			os << std::endl;
-		}
+		os << rel.ToString();
 
 		return os;
 	}

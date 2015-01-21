@@ -3,6 +3,7 @@
 // VATA headers
 #include <vata/explicit_tree_aut.hh>
 #include <vata/parsing/timbuk_parser.hh>
+#include <vata/serialization/timbuk_serializer.hh>
 
 const char* autStr =
 	"Ops\n"
@@ -34,7 +35,9 @@ int main()
 
 	VATA::SimParam sp;
 	sp.SetRelation(SimParam::e_sim_relation::TA_DOWNWARD);
+	sp.SetNumStates(stateDict.size());
 	Rel sim = aut.ComputeSimulation(sp);
 
+	std::cout << aut.DumpToString(*(new VATA::Serialization::TimbukSerializer())) << "\n";
 	std::cout << sim << "\n";
 }
