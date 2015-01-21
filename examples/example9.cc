@@ -1,21 +1,23 @@
-// example8.cc - loading of small automata [buggy]
+// example9.cc - explicit downward simulation computation for TAs
 
 // VATA headers
 #include <vata/explicit_tree_aut.hh>
 #include <vata/parsing/timbuk_parser.hh>
 
 const char* autStr =
-	"Ops           a:0\n"
+	"Ops\n"
 	"Automaton     aut\n"
-	"States        q0\n"
-	"Final States  q0\n"
+	"States        q r p s t u\n"
+	"Final States  q r\n"
 	"Transitions\n"
-	"a          -> q0\n";
+	"b          -> q\n"
+	"a(p)       -> r\n"
+	"c(r, s, t) -> u\n";
 
 using Automaton     = VATA::ExplicitTreeAut;
-using Transition    = Automaton::Transition;
 using Convert       = VATA::Util::Convert;
-using State         = Automaton::StateType;
+using SimParam      = VATA::SimParam;
+using Rel           = Automaton::StateDiscontBinaryRelation;
 
 int main()
 {
@@ -30,5 +32,9 @@ int main()
 	Automaton aut;
 	aut.LoadFromString(*parser, autStr, stateDict);
 
-	Automaton::CheckInclusion(aut, aut);
+	VATA::SimParam sp;
+	sp.SetRelation(SimParam::e_sim_relation::TA_DOWNWARD);
+	Rel sim = aut.ComputeSimulation(sp);
+
+	std::cout << sim << "\n";
 }
