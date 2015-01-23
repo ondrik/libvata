@@ -65,10 +65,10 @@ public:   // methods
 
 	virtual ResultType operator()(const InputType& value) override
 	{
-		typename Container::const_iterator itCont;
-		if ((itCont = container_.find(value)) != container_.end())
+		std::pair<bool, ResultType> res = this->FindIfKnown(value);
+		if (res.first)
 		{	// in case the value is known
-			return itCont->second;
+			return res.second;
 		}
 		else
 		{	// in case there is no translation for the value
@@ -81,14 +81,30 @@ public:   // methods
 
 	virtual ResultType operator()(const InputType& value) const override
 	{
+		std::pair<bool, ResultType> res = this->FindIfKnown(value);
+		if (res.first)
+		{	// in case the value is known
+			return res.second;
+		}
+		else
+		{	// in case there is no translation for the value
+			throw std::runtime_error("Cannot insert value into const translator.");
+		}
+	}
+
+	/**
+	 * @brief  Finds the value if it is known by the translator
+	 */
+	std::pair<bool, ResultType> FindIfKnown(const InputType& value) const
+	{
 		typename Container::const_iterator itCont;
 		if ((itCont = container_.find(value)) != container_.end())
 		{	// in case the value is known
-			return itCont->second;
+			return std::make_pair(true, itCont->second);
 		}
 		else
-		{
-			throw std::runtime_error("Cannot insert value into const translator.");
+		{	// in case there is no translation for the value
+			return std::make_pair(false, ResultType());
 		}
 	}
 };
