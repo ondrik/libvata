@@ -43,6 +43,12 @@ VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateDownward(
 
 	ExplicitLTS result;
 
+	// start with getting tranlation for final states
+	for (const StateType finState : this->GetFinalStates())
+	{
+		stateIndex[finState];
+	}
+
 	/*
 	 * Iterate through all transitions and adds them
 	 * to the LTS.
