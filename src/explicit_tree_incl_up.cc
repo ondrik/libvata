@@ -406,7 +406,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 		// Post(processed)
 
-		auto& smallerTransitionIndex = smallerIndex[q];
+		const SymbolToIndexedTransitionListMap& smallerTransitionIndex = smallerIndex[q];
 
 		for (size_t symbol = 0; symbol < smallerTransitionIndex.size(); ++symbol)
 		{
