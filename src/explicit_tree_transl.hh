@@ -67,6 +67,7 @@ VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateDownward(
 				if (1 == tuple->size())
 				{ // a(p) -> q ... inline lhs of size 1 >:-)
 					dest = stateIndex[tuple->front()];
+					assert(dest < numStates);
 				}
 				else
 				{ // a(p,r) -> q
@@ -79,13 +80,17 @@ VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateDownward(
 	}
 
 	for (auto& tupleIndexPair : lhsMap)
-	{
+	{	// for n-ary transition (n > 1), decompose the hyperedge into n ordinary
+		// edges
 		assert(tupleIndexPair.first);
 
 		size_t i = 0;
 		for (auto& state : *tupleIndexPair.first)
 		{
-			result.addTransition(tupleIndexPair.second, symbolMap.size() + i, stateIndex[state]);
+			size_t dest = stateIndex[state];
+			assert(dest < numStates);
+
+			result.addTransition(tupleIndexPair.second, symbolMap.size() + i, dest);
 			++i;
 		}
 	}
