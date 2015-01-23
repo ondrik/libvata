@@ -100,7 +100,7 @@ StateDiscontBinaryRelation ExplicitTreeAutCore::ComputeDownwardSimulation(
 	StateToStateTranslWeak transl(translMap, [&stateCnt](const StateType&)
 		{return stateCnt++;});
 
-	ExplicitLTS lts = this->TranslateDownward(transl);
+	ExplicitLTS lts = this->TranslateDownward(size, transl);
 	StateBinaryRelation ltsSim = lts.computeSimulation(size);
 	return StateDiscontBinaryRelation(ltsSim, translMap);
 }

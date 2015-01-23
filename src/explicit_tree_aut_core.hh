@@ -15,6 +15,7 @@
 #include <vata/aut_base.hh>
 #include <vata/explicit_tree_aut.hh>
 
+#include <vata/util/convert.hh>
 #include <vata/util/ord_vector.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/util.hh>
@@ -411,6 +412,8 @@ private:  // data types
 	using TransitionClusterPtr           = ExplicitTreeAutCoreUtil::TransitionClusterPtr;
 	using StateToTransitionClusterMap    = ExplicitTreeAutCoreUtil::StateToTransitionClusterMap;
 	using StateToTransitionClusterMapPtr = std::shared_ptr<StateToTransitionClusterMap>;
+
+	using Convert          = VATA::Util::Convert;
 
 
 private:  // data members
@@ -925,7 +928,8 @@ public:   // methods
 
 	template <class Index = Util::IdentityTranslator<StateType>>
 	ExplicitLTS TranslateDownward(
-		Index&                 stateIndex = Index()) const;
+		size_t        numStates,
+		Index&        stateIndex = Index()) const;
 
 
 	template <

@@ -18,15 +18,14 @@
 #include <vata/vata.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
-#include <vata/util/convert.hh>
 #include <vata/explicit_lts.hh>
-
 
 #include "explicit_tree_aut_core.hh"
 
 
 template <class Index>
 VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateDownward(
+	size_t        numStates,
 	Index&        stateIndex) const
 {
 	std::unordered_map<SymbolType, size_t> symbolMap;
@@ -36,9 +35,9 @@ VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateDownward(
 	Util::TranslatorWeak2<std::unordered_map<SymbolType, size_t>>
 		symbolTranslator(symbolMap, [&symbolCnt](const SymbolType&){ return symbolCnt++; });
 
-	assert(nullptr !=transitions_);
+	assert(nullptr != transitions_);
 
-	size_t lhsCnt = transitions_->size();
+	size_t lhsCnt = numStates;
 	Util::TranslatorWeak2<std::unordered_map<const StateTuple*, size_t>>
 		lhsTranslator(lhsMap, [&lhsCnt](const StateTuple*){ return lhsCnt++; });
 
@@ -64,14 +63,17 @@ VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateDownward(
 			{
 				assert(nullptr != tuple);
 
-				if (1 == tuple->size()) { // a(p) -> q
-					// inline lhs of size 1 >:-)
-					result.addTransition(state, symbol, stateIndex[tuple->front()]);
+				size_t dest;
+				if (1 == tuple->size())
+				{ // a(p) -> q ... inline lhs of size 1 >:-)
+					dest = stateIndex[tuple->front()];
 				}
 				else
 				{ // a(p,r) -> q
-					result.addTransition(state, symbol, lhsTranslator(tuple.get()));
+					dest = lhsTranslator(tuple.get());
 				}
+
+				result.addTransition(state, symbol, dest);
 			}
 		}
 	}
