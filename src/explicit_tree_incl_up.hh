@@ -85,21 +85,28 @@ class VATA::ExplicitUpwardInclusion
 	{
 		for (auto& stateClusterPair : *aut.transitions_)
 		{
-			assert(stateClusterPair.second);
+			assert(nullptr != stateClusterPair.second);
+
+			size_t parentState = stateClusterPair.first;
+			if (bottomUpIndex.size() <= parentState)
+			{	// create an index for the parent state
+				bottomUpIndex.resize(parentState + 1);
+			}
+
 
 			for (auto& symbolTupleSetPair : *stateClusterPair.second)
 			{
-				assert(symbolTupleSetPair.second);
+				assert(nullptr != symbolTupleSetPair.second);
 				assert(symbolTupleSetPair.second->size());
 
 				SymbolType symbol = symbolIndex[symbolTupleSetPair.first];
 
 				auto& first = *symbolTupleSetPair.second->begin();
 
-				assert(first);
+				assert(nullptr != first);
 
 				if (first->empty())
-				{
+				{	// for nullary transitions
 					if (leaves.size() <= symbol)
 					{
 						leaves.resize(symbol + 1);
