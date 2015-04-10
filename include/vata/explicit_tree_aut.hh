@@ -743,14 +743,33 @@ public:   // methods
 	 * This function creates an automaton that accepts the languages defined as
 	 * the intersection of langauges of a pair of automata.
 	 *
-   * @param[in]   lhs             Left automaton
-   * @param[in]   rhs             Right automaton
-   * @param[out]  pTranslMapLhs   Dictionary for the result
+     * @param[in]   lhs             Left automaton
+     * @param[in]   rhs             Right automaton
+	 * @param[out]  pTranslMapLhs   Dictionary for the result
 	 *
 	 * @returns  An automaton accepting the intersection of languages of @p lhs
 	 * and @p rhs
-   */
+     */
 	static ExplicitTreeAut Intersection(
+		const ExplicitTreeAut&            lhs,
+		const ExplicitTreeAut&            rhs,
+		AutBase::ProductTranslMap*        pTranslMap);
+
+
+	/**
+	 * @brief  Intersection of languages of a pair of automata in bottom-up way
+	 *
+	 * This function creates an automaton that accepts the languages defined as
+	 * the intersection of langauges of a pair of automata in bottom-up way.
+	 *
+	 * @param[in]   lhs             Left automaton
+	 * @param[in]   rhs             Right automaton
+	 * @param[out]  pTranslMapLhs   Dictionary for the result
+	 *
+	 * @returns  An automaton accepting the intersection of languages of @p lhs
+	 * and @p rhs
+     */
+	static ExplicitTreeAut IntersectionBU(
 		const ExplicitTreeAut&            lhs,
 		const ExplicitTreeAut&            rhs,
 		AutBase::ProductTranslMap*        pTranslMap);

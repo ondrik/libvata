@@ -10,12 +10,14 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/util/transl_weak.hh>
 
 // Standard library headers
 #include <vector>
-
+#include <unordered_map>
 
 #include "explicit_tree_aut_core.hh"
+#include "util/expl_bu_index.hh"
 
 using VATA::ExplicitTreeAutCore;
 
@@ -31,33 +33,57 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 		pTranslMap = &translMap;
 	}
 
+	IndexedSymbolToIndexedTransitionListMap lhsIndex, rhsIndex;
+	SymbolToTransitionListMap lhsLeaves, rhsLeaves;
+
+	size_t symbolCnt = 0;
+	std::unordered_map<SymbolType, size_t> symbolMap;
+	Util::TranslatorWeak2<std::unordered_map<SymbolType, size_t>>
+		symbolTranslator(
+			symbolMap,
+			[&symbolCnt](const SymbolType&){ return symbolCnt++; }
+		);
+	bottomUpIndex(
+		lhs, lhsIndex, lhsLeaves, symbolTranslator
+	);
+	bottomUpIndex(
+		rhs, rhsIndex, rhsLeaves, symbolTranslator
+	);
+
 	ExplicitTreeAutCore res(lhs.cache_);
+	std::vector<const ProductTranslMap::value_type*> stack;
 
-	std::vector<const VATA::AutBase::ProductTranslMap::value_type*> stack;
-
-	for (const StateType& s : lhs.finalStates_)
+	for (size_t lhsSym = 0; lhsSym  < lhsLeaves.size(); ++lhsSym)
 	{
-		for (const StateType& t : rhs.finalStates_)
+		for (const auto& transLhs : lhsLeaves.at(lhsSym))
 		{
-			auto u = pTranslMap->insert(
-				std::make_pair(std::make_pair(s, t), pTranslMap->size())
-			).first;
+			const auto& parentLhs = transLhs->state();
+			for (const auto& transRhs : rhsLeaves.at(lhsSym))
+			{
+				const auto& parentRhs = transRhs->state();
+				const auto productState = pTranslMap->insert(
+					std::make_pair(std::make_pair(parentLhs, parentLhs), pTranslMap->size())
+					).first;
 
-			res.SetStateFinal(u->second);
+				if (lhs.IsStateFinal(parentLhs) && rhs.IsStateFinal(parentRhs))
+				{
+					res.SetStateFinal(productState->second);
+				}
+				stack.push_back(&*productState);
 
-			stack.push_back(&*u);
+			}
 		}
 	}
 
-	auto transitions = res.transitions_;
+	const auto& transitions = res.transitions_;
 
 	while (!stack.empty())
 	{
-		auto p = stack.back();
+		const auto p = stack.back();
 
 		stack.pop_back();
 
-		auto leftCluster = ExplicitTreeAutCore::genericLookup(
+		const auto& leftCluster = ExplicitTreeAutCore::genericLookup(
 			*lhs.transitions_, p->first.first);
 
 		if (!leftCluster)
@@ -65,7 +91,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 			continue;
 		}
 
-		auto rightCluster = ExplicitTreeAutCore::genericLookup(
+		const auto& rightCluster = ExplicitTreeAutCore::genericLookup(
 			*rhs.transitions_, p->first.second);
 
 		if (!rightCluster)
@@ -77,9 +103,32 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 
 		ExplicitTreeAutCore::TransitionClusterPtr cluster(nullptr);
 
-		for (auto& leftSymbolStateTupleSetPtr : *leftCluster)
+		const std::pair<size_t, size_t>& productState = p->first;
+		if (lhsIndex.size() <= productState.first
+				|| rhsIndex.size() <= productState.second)
 		{
-			auto rightTupleSet =
+			continue;
+		}
+
+		for (size_t lhsSym = 0; lhsSym < lhsIndex.at(productState.first).size(); ++lhsSym)
+		{
+			for (size_t lhsStateIndex = 0;
+					lhsStateIndex < lhsIndex.at(productState.first).at(lhsSym).size();
+					++lhsStateIndex)
+			{
+				if (lhsSym >= rhsIndex.at(productState.second).size() 
+						|| lhsStateIndex >= rhsIndex.at(productState.second).at(lhsSym).size())
+				{ // left symbol or index of a state is not in the right TA
+					continue;
+				}
+
+				// todo create product automata for each state of lhs with each o rhs. If product state has
+				// not been added yet, so added.
+				// Check if both states are already in product automaton
+			}
+		}
+		/*
+			const auto& rightTupleSet =
 				ExplicitTreeAutCore::genericLookup(
 					*rightCluster, leftSymbolStateTupleSetPtr.first);
 
@@ -93,11 +142,11 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 				cluster = transitions->uniqueCluster(p->second);
 			}
 
-			auto tuplePtrSet = cluster->uniqueTuplePtrSet(leftSymbolStateTupleSetPtr.first);
+			const auto& tuplePtrSet = cluster->uniqueTuplePtrSet(leftSymbolStateTupleSetPtr.first);
 
-			for (auto& leftTuplePtr : *leftSymbolStateTupleSetPtr.second)
+			for (const auto& leftTuplePtr : *leftSymbolStateTupleSetPtr.second)
 			{
-				for (auto& rightTuplePtr : *rightTupleSet)
+				for (const auto& rightTuplePtr : *rightTupleSet)
 				{
 					assert(leftTuplePtr->size() == rightTuplePtr->size());
 
@@ -105,7 +154,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 
 					for (size_t i = 0; i < leftTuplePtr->size(); ++i)
 					{
-						auto u = pTranslMap->insert(
+						const auto u = pTranslMap->insert(
 							std::make_pair(
 								std::make_pair((*leftTuplePtr)[i], (*rightTuplePtr)[i]),
 								pTranslMap->size()
@@ -125,6 +174,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 				}
 			}
 		}
+			*/
 	}
 
 	return res;

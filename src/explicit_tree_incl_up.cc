@@ -246,7 +246,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 	auto gte = [&lte](const BiggerType& x, const BiggerType& y) { return lte(y, x); };
 
-	typedef VATA::ExplicitUpwardInclusion::Transition Transition;
+	typedef VATA::BUIndexTransition Transition;
 	typedef std::unordered_set<const Transition*> TransitionSet;
 	typedef typename std::shared_ptr<TransitionSet> TransitionSetPtr;
 

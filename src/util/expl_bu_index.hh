@@ -26,8 +26,11 @@ namespace
 	using SymbolType     = VATA::ExplicitTreeAutCore::SymbolType;
 	using StateTuple     = VATA::ExplicitTreeAutCore::StateTuple;
 	using Transition     = VATA::BUIndexTransition;
-	
-	typedef std::shared_ptr<Transition> TransitionPtr;
+}
+
+namespace VATA
+{
+	typedef std::shared_ptr<BUIndexTransition> TransitionPtr;
 	typedef std::vector<TransitionPtr> TransitionList;
 	typedef std::vector<TransitionList> IndexedTransitionList;
 	typedef std::vector<IndexedTransitionList> DoubleIndexedTransitionList;
@@ -35,10 +38,8 @@ namespace
 	typedef std::vector<IndexedTransitionList> SymbolToIndexedTransitionListMap;
 	typedef std::vector<DoubleIndexedTransitionList> SymbolToDoubleIndexedTransitionListMap;
 	typedef std::vector<SymbolToIndexedTransitionListMap> IndexedSymbolToIndexedTransitionListMap;
-}
 
-namespace VATA
-{
+
 	template <class Aut, class SymbolIndex>
 	static void bottomUpIndex(
 		const Aut&                                  aut,

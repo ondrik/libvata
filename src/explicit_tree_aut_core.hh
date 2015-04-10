@@ -562,6 +562,11 @@ public:   // methods
 		return AcceptTrans(*this);
 	}
 
+	const StateToTransitionClusterMapPtr& GetTransitions() const
+	{
+		return transitions_;
+	}
+
    /**
     * @brief Retrieves a container with all states of the automaton
     *
@@ -1055,6 +1060,12 @@ public:   // methods
 
 
 	static ExplicitTreeAutCore Intersection(
+		const ExplicitTreeAutCore&           lhs,
+		const ExplicitTreeAutCore&           rhs,
+		VATA::AutBase::ProductTranslMap*     pTranslMap = nullptr);
+
+
+	static ExplicitTreeAutCore IntersectionBU(
 		const ExplicitTreeAutCore&           lhs,
 		const ExplicitTreeAutCore&           rhs,
 		VATA::AutBase::ProductTranslMap*     pTranslMap = nullptr);

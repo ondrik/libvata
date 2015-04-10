@@ -47,55 +47,56 @@ add_library(libvata STATIC
 	aut_base.cc
 	bdd_bu_tree_aut.cc
 	bdd_bu_tree_aut_core.cc
-  bdd_bu_tree_aut_sim.cc
-  bdd_bu_tree_aut_incl.cc
-  bdd_bu_tree_aut_isect.cc
-  bdd_bu_tree_aut_union.cc
-  bdd_bu_tree_aut_union_disj.cc
-  bdd_bu_tree_aut_unreach.cc
-  bdd_bu_tree_aut_useless.cc
-  bdd_td_tree_aut.cc
+	bdd_bu_tree_aut_sim.cc
+	bdd_bu_tree_aut_incl.cc
+	bdd_bu_tree_aut_isect.cc
+	bdd_bu_tree_aut_union.cc
+	bdd_bu_tree_aut_union_disj.cc
+	bdd_bu_tree_aut_unreach.cc
+	bdd_bu_tree_aut_useless.cc
+	bdd_td_tree_aut.cc
 	bdd_td_tree_aut_core.cc
-  bdd_td_tree_aut_sim.cc
-  bdd_td_tree_aut_incl.cc
-  bdd_td_tree_aut_isect.cc
-  bdd_td_tree_aut_union.cc
-  bdd_td_tree_aut_union_disj.cc
-  bdd_td_tree_aut_unreach.cc
-  bdd_td_tree_aut_useless.cc
+	bdd_td_tree_aut_sim.cc
+	bdd_td_tree_aut_incl.cc
+	bdd_td_tree_aut_isect.cc
+	bdd_td_tree_aut_union.cc
+	bdd_td_tree_aut_union_disj.cc
+	bdd_td_tree_aut_unreach.cc
+	bdd_td_tree_aut_useless.cc
 	explicit_finite_aut.cc
-  explicit_finite_aut_core.cc
-  explicit_finite_union.cc
-  explicit_finite_isect.cc
-  explicit_finite_incl.cc
-  explicit_finite_reverse.cc
-  explicit_finite_useless.cc
-  explicit_finite_unreach.cc
+	explicit_finite_aut_core.cc
+	explicit_finite_union.cc
+	explicit_finite_isect.cc
+	explicit_finite_incl.cc
+	explicit_finite_reverse.cc
+	explicit_finite_useless.cc
+	explicit_finite_unreach.cc
 	explicit_finite_candidate.cc
 	explicit_finite_compl.cc
 	explicit_finite_sim.cc
-  explicit_tree_aut_core.cc
-  explicit_tree_incl_down.cc
-  explicit_tree_incl_up.cc
-  explicit_lts_sim.cc
-  explicit_tree_aut.cc
-  explicit_tree_candidate.cc
-  explicit_tree_union.cc
-  explicit_tree_isect.cc
-  explicit_tree_incl.cc
-  explicit_tree_unreach.cc
-  explicit_tree_useless.cc
-  explicit_tree_sim.cc
-  convert.cc
-  incl_param.cc
-  fake_file.cc
-  fmemopen.c
+	explicit_tree_aut_core.cc
+	explicit_tree_incl_down.cc
+	explicit_tree_incl_up.cc
+	explicit_lts_sim.cc
+	explicit_tree_aut.cc
+	explicit_tree_candidate.cc
+	explicit_tree_union.cc
+	explicit_tree_isect.cc
+	explicit_tree_isect_bu.cc
+	explicit_tree_incl.cc
+	explicit_tree_unreach.cc
+	explicit_tree_useless.cc
+	explicit_tree_sim.cc
+	convert.cc
+	incl_param.cc
+	fake_file.cc
+	fmemopen.c
 	symbolic.cc
-  memstream.c
-  timbuk_parser.cc
-  timbuk_serializer.cc
-  util.cc
-  sym_var_asgn.cc
+	memstream.c
+	timbuk_parser.cc
+	timbuk_serializer.cc
+	util.cc
+	sym_var_asgn.cc
 	symbolic_tree_aut_base_core.cc
   ${FLEX_timbuk_scanner_OUTPUTS}
   ${BISON_timbuk_parser_OUTPUTS}

@@ -688,6 +688,18 @@ ExplicitTreeAut ExplicitTreeAut::Intersection(
 		CoreAut::Intersection(*lhs.core_, *rhs.core_, pTranslMap));
 }
 
+ExplicitTreeAut ExplicitTreeAut::IntersectionBU(
+	const ExplicitTreeAut&            lhs,
+	const ExplicitTreeAut&            rhs,
+	AutBase::ProductTranslMap*        pTranslMap)
+{
+	assert(nullptr != lhs.core_);
+	assert(nullptr != rhs.core_);
+
+	return ExplicitTreeAut(
+		CoreAut::IntersectionBU(*lhs.core_, *rhs.core_, pTranslMap));
+}
+
 
 AutBase::StateDiscontBinaryRelation ExplicitTreeAut::ComputeSimulation(
 	const VATA::SimParam&                  params) const
