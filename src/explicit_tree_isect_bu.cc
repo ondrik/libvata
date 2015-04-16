@@ -62,7 +62,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 			{
 				const auto& parentRhs = transRhs->state();
 				const auto productState = pTranslMap->insert(
-					std::make_pair(std::make_pair(parentLhs, parentLhs), pTranslMap->size())
+					std::make_pair(std::make_pair(parentLhs, parentRhs), pTranslMap->size())
 					).first;
 
 				if (lhs.IsStateFinal(parentLhs) && rhs.IsStateFinal(parentRhs))
@@ -120,6 +120,53 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 						|| lhsStateIndex >= rhsIndex.at(productState.second).at(lhsSym).size())
 				{ // left symbol or index of a state is not in the right TA
 					continue;
+				}
+
+				const auto& rhsTransitions = rhsIndex.at(productState.second).at(
+						lhsSym).at(lhsStateIndex);
+
+				for (const auto& lhsTransPtr : lhsIndex.at(productState.first).at(lhsSym).at(lhsStateIndex))
+				{
+					const BUIndexTransition& lhsTrans = *lhsTransPtr;
+
+					for (const auto& rhsTransPtr : rhsTransitions)
+					{
+						const BUIndexTransition& rhsTrans = *rhsTransPtr;
+						
+						const auto& newProductInsert = pTranslMap->insert(
+							std::make_pair(std::make_pair(lhsTrans.state(), rhsTrans.state()),
+								pTranslMap->size())); 
+						if (!newProductInsert.second)
+						{ // Product state already explored
+							continue;
+						}
+						
+						assert(rhsTrans.children().size() == lhsTrans.children().size());
+						
+						bool allTupleInProduct = true;
+						std::vector<size_t> newTuple;
+						for (size_t tupleIndex = 0; tupleIndex < rhsTrans.children().size(); ++tupleIndex)
+						{
+							const auto statePair = std::make_pair(lhsTrans.state(), rhsTrans.state());
+							const auto findResult = pTranslMap->find(statePair);
+							
+							if (findResult == pTranslMap->end())
+							{
+								allTupleInProduct = false;
+							}
+							else
+							{
+								newTuple.push_back(findResult->second);
+							}
+						}
+
+						if (!allTupleInProduct)
+						{
+							continue;
+						}
+
+						res.AddTransition(newTuple, (*(newProductInsert.first)).second, lhsSym);
+					}
 				}
 
 				// todo create product automata for each state of lhs with each o rhs. If product state has
