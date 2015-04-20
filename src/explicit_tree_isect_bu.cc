@@ -15,6 +15,7 @@
 // Standard library headers
 #include <vector>
 #include <unordered_map>
+#include <unordered_set>
 
 #include "explicit_tree_aut_core.hh"
 #include "util/expl_bu_index.hh"
@@ -26,6 +27,9 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 	const ExplicitTreeAutCore&           rhs,
 	VATA::AutBase::ProductTranslMap*     pTranslMap)
 {
+	ExplicitTreeAutCore res(lhs.cache_);
+	std::vector<const ProductTranslMap::value_type*> stack;
+
 	VATA::AutBase::ProductTranslMap translMap;
 
 	if (nullptr == pTranslMap)
@@ -33,15 +37,15 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 		pTranslMap = &translMap;
 	}
 
+	// Init auxiliary data structures
 	IndexedSymbolToIndexedTransitionListMap lhsIndex, rhsIndex;
 	SymbolToTransitionListMap lhsLeaves, rhsLeaves;
-
 	size_t symbolCnt = 0;
 	std::unordered_map<SymbolType, size_t> symbolMap;
 	Util::TranslatorWeak2<std::unordered_map<SymbolType, size_t>>
 		symbolTranslator(
 			symbolMap,
-			[&symbolCnt](const SymbolType&){ return symbolCnt++; }
+			[&symbolCnt](const SymbolType& sym){ return symbolCnt++; }
 		);
 	bottomUpIndex(
 		lhs, lhsIndex, lhsLeaves, symbolTranslator
@@ -50,14 +54,20 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 		rhs, rhsIndex, rhsLeaves, symbolTranslator
 	);
 
-	ExplicitTreeAutCore res(lhs.cache_);
-	std::vector<const ProductTranslMap::value_type*> stack;
+	std::unordered_set<size_t> newStates;
 
+	// process empty leaves
 	for (size_t lhsSym = 0; lhsSym  < lhsLeaves.size(); ++lhsSym)
 	{
 		for (const auto& transLhs : lhsLeaves.at(lhsSym))
 		{
+			if (rhsLeaves.size() <= lhsSym)
+			{
+				continue;
+			}
+
 			const auto& parentLhs = transLhs->state();
+			
 			for (const auto& transRhs : rhsLeaves.at(lhsSym))
 			{
 				const auto& parentRhs = transRhs->state();
@@ -69,19 +79,27 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 				{
 					res.SetStateFinal(productState->second);
 				}
+				res.AddTransition(std::vector<size_t>(), symbolTranslator.at(lhsSym), productState->first.second);
 				stack.push_back(&*productState);
-
 			}
 		}
 	}
 
-	const auto& transitions = res.transitions_;
+	//const auto& transitions = res.transitions_;
 
 	while (!stack.empty())
 	{
 		const auto p = stack.back();
-
 		stack.pop_back();
+
+		if (newStates.count(p->second))
+		{
+			continue;
+		}
+		else
+		{
+			newStates.insert(p->second);
+		}
 
 		const auto& leftCluster = ExplicitTreeAutCore::genericLookup(
 			*lhs.transitions_, p->first.first);
@@ -101,7 +119,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 
 		assert(leftCluster);
 
-		ExplicitTreeAutCore::TransitionClusterPtr cluster(nullptr);
+		//ExplicitTreeAutCore::TransitionClusterPtr cluster(nullptr);
 
 		const std::pair<size_t, size_t>& productState = p->first;
 		if (lhsIndex.size() <= productState.first
@@ -133,13 +151,9 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 					{
 						const BUIndexTransition& rhsTrans = *rhsTransPtr;
 						
-						const auto& newProductInsert = pTranslMap->insert(
+						const auto newProduct = pTranslMap->insert(
 							std::make_pair(std::make_pair(lhsTrans.state(), rhsTrans.state()),
-								pTranslMap->size())); 
-						if (!newProductInsert.second)
-						{ // Product state already explored
-							continue;
-						}
+								pTranslMap->size())).first; 
 						
 						assert(rhsTrans.children().size() == lhsTrans.children().size());
 						
@@ -147,10 +161,10 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 						std::vector<size_t> newTuple;
 						for (size_t tupleIndex = 0; tupleIndex < rhsTrans.children().size(); ++tupleIndex)
 						{
-							const auto statePair = std::make_pair(lhsTrans.state(), rhsTrans.state());
+							const auto statePair = std::make_pair(lhsTrans.children().at(tupleIndex), rhsTrans.children().at(tupleIndex));
 							const auto findResult = pTranslMap->find(statePair);
 							
-							if (findResult == pTranslMap->end())
+							if (findResult == pTranslMap->end() && lhsTrans.children().size() > 0)
 							{
 								allTupleInProduct = false;
 							}
@@ -165,7 +179,8 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 							continue;
 						}
 
-						res.AddTransition(newTuple, (*(newProductInsert.first)).second, lhsSym);
+						res.AddTransition(newTuple, symbolTranslator.at(lhsSym), newProduct->second);
+						stack.push_back(&*newProduct);
 					}
 				}
 
