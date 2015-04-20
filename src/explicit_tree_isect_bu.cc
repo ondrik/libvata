@@ -45,7 +45,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 	Util::TranslatorWeak2<std::unordered_map<SymbolType, size_t>>
 		symbolTranslator(
 			symbolMap,
-			[&symbolCnt](const SymbolType& sym){ return symbolCnt++; }
+			[&symbolCnt](const SymbolType& sym){ return sym; }
 		);
 	bottomUpIndex(
 		lhs, lhsIndex, lhsLeaves, symbolTranslator
