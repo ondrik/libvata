@@ -79,13 +79,11 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 				{
 					res.SetStateFinal(productState->second);
 				}
-				res.AddTransition(std::vector<size_t>(), symbolTranslator.at(lhsSym), productState->first.second);
+				res.AddTransition(std::vector<size_t>(), symbolTranslator.at(lhsSym), productState->second);
 				stack.push_back(&*productState);
 			}
 		}
 	}
-
-	//const auto& transitions = res.transitions_;
 
 	while (!stack.empty())
 	{
@@ -99,6 +97,11 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 		else
 		{
 			newStates.insert(p->second);
+		}
+
+		if (lhs.IsStateFinal(p->first.first) && rhs.IsStateFinal(p->first.second))
+		{
+			res.SetStateFinal(p->second);
 		}
 
 		const auto& leftCluster = ExplicitTreeAutCore::genericLookup(
@@ -118,8 +121,6 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 		}
 
 		assert(leftCluster);
-
-		//ExplicitTreeAutCore::TransitionClusterPtr cluster(nullptr);
 
 		const std::pair<size_t, size_t>& productState = p->first;
 		if (lhsIndex.size() <= productState.first
@@ -189,55 +190,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 				// Check if both states are already in product automaton
 			}
 		}
-		/*
-			const auto& rightTupleSet =
-				ExplicitTreeAutCore::genericLookup(
-					*rightCluster, leftSymbolStateTupleSetPtr.first);
-
-			if (!rightTupleSet)
-			{
-				continue;
-			}
-
-			if (!cluster)
-			{
-				cluster = transitions->uniqueCluster(p->second);
-			}
-
-			const auto& tuplePtrSet = cluster->uniqueTuplePtrSet(leftSymbolStateTupleSetPtr.first);
-
-			for (const auto& leftTuplePtr : *leftSymbolStateTupleSetPtr.second)
-			{
-				for (const auto& rightTuplePtr : *rightTupleSet)
-				{
-					assert(leftTuplePtr->size() == rightTuplePtr->size());
-
-					ExplicitTreeAutCore::StateTuple children;
-
-					for (size_t i = 0; i < leftTuplePtr->size(); ++i)
-					{
-						const auto u = pTranslMap->insert(
-							std::make_pair(
-								std::make_pair((*leftTuplePtr)[i], (*rightTuplePtr)[i]),
-								pTranslMap->size()
-							)
-						);
-
-						if (u.second)
-						{
-							stack.push_back(&*u.first);
-						}
-
-						children.push_back(u.first->second);
-					}
-
-//					res.AddTransition(children, leftSymbolStateTupleSetPtr.first, p->second);
-					tuplePtrSet->insert(res.tupleLookup(children));
-				}
-			}
-		}
-			*/
 	}
 
-	return res;
+		return res;
 }
