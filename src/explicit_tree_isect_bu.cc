@@ -4,7 +4,8 @@
  *  Copyright (c) 2015 Martin Hruska <xhrusk16@stud.fit.vutbr.cz>
  *
  *  Description:
- *    Implementation of Intersection() on explicit tree automata in the bottom up way.
+ *    Implementation of Intersection() on explicit tree automata
+ *    in the bottom up way.
  *
  *****************************************************************************/
 
