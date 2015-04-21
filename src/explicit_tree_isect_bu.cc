@@ -184,10 +184,6 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 						stack.push_back(&*newProduct);
 					}
 				}
-
-				// todo create product automata for each state of lhs with each o rhs. If product state has
-				// not been added yet, so added.
-				// Check if both states are already in product automaton
 			}
 		}
 	}
