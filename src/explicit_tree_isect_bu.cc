@@ -40,7 +40,6 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 	}
 
 	// Init auxiliary data structures
-	std::cerr << "FIRE1\n";
 	IndexedSymbolToIndexedTransitionListMap lhsIndex, rhsIndex;
 	SymbolToTransitionListMap lhsLeaves, rhsLeaves;
 	size_t symbolCnt = 0;
@@ -56,21 +55,18 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 	bottomUpIndex(
 		rhs, rhsIndex, rhsLeaves, symbolTranslator
 	);
-	std::cerr << "FIRE2\n";
 
 	std::unordered_set<size_t> newStates;
 
 	// process empty leaves
 	for (size_t lhsSym = 0; lhsSym  < lhsLeaves.size(); ++lhsSym)
 	{
-			std::cerr << "FIRE_START\n";
 		if (!lhsLeaves.count(lhsSym))
 		{
 			continue;
 		}
 		for (const auto& transLhs : lhsLeaves.at(lhsSym))
 		{
-			std::cerr << "FIREA\n";
 			if (!rhsLeaves.count(lhsSym))
 			{
 				continue;
@@ -78,7 +74,6 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 
 			const auto& parentLhs = transLhs->state();
 			
-			std::cerr << "FIREB\n";
 			for (const auto& transRhs : rhsLeaves.at(lhsSym))
 			{
 				const auto& parentRhs = transRhs->state();
@@ -93,15 +88,12 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 				res.AddTransition(std::vector<size_t>(), symbolTranslator.at(lhsSym), productState->second);
 				stack.push_back(&*productState);
 			}
-			std::cerr << "FIREC\n";
 		}
 	}
 	
-	std::cerr << "FIRE3\n";
 
 	while (!stack.empty())
 	{
-		std::cerr << "HERE\n";
 		const auto p = stack.back();
 		stack.pop_back();
 
@@ -201,7 +193,6 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 				}
 			}
 		}
-		std::cerr << "HERE1\n";
 	}
 
 	return res;
