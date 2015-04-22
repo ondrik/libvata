@@ -278,7 +278,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 				continue;
 			}
 
-			for (auto& transition : indexedTransitionList[state])
+			for (auto& transition : indexedTransitionList.at(state))
 			{
 				result->insert(transition.get());
 			}

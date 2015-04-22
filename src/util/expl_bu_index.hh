@@ -209,12 +209,7 @@ namespace VATA
 					continue;
 				}
 
-				if (!bottomUpIndex.count(symbol))
-				{
-					bottomUpIndex[symbol] = DoubleIndexedTransitionList();
-				}
-
-				auto& doubleIndexedTransitionList = bottomUpIndex.at(symbol);
+				auto& doubleIndexedTransitionList = bottomUpIndex[symbol];
 
 				if (doubleIndexedTransitionList.size() < first->size())
 				{
