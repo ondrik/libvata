@@ -257,12 +257,12 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 		TransitionSetPtr result = TransitionSetPtr(new TransitionSet());
 
-		if (biggerIndex.size() <= key.first)
+		if (!biggerIndex.count(key.first))
 		{
 			return result;
 		}
 
-		auto& iter = biggerIndex[key.first];
+		auto& iter = biggerIndex.at(key.first);
 
 		if (iter.size() <= key.second)
 		{
@@ -326,12 +326,13 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 		return false;
 	}
 
-	for (size_t symbol = 0; symbol < smallerLeaves.size(); ++symbol)
+	for (const auto& symbolToTransitions : smallerLeaves)
 	{
+		const auto& symbol = symbolToTransitions.first;
 		post.clear();
 		isAccepting = false;
 
-		for (auto& transition : biggerLeaves[symbol])
+		for (auto& transition : biggerLeaves.at(symbol))
 		{
 			assert(transition);
 			assert(transition->children().empty());
@@ -356,7 +357,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 		auto ptr = biggerTypeCache.lookup(tmp);
 
-		for (auto& transition : smallerLeaves[symbol])
+		for (auto& transition : smallerLeaves.at(symbol))
 		{
 			assert(transition);
 
@@ -406,7 +407,11 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 		// Post(processed)
 
-		auto& smallerTransitionIndex = smallerIndex[q];
+		if (!smallerIndex.count(q))
+		{
+			continue;
+		}
+		auto& smallerTransitionIndex = smallerIndex.at(q);
 
 		for (size_t symbol = 0; symbol < smallerTransitionIndex.size(); ++symbol)
 		{

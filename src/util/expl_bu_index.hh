@@ -12,6 +12,7 @@
 #define _VATA_EXPLICIT_TREE_BU_INDEX_HH_
 
 #include <vector>
+#include <unordered_map>
 
 #include "../explicit_tree_aut_core.hh"
 
@@ -34,10 +35,10 @@ namespace VATA
 	typedef std::vector<TransitionPtr> TransitionList;
 	typedef std::vector<TransitionList> IndexedTransitionList;
 	typedef std::vector<IndexedTransitionList> DoubleIndexedTransitionList;
-	typedef std::vector<TransitionList> SymbolToTransitionListMap;
+	typedef std::unordered_map<SymbolType, TransitionList> SymbolToTransitionListMap;
 	typedef std::vector<IndexedTransitionList> SymbolToIndexedTransitionListMap;
-	typedef std::vector<DoubleIndexedTransitionList> SymbolToDoubleIndexedTransitionListMap;
-	typedef std::vector<SymbolToIndexedTransitionListMap> IndexedSymbolToIndexedTransitionListMap;
+	typedef std::unordered_map<SymbolType, DoubleIndexedTransitionList> SymbolToDoubleIndexedTransitionListMap;
+	typedef std::unordered_map<StateType, SymbolToIndexedTransitionListMap> IndexedSymbolToIndexedTransitionListMap;
 
 
 	template <class Aut, class SymbolIndex>
@@ -50,7 +51,7 @@ namespace VATA
 	template <class Aut, class SymbolIndex>
 	static void bottomUpIndex2(
 		const Aut&                                  aut,
-		IndexedSymbolToIndexedTransitionListMap&    bottomUpIndex,
+		SymbolToDoubleIndexedTransitionListMap&     bottomUpIndex,
 		SymbolToTransitionListMap&                  leaves,
 		SymbolIndex&                                symbolIndex);
 }
@@ -123,11 +124,6 @@ namespace VATA
 
 				if (first->empty())
 				{
-					if (leaves.size() <= symbol)
-					{
-						leaves.resize(symbol + 1);
-					}
-
 					auto& transitionList = leaves[symbol];
 
 					for (auto& tuple : *symbolTupleSetPair.second)
@@ -156,12 +152,11 @@ namespace VATA
 
 					for (const StateType& state : *tuple)
 					{
-						if (bottomUpIndex.size() <= state)
+						if (!bottomUpIndex.count(state))
 						{
-							bottomUpIndex.resize(state + 1);
+							bottomUpIndex[state] = SymbolToIndexedTransitionListMap();
 						}
-
-						auto& symbolIndexedTransitionList = bottomUpIndex[state];
+						auto& symbolIndexedTransitionList = bottomUpIndex.at(state);
 
 						if (symbolIndexedTransitionList.size() <= symbol)
 						{
@@ -208,11 +203,6 @@ namespace VATA
 
 				if (first->empty())
 				{
-					if (leaves.size() <= symbol)
-					{
-						leaves.resize(symbol + 1);
-					}
-
 					auto& transitionList = leaves[symbol];
 
 					for (auto& tuple : *symbolTupleSetPair.second)
@@ -228,12 +218,12 @@ namespace VATA
 					continue;
 				}
 
-				if (bottomUpIndex.size() <= symbol)
+				if (!bottomUpIndex.count(symbol))
 				{
-					bottomUpIndex.resize(symbol + 1);
+					bottomUpIndex[symbol] = DoubleIndexedTransitionList();
 				}
 
-				auto& doubleIndexedTransitionList = bottomUpIndex[symbol];
+				auto& doubleIndexedTransitionList = bottomUpIndex.at(symbol);
 
 				if (doubleIndexedTransitionList.size() < first->size())
 				{
