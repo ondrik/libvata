@@ -413,11 +413,12 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 		}
 		auto& smallerTransitionIndex = smallerIndex.at(q);
 
-		for (size_t symbol = 0; symbol < smallerTransitionIndex.size(); ++symbol)
+		for (const auto& symbolToIndexedTrans : smallerTransitionIndex)
 		{
+			const size_t symbol = symbolToIndexedTrans.first;
 			size_t j = 0;
 
-			for (auto& smallerTransitions : smallerTransitionIndex[symbol])
+			for (auto& smallerTransitions : smallerTransitionIndex.at(symbol))
 			{
 				for (auto& smallerTransition : smallerTransitions)
 				{

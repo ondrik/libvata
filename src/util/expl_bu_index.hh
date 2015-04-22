@@ -36,7 +36,7 @@ namespace VATA
 	typedef std::vector<TransitionList> IndexedTransitionList;
 	typedef std::vector<IndexedTransitionList> DoubleIndexedTransitionList;
 	typedef std::unordered_map<SymbolType, TransitionList> SymbolToTransitionListMap;
-	typedef std::vector<IndexedTransitionList> SymbolToIndexedTransitionListMap;
+	typedef std::unordered_map<SymbolType, IndexedTransitionList> SymbolToIndexedTransitionListMap;
 	typedef std::unordered_map<SymbolType, DoubleIndexedTransitionList> SymbolToDoubleIndexedTransitionListMap;
 	typedef std::unordered_map<StateType, SymbolToIndexedTransitionListMap> IndexedSymbolToIndexedTransitionListMap;
 
@@ -152,16 +152,7 @@ namespace VATA
 
 					for (const StateType& state : *tuple)
 					{
-						if (!bottomUpIndex.count(state))
-						{
-							bottomUpIndex[state] = SymbolToIndexedTransitionListMap();
-						}
-						auto& symbolIndexedTransitionList = bottomUpIndex.at(state);
-
-						if (symbolIndexedTransitionList.size() <= symbol)
-						{
-							symbolIndexedTransitionList.resize(symbol + 1);
-						}
+						auto& symbolIndexedTransitionList = bottomUpIndex[state];
 
 						auto& indexedTransitionList = symbolIndexedTransitionList[symbol];
 
