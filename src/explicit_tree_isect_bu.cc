@@ -40,6 +40,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 	}
 
 	// Init auxiliary data structures
+	std::cerr << "FIRE1\n";
 	IndexedSymbolToIndexedTransitionListMap lhsIndex, rhsIndex;
 	SymbolToTransitionListMap lhsLeaves, rhsLeaves;
 	size_t symbolCnt = 0;
@@ -55,21 +56,29 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 	bottomUpIndex(
 		rhs, rhsIndex, rhsLeaves, symbolTranslator
 	);
+	std::cerr << "FIRE2\n";
 
 	std::unordered_set<size_t> newStates;
 
 	// process empty leaves
 	for (size_t lhsSym = 0; lhsSym  < lhsLeaves.size(); ++lhsSym)
 	{
+			std::cerr << "FIRE_START\n";
+		if (!lhsLeaves.count(lhsSym))
+		{
+			continue;
+		}
 		for (const auto& transLhs : lhsLeaves.at(lhsSym))
 		{
-			if (rhsLeaves.size() <= lhsSym)
+			std::cerr << "FIREA\n";
+			if (!rhsLeaves.count(lhsSym))
 			{
 				continue;
 			}
 
 			const auto& parentLhs = transLhs->state();
 			
+			std::cerr << "FIREB\n";
 			for (const auto& transRhs : rhsLeaves.at(lhsSym))
 			{
 				const auto& parentRhs = transRhs->state();
@@ -84,11 +93,15 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 				res.AddTransition(std::vector<size_t>(), symbolTranslator.at(lhsSym), productState->second);
 				stack.push_back(&*productState);
 			}
+			std::cerr << "FIREC\n";
 		}
 	}
+	
+	std::cerr << "FIRE3\n";
 
 	while (!stack.empty())
 	{
+		std::cerr << "HERE\n";
 		const auto p = stack.back();
 		stack.pop_back();
 
@@ -125,8 +138,8 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 		assert(leftCluster);
 
 		const std::pair<size_t, size_t>& productState = p->first;
-		if (lhsIndex.size() <= productState.first
-				|| rhsIndex.size() <= productState.second)
+		if (!lhsIndex.count(productState.first)
+				|| !rhsIndex.count(productState.second))
 		{
 			continue;
 		}
@@ -137,7 +150,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 					lhsStateIndex < lhsIndex.at(productState.first).at(lhsSym).size();
 					++lhsStateIndex)
 			{
-				if (lhsSym >= rhsIndex.at(productState.second).size() 
+				if (!rhsIndex.at(productState.second).count(lhsSym) 
 						|| lhsStateIndex >= rhsIndex.at(productState.second).at(lhsSym).size())
 				{ // left symbol or index of a state is not in the right TA
 					continue;
@@ -188,6 +201,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 				}
 			}
 		}
+		std::cerr << "HERE1\n";
 	}
 
 	return res;
