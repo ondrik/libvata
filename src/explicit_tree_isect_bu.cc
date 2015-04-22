@@ -28,6 +28,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 	const ExplicitTreeAutCore&           rhs,
 	VATA::AutBase::ProductTranslMap*     pTranslMap)
 {
+
 	ExplicitTreeAutCore res(lhs.cache_);
 	std::vector<const ProductTranslMap::value_type*> stack;
 
@@ -189,5 +190,5 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 		}
 	}
 
-		return res;
+	return res;
 }
