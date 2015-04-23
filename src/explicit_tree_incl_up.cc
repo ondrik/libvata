@@ -331,7 +331,11 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 		const auto& symbol = symbolToTransitions.first;
 		post.clear();
 		isAccepting = false;
-
+		
+		if (!biggerLeaves.count(symbol))
+		{
+			continue;
+		}
 		for (auto& transition : biggerLeaves.at(symbol))
 		{
 			assert(transition);
