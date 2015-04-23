@@ -59,13 +59,10 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 	std::unordered_set<size_t> newStates;
 
 	// process empty leaves
-	for (size_t lhsSym = 0; lhsSym  < lhsLeaves.size(); ++lhsSym)
+	for (const auto& lhsSymPair : lhsLeaves)
 	{
-		if (!lhsLeaves.count(lhsSym))
-		{
-			continue;
-		}
-		for (const auto& transLhs : lhsLeaves.at(lhsSym))
+		const SymbolType lhsSym = lhsSymPair.first;
+		for (const auto& transLhs : lhsSymPair.second)
 		{
 			if (!rhsLeaves.count(lhsSym))
 			{
@@ -136,10 +133,11 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 			continue;
 		}
 
-		for (size_t lhsSym = 0; lhsSym < lhsIndex.at(productState.first).size(); ++lhsSym)
+		for (const auto& lhsSymPair : lhsIndex.at(productState.first))
 		{
+			const SymbolType lhsSym = lhsSymPair.first;
 			for (size_t lhsStateIndex = 0;
-					lhsStateIndex < lhsIndex.at(productState.first).at(lhsSym).size();
+					lhsStateIndex < lhsSymPair.second.size();
 					++lhsStateIndex)
 			{
 				if (!rhsIndex.at(productState.second).count(lhsSym) 
@@ -151,7 +149,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 				const auto& rhsTransitions = rhsIndex.at(productState.second).at(
 						lhsSym).at(lhsStateIndex);
 
-				for (const auto& lhsTransPtr : lhsIndex.at(productState.first).at(lhsSym).at(lhsStateIndex))
+				for (const auto& lhsTransPtr : lhsSymPair.second.at(lhsStateIndex))
 				{
 					const BUIndexTransition& lhsTrans = *lhsTransPtr;
 
