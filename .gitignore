@@ -8,3 +8,5 @@ build/*
 tags
 # YouCompleteMe dust
 .ycm_extra_conf.pyc
+# documentation
+doc/*

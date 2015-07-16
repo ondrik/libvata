@@ -149,6 +149,10 @@ public:   // public data types
 
 	public:   // methods
 
+		OnTheFlyAlphabet() = default;
+
+		OnTheFlyAlphabet(const OnTheFlyAlphabet& rhs) = default;
+
 		virtual FwdTranslatorPtr GetSymbolTransl() override
 		{
 			FwdTranslator* fwdTransl = new
@@ -731,7 +735,7 @@ public:   // methods
 	 *
    * @param[in]   lhs             Left automaton
    * @param[in]   rhs             Right automaton
-   * @param[out]  pTranslMapLhs   Dictionary for the result
+   * @param[out]  pTranslMap      Dictionary for the result (or @p nullptr)
 	 *
 	 * @returns  An automaton accepting the intersection of languages of @p lhs
 	 * and @p rhs
@@ -739,7 +743,7 @@ public:   // methods
 	static ExplicitTreeAut Intersection(
 		const ExplicitTreeAut&            lhs,
 		const ExplicitTreeAut&            rhs,
-		AutBase::ProductTranslMap*        pTranslMap);
+		AutBase::ProductTranslMap*        pTranslMap = nullptr);
 
 
 	/**
@@ -807,6 +811,16 @@ public:   // methods
 	 */
 	ExplicitTreeAut Complement() const;
 
+
+	/**
+	 * @brief  Checks language emptiness
+	 *
+	 * Determines whether the language of the automaton is empty.
+	 *
+	 * @returns  @p true if the language of the automaton is empty, @p false
+	 *           otherwise
+	 */
+	bool IsLangEmpty() const;
 
 	/**
 	 * @brief  Translates all symbols according to a translator

@@ -583,4 +583,67 @@ BOOST_AUTO_TEST_CASE(collapsing_states)
 		});
 }
 
+BOOST_AUTO_TEST_CASE(emptiness)
+{
+	auto testfileContent = ParseTestFile(EMPTINESS_TIMBUK_FILE.string());
+
+	for (auto testcase : testfileContent)
+	{
+		BOOST_REQUIRE_MESSAGE(testcase.size() == 2, "Invalid format of a testcase: " +
+			Convert::ToString(testcase));
+
+		std::string inputAutFile = (AUT_DIR / testcase[0]).string();
+		std::string resultStr = testcase[1];
+
+		BOOST_MESSAGE("Testing emptiness of " + inputAutFile + "...");
+
+		std::string autStr = VATA::Util::ReadFile(inputAutFile);
+		bool result;
+		if ("0" == resultStr)
+		{
+			result = false;
+		}
+		else if ("1" == resultStr)
+		{
+			result = true;
+		}
+		else
+		{
+			throw std::runtime_error("expecting '0' or '1' as the result "
+				+ std::string("of emptiness check"));
+		}
+
+		AutType aut;
+		readAut(aut, autStr);
+
+		bool langEmpty = aut.IsLangEmpty();
+		BOOST_REQUIRE_MESSAGE(langEmpty == result,
+			"Language emptiness failed: expecting '" +
+			Convert::ToString(result) + "', the value '" +
+			Convert::ToString(langEmpty) + "' obtained instead");
+	}
+}
+
+BOOST_AUTO_TEST_CASE(complement)
+{
+	this->runOnSmallAutomataSet(
+		[](const AutType& aut, const StateDict& stateDict, const std::string& filename)
+		{
+			BOOST_MESSAGE("Checking complement for " + filename + "...");
+			AutType autCmpl = aut.Complement();
+
+			// first, we check whether A \cap cA = \emptyset
+			AutType isectAut = AutType::Intersection(aut, autCmpl);
+			BOOST_REQUIRE_MESSAGE(isectAut.IsLangEmpty(),
+				"The language of isectAut needs to be empty");
+
+			// // now, we should check that A \cup cA = \Sigma*
+			// AutType unionAut = AutType::Union(aut, autCmpl);
+			// BOOST_REQUIRE_MESSAGE(isectAut.IsLangUniversal(),
+			// 	"The language of unionAut needs to be universal");
+
+			BOOST_MESSAGE("Warning: universality of union not tested.");
+		});
+}
+
 BOOST_AUTO_TEST_SUITE_END()

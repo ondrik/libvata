@@ -625,6 +625,12 @@ ExplicitTreeAut ExplicitTreeAut::Intersection(
 		CoreAut::Intersection(*lhs.core_, *rhs.core_, pTranslMap));
 }
 
+bool ExplicitTreeAut::IsLangEmpty() const
+{
+	assert(nullptr != core_);
+
+	return core_->IsLangEmpty();
+}
 
 AutBase::StateDiscontBinaryRelation ExplicitTreeAut::ComputeSimulation(
 	const VATA::SimParam&                  params) const

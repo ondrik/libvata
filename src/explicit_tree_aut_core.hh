@@ -1077,6 +1077,16 @@ public:   // methods
 	ExplicitTreeAutCore Complement() const;
 
 
+	bool IsLangEmpty() const
+	{
+		ExplicitTreeAutCore autTmp = this->RemoveUselessStates();
+
+		// after removing useless states, we just need to check whether there is
+		// a~final state in the automaton
+		return autTmp.GetFinalStates().empty();
+	}
+
+
 	ExplicitTreeAutCore Reduce() const
 	{
 		ReduceParam params;
