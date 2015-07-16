@@ -623,4 +623,27 @@ BOOST_AUTO_TEST_CASE(emptiness)
 			Convert::ToString(langEmpty) + "' obtained instead");
 	}
 }
+
+BOOST_AUTO_TEST_CASE(complement)
+{
+	this->runOnSmallAutomataSet(
+		[](const AutType& aut, const StateDict& stateDict, const std::string& filename)
+		{
+			BOOST_MESSAGE("Checking complement for " + filename + "...");
+			AutType autCmpl = aut.Complement();
+
+			// first, we check whether A \cap cA = \emptyset
+			AutType isectAut = AutType::Intersection(aut, autCmpl);
+			BOOST_REQUIRE_MESSAGE(isectAut.IsLangEmpty(),
+				"The language of isectAut needs to be empty");
+
+			// // now, we should check that A \cup cA = \Sigma*
+			// AutType unionAut = AutType::Union(aut, autCmpl);
+			// BOOST_REQUIRE_MESSAGE(isectAut.IsLangUniversal(),
+			// 	"The language of unionAut needs to be universal");
+
+			BOOST_MESSAGE("Warning: universality of union not tested.");
+		});
+}
+
 BOOST_AUTO_TEST_SUITE_END()

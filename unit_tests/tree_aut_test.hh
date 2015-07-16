@@ -38,6 +38,9 @@ using VATA::Util::Convert;
 const fs::path LOAD_TIMBUK_FILE =
 	AUT_DIR / "load_timbuk.txt";
 
+const fs::path SMALL_TIMBUK_FILE =
+	AUT_DIR / "small_timbuk.txt";
+
 const fs::path USELESS_TIMBUK_FILE =
 	AUT_DIR / "useless_removal_timbuk.txt";
 
@@ -291,12 +294,30 @@ protected:// methods
 		}
 	}
 
+
 	template <
 		class AutProcFunc>
 	void runOnAutomataSet(
 		AutProcFunc           procFunc)
 	{
-		auto testfileContent = ParseTestFile(LOAD_TIMBUK_FILE.string());
+		this->runOnAutomataSetFromFile(procFunc, LOAD_TIMBUK_FILE.string());
+	}
+
+	template <
+		class AutProcFunc>
+	void runOnSmallAutomataSet(
+		AutProcFunc           procFunc)
+	{
+		this->runOnAutomataSetFromFile(procFunc, SMALL_TIMBUK_FILE.string());
+	}
+
+	template <
+		class AutProcFunc>
+	void runOnAutomataSetFromFile(
+		AutProcFunc           procFunc,
+		const std::string&    filename)
+	{
+		auto testfileContent = ParseTestFile(filename);
 		for (auto testcase : testfileContent)
 		{
 			BOOST_REQUIRE_MESSAGE(testcase.size() == 1, "Invalid format of a testcase: " +
