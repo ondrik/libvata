@@ -50,6 +50,9 @@ const fs::path UNION_TIMBUK_FILE =
 const fs::path INTERSECTION_TIMBUK_FILE =
 	AUT_DIR / "intersection_timbuk.txt";
 
+const fs::path EMPTINESS_TIMBUK_FILE =
+	AUT_DIR / "emptiness_timbuk.txt";
+
 const fs::path ADD_TRANS_TIMBUK_FILE =
 	AUT_DIR / "add_trans_timbuk.txt";
 

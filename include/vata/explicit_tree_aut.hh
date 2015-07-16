@@ -809,6 +809,16 @@ public:   // methods
 
 
 	/**
+	 * @brief  Checks language emptiness
+	 *
+	 * Determines whether the language of the automaton is empty.
+	 *
+	 * @returns  @p true if the language of the automaton is empty, @p false
+	 *           otherwise
+	 */
+	bool IsLangEmpty() const;
+
+	/**
 	 * @brief  Translates all symbols according to a translator
 	 *
 	 * This method translates symbols of all transitions according to the @p

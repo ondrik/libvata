@@ -1,0 +1,8 @@
+small_timbuk/emptiness_1        1
+small_timbuk/emptiness_2        0
+small_timbuk/emptiness_3        1
+small_timbuk/td_unreachable_1   0
+small_timbuk/td_unreachable_2   0
+small_timbuk/td_unreachable_3   1
+small_timbuk/td_unreachable_4   1
+small_timbuk/bu_unreachable_3   1
