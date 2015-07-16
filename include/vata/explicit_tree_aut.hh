@@ -149,6 +149,10 @@ public:   // public data types
 
 	public:   // methods
 
+		OnTheFlyAlphabet() = default;
+
+		OnTheFlyAlphabet(const OnTheFlyAlphabet& rhs) = default;
+
 		virtual FwdTranslatorPtr GetSymbolTransl() override
 		{
 			FwdTranslator* fwdTransl = new
