@@ -731,7 +731,7 @@ public:   // methods
 	 *
    * @param[in]   lhs             Left automaton
    * @param[in]   rhs             Right automaton
-   * @param[out]  pTranslMapLhs   Dictionary for the result
+   * @param[out]  pTranslMap      Dictionary for the result (or @p nullptr)
 	 *
 	 * @returns  An automaton accepting the intersection of languages of @p lhs
 	 * and @p rhs
@@ -739,7 +739,7 @@ public:   // methods
 	static ExplicitTreeAut Intersection(
 		const ExplicitTreeAut&            lhs,
 		const ExplicitTreeAut&            rhs,
-		AutBase::ProductTranslMap*        pTranslMap);
+		AutBase::ProductTranslMap*        pTranslMap = nullptr);
 
 
 	/**
