@@ -15,11 +15,11 @@
 
 #include <vata/explicit_finite_aut.hh>
 
-#include <vata/finite_aut/util/comparators.hh>
 #include <vata/finite_aut/util/normal_form_rel.hh>
 #include <vata/finite_aut/util/congr_product.hh>
 #include <vata/util/antichain2c_v2.hh>
 
+#include "comparators.hh"
 #include "explicit_finite_congr_fctor_cache_opt.hh"
 #include "explicit_finite_congr_equiv_fctor.hh"
 #include "explicit_finite_incl_fctor_cache.hh"
