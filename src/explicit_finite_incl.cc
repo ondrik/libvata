@@ -15,7 +15,6 @@
 
 #include <vata/explicit_finite_aut.hh>
 
-#include <vata/finite_aut/util/normal_form_rel.hh>
 #include <vata/util/antichain2c_v2.hh>
 
 #include "comparators.hh"
@@ -25,6 +24,7 @@
 #include "explicit_finite_incl_fctor_cache.hh"
 #include "macrostate_cache.hh"
 #include "map_to_list.hh"
+#include "normal_form_rel.hh"
 
 namespace VATA
 {
