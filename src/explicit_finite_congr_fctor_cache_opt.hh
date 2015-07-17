@@ -18,7 +18,7 @@
 #include <vata/util/antichain2c_v2.hh>
 
 #include "explicit_finite_abstract_fctor.hh"
-#include <vata/finite_aut/util/map_to_list.hh>
+#include "map_to_list.hh"
 #include "macrostate_cache.hh"
 
 namespace VATA {
