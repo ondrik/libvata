@@ -11,6 +11,9 @@
 #ifndef _VATA_ANTICHAIN_HH_
 #define _VATA_ANTICHAIN_HH_
 
+// standard library headers
+#include <unordered_map>
+
 // VATA headers
 #include <vata/vata.hh>
 
