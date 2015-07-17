@@ -19,11 +19,11 @@
 #include <vata/util/ordered_antichain2c.hh>
 #include <vata/util/antichain1c.hh>
 
+#include <vata/finite_aut/util/map_to_list.hh>
+
 #include "explicit_finite_aut_core.hh"
 #include "explicit_finite_abstract_fctor.hh"
-
-#include <vata/finite_aut/util/map_to_list.hh>
-#include <vata/finite_aut/util/macrostate_cache.hh>
+#include "macrostate_cache.hh"
 
 // standard libraries
 #include <vector>

@@ -16,6 +16,7 @@
 #include <vata/vata.hh>
 
 // Standard library headers
+#include <list>
 #include <unordered_map>
 
 namespace VATA {

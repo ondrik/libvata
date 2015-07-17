@@ -15,16 +15,16 @@
 
 #include <vata/explicit_finite_aut.hh>
 
-#include "explicit_finite_congr_fctor_cache_opt.hh"
-#include "explicit_finite_congr_equiv_fctor.hh"
-#include "explicit_finite_incl_fctor_cache.hh"
-
 #include <vata/finite_aut/util/comparators.hh>
 #include <vata/finite_aut/util/normal_form_rel.hh>
 #include <vata/finite_aut/util/map_to_list.hh>
-#include <vata/finite_aut/util/macrostate_cache.hh>
 #include <vata/finite_aut/util/congr_product.hh>
 #include <vata/util/antichain2c_v2.hh>
+
+#include "explicit_finite_congr_fctor_cache_opt.hh"
+#include "explicit_finite_congr_equiv_fctor.hh"
+#include "explicit_finite_incl_fctor_cache.hh"
+#include "macrostate_cache.hh"
 
 namespace VATA
 {
