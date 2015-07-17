@@ -24,7 +24,6 @@
 
 // Utilities
 #include <vata/util/ord_vector.hh>
-#include <vata/util/vector_map.hh>
 #include <vata/util/util.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
