@@ -363,7 +363,7 @@ public:
 	 * elements to their images (in @p ind) and their co-images (in @p inv).
 	 *
 	 * @param[out]  ind  The result mapping every element to its images
-	 * @param[out]  ind  The result mapping every element to its co-images
+	 * @param[out]  inv  The result mapping every element to its co-images
 	 *
 	 * @see buildIndex buildInvIndex
 	 */

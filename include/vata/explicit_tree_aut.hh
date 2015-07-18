@@ -792,8 +792,6 @@ public:   // methods
 	 * states of the automaton is output by the @p transl translator.
 	 *
 	 * @param[in]  params  Parameters specifying which simulation is to be computed.
-	 * @param[out] transl  Translator of the output matrix's row and column
-	 *                     numbers to states of the automaton
 	 *
 	 * @returns  The computed simulation relation, as a matrix indexed from 0
 	 */
