@@ -109,8 +109,15 @@ Arguments parseArguments(int argc, char* argv[])
 			{
 				args.command = COMMAND_HELP;
 				parserState = PARSING_END;
+				break;
 			}
-			else	if (currentArg == "-t")
+			else if ((currentArg == "-v") || currentArg == "--version")
+			{
+				args.command = COMMAND_VERSION;
+				parserState = PARSING_END;
+				break;
+			}
+			else if (currentArg == "-t")
 			{
 				if (parsedShowTime)
 				{
@@ -120,7 +127,7 @@ Arguments parseArguments(int argc, char* argv[])
 				parsedShowTime = true;
 				args.showTime = true;
 			}
-			else	if (currentArg == "-v")
+			else if (currentArg == "-v")
 			{
 				if (parsedVerbose)
 				{
@@ -130,7 +137,7 @@ Arguments parseArguments(int argc, char* argv[])
 				parsedVerbose = true;
 				args.verbose = true;
 			}
-			else	if (currentArg == "-p")
+			else if (currentArg == "-p")
 			{
 				if (parsedPruneUnreach)
 				{
@@ -140,7 +147,7 @@ Arguments parseArguments(int argc, char* argv[])
 				parsedPruneUnreach = true;
 				args.pruneUnreachable = true;
 			}
-			else	if (currentArg == "-s")
+			else if (currentArg == "-s")
 			{
 				if (parsedPruneUseless)
 				{
@@ -150,7 +157,7 @@ Arguments parseArguments(int argc, char* argv[])
 				parsedPruneUseless = true;
 				args.pruneUseless = true;
 			}
-			else	if (currentArg == "-n")
+			else if (currentArg == "-n")
 			{
 				if (parsedDontOutputRes)
 				{
@@ -160,7 +167,7 @@ Arguments parseArguments(int argc, char* argv[])
 				parsedDontOutputRes = true;
 				args.dontOutputResult = true;
 			}
-			else	if (currentArg == "-r")
+			else if (currentArg == "-r")
 			{
 				if (parsedRepresentation)
 				{
@@ -314,6 +321,13 @@ Arguments parseArguments(int argc, char* argv[])
 				{
 					args.command = COMMAND_HELP;
 					parserState = PARSING_END;
+					break;
+				}
+				else if (currentArg == "version")
+				{
+					args.command = COMMAND_VERSION;
+					parserState = PARSING_END;
+					break;
 				}
 				else if (currentArg == "load")
 				{

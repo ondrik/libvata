@@ -53,12 +53,13 @@ using StateToStateTranslStrict = AutBase::StateToStateTranslStrict;
 const char VATA_USAGE_STRING[] =
 	"VATA: VATA Tree Automata library interface\n"
 	"usage: vata [-r <representation>] [(-I|-O|-F) <format>] [-h|--help] [-t] [-n]\n"
-	"            [(-p|-s)] [-o <options>] <command> [<args>]\n"
+	"            [-v|--version] [(-p|-s)] [-o <options>] <command> [<args>]\n"
 	;
 
 const char VATA_USAGE_COMMANDS[] =
 	"\nThe following commands are supported:\n"
 	"    help                    Display this message\n"
+	"    version                 Display version\n"
 	"    load    <file>          Load automaton from <file>\n"
 	"    witness <file>          Get a string from the language of the automaton in <file>\n"
 	"    cmpl    <file>          Complement automaton from <file> [experimental]\n"
@@ -95,6 +96,7 @@ const char VATA_USAGE_COMMANDS[] =
 const char VATA_USAGE_FLAGS[] =
 	"\nOptions:\n"
 	"    -h, --help            Display this message\n"
+	"    -v, --version         Display version\n"
 	"    -r <representation>   Use <representation> for internal storage of automata\n"
 	"       Choices: 'expl'   : explicit (default)\n"
 	"                'bdd-td' : binary decision diagrams, top-down\n"
@@ -109,6 +111,10 @@ const char VATA_USAGE_FLAGS[] =
 	"    -s                      Prune useless states first (stronger than -p)\n"
 	"    -o <opt>=<v>,<opt>=<v>  Options in the form of a comma-separated <option>=<value> list"
 	;
+
+extern const char* VATA_VERSION;
+extern const char* VATA_GIT_SHA;
+extern const char* VATA_GIT_DESCRIBE;
 
 const size_t BDD_SIZE = 16;
 
@@ -126,6 +132,15 @@ void printHelp(bool full = false)
 	}
 }
 
+void printVersion()
+{
+	std::cout << "VATA version ";
+	// std::cout << VATA_VERSION;
+	// std::cout << "-";
+	// std::cout << VATA_GIT_SHA;
+	std::cout << VATA_GIT_DESCRIBE;
+	std::cout << "\n";
+}
 
 template <class Aut>
 int performOperation(
@@ -375,7 +390,7 @@ int main(int argc, char* argv[])
 
 	if (argc == 1)
 	{	// in case no arguments were given
-		printHelp(true);
+		printHelp(false);
 		return EXIT_SUCCESS;
 	}
 
@@ -399,6 +414,11 @@ int main(int argc, char* argv[])
 	if (args.command == COMMAND_HELP)
 	{
 		printHelp(true);
+		return EXIT_SUCCESS;
+	}
+	else if (args.command == COMMAND_VERSION)
+	{
+		printVersion();
 		return EXIT_SUCCESS;
 	}
 

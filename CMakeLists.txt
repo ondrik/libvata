@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.8.2)
 
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 set(CMAKE_COLOR_MAKEFILE ON)
-#set(CMAKE_VERBOSE_MAKEFILE ON)
+# set(CMAKE_VERBOSE_MAKEFILE ON)
 
 set(REQUIRED_GCC_VERSION 4.8.0)
 
@@ -10,6 +10,11 @@ set(GCC_ALTERNATIVES g++ g++-4.8)
 
 # Uncomment to avoid dynamic linking of libraries
 #set(MAKE_STATIC_VATA ON)
+
+# get the git revision
+include(GetGitRevisionDescription)
+git_describe(GIT_DESCRIBE)
+get_git_head_revision(GIT_REFSPEC GIT_SHA1)
 
 # check minimum GCC version
 execute_process(COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
