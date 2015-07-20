@@ -14,8 +14,8 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/util/antichain2c_v2.hh>
 
+#include "antichain2c_v2.hh"
 #include "explicit_finite_aut_core.hh"
 #include "explicit_finite_abstract_fctor.hh"
 #include "macrostate_cache.hh"

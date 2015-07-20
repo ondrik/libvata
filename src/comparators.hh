@@ -17,8 +17,9 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/util/antichain1c.hh>
 #include <vata/explicit_finite_aut.hh>
+
+#include "antichain1c.hh"
 
 namespace VATA {
 	template <class Rel> class ExplicitFAStateSetComparatorIdentity;

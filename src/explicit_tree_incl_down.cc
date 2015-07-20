@@ -15,9 +15,9 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/explicit_tree_aut.hh>
-#include <vata/util/antichain1c.hh>
-#include <vata/util/antichain2c_v2.hh>
 
+#include "antichain1c.hh"
+#include "antichain2c_v2.hh"
 #include "explicit_tree_incl_down.hh"
 #include "util/cache.hh"
 #include "util/cached_binary_op.hh"

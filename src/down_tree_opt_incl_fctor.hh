@@ -14,8 +14,8 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/util/antichain2c_v2.hh>
 
+#include "antichain2c_v2.hh"
 #include "util/cache.hh"
 
 

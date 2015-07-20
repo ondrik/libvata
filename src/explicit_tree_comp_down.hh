@@ -15,9 +15,9 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include <vata/util/antichain1c.hh>
 #include <vata/util/transl_strict.hh>
 
+#include "antichain1c.hh"
 #include "explicit_tree_aut_core.hh"
 
 namespace VATA { class ExplicitDownwardComplementation; }

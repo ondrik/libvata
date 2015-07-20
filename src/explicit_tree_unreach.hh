@@ -13,7 +13,8 @@
 
 // VATA headers
 #include <vata/explicit_tree_aut.hh>
-#include <vata/util/antichain1c.hh>
+
+#include "antichain1c.hh"
 
 template <
 	class Rel,

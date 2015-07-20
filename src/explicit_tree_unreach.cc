@@ -11,13 +11,12 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/util/transl_strict.hh>
-#include <vata/util/antichain1c.hh>
 
 // Standard library headers
 #include <vector>
 #include <unordered_set>
 
-
+#include "antichain1c.hh"
 #include "explicit_tree_aut_core.hh"
 
 using VATA::ExplicitTreeAutCore;
