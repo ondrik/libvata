@@ -63,11 +63,8 @@ namespace VATA
 }
 
 
-GCC_DIAG_OFF(effc++)
 class VATA::ExplicitTreeAut : public TreeAutBase
 {
-GCC_DIAG_ON(effc++)
-
 private:  // data types
 
 	using CoreAut        = VATA::LoadableAut<ExplicitTreeAutCore>;

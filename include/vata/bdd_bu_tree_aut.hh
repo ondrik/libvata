@@ -39,11 +39,8 @@ namespace VATA
 	class BDDBUTreeAutCore;
 }
 
-GCC_DIAG_OFF(effc++)
 class VATA::BDDBottomUpTreeAut : public SymbolicTreeAutBase
 {
-GCC_DIAG_ON(effc++)
-
 private:  // data types
 
 	using CoreAut        = VATA::LoadableAut<BDDBUTreeAutCore>;

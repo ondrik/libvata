@@ -48,11 +48,8 @@ namespace VATA
 
 // TODO: both BDDTopDownTreeAut and BDDTDTreeAutCore should not be derived from
 //SymbolicAutBase. And the same for BDDBottomUpTreeAut and BDDBUTreeAutCore.
-GCC_DIAG_OFF(effc++)
 class VATA::BDDTopDownTreeAut : public SymbolicTreeAutBase
 {
-GCC_DIAG_ON(effc++)
-
 	friend VATA::BDDBottomUpTreeAut;
 
 private:  // data types

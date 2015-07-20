@@ -114,11 +114,8 @@ public:   // methods
 	}
 };
 
-GCC_DIAG_OFF(effc++)
 class VATA::TreeAutBase : public AutBase
 {
-GCC_DIAG_ON(effc++)
-
 protected:// methods
 
 	TreeAutBase() { }
@@ -257,13 +254,10 @@ protected:// data types
 };
 
 
-GCC_DIAG_OFF(effc++)
 class VATA::SymbolicTreeAutBase :
 	public TreeAutBase,
 	public Symbolic
 {
-GCC_DIAG_ON(effc++)
-
 public:   // data types
 
 	using StringSymbolType = std::string;

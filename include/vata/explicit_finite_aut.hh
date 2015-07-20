@@ -35,16 +35,15 @@ namespace VATA
 	class ExplicitFiniteAutCore;
 }
 
-GCC_DIAG_OFF(effc++) // non virtual destructors warnings suppress
 class VATA::ExplicitFiniteAut : public AutBase
 {
-GCC_DIAG_ON(effc++)
-
 private: // private data types
+
 	using CoreAut = VATA::LoadableAut<ExplicitFiniteAutCore>;
 	std::unique_ptr<CoreAut> core_;
 
 public: // public data types
+
 	using SymbolType       = uintptr_t ;
 	using SymbolSet        = std::unordered_set<SymbolType>;
 	using StringSymbolType = std::string;
