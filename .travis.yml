@@ -20,4 +20,5 @@ script:
 addons:
   apt:
     packages:
+      - doxygen
       - flex
