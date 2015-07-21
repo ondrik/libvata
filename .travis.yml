@@ -31,3 +31,5 @@ addons:
     packages:
       - doxygen
       - flex
+
+cache: ccache
