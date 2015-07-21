@@ -12,7 +12,7 @@ before_install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
   - wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/bison/libbison-dev_3.0.2.dfsg-2_amd64.deb" && sudo dpkg --install "libbison-dev_3.0.2.dfsg-2_amd64.deb"
   - wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/bison/bison_3.0.2.dfsg-2_amd64.deb" && sudo dpkg --install "bison_3.0.2.dfsg-2_amd64.deb"
-  - wget "http://cz.archive.ubuntu.com/ubuntu/pool/universe/b/boost-defaults/libboost-filesystem-dev_1.54.0.1ubuntu1_amd64.deb" && sudo dpkg --install "libboost-filesystem-dev_1.54.0.1ubuntu1_amd64.deb"
+  - wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost-defaults/libboost-filesystem-dev_1.54.0.1ubuntu1_amd64.deb" && sudo dpkg --install "libboost-filesystem-dev_1.54.0.1ubuntu1_amd64.deb"
 
 script:
   - make debug
