@@ -13,6 +13,7 @@ before_install:
   - wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/bison/libbison-dev_3.0.2.dfsg-2_amd64.deb" && sudo dpkg --install "libbison-dev_3.0.2.dfsg-2_amd64.deb"
   - wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/bison/bison_3.0.2.dfsg-2_amd64.deb" && sudo dpkg --install "bison_3.0.2.dfsg-2_amd64.deb"
   - wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost1.54-dev_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost1.54-dev_1.54.0-4ubuntu3_amd64.deb"
+  - wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost-system1.54.0_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost-system1.54.0_1.54.0-4ubuntu3_amd64.deb"
   - wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost-system1.54-dev_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost-system1.54-dev_1.54.0-4ubuntu3_amd64.deb"
   - wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost-filesystem1.54-dev_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost-filesystem1.54-dev_1.54.0-4ubuntu3_amd64.deb"
 
