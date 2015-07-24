@@ -25,6 +25,12 @@ set(DEFAULT_CXX_COMPILER "g++")
 option(USE_CLANG "build with clang" OFF)
 # option(USE_CLANG "build with clang" ON)
 
+# Building with 32-bit memory model (to work e.g. with MONA)
+option(BUILD_32B_MEM_MODEL "build with 32-bit memory model" OFF)
+
+# Building with debug information even in release (use e.g. for profiling with Callgrind)
+option(DEBUG_INFO_FOR_RELEASE "build with debug info even in release builds" OFF)
+
 ##############################################################################
 #                               COMPILER FUN
 ##############################################################################
@@ -99,7 +105,7 @@ if ("${COMPILER_FAMILY}" STREQUAL "gcc")
 	endif()
 elseif ("${COMPILER_FAMILY}" STREQUAL "clang")
 	# message(FATAL_ERROR "Clang currently unsupported!")
-	message("-- No fancy checks of ${CMAKE_CXX_COMPILER}, just passing through")
+	message("-- No fancy checks for ${CMAKE_CXX_COMPILER}, just passing through")
 else()
 	message(FATAL_ERROR "Unknown compiler family \"${COMPILER_FAMILY}\"")
 endif()
@@ -108,13 +114,23 @@ endif()
 #set(CMAKE_C_COMPILER "gcc-4.8")
 #set(CMAKE_CXX_COMPILER "g++-4.8")
 
-# Uncomment for the 32-bit memory model
-# set(CMAKE_C_FLAGS_RELEASE  "${CMAKE_C_FLAGS_RELEASE} -m32")
-# set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -m32")
+# Support for the 32-bit memory model
+if (BUILD_32B_MEM_MODEL)
+	if (NOT "${COMPILER_FAMILY}" STREQUAL "gcc")
+		message(FATAL_ERROR "32b memory model supported only for GCC (you can fix it yourself in /CMakeLists.txt, I'm too lazy now))")
+	endif()
 
-# Uncomment for profiling with Callgrind
-set(CMAKE_C_FLAGS_RELEASE  "${CMAKE_C_FLAGS_RELEASE} -g")
-set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g")
+	set(CMAKE_C_FLAGS_RELEASE  "${CMAKE_C_FLAGS_RELEASE} -m32")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -m32")
+	message("-- 32b memory model enabled for ${CMAKE_CXX_COMPILER}")
+endif()
+
+# Debug information for release builds
+if (DEBUG_INFO_FOR_RELEASE)
+	set(CMAKE_C_FLAGS_RELEASE  "${CMAKE_C_FLAGS_RELEASE} -g")
+	set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g")
+	message("-- Enabling debug information for RELEASE builds")
+endif()
 
 ##############################################################################
 #                                 PROJECT
