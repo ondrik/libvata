@@ -79,6 +79,16 @@ It is recommended to run
 from the repository's root directory after compiling the code to run several
 unit tests and check that the compiled code passes them all.
 
+Compiling with LLVM (experimental)
+==================================
+
+Run either
+
+  $ CXX=clang++ make release
+
+or 
+
+  $ CXX=clang++ make debug
 
 Command-Line Interface
 ======================
