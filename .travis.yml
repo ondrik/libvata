@@ -6,7 +6,6 @@ compiler:
 before_install:
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   - sudo apt-get update -qq
-  # - sudo apt-get install -qq libyajl-dev libxml2-dev libxqilla-dev
   # install GCC-4.8
   - if [ "$CXX" = "clang++" ]; then sudo apt-get install -qq libstdc++-4.8-dev; fi
   - if [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-4.8; fi
@@ -14,6 +13,7 @@ before_install:
   # install Boost
   - wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/bison/libbison-dev_3.0.2.dfsg-2_amd64.deb" && sudo dpkg --install "libbison-dev_3.0.2.dfsg-2_amd64.deb"
   - wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/bison/bison_3.0.2.dfsg-2_amd64.deb" && sudo dpkg --install "bison_3.0.2.dfsg-2_amd64.deb"
+  # install Boost
   - wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost1.54-dev_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost1.54-dev_1.54.0-4ubuntu3_amd64.deb"
   - wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost-system1.54.0_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost-system1.54.0_1.54.0-4ubuntu3_amd64.deb"
   - wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost-system1.54-dev_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost-system1.54-dev_1.54.0-4ubuntu3_amd64.deb"
