@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8.2)
 
+
 # 3rd party modules
 set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake/Modules/")
 # Enable fancy colours
@@ -12,14 +13,17 @@ set(CMAKE_COLOR_MAKEFILE ON)
 #                             OUTPUT CUSTOMIZATION
 ##############################################################################
 
-# Uncomment to avoid dynamic linking of libraries
-#set(MAKE_STATIC_VATA ON)
+# Avoid dynamic linking of libraries?
+OPTION(MAKE_STATIC_VATA "make static library" OFF)
 
 # The default C++ compiler
-set(DEFAULT_CXX_COMPILER g++) 
+set(DEFAULT_CXX_COMPILER "g++") 
 
-# Override the default C++ compiler
-set(OVERRIDE_CXX_COMPILER clang)
+# Build with Clang? -- currently does nothing, initialize with
+#   $ CXX=clang++ make debug
+# to enable Clang
+option(USE_CLANG "build with clang" OFF)
+# option(USE_CLANG "build with clang" ON)
 
 ##############################################################################
 #                               COMPILER FUN
@@ -42,18 +46,19 @@ endif()
 
 message("-- Default C++ compiler: ${CMAKE_CXX_COMPILER}")
 
-if (DEFINED OVERRIDE_CXX_COMPILER)
-	set(CMAKE_CXX_COMPILER ${OVERRIDE_CXX_COMPILER})
-	message("-- Overriding the default C++ compiler with: ${OVERRIDE_CXX_COMPILER}")
-endif()
-
-# default compiler family
-set(COMPILER_FAMILY "gcc")
-
-if ("${CMAKE_CXX_COMPILER}" MATCHES "clang")
-	message("-- Assuming the Clang compiler")
+if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+	message("-- Assuming the GNU compiler family")
+	set(COMPILER_FAMILY "gcc")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+	message("-- Assuming the Clang compiler family")
 	set(COMPILER_FAMILY "clang")
+else()
+	message(FATAL_ERROR "Unsupported compiler family: ${CMAKE_CXX_COMPILER_ID}")
 endif()
+
+##############################################################################
+#                     TESTING FEATURES OF THE COMPILER
+##############################################################################
 
 message("-- Testing suitability of ${CMAKE_CXX_COMPILER}")
 
@@ -93,7 +98,8 @@ if ("${COMPILER_FAMILY}" STREQUAL "gcc")
 		endif()
 	endif()
 elseif ("${COMPILER_FAMILY}" STREQUAL "clang")
-	message(FATAL_ERROR "Clang currently unsupported!")
+	# message(FATAL_ERROR "Clang currently unsupported!")
+	message("-- No fancy checks of ${CMAKE_CXX_COMPILER}, just passing through")
 else()
 	message(FATAL_ERROR "Unknown compiler family \"${COMPILER_FAMILY}\"")
 endif()
