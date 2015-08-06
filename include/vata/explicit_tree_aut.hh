@@ -30,6 +30,7 @@
 #include <memory>
 #include <unordered_set>
 #include <unordered_map>
+#include <vector>
 
 
 namespace VATA
@@ -68,6 +69,7 @@ class VATA::ExplicitTreeAut : public TreeAutBase
 private:  // data types
 
 	using CoreAut        = VATA::LoadableAut<ExplicitTreeAutCore>;
+	using StateMap       = std::unordered_map<StateType, StateType>;
 
 public:   // public data types
 
@@ -379,7 +381,10 @@ private:  // data members
 public:   // methods
 
 	ExplicitTreeAut();
-	ExplicitTreeAut(const ExplicitTreeAut& aut);
+	ExplicitTreeAut(
+            const ExplicitTreeAut& aut,
+	        bool                   copyTrans = true,
+	        bool                   copyFinal = true);
 	ExplicitTreeAut(ExplicitTreeAut&& aut);
 
 	ExplicitTreeAut& operator=(const ExplicitTreeAut& rhs);
@@ -406,6 +411,8 @@ public:   // methods
 	 * @param[in]  state  The state to be set as accepting
 	 */
 	void SetStateFinal(const StateType& state);
+
+	void SetStatesFinal(const std::set<StateType>& states);
 
 	/**
 	 * @brief  Checks whether a state is accepting
@@ -434,6 +441,18 @@ public:   // methods
 	 * @returns  An (iterable) container with accepting transitions
 	 */
 	AcceptTrans GetAcceptTrans() const;
+
+  /**
+    * @brief Retrieves a container with all states of the automaton
+    *
+    * @return A vector with all used states
+    */
+  std::unordered_set<size_t> GetUsedStates() const;
+
+  /**
+    * @brief Clears automaton. It clears its final states and trasitions.
+    */
+  void Clear();
 
 	/**
 	 * @brief  Retrieves the transitions where the state is a parent
@@ -466,10 +485,8 @@ public:   // methods
 		const SymbolType&         symbol,
 		const StateType&          state);
 
-
 	void AddTransition(
 		const Transition&         trans);
-
 
 	bool ContainsTransition(
 		const Transition&         trans) const;
@@ -478,8 +495,9 @@ public:   // methods
 	bool ContainsTransition(
 		const StateTuple&         children,
 		const SymbolType&         symbol,
-		const StateType&          state);
+		const StateType&          state) const;
 
+    bool AreTransitionsEmpty();
 
 	AlphabetType& GetAlphabet();
 
@@ -527,6 +545,10 @@ public:   // methods
 	 */
 	ExplicitTreeAut CollapseStates(
 		const StateToStateMap&      collapseMap) const;
+
+
+	void BuildStateIndex(
+	  Util::TranslatorWeak<StateMap>&    index) const;
 
 
 	ExplicitTreeAut ReindexStates(
@@ -713,8 +735,8 @@ public:   // methods
 	 * Unites two automata. Note that these automata need to have disjoint sets of
 	 * states, otherwise the result is undefined.
 	 *
-   * @param[in]      lhs             Left automaton for union
-   * @param[in]      rhs             Right automaton for union
+     * @param[in]      lhs             Left automaton for union
+     * @param[in]      rhs             Right automaton for union
 	 *
 	 * @returns  An automaton accepting the union of languages of @p lhs and @p
 	 * rhs
@@ -730,14 +752,33 @@ public:   // methods
 	 * This function creates an automaton that accepts the languages defined as
 	 * the intersection of langauges of a pair of automata.
 	 *
-   * @param[in]   lhs             Left automaton
-   * @param[in]   rhs             Right automaton
-   * @param[out]  pTranslMap      Dictionary for the result (or @p nullptr)
+     * @param[in]   lhs             Left automaton
+     * @param[in]   rhs             Right automaton
+	 * @param[out]  pTranslMapLhs   Dictionary for the result
 	 *
 	 * @returns  An automaton accepting the intersection of languages of @p lhs
 	 * and @p rhs
-   */
+     */
 	static ExplicitTreeAut Intersection(
+		const ExplicitTreeAut&            lhs,
+		const ExplicitTreeAut&            rhs,
+		AutBase::ProductTranslMap*        pTranslMap = nullptr);
+
+
+	/**
+	 * @brief  Intersection of languages of a pair of automata in bottom-up way
+	 *
+	 * This function creates an automaton that accepts the languages defined as
+	 * the intersection of langauges of a pair of automata in bottom-up way.
+	 *
+	 * @param[in]   lhs             Left automaton
+	 * @param[in]   rhs             Right automaton
+	 * @param[out]  pTranslMapLhs   Dictionary for the result
+	 *
+	 * @returns  An automaton accepting the intersection of languages of @p lhs
+	 * and @p rhs
+     */
+	static ExplicitTreeAut IntersectionBU(
 		const ExplicitTreeAut&            lhs,
 		const ExplicitTreeAut&            rhs,
 		AutBase::ProductTranslMap*        pTranslMap = nullptr);

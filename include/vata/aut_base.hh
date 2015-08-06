@@ -157,9 +157,11 @@ protected:// data types
 			children_(children)
 		{ }
 
-		const StateType& GetParent()    const { return parent_;   }
-		const SymbolType& GetSymbol()   const { return symbol_;   }
-		const StateTuple& GetChildren() const { return children_; }
+		const StateType&  GetParent()           const { return parent_;   }
+		const SymbolType& GetSymbol()           const { return symbol_;   }
+		const StateTuple& GetChildren()         const { return children_; }
+        size_t            GetChildrenSize()     const { return children_.size();}
+        size_t            GetNthChildren(int n) const { return children_[n];}
 
 		bool operator<(const TTransition& rhs) const
 		{
