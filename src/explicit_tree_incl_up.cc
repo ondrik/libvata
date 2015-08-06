@@ -246,7 +246,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 	auto gte = [&lte](const BiggerType& x, const BiggerType& y) { return lte(y, x); };
 
-	typedef VATA::ExplicitUpwardInclusion::Transition Transition;
+	typedef VATA::BUIndexTransition Transition;
 	typedef std::unordered_set<const Transition*> TransitionSet;
 	typedef typename std::shared_ptr<TransitionSet> TransitionSetPtr;
 
@@ -257,12 +257,12 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 		TransitionSetPtr result = TransitionSetPtr(new TransitionSet());
 
-		if (biggerIndex.size() <= key.first)
+		if (!biggerIndex.count(key.first))
 		{
 			return result;
 		}
 
-		auto& iter = biggerIndex[key.first];
+		auto& iter = biggerIndex.at(key.first);
 
 		if (iter.size() <= key.second)
 		{
@@ -278,7 +278,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 				continue;
 			}
 
-			for (auto& transition : indexedTransitionList[state])
+			for (auto& transition : indexedTransitionList.at(state))
 			{
 				result->insert(transition.get());
 			}
@@ -326,12 +326,17 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 		return false;
 	}
 
-	for (size_t symbol = 0; symbol < smallerLeaves.size(); ++symbol)
+	for (const auto& symbolToTransitions : smallerLeaves)
 	{
+		const auto& symbol = symbolToTransitions.first;
 		post.clear();
 		isAccepting = false;
-
-		for (auto& transition : biggerLeaves[symbol])
+		
+		if (!biggerLeaves.count(symbol))
+		{
+			continue;
+		}
+		for (auto& transition : biggerLeaves.at(symbol))
 		{
 			assert(transition);
 			assert(transition->children().empty());
@@ -356,7 +361,7 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 		auto ptr = biggerTypeCache.lookup(tmp);
 
-		for (auto& transition : smallerLeaves[symbol])
+		for (auto& transition : smallerLeaves.at(symbol))
 		{
 			assert(transition);
 
@@ -406,14 +411,18 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 
 		// Post(processed)
 
-		assert(q < smallerIndex.size());
-		const SymbolToIndexedTransitionListMap& smallerTransitionIndex = smallerIndex[q];
-
-		for (size_t symbol = 0; symbol < smallerTransitionIndex.size(); ++symbol)
+		if (!smallerIndex.count(q))
 		{
+			continue;
+		}
+		auto& smallerTransitionIndex = smallerIndex.at(q);
+
+		for (const auto& symbolToIndexedTrans : smallerTransitionIndex)
+		{
+			const size_t symbol = symbolToIndexedTrans.first;
 			size_t j = 0;
 
-			for (auto& smallerTransitions : smallerTransitionIndex[symbol])
+			for (auto& smallerTransitions : smallerTransitionIndex.at(symbol))
 			{
 				for (auto& smallerTransition : smallerTransitions)
 				{

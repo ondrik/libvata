@@ -31,6 +31,26 @@ ExplicitTreeAutCore::AlphabetType ExplicitTreeAutCore::globalAlphabet_ =
 	AlphabetType(new ExplicitTreeAut::OnTheFlyAlphabet);
 
 
+std::unordered_set<size_t> ExplicitTreeAutCore::GetUsedStates() const
+{
+	std::unordered_set<size_t> res;
+	for (auto trans : *this)
+	{
+		for (auto state : trans.GetChildren())
+		{
+ 			res.insert(state);
+		}
+		res.insert(trans.GetParent());
+	}
+
+	for (auto state : GetFinalStates())
+	{
+		res.insert(state);
+	}
+
+	return res;
+}
+
 BaseTransIterator::BaseTransIterator(
 	const ExplicitTreeAutCore&        aut) :
 	aut_(aut),
@@ -273,23 +293,25 @@ ExplicitTreeAutCore& ExplicitTreeAutCore::operator=(
 ExplicitTreeAutCore ExplicitTreeAutCore::Reduce(
 	const ReduceParam&            params) const
 {
-	// typedef Util::TwoWayDict<
-	// 	StateType,
-	// 	StateType,
-	// 	std::unordered_map<StateType, StateType>,
-	// 	std::unordered_map<StateType, StateType>
-	// > StateMap;
-  //
-	// using StateMap = std::unordered_map<StateType, StateType>;
-  //
-	// size_t stateCnt = 0;
-  //
-	// StateMap stateMap;
-	// Util::TranslatorWeak<StateMap> stateTranslator(
-	// 	stateMap, [&stateCnt](const StateType&){ return stateCnt++; }
-	// );
-  //
-	// this->BuildStateIndex(stateTranslator);
+    /*
+	typedef Util::TwoWayDict<
+		StateType,
+	 	StateType,
+	 	std::unordered_map<StateType, StateType>,
+	 	std::unordered_map<StateType, StateType>
+	 > StateMap;
+     */
+  
+	 using StateMap = std::unordered_map<StateType, StateType>;
+  
+	 size_t stateCnt = 0;
+  
+	StateMap stateMap;
+	 Util::TranslatorWeak<StateMap> stateTranslator(
+	 	stateMap, [&stateCnt](const StateType&){ return stateCnt++; }
+	);
+  
+	 this->BuildStateIndex(stateTranslator);
 
 	SimParam simParam;
 	switch (params.GetRelation())
@@ -297,6 +319,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::Reduce(
 		case ReduceParam::e_reduce_relation::TA_DOWNWARD:
 		{
 			simParam.SetRelation(SimParam::e_sim_relation::TA_DOWNWARD);
+            simParam.SetNumStates(stateCnt);
 			break;
 		}
 
@@ -308,7 +331,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::Reduce(
 
 	StateDiscontBinaryRelation sim = this->ComputeSimulation(simParam);
 
-	assert(false);
+	//assert(false);
 
 	// now we need to get an equivalence relation from the simulation
 

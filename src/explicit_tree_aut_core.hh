@@ -532,7 +532,6 @@ public:   // methods
 	~ExplicitTreeAutCore()
 	{ }
 
-
 	const FinalStateSet& GetFinalStates() const
 	{
 		return finalStates_;
@@ -542,6 +541,12 @@ public:   // methods
 		const StateType&          state)
 	{
 		finalStates_.insert(state);
+	}
+
+	void SetStatesFinal(
+        const std::set<StateType>&    states)
+	{
+		finalStates_.insert(states.begin(), states.end());
 	}
 
 	bool IsStateFinal(
@@ -558,6 +563,36 @@ public:   // methods
 	AcceptTrans GetAcceptTrans() const
 	{
 		return AcceptTrans(*this);
+	}
+
+	const StateToTransitionClusterMapPtr& GetTransitions() const
+	{
+		return transitions_;
+	}
+
+   /**
+    * @brief Retrieves a container with all states of the automaton
+    *
+    * @return A vector with all used states
+    */
+	std::unordered_set<size_t> GetUsedStates() const;
+
+
+	void Clear()
+	{
+		assert(nullptr != transitions_);
+
+		if (!transitions_.unique())
+		{
+			transitions_ = StateToTransitionClusterMapPtr(
+				new StateToTransitionClusterMap());
+		}
+		else
+		{ // TODO Is this clear enough?
+			this->uniqueClusterMap()->clear();
+		}
+
+		this->EraseFinalStates();
 	}
 
 	DownAccessor GetDown(
@@ -625,7 +660,6 @@ public:   // methods
 		return false;
 	}
 
-
 	bool ContainsTransition(
 		const Transition&         trans)
 	{
@@ -635,6 +669,10 @@ public:   // methods
 			trans.GetParent());
 	}
 
+	bool AreTransitionsEmpty()
+	{
+		return this->uniqueClusterMap()->empty();
+	}
 
 //	static void CopyTransitions(
 //		ExplicitTreeAutCore&           dst,
@@ -1026,6 +1064,12 @@ public:   // methods
 
 
 	static ExplicitTreeAutCore Intersection(
+		const ExplicitTreeAutCore&           lhs,
+		const ExplicitTreeAutCore&           rhs,
+		VATA::AutBase::ProductTranslMap*     pTranslMap = nullptr);
+
+
+	static ExplicitTreeAutCore IntersectionBU(
 		const ExplicitTreeAutCore&           lhs,
 		const ExplicitTreeAutCore&           rhs,
 		VATA::AutBase::ProductTranslMap*     pTranslMap = nullptr);
