@@ -15,31 +15,31 @@ import command_serializer
 # module operation_options
 
 def load(aut, enc=EncodingsEnum.EXPL):
-   return runCommand(Command(enc, InstructiOperations, [aut]))
+    return runCommand(Command(enc, OperationsEnum.LOAD, [aut]))
 
 def complement(aut, enc=EncodingsEnum.EXPL):
-   return runCommand(Command(enc, OperationsEnum.CMPL, [aut]))
+    return runCommand(Command(enc, OperationsEnum.CMPL, [aut]))
 
 def witness(aut, enc=EncodingsEnum.EXPL):
-   return runCommand(Command(enc, OperationsEnum.WITNESS, [aut]))
+    return runCommand(Command(enc, OperationsEnum.WITNESS, [aut]))
 
-def intersection(lhs,rhs, enc=EncodingsEnum.EXPL):
-    return runCommand(Command(enc, OperationsEnum.ISECT, [lhs,rhs]))
+def intersection(lhs, rhs, enc=EncodingsEnum.EXPL):
+    return runCommand(Command(enc, OperationsEnum.ISECT, [lhs, rhs]))
 
 def union(lhs, rhs, enc=EncodingsEnum.EXPL):
-    return runCommand(Command(enc, OperationsEnum.UNION, [lhs,rhs]))
+    return runCommand(Command(enc, OperationsEnum.UNION, [lhs, rhs]))
 
 def simulation(aut, enc=EncodingsEnum.EXPL, options=None):
-    return runCommand(Command(aut, OperationsEnum.SIM, [aut], options))
+    return runCommand(Command(enc, OperationsEnum.SIM, [aut], options))
 
 def reduction(aut, enc=EncodingsEnum.EXPL, options=None):
-    return runCommand(Command(aut, OperationsEnum.RED, [aut], options))
+    return runCommand(Command(enc, OperationsEnum.RED, [aut], options))
 
-def inclusion(lhs,rhs, enc=EncodingsEnum.EXPL, options=None):
-    return runCommand(Command(enc, OperationsEnum.INCL, [lhs,rhs], options))
+def inclusion(lhs, rhs, enc=EncodingsEnum.EXPL, options=None):
+    return runCommand(Command(enc, OperationsEnum.INCL, [lhs, rhs], options))
 
 def equivalence(lhs, rhs, enc=EncodingsEnum.EXPL, options=None):
-    return runCommand(Command(enc, OperationsEnum.EQUIV, [lhs,rhs], options))
+    return runCommand(Command(enc, OperationsEnum.EQUIV, [lhs, rhs], options))
 
 def runCommand(operation):
     return vata_executor.runVata(command_serializer.serializeCommand(operation))

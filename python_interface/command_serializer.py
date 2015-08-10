@@ -1,4 +1,3 @@
-import cli_operation_representation
 import cli_options_enums
 
 ENCODING_PARAM = '-r'
@@ -17,7 +16,7 @@ def __serializeOptions(command, options):
     res = options.serialize() \
             if command != cli_options_enums.OperationsEnum.SIM else \
             options.serialize(command.getEncoding())
-    
+
     return [OPTION_PARAM, res]
 
 def serializeCommand(command):
@@ -32,7 +31,7 @@ def serializeCommand(command):
     res = __serializeEncoding(command.getEncoding())
     res += __serializeOperation(command.getOperation())
     if command.getOptions() is not None:
-        res +=  __serializeOptions(command.getOptions())
+        res += __serializeOptions(command, command.getOptions())
     res += __serializeOperands(command.getOperands())
-    
+
     return res

@@ -1,5 +1,3 @@
-from vata_executor import VATAResult
-
 def __printIfNotNone(output):
     if output is not None:
         print(output)

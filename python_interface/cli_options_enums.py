@@ -2,10 +2,10 @@
 # There are enumerations for possible operations, direction of operations,
 # algorithms and also for the different encodings of automata.
 
-class Unknown:
+class Unknown(object):
     UNKNOWN = -1
 
-class OperationsEnum:
+class OperationsEnum(object):
     LOAD = 0
     WITNESS = 1
     CMPL = 2
@@ -32,7 +32,7 @@ OperationsToStringCommand = {\
        OperationsEnum.INCL : 'incl',
        OperationsEnum.HELP : 'help'}
 
-class DirectionsEnum:
+class DirectionsEnum(object):
     DOWN = 0
     UP = 1
     FWD = 0
@@ -50,10 +50,10 @@ DirectionsEnumToString = {\
         DirectionsEnum.UP : 'up'}
 
 
-class OrderEnum:
+class OrderEnum(object):
     BREADTH = 0
     DEPTH = 1
-    
+
     MIN = BREADTH
     MAX = DEPTH
 
@@ -62,10 +62,10 @@ OrderEnumToString = {\
         OrderEnum.DEPTH : 'depth'}
 
 
-class AlgsEnum:
+class AlgsEnum(object):
     AC = 0
     CONGR = 1
-    
+
     MIN = AC
     MAX = CONGR
 
@@ -77,12 +77,12 @@ BoolToString = {\
         True : 'yes',
         False : 'no'}
 
-class EncodingsEnum:
+class EncodingsEnum(object):
     EXPL = 0
     BDD_TD = 1
     BDD_BU = 2
     EXPL_FA = 3
-    
+
     MIN = EXPL
     MAX = EXPL_FA
 
@@ -93,7 +93,7 @@ EncodingToString = {\
         EncodingsEnum.BDD_BU : 'bdd-bu'}
 
 def isCorrectCode(code, enum):
-    if code >= enum.MIN and instruction <= enum.MAX:
+    if code >= enum.MIN and code <= enum.MAX:
         return True
     else:
         return False
