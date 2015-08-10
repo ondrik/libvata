@@ -1,5 +1,10 @@
 import cli_options_enums
 
+# This module provides classes representing options
+# for operations like inclusion, simulation etc. where
+# additional properties of the operation can be specified
+# in VATA.
+
 DIR_PARAM = 'dir='
 ORDER_PARAM = 'order='
 ALG_PARAM = 'alg='

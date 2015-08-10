@@ -3,6 +3,17 @@ from cli_operation_representation import Command
 import vata_executor
 import command_serializer
 
+# This module provides functions corresponding to the
+# operations that VATA provides over tree automata
+# Operands (parameters aut, lhs, rhs) should be path to the files
+# where are the automata stored.
+# It is possible also to choose encoding by parameter enc
+# in which automata will be represented.
+# It is also possible to specify other options that
+# are provided by VATA clie by parameter options (if it is available).
+# The options should be represented by the class from
+# module operation_options
+
 def load(aut, enc=EncodingsEnum.EXPL):
    return runCommand(Command(enc, InstructionsEnum.LOAD, [aut]))
 

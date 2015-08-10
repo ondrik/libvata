@@ -1,3 +1,7 @@
+# This module contains enumerations of different options in VATA CLI.
+# There are enumerations for possible operations, direction of operations,
+# algorithms and also for the different encodings of automata.
+
 class Unknown:
     UNKNOWN = -1
 

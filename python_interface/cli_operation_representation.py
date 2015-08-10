@@ -2,6 +2,15 @@ import cli_options_enums
 from operation_options import *
 
 class Command:
+    """
+        Class represents command of VATA CLI. It keeps information
+        about operation, operands and additional options if needed.
+        Operands are represented by a list of the path to files
+        over which an operation should be performed.
+        Operation is one from the enumeration given in cli_options_enums
+        and the additional opetions can be specified by structures
+        in module operation_options.
+    """
     def __init__(self):
         self.__enconding = cli_options_enums.EncodingsEnum.EXPL
         self.__operation = cli_options_enums.Unknown.UNKNOWN

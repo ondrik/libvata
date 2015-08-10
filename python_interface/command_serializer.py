@@ -4,16 +4,16 @@ import cli_options_enums
 ENCODING_PARAM = '-r'
 OPTION_PARAM = '-o'
 
-def serializeEncoding(encoding):
+def __serializeEncoding(encoding):
     return [ENCODING_PARAM, cli_options_enums.EncodingToString[encoding]]
 
-def serializeOperation(operation):
+def __serializeOperation(operation):
     return [cli_options_enums.InstructionsToStringCommand[operation]]
 
-def serializeOperands(operands):
+def __serializeOperands(operands):
     return operands
 
-def serializeOptions(command, options):
+def __serializeOptions(command, options):
     res = options.serialize() \
             if command != cli_options_enums.InstructionsEnum.SIM else \
             options.serialize(command.getEncoding())
@@ -21,10 +21,18 @@ def serializeOptions(command, options):
     return [OPTION_PARAM, res]
 
 def serializeCommand(command):
-    res = serializeEncoding(command.getEncoding())
-    res += serializeOperation(command.getOperation())
+    """
+        Serialize @p command to a list of strings that can be further used for
+        an execution of VATA CLI.
+        @param command ... parameter representing command to be execture.
+            It is supposed to be the class Command from
+            module cli_operation_representation.
+        @return A list of strings representing the command from parameter
+    """
+    res = __serializeEncoding(command.getEncoding())
+    res += __serializeOperation(command.getOperation())
     if command.getOptions() is not None:
-        res +=  serializeOptions(command.getOptions())
-    res += serializeOperands(command.getOperands())
+        res +=  __serializeOptions(command.getOptions())
+    res += __serializeOperands(command.getOperands())
     
     return res
