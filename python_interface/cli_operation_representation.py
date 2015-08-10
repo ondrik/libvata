@@ -36,13 +36,13 @@ class Command:
         return self.__options
 
     def __loadOptionStructure(self, instructionCode):
-        if instructionCode == cli_options_enums.InstructionsEnum.INCL:
+        if instructionCode == cli_options_enums.OperationsEnum.INCL:
             return InclusionOption()
-        elif instructionCode == cli_options_enums.InstructionsEnum.SIM:
+        elif instructionCode == cli_options_enums.OperationsEnum.SIM:
             return DirectionOption()
-        elif instructionCode == cli_options_enums.InstructionsEnum.EQUIV:
+        elif instructionCode == cli_options_enums.OperationsEnum.EQUIV:
             return EquivOption()
-        elif instructionCode == cli_options_enums.InstructionsEnum.RED:
+        elif instructionCode == cli_options_enums.OperationsEnum.RED:
             return DirectionOption()
         else:
             return None

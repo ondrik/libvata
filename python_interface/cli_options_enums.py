@@ -5,7 +5,7 @@
 class Unknown:
     UNKNOWN = -1
 
-class InstructionsEnum:
+class OperationsEnum:
     LOAD = 0
     WITNESS = 1
     CMPL = 2
@@ -20,17 +20,17 @@ class InstructionsEnum:
     MIN = LOAD
     MAX = HELP
 
-InstructionsToStringCommand = {\
-       InstructionsEnum.LOAD : 'load',
-       InstructionsEnum.WITNESS : 'witness',
-       InstructionsEnum.CMPL : 'cmpl',
-       InstructionsEnum.UNION : 'union',
-       InstructionsEnum.ISECT : 'isect',
-       InstructionsEnum.SIM : 'sim',
-       InstructionsEnum.RED : 'red',
-       InstructionsEnum.EQUIV : 'equiv',
-       InstructionsEnum.INCL : 'incl',
-       InstructionsEnum.HELP : 'help'}
+OperationsToStringCommand = {\
+       OperationsEnum.LOAD : 'load',
+       OperationsEnum.WITNESS : 'witness',
+       OperationsEnum.CMPL : 'cmpl',
+       OperationsEnum.UNION : 'union',
+       OperationsEnum.ISECT : 'isect',
+       OperationsEnum.SIM : 'sim',
+       OperationsEnum.RED : 'red',
+       OperationsEnum.EQUIV : 'equiv',
+       OperationsEnum.INCL : 'incl',
+       OperationsEnum.HELP : 'help'}
 
 class DirectionsEnum:
     DOWN = 0

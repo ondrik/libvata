@@ -8,14 +8,14 @@ def __serializeEncoding(encoding):
     return [ENCODING_PARAM, cli_options_enums.EncodingToString[encoding]]
 
 def __serializeOperation(operation):
-    return [cli_options_enums.InstructionsToStringCommand[operation]]
+    return [cli_options_enums.OperationsToStringCommand[operation]]
 
 def __serializeOperands(operands):
     return operands
 
 def __serializeOptions(command, options):
     res = options.serialize() \
-            if command != cli_options_enums.InstructionsEnum.SIM else \
+            if command != cli_options_enums.OperationsEnum.SIM else \
             options.serialize(command.getEncoding())
     
     return [OPTION_PARAM, res]
