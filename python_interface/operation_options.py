@@ -30,6 +30,22 @@ class InclusionOption:
     def getOrder():
         return self.__order
 
+    def getAlg():
+        return self.__alg
+
+    def getSim():
+        return self.__sim
+    
+    def getCacheOptimization():
+        return self.__cacheOptimization
+    
+    def getRecursion():
+        return self.__recursion
+    
+    def getSimulationTime():
+        return self.__simulationTime
+
+
 class DirectionOption:
     def __init__(self, direction = cli_options_enums.DirectionsEnum.DOWN):
         if not cli_options_enums.isCorrectCode(direction, cli_options_enums.DirectionsEnum()):

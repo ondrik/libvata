@@ -38,12 +38,12 @@ class DirectionsEnum:
     MAX = UP
 
 DirectionsEnumFAToString = {\
-        DirectionsEnum.BWD = 'bwd',
-        DirectionsEnum.FWD = 'fwd'}
+        DirectionsEnum.BWD : 'bwd',
+        DirectionsEnum.FWD : 'fwd'}
 
 DirectionsEnumToString = {\
-        DirectionsEnum.DOWN = 'down',
-        DirectionsEnum.UP = 'up'}
+        DirectionsEnum.DOWN : 'down',
+        DirectionsEnum.UP : 'up'}
 
 
 class OrderEnum:
@@ -54,8 +54,8 @@ class OrderEnum:
     MAX = DEPTH
 
 OrderEnumToString = {\
-        DirectionsEnum.BREADTH = 'breadth',
-        DirectionsEnum.DEPTH = 'depth'}
+        OrderEnum.BREADTH : 'breadth',
+        OrderEnum.DEPTH : 'depth'}
 
 
 class AlgsEnum:
@@ -64,6 +64,14 @@ class AlgsEnum:
     
     MIN = AC
     MAX = CONGR
+
+AlgsEnumToString = {\
+        AlgsEnum.AC : 'antichains',
+        AlgsEnum.CONGR : 'congr'}
+
+BoolToString = {\
+        True : 'yes',
+        False : 'no'}
 
 class EncodingsEnum:
     EXPL = 0

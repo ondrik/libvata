@@ -5,6 +5,11 @@ ENCODING_PARAM = '-r'
 OPTION_PARAM = '-o'
 DIR_PARAM = 'dir='
 ORDER_PARAM = 'order='
+ALG_PARAM = 'alg='
+SIM_PARAM = 'sim='
+OPTC_PARAM = 'optC='
+REC_PARAM = 'rec='
+TIMES_PARAM = 'timeS='
 
 def serializeEncoding(encoding):
     return [ENCODING_PARAM, cli_options_enums.EncodingToString[encoding]]
@@ -28,7 +33,13 @@ def serializeEquiv(enc, options):
     return ORDER_PARAM + cli_options_enums.OrderEnumToString[options.getOrder()]
 
 def serializeIncl(enc, options):
-    return DIR_PARAM + cli_options_enums.OrderEnumToString[options.getOrder()]
+    return DIR_PARAM + cli_options_enums.DirectionsEnumToString[options.getOrder()] + ',' + \
+            ORDER_PARAM + cli_options_enums.OrderEnumToString[options.getOrder()] + ',' + \
+            ALG_PARAM + cli_options_enums.AlgsToString[options.getAlg()] + ','+ \
+            SIM_PARAM + cli_options_enums.BoolToString[options.getSim()] + ','+ \
+            OPTC_PARAM + cli_options_enums.BoolToString[options.getCacheOptimization()] + ',' + \
+            REC_PARAM + cli_options_enums.BoolToString[options.getRecursion()] + ',' + \
+            TIMES_PARAM + cli_options_enums.BoolToString[options.getSimulationTime()]
 
 def serializeOptions(command, options):
     res = []
@@ -47,8 +58,8 @@ def serializeOptions(command, options):
 def serializeCommand(command):
     res = serializeEncoding(command.getEncoding())
     res += serializeOperation(command.getOperation())
-    if operation.getOptions() is not None:
-        res += [] serializeOptions(operation.getOptions())
+    if command.getOptions() is not None:
+        res +=  serializeOptions(command.getOptions())
     res += serializeOperands(command.getOperands())
     
     return res
