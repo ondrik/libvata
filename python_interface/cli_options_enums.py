@@ -11,9 +11,22 @@ class InstructionsEnum:
     RED = 6
     EQUIV = 7
     INCL = 8
+    HELP = 9
 
     MIN = LOAD
-    MAX = INCL
+    MAX = HELP
+
+InstructionsToStringCommand = {\
+       InstructionsEnum.LOAD : 'load',
+       InstructionsEnum.WITNESS : 'witness',
+       InstructionsEnum.CMPL : 'cmpl',
+       InstructionsEnum.UNION : 'union',
+       InstructionsEnum.ISECT : 'isect',
+       InstructionsEnum.SIM : 'sim',
+       InstructionsEnum.RED : 'red',
+       InstructionsEnum.EQUIV : 'equiv',
+       InstructionsEnum.INCL : 'incl',
+       InstructionsEnum.HELP : 'help'}
 
 class DirectionsEnum:
     DOWN = 0
@@ -24,12 +37,26 @@ class DirectionsEnum:
     MIN = DOWN
     MAX = UP
 
+DirectionsEnumFAToString = {\
+        DirectionsEnum.BWD = 'bwd',
+        DirectionsEnum.FWD = 'fwd'}
+
+DirectionsEnumToString = {\
+        DirectionsEnum.DOWN = 'down',
+        DirectionsEnum.UP = 'up'}
+
+
 class OrderEnum:
     BREADTH = 0
     DEPTH = 1
     
     MIN = BREADTH
     MAX = DEPTH
+
+OrderEnumToString = {\
+        DirectionsEnum.BREADTH = 'breadth',
+        DirectionsEnum.DEPTH = 'depth'}
+
 
 class AlgsEnum:
     AC = 0
@@ -40,12 +67,18 @@ class AlgsEnum:
 
 class EncodingsEnum:
     EXPL = 0
-    BDD-TD = 1
-    BDD-BU = 2
-    EXPL-FA = 3
+    BDD_TD = 1
+    BDD_BU = 2
+    EXPL_FA = 3
     
     MIN = EXPL
-    MAX = EXPL-FA
+    MAX = EXPL_FA
+
+EncodingToString = {\
+        EncodingsEnum.EXPL : 'expl',
+        EncodingsEnum.EXPL_FA : 'expl_fa',
+        EncodingsEnum.BDD_TD : 'bdd-td',
+        EncodingsEnum.BDD_BU : 'bdd-bu'}
 
 def isCorrectCode(code, enum):
     if code >= enum.MIN and instruction <= enum.MAX:
