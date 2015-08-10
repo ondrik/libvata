@@ -1,7 +1,7 @@
 import cli_options_enums
 from operation_options import *
 
-class Operation:
+class Command:
     def __init__(self):
         self.__enconding = cli_options_enums.EncodingsEnum.EXPL
         self.__operation = cli_options_enums.Unknown.UNKNOWN
