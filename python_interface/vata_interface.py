@@ -9,8 +9,10 @@ import command_serializer
 # where are the automata stored.
 # It is possible also to choose encoding by parameter enc
 # in which automata will be represented.
+# The encoding should be represented by class EncodingsEnum
+# from module cli_options_enums.
 # It is also possible to specify other options that
-# are provided by VATA clie by parameter options (if it is available).
+# are provided by VATA CLI by parameter options (if it is available).
 # The options should be represented by the class from
 # module operation_options
 
