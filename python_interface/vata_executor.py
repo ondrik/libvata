@@ -1,17 +1,8 @@
 import subprocess
+from vata_result import VATAResult
 
 VATA_PATH = '../build/cli/vata'
 UTF8 = "utf-8"
-
-class VATAResult(object):
-    """
-        Class describing stdout and stderr output
-        of VATA CLI exection.
-    """
-    def __init__(self, stdout, stderr, result):
-        self.stdout = stdout
-        self.stderr = stderr
-        self.result = result
 
 def __decodeBytes(bts):
     return bts.decode(UTF8) if bts is not None else None
