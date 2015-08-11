@@ -11,6 +11,10 @@ class VATAResult(object):
     def __printIfNotNone(self, output):
         if output is not None:
             print(output)
+    
+    def __writeIfNotNone(self, outputString, outputFile):
+        if outputString is not None:
+            outputFile.write(outputString)
             
     def print(self):
         """
@@ -20,3 +24,31 @@ class VATAResult(object):
         """
         self.__printIfNotNone(self.stdout)
         self.__printIfNotNone(self.stderr)
+
+    def printStdout(self):
+        self.__printIfNotNone(self.stdout)
+
+    def printStderr(self):
+        self.__printIfNotNone(self.stderr)
+
+    def writeToFile(self, outputFile):
+        self.__writeIfNotNone(self.stdout, outputFile)
+        self.__writeIfNotNone(self.stderr, outputFile)
+
+    def writeStdoutToFile(self, outputFile):
+        self.__writeIfNotNone(self.stdout, outputFile)
+
+    def writeStderrToFile(self, outputFile):
+        self.__writeIfNotNone(self.stderr, outputFile)
+
+    def writeToPath(self, outputPath):
+        with open(outputPath, 'w') as f:
+            self.writeToFile(f)
+
+    def writeStdoutToPath(self, outputPath):
+        with open(outputPath, 'w') as f:
+            self.writeStdoutToFile(f)
+
+    def writeStderrToPath(self, outputPath):
+        with open(outputPath, 'w') as f:
+            self.writeStderrToFile(f)
