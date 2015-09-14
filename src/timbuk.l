@@ -10,6 +10,7 @@
 
 %option noyywrap
 %option yylineno
+/* %option debug */
 
 %{
 
@@ -35,7 +36,7 @@ IDENT        {IDENTCHAR}+
 "Ops"           {return OPERATIONS;}
 "Automaton"     {return AUTOMATON;}
 "States"        {return STATES;}
-"Final States"  {return FINAL_STATES;}  
+"Final States"  {return FINAL_STATES;}
 "Transitions"   {return TRANSITIONS;}
 
 {NUMBER}        {yylval.svalue = strdup(yytext); return NUMBER;}
