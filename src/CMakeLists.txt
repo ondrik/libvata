@@ -59,7 +59,7 @@ endforeach(param)
 
 include_directories(../include)
 
-flex_target(timbuk_scanner timbuk.l ${CMAKE_CURRENT_BINARY_DIR}/timbuk.l.cc)
+flex_target(timbuk_scanner timbuk.l ${CMAKE_CURRENT_BINARY_DIR}/timbuk.l.cc COMPILE_FLAGS "--header-file=${CMAKE_CURRENT_BINARY_DIR}/timbuk.l.hh")
 bison_target(timbuk_parser timbuk.y ${CMAKE_CURRENT_BINARY_DIR}/timbuk.y.cc)
 add_flex_bison_dependency(timbuk_scanner timbuk_parser)
 

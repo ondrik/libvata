@@ -10,6 +10,10 @@
 
 %require "2.7.1"
 
+%{
+// #define YYDEBUG 1
+%}
+
 %code requires {
 // VATA headers
 #include <vata/parsing/timbuk_parser.hh>
@@ -20,8 +24,6 @@
 #include <algorithm>
 
 GCC_DIAG_OFF(write-strings)
-
-//#define YYDEBUG 1
 
 int yylex();
 extern int yylineno;
@@ -72,29 +74,31 @@ static AutDescription::StateTuple global_tuple;
 %type<svalue> state
 %type<svalue> ident
 
+%start start
+
 %%
 
 start: OPERATIONS operation_list
-	  AUTOMATON automaton_name
-	  STATES state_list
-	  FINAL_STATES final_state_list
-	  TRANSITIONS transition_list
-  {
-    timbukParse.name = $4;
+       AUTOMATON automaton_name
+       STATES state_list
+       FINAL_STATES final_state_list
+       TRANSITIONS transition_list
+	{
+		timbukParse.name = $4;
 		free($4);
-  }
-  ;
+	}
+	;
 
 operation_list: ident COLON NUMBER operation_list
 	{
 		timbukParse.symbols.insert(std::make_pair($1,
 			Convert::FromString<unsigned>($3)));
-                   
+
 		free($1);
 		free($3);
 	}
-  |
-  ;
+	|
+	;
 
 automaton_name: ident
   ;
@@ -104,27 +108,27 @@ state_list: state_list state
 		timbukParse.states.insert($2);
 		free($2);
 	}
-  |
-  ;
+	|
+	;
 
 final_state_list: final_state_list state
 	{
 		timbukParse.finalStates.insert($2);
 		free($2);
 	}
-  |
-  ;
+	|
+	;
 
 state: ident COLON NUMBER
 	{
 		$$ = $1;
 	}
-  | ident
-  ;
+	| ident
+	;
 
 transition_list: transition_list transition
-  |
-  ;
+	|
+	;
 
 transition: ident LPAR transition_states RPAR ARROW state
 	{
@@ -141,7 +145,7 @@ transition: ident LPAR transition_states RPAR ARROW state
 		free($1);
 		free($3);
 	}
-  ;
+	;
 
 transition_states: ident COMMA transition_states
 	{
@@ -158,7 +162,6 @@ transition_states: ident COMMA transition_states
 	{
 		global_tuple.clear();
 	}
-
 	;
 
 ident: IDENTIFIER
