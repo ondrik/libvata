@@ -9,4 +9,4 @@ small_timbuk/inclusion_5_smaller     small_timbuk/inclusion_5_bigger        1
 small_timbuk/inclusion_6_smaller     small_timbuk/inclusion_6_bigger        1
 small_timbuk/incl_forester_1_smaller small_timbuk/incl_forester_1_bigger    1
 small_timbuk/incl_forester_1_bigger  small_timbuk/incl_forester_1_smaller   0
-small_timbuk/incl_empty_children     small_timbuk/incl_empty_children       0
+small_timbuk/incl_empty_children     small_timbuk/incl_empty_children       1
