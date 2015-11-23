@@ -25,8 +25,8 @@ GCC_DIAG_OFF(unused-function)
 %}
 
 DIGIT        [0-9]
-IDENTCHAR    [a-zA-Z_\[\]\|]|{DIGIT}
-WHITE        [ \t\n]
+IDENTCHAR    [a-zA-Z_\[\]\|\{\}<=>+!@$%\^&*"';\.]|{DIGIT}
+WHITE        [ \t\n]|(#.*)
 
 NUMBER       {DIGIT}+
 IDENT        {IDENTCHAR}+
