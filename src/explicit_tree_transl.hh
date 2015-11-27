@@ -41,7 +41,7 @@ VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateDownward(
 	Util::TranslatorWeak2<std::unordered_map<const StateTuple*, size_t>>
 		lhsTranslator(lhsMap, [&lhsCnt](const StateTuple*){ return lhsCnt++; });
 
-	ExplicitLTS result;
+	ExplicitLTS result(numStates);
 
 	// start with getting tranlation for final states
 	for (const StateType finState : this->GetFinalStates())
