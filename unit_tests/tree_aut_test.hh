@@ -237,8 +237,6 @@ protected:// methods
 			auto simulationContent = ParseTestFile(resultFile);
 			StateDiscontBinaryRelation refSim(stateDict.size());
 
-			BOOST_MESSAGE("We should do it in another way!");
-
 			for (auto& simulationLine : simulationContent)
 			{	// load the reference relation
 				assert(simulationLine.size() == 3);
