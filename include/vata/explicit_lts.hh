@@ -33,7 +33,17 @@ class VATA::ExplicitLTS {
 
 public:
 
-	ExplicitLTS() : states_(0), transitions_(0), data_(), bwLabels_() {}
+	/**
+	 * @brief  The constructor
+	 *
+	 * @param[in]  states  The least number of states to consider
+	 */
+	ExplicitLTS(size_t states = 0) :
+		states_(states),
+		transitions_(0),
+		data_(),
+		bwLabels_()
+	{ }
 
 	void addTransition(size_t q, size_t a, size_t r);
 
