@@ -873,7 +873,7 @@ BOOST_AUTO_TEST_CASE(projection)
 	}
 
 	{
-		MTBDD projBdd = bdd.Project([this](size_t var){return true;}, blackAdder);
+		MTBDD projBdd = bdd.Project([this](size_t /* var */){return true;}, blackAdder);
 		// BOOST_TEST_MESSAGE("dot before proj:\n" + MTBDD::DumpToDot(std::vector<const MTBDD*>({&bdd})));
 		// BOOST_TEST_MESSAGE("dot after proj:\n" + MTBDD::DumpToDot(std::vector<const MTBDD*>({&projBdd})));
 
