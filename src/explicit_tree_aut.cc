@@ -40,6 +40,15 @@ ExplicitTreeAut::Iterator::~Iterator()
 }
 
 
+bool ExplicitTreeAut::Iterator::operator==(const Iterator& rhs) const
+{
+	assert(nullptr != coreIter_);
+	assert(nullptr != rhs.coreIter_);
+
+	return *coreIter_ == *rhs.coreIter_;
+}
+
+
 bool ExplicitTreeAut::Iterator::operator!=(const Iterator& rhs) const
 {
 	assert(nullptr != coreIter_);
@@ -59,7 +68,7 @@ ExplicitTreeAut::Iterator& ExplicitTreeAut::Iterator::operator++()
 }
 
 
-const ExplicitTreeAut::Transition& ExplicitTreeAut::Iterator::operator*() const
+ExplicitTreeAut::Transition ExplicitTreeAut::Iterator::operator*() const
 {
 	assert(nullptr != coreIter_);
 
@@ -83,6 +92,12 @@ ExplicitTreeAut::AcceptTrans::AcceptTrans(
 
 ExplicitTreeAut::AcceptTrans::Iterator::Iterator(const CoreIterator& coreIter) :
 	coreAcceptTransIter_(new CoreIterator(coreIter))
+{
+	assert(nullptr != coreAcceptTransIter_);
+}
+
+ExplicitTreeAut::AcceptTrans::Iterator::Iterator(const Iterator& iter) :
+	coreAcceptTransIter_(new CoreIterator(*iter.coreAcceptTransIter_))
 {
 	assert(nullptr != coreAcceptTransIter_);
 }
@@ -112,21 +127,11 @@ ExplicitTreeAut::AcceptTrans::Iterator ExplicitTreeAut::AcceptTrans::end() const
 }
 
 
-const ExplicitTreeAut::Transition&
-ExplicitTreeAut::AcceptTrans::Iterator::operator*() const
+ExplicitTreeAut::Transition ExplicitTreeAut::AcceptTrans::Iterator::operator*() const
 {
 	assert(nullptr != coreAcceptTransIter_);
 
 	return **coreAcceptTransIter_;
-}
-
-
-const ExplicitTreeAut::Transition*
-ExplicitTreeAut::AcceptTrans::Iterator::operator->() const
-{
-	assert(nullptr != coreAcceptTransIter_);
-
-	return coreAcceptTransIter_->operator->();
 }
 
 
@@ -142,8 +147,10 @@ ExplicitTreeAut::ExplicitTreeAut(
 
 
 ExplicitTreeAut::ExplicitTreeAut(
-	const ExplicitTreeAut&         aut) :
-	core_(new CoreAut(*aut.core_))
+	const ExplicitTreeAut&         aut,
+	bool                           copyTrans,
+	bool                           copyFinal) :
+	core_(new CoreAut(*aut.core_, copyTrans, copyFinal))
 { }
 
 
@@ -249,6 +256,12 @@ void ExplicitTreeAut::SetStateFinal(const StateType& state)
 	core_->SetStateFinal(state);
 }
 
+void ExplicitTreeAut::SetStatesFinal(const std::set<StateType>& states)
+{
+	assert(nullptr != core_);
+
+	core_->SetStatesFinal(states);
+}
 
 bool ExplicitTreeAut::IsStateFinal(const StateType& state) const
 {
@@ -278,6 +291,19 @@ ExplicitTreeAut::AcceptTrans ExplicitTreeAut::GetAcceptTrans() const
 	return AcceptTrans(core_->GetAcceptTrans());
 }
 
+std::unordered_set<size_t> ExplicitTreeAut::GetUsedStates() const
+{
+    assert(nullptr != core_);
+
+    return core_->GetUsedStates();
+}
+
+void ExplicitTreeAut::Clear()
+{
+    assert(nullptr != core_);
+
+    core_->Clear();
+}
 
 ExplicitTreeAut::AcceptTrans::Iterator&
 	ExplicitTreeAut::AcceptTrans::Iterator::operator++()
@@ -318,6 +344,13 @@ void ExplicitTreeAut::AddTransition(
 	core_->AddTransition(children, symbol, state);
 }
 
+
+void ExplicitTreeAut::AddTransition(const Transition& trans)
+{
+	assert(nullptr != core_);
+
+	core_->AddTransition(trans);
+}
 
 ExplicitTreeAut::DownAccessor ExplicitTreeAut::operator[](
 	const StateType&           state) const
@@ -361,20 +394,17 @@ ExplicitTreeAut::DownAccessor::Iterator::Iterator(
 	coreDownAccessIter_(new CoreIterator(coreIter))
 { }
 
-const ExplicitTreeAut::Transition&
+ExplicitTreeAut::DownAccessor::Iterator::Iterator(
+        const Iterator& iter) :
+    coreDownAccessIter_(new CoreIterator(*iter.coreDownAccessIter_))
+{ }
+
+ExplicitTreeAut::Transition
 ExplicitTreeAut::DownAccessor::Iterator::operator*() const
 {
 	assert(nullptr != coreDownAccessIter_);
 
 	return **coreDownAccessIter_;
-}
-
-const ExplicitTreeAut::Transition*
-ExplicitTreeAut::DownAccessor::Iterator::operator->() const
-{
-	assert(nullptr != coreDownAccessIter_);
-
-	return coreDownAccessIter_->operator->();
 }
 
 
@@ -420,6 +450,22 @@ bool ExplicitTreeAut::ContainsTransition(
 	return core_->ContainsTransition(trans);
 }
 
+bool ExplicitTreeAut::ContainsTransition(
+	const StateTuple&         children,
+	const SymbolType&         symbol,
+	const StateType&          state) const
+{
+	assert(nullptr != core_);
+
+	return core_->ContainsTransition(children, symbol, state);
+}
+
+bool ExplicitTreeAut::AreTransitionsEmpty()
+{
+    assert(nullptr != core_);
+
+	return core_->AreTransitionsEmpty();
+}
 
 void ExplicitTreeAut::LoadFromString(
 	VATA::Parsing::AbstrParser&       parser,
@@ -538,6 +584,14 @@ void ExplicitTreeAut::CopyTransitionsFrom(
 	core_->CopyTransitionsFrom(*src.core_, fctor);
 }
 
+void ExplicitTreeAut::BuildStateIndex(
+	Util::TranslatorWeak<StateMap>&    index) const
+{
+	assert(nullptr != core_);
+
+	core_->BuildStateIndex(index);
+}
+
 
 ExplicitTreeAut ExplicitTreeAut::ReindexStates(
 	AbstractReindexF&           fctor,
@@ -634,8 +688,26 @@ ExplicitTreeAut ExplicitTreeAut::Intersection(
 		CoreAut::Intersection(*lhs.core_, *rhs.core_, pTranslMap));
 }
 
+ExplicitTreeAut ExplicitTreeAut::IntersectionBU(
+	const ExplicitTreeAut&            lhs,
+	const ExplicitTreeAut&            rhs,
+	AutBase::ProductTranslMap*        pTranslMap)
+{
+	assert(nullptr != lhs.core_);
+	assert(nullptr != rhs.core_);
 
-AutBase::StateBinaryRelation ExplicitTreeAut::ComputeSimulation(
+	return ExplicitTreeAut(
+		CoreAut::IntersectionBU(*lhs.core_, *rhs.core_, pTranslMap));
+}
+
+bool ExplicitTreeAut::IsLangEmpty() const
+{
+	assert(nullptr != core_);
+
+	return core_->IsLangEmpty();
+}
+
+AutBase::StateDiscontBinaryRelation ExplicitTreeAut::ComputeSimulation(
 	const VATA::SimParam&                  params) const
 {
 	assert(nullptr != core_);
@@ -675,6 +747,24 @@ ExplicitTreeAut ExplicitTreeAut::Reduce() const
 }
 
 
+ExplicitTreeAut ExplicitTreeAut::Reduce(
+	const VATA::ReduceParam&    params) const
+{
+	assert(nullptr != core_);
+
+	return ExplicitTreeAut(core_->Reduce(params));
+}
+
+
+ExplicitTreeAut ExplicitTreeAut::CollapseStates(
+	const StateToStateMap&      collapseMap) const
+{
+	assert(nullptr != core_);
+
+	return ExplicitTreeAut(core_->CollapseStates(collapseMap));
+}
+
+
 ExplicitTreeAut ExplicitTreeAut::TranslateSymbols(
 	AbstractSymbolTranslateF&       transl) const
 {
@@ -689,4 +779,12 @@ std::string ExplicitTreeAut::ToString(const Transition& trans) const
 	assert(nullptr != core_);
 
 	return core_->ToString(trans);
+}
+
+
+ExplicitTreeAut ExplicitTreeAut::Complement() const
+{
+	assert(nullptr != core_);
+
+	return ExplicitTreeAut(core_->Complement());
 }

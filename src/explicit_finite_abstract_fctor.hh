@@ -16,9 +16,8 @@
 // VATA headers
 #include <vata/vata.hh>
 
+#include "antichain1c.hh"
 #include "explicit_finite_aut_core.hh"
-
-#include <vata/util/antichain1c.hh>
 
 namespace VATA {
 	template <class Rel> class ExplicitFAAbstractFunctor;

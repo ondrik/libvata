@@ -4,7 +4,7 @@
 #
 ###############################################################################
 
-CFLAGS=-std=c++0x \
+CFLAGS=-std=c++11 \
   -pedantic-errors \
   -Wextra \
   -Wall \
@@ -16,7 +16,7 @@ CFLAGS=-std=c++0x \
 	-g
 
 
-INCLUDE=-I../include
+INCLUDE=-I../include -I../src/mtbdd
 
 LIBS_ADD=-L../build/src
 
@@ -27,7 +27,7 @@ LIBS=-lvata
 
 .PHONY: all clean
 
-all: $(patsubst %.cc,%,$(wildcard *.cc))
+all: $(patsubst %.cc,%,$(wildcard *.cc)) ../build/src/libvata.a
 
 %: %.cc
 	g++ $(CFLAGS) $(INCLUDE) $(LIBS_ADD) $< $(LIBS) -o $@

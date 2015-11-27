@@ -368,7 +368,7 @@ public:   // Public methods
 	 * @see  ToString()
 	 *
 	 * @param[in]  os    The output stream
-	 * @param[in]  asgn  Assignment to the variables
+	 * @param[in]  vec   Assignment to the variables
 	 *
 	 * @returns  Modified output stream
 	 */

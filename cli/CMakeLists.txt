@@ -34,9 +34,14 @@ endforeach(param)
 
 include_directories(../include)
 
+# generate the file with version names
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.cc.in
+   ${CMAKE_CURRENT_BINARY_DIR}/version.cc @ONLY)
+
 add_executable(vata
   vata.cc
   parse_args.cc
+  ${CMAKE_CURRENT_BINARY_DIR}/version.cc
 )
 
 if (MAKE_STATIC_VATA)

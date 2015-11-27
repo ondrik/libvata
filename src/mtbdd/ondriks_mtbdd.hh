@@ -105,6 +105,8 @@ public:   // public data types
 	typedef std::vector<VarType> PermutationTable;
 	typedef std::shared_ptr<PermutationTable> PermutationTablePtr;
 
+	using SymVarToValueList = std::vector<std::pair<SymbolicVarAsgn, DataType>>;
+
 private:  // private data types
 
 	typedef VATA::Util::Triple<NodePtrType, NodePtrType, VarType>
@@ -348,12 +350,17 @@ private:  // private methods
 		{
 			assert(IsInternal(ptr));
 
-			return Convert::ToString(ptr) + " -> " +
+			std::string result = Convert::ToString(ptr) + "[label=\"var:"
+				+ Convert::ToString(GetVarFromInternal(ptr)) + "\"];\n";
+
+			result += Convert::ToString(ptr) + " -> " +
 				Convert::ToString(GetLowFromInternal(ptr)) + " [style = dashed];\n" +
 				Convert::ToString(ptr) + " -> " +
 				Convert::ToString(GetHighFromInternal(ptr)) + " [style = solid];\n" +
 				mtbddNodeToDotString(GetLowFromInternal(ptr), cache) +
 				mtbddNodeToDotString(GetHighFromInternal(ptr), cache);
+
+			return result;
 		}
 	}
 
@@ -456,6 +463,34 @@ private:  // private methods
 		}
 
 		return result;
+	}
+
+	static void getPathsRec(
+		SymVarToValueList&         list,
+		SymbolicVarAsgn            asgn,
+		const NodePtrType          node)
+	{
+		assert(!IsNull(node));
+
+		if (IsLeaf(node))
+		{
+			list.push_back(std::make_pair(asgn, GetDataFromLeaf(node)));
+			return;
+		}
+
+		VarType var = GetVarFromInternal(node);
+		NodePtrType lowTree = GetLowFromInternal(node);
+		NodePtrType highTree = GetHighFromInternal(node);
+
+		assert(lowTree != highTree);
+		assert(node != lowTree);
+		assert(node != highTree);
+
+		asgn.AddVariablesUpTo(var);
+		asgn.SetIthVariableValue(var, SymbolicVarAsgn::ZERO);
+		getPathsRec(list, asgn, lowTree);
+		asgn.SetIthVariableValue(var, SymbolicVarAsgn::ONE);
+		getPathsRec(list, asgn, highTree);
 	}
 
 
@@ -588,17 +623,18 @@ public:   // public methods
 	}
 
 	static std::string DumpToDot(
-		const std::vector<const OndriksMTBDD*>&           mtbdds)
+		const std::vector<OndriksMTBDD>&           mtbdds)
 	{
 		std::string result = "digraph mtbdd {\n";
 
 		NodePtrSet cache;
 
-		for (const OndriksMTBDD* bdd : mtbdds)
+		for (const OndriksMTBDD& bdd : mtbdds)
 		{
-			assert(bdd != nullptr);
-
-			result +=	mtbddNodeToDotString(bdd->getRoot(), cache);
+			if (!IsNull(bdd.getRoot()))
+			{
+				result +=	mtbddNodeToDotString(bdd.getRoot(), cache);
+			}
 		}
 
 		return result + "}";
@@ -707,6 +743,15 @@ public:   // public methods
 			this->getRoot(), renamer);
 		IncrementRefCnt(newRoot);
 		return OndriksMTBDD(newRoot, this->GetDefaultValue());
+	}
+
+
+	SymVarToValueList GetPaths() const
+	{
+		SymVarToValueList list;
+
+		getPathsRec(list, SymbolicVarAsgn(), this->getRoot());
+		return list;
 	}
 
 

@@ -31,6 +31,26 @@ ExplicitTreeAutCore::AlphabetType ExplicitTreeAutCore::globalAlphabet_ =
 	AlphabetType(new ExplicitTreeAut::OnTheFlyAlphabet);
 
 
+std::unordered_set<size_t> ExplicitTreeAutCore::GetUsedStates() const
+{
+	std::unordered_set<size_t> res;
+	for (auto trans : *this)
+	{
+		for (auto state : trans.GetChildren())
+		{
+ 			res.insert(state);
+		}
+		res.insert(trans.GetParent());
+	}
+
+	for (auto state : GetFinalStates())
+	{
+		res.insert(state);
+	}
+
+	return res;
+}
+
 BaseTransIterator::BaseTransIterator(
 	const ExplicitTreeAutCore&        aut) :
 	aut_(aut),
@@ -48,8 +68,6 @@ BaseTransIterator::BaseTransIterator(
 
 	tupleIterator_ = symbolSetIterator_->second->begin();
 	assert(symbolSetIterator_->second->end() != tupleIterator_);
-
-	this->updateTrans();
 }
 
 
@@ -57,14 +75,12 @@ Iterator& Iterator::operator++()
 {
 	if (symbolSetIterator_->second->end() != ++tupleIterator_)
 	{
-		this->updateTrans();
 		return *this;
 	}
 
 	if (stateClusterIterator_->second->end() != ++symbolSetIterator_)
 	{
 		tupleIterator_ = symbolSetIterator_->second->begin();
-		this->updateTrans();
 		return *this;
 	}
 
@@ -72,7 +88,6 @@ Iterator& Iterator::operator++()
 	{
 		symbolSetIterator_ = stateClusterIterator_->second->begin();
 		tupleIterator_ = symbolSetIterator_->second->begin();
-		this->updateTrans();
 		return *this;
 	}
 
@@ -88,11 +103,11 @@ DownAccessor::DownAccessor(
 	cluster_(ExplicitTreeAutCore::genericLookup(*aut.transitions_, state))
 { }
 
-void DownAccessorIterator::updateTrans()
+Transition DownAccessorIterator::getTrans() const
 {
 	assert(*tupleIterator_);
 
-	trans_ = Transition(
+	return Transition(
 		accessor_.state_,
 		symbolSetIterator_->first,
 		**tupleIterator_
@@ -115,22 +130,18 @@ DownAccessorIterator::DownAccessorIterator(
 
 	tupleIterator_ = symbolSetIterator_->second->begin();
 	assert(tupleIterator_ != symbolSetIterator_->second->end());
-
-	this->updateTrans();
 }
 
 DownAccessorIterator& DownAccessorIterator::operator++()
 {
 	if (++tupleIterator_ != symbolSetIterator_->second->end())
 	{
-		this->updateTrans();
 		return *this;
 	}
 
 	if (++symbolSetIterator_ != accessor_.cluster_->end())
 	{
 		tupleIterator_ = symbolSetIterator_->second->begin();
-		this->updateTrans();
 		return *this;
 	}
 
@@ -173,8 +184,6 @@ void AcceptTransIterator::init()
 
 	symbolSetIterator_ = stateClusterIterator_->second->begin();
 	tupleIterator_ = symbolSetIterator_->second->begin();
-
-	this->updateTrans();
 }
 
 
@@ -182,14 +191,12 @@ AcceptTransIterator& AcceptTransIterator::operator++()
 {
 	if (++tupleIterator_ != symbolSetIterator_->second->end())
 	{
-		this->updateTrans();
 		return *this;
 	}
 
 	if (++symbolSetIterator_ != stateClusterIterator_->second->end())
 	{
 		tupleIterator_ = symbolSetIterator_->second->begin();
-		this->updateTrans();
 		return *this;
 	}
 
@@ -283,50 +290,66 @@ ExplicitTreeAutCore& ExplicitTreeAutCore::operator=(
 }
 
 
-ExplicitTreeAutCore ExplicitTreeAutCore::Reduce() const
+ExplicitTreeAutCore ExplicitTreeAutCore::Reduce(
+	const ReduceParam&            params) const
 {
+    /*
 	typedef Util::TwoWayDict<
 		StateType,
-		StateType,
-		std::unordered_map<StateType, StateType>,
-		std::unordered_map<StateType, StateType>
-	> StateMap;
-
-	size_t stateCnt = 0;
-
+	 	StateType,
+	 	std::unordered_map<StateType, StateType>,
+	 	std::unordered_map<StateType, StateType>
+	 > StateMap;
+     */
+  
+	 using StateMap = std::unordered_map<StateType, StateType>;
+  
+	 size_t stateCnt = 0;
+  
 	StateMap stateMap;
-	Util::TranslatorWeak<StateMap> stateTranslator(
-		stateMap, [&stateCnt](const StateType&){ return stateCnt++; }
+	 Util::TranslatorWeak<StateMap> stateTranslator(
+	 	stateMap, [&stateCnt](const StateType&){ return stateCnt++; }
 	);
+  
+	 this->BuildStateIndex(stateTranslator);
 
-	this->BuildStateIndex(stateTranslator);
+	SimParam simParam;
+	switch (params.GetRelation())
+	{
+		case ReduceParam::e_reduce_relation::TA_DOWNWARD:
+		{
+			simParam.SetRelation(SimParam::e_sim_relation::TA_DOWNWARD);
+            simParam.SetNumStates(stateCnt);
+			break;
+		}
 
-	AutBase::StateBinaryRelation sim = this->ComputeDownwardSimulation(
-		stateMap.size(), Util::TranslatorStrict<StateMap>(stateMap)
-	);
+		default:
+		{
+			assert(false);
+		}
+	}
 
-	ExplicitTreeAutCore aut = this->CollapseStates(
-			sim, Util::TranslatorStrict<StateMap::MapBwdType>(stateMap.GetReverseMap())
-		);
+	StateDiscontBinaryRelation sim = this->ComputeSimulation(simParam);
+
+	//assert(false);
+
+	// now we need to get an equivalence relation from the simulation
+
+	// TODO: this is probably not optimal, we could probably get the mapping of
+	// states for collapsing in a faster way
+	sim.RestrictToSymmetric();       // sim is now an equivalence relation
+
+	using StateToStateMap = std::unordered_map<StateType, StateType>;
+	StateToStateMap collapseMap;
+	sim.GetQuotientProjection(collapseMap);
+
+	ExplicitTreeAutCore aut = this->CollapseStates(collapseMap);
 
 	aut = aut.RemoveUnreachableStates();
 	// TODO: we could probably refine using simulation... but this is not working now
 	// aut = aut.RemoveUnreachableStates(sim, Util::TranslatorStrict<StateMap>(stateMap));
 
 	return aut;
-}
-
-
-AutBase::StateBinaryRelation ExplicitTreeAutCore::ComputeUpwardSimulation(
-	size_t             size) const
-{
-	std::vector<std::vector<size_t>> partition;
-
-	AutBase::StateBinaryRelation relation;
-
-	return this->TranslateUpward(
-		partition, relation, Util::Identity(size)
-	).computeSimulation(partition, relation, size);
 }
 
 

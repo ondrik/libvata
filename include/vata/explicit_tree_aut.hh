@@ -17,6 +17,7 @@
 #include <vata/parsing/abstr_parser.hh>
 #include <vata/serialization/abstr_serializer.hh>
 #include <vata/incl_param.hh>
+#include <vata/reduce_param.hh>
 #include <vata/sim_param.hh>
 
 #include <vata/util/ord_vector.hh>
@@ -29,6 +30,7 @@
 #include <memory>
 #include <unordered_set>
 #include <unordered_map>
+#include <vector>
 
 
 namespace VATA
@@ -54,18 +56,20 @@ namespace VATA
 	{
 	public:
 		virtual VATA::AutBase::StateType operator[](const VATA::AutBase::StateType&) = 0;
+		virtual VATA::AutBase::StateType at(const VATA::AutBase::StateType&) const = 0;
+
+		virtual ~AbstractReindexF()
+		{ }
 	};
 }
 
 
-GCC_DIAG_OFF(effc++)
 class VATA::ExplicitTreeAut : public TreeAutBase
 {
-GCC_DIAG_ON(effc++)
-
 private:  // data types
 
 	using CoreAut        = VATA::LoadableAut<ExplicitTreeAutCore>;
+	using StateMap       = std::unordered_map<StateType, StateType>;
 
 public:   // public data types
 
@@ -110,6 +114,9 @@ public:   // public data types
 	{
 	public:
 		virtual bool operator()(const Transition&) = 0;
+
+		virtual ~AbstractCopyF()
+		{ }
 	};
 
 
@@ -141,6 +148,10 @@ public:   // public data types
 
 	public:   // methods
 
+		OnTheFlyAlphabet() = default;
+
+		OnTheFlyAlphabet(const OnTheFlyAlphabet& rhs) = default;
+
 		virtual FwdTranslatorPtr GetSymbolTransl() override
 		{
 			FwdTranslator* fwdTransl = new
@@ -156,6 +167,14 @@ public:   // public data types
 				new SymbolBackTranslStrict(symbolDict_.GetReverseMap());
 
 			return BwdTranslatorPtr(bwdTransl);
+		}
+
+		/**
+		 * @brief  Returns the dictionary
+		 */
+		const SymbolDict& GetSymbolDict() const
+		{
+			return symbolDict_;
 		}
 
 		virtual ~OnTheFlyAlphabet() override
@@ -233,9 +252,10 @@ public:   // public data types
 		explicit Iterator(const CoreIterator& coreIter);
 		~Iterator();
 
+		bool operator==(const Iterator& rhs) const;
 		bool operator!=(const Iterator& rhs) const;
 		Iterator& operator++();
-		const Transition& operator*() const;
+		Transition operator*() const;
 	};
 
 	using iterator       = Iterator;
@@ -264,8 +284,7 @@ public:   // public data types
 
 			bool operator==(const Iterator& rhs) const;
 			bool operator!=(const Iterator& rhs) const;
-			const Transition& operator*() const;
-			const Transition* operator->() const;
+			Transition operator*() const;
 
 			/**
 			 * @brief  Prefix increment operator
@@ -321,8 +340,7 @@ public:   // public data types
 
 			bool operator==(const Iterator& rhs) const;
 			bool operator!=(const Iterator& rhs) const;
-			const Transition& operator*() const;
-			const Transition* operator->() const;
+			Transition operator*() const;
 
 			/**
 			 * @brief  Prefix increment operator
@@ -363,7 +381,10 @@ private:  // data members
 public:   // methods
 
 	ExplicitTreeAut();
-	ExplicitTreeAut(const ExplicitTreeAut& aut);
+	ExplicitTreeAut(
+            const ExplicitTreeAut& aut,
+	        bool                   copyTrans = true,
+	        bool                   copyFinal = true);
 	ExplicitTreeAut(ExplicitTreeAut&& aut);
 
 	ExplicitTreeAut& operator=(const ExplicitTreeAut& rhs);
@@ -390,6 +411,8 @@ public:   // methods
 	 * @param[in]  state  The state to be set as accepting
 	 */
 	void SetStateFinal(const StateType& state);
+
+	void SetStatesFinal(const std::set<StateType>& states);
 
 	/**
 	 * @brief  Checks whether a state is accepting
@@ -418,6 +441,18 @@ public:   // methods
 	 * @returns  An (iterable) container with accepting transitions
 	 */
 	AcceptTrans GetAcceptTrans() const;
+
+  /**
+    * @brief Retrieves a container with all states of the automaton
+    *
+    * @return A vector with all used states
+    */
+  std::unordered_set<size_t> GetUsedStates() const;
+
+  /**
+    * @brief Clears automaton. It clears its final states and trasitions.
+    */
+  void Clear();
 
 	/**
 	 * @brief  Retrieves the transitions where the state is a parent
@@ -450,10 +485,8 @@ public:   // methods
 		const SymbolType&         symbol,
 		const StateType&          state);
 
-
 	void AddTransition(
 		const Transition&         trans);
-
 
 	bool ContainsTransition(
 		const Transition&         trans) const;
@@ -462,8 +495,9 @@ public:   // methods
 	bool ContainsTransition(
 		const StateTuple&         children,
 		const SymbolType&         symbol,
-		const StateType&          state);
+		const StateType&          state) const;
 
+    bool AreTransitionsEmpty();
 
 	AlphabetType& GetAlphabet();
 
@@ -471,7 +505,50 @@ public:   // methods
 	const AlphabetType& GetAlphabet() const;
 
 
+	/**
+	 * @brief  Reduces the automaton while preserving its language
+	 *
+	 * This method provides the preferred way for reducing the automaton w.r.t.
+	 * the number of states and transitions while preserving its language.
+	 *
+	 * @returns  An automaton which is a reduced version of the current object
+	 */
 	ExplicitTreeAut Reduce() const;
+
+
+	/**
+	 * @brief  Reduces the automaton while preserving its language
+	 *
+	 * This method reduces the automaton according to the parameters passed in
+	 * the @p params argument.
+	 *
+	 * @param[in]  params  Parameters setting the reduction method
+	 *
+	 * @returns  An automaton which is a reduced version of the current object
+	 *            w.r.t. the parameters
+	 */
+	ExplicitTreeAut Reduce(
+		const VATA::ReduceParam&    params) const;
+
+
+	/**
+	 * @brief  Collapses states according to the passed map
+	 *
+	 * This method renames the states occuring in the automaton according to the
+	 * @p collapseMap. @p collapseMap does not need to be injective, i.e. there
+	 * may be more than one state mapping to the same state, in which case the two
+	 * states are effectively collapsed into one.
+	 *
+	 * @param[in]  collapseMap  The map according to which the collapsing is done
+	 *
+	 * @returns  An automaton with states collapsed according to @p collapseMap
+	 */
+	ExplicitTreeAut CollapseStates(
+		const StateToStateMap&      collapseMap) const;
+
+
+	void BuildStateIndex(
+	  Util::TranslatorWeak<StateMap>&    index) const;
 
 
 	ExplicitTreeAut ReindexStates(
@@ -495,7 +572,7 @@ public:   // methods
 
 
 	ExplicitTreeAut RemoveUnreachableStates(
-		AutBase::StateToStateMap*            pTranslMap = nullptr) const;
+		StateToStateMap*            pTranslMap = nullptr) const;
 
 
 	template <
@@ -508,7 +585,7 @@ public:   // methods
 
 
 	ExplicitTreeAut RemoveUselessStates(
-		AutBase::StateToStateMap*          pTranslMap = nullptr) const;
+		StateToStateMap*          pTranslMap = nullptr) const;
 
 
 	ExplicitTreeAut GetCandidateTree() const;
@@ -648,8 +725,8 @@ public:   // methods
 	static ExplicitTreeAut Union(
 		const ExplicitTreeAut&                lhs,
 		const ExplicitTreeAut&                rhs,
-		AutBase::StateToStateMap*             pTranslMapLhs = nullptr,
-		AutBase::StateToStateMap*             pTranslMapRhs = nullptr);
+		StateToStateMap*                      pTranslMapLhs = nullptr,
+		StateToStateMap*                      pTranslMapRhs = nullptr);
 
 
 	/**
@@ -658,8 +735,8 @@ public:   // methods
 	 * Unites two automata. Note that these automata need to have disjoint sets of
 	 * states, otherwise the result is undefined.
 	 *
-   * @param[in]      lhs             Left automaton for union
-   * @param[in]      rhs             Right automaton for union
+     * @param[in]      lhs             Left automaton for union
+     * @param[in]      rhs             Right automaton for union
 	 *
 	 * @returns  An automaton accepting the union of languages of @p lhs and @p
 	 * rhs
@@ -675,17 +752,36 @@ public:   // methods
 	 * This function creates an automaton that accepts the languages defined as
 	 * the intersection of langauges of a pair of automata.
 	 *
-   * @param[in]   lhs             Left automaton
-   * @param[in]   rhs             Right automaton
-   * @param[out]  pTranslMapLhs   Dictionary for the result
+     * @param[in]   lhs             Left automaton
+     * @param[in]   rhs             Right automaton
+	 * @param[out]  pTranslMapLhs   Dictionary for the result
 	 *
 	 * @returns  An automaton accepting the intersection of languages of @p lhs
 	 * and @p rhs
-   */
+     */
 	static ExplicitTreeAut Intersection(
 		const ExplicitTreeAut&            lhs,
 		const ExplicitTreeAut&            rhs,
-		AutBase::ProductTranslMap*        pTranslMap);
+		AutBase::ProductTranslMap*        pTranslMap = nullptr);
+
+
+	/**
+	 * @brief  Intersection of languages of a pair of automata in bottom-up way
+	 *
+	 * This function creates an automaton that accepts the languages defined as
+	 * the intersection of langauges of a pair of automata in bottom-up way.
+	 *
+	 * @param[in]   lhs             Left automaton
+	 * @param[in]   rhs             Right automaton
+	 * @param[out]  pTranslMapLhs   Dictionary for the result
+	 *
+	 * @returns  An automaton accepting the intersection of languages of @p lhs
+	 * and @p rhs
+     */
+	static ExplicitTreeAut IntersectionBU(
+		const ExplicitTreeAut&            lhs,
+		const ExplicitTreeAut&            rhs,
+		AutBase::ProductTranslMap*        pTranslMap = nullptr);
 
 
 	/**
@@ -729,23 +825,38 @@ public:   // methods
 	 * @brief  Computes the specified simulation relation on the automaton
 	 *
 	 * This method computes the simulation relation specified in the @p params
-	 * structure among the states of the automaton.
+	 * structure among the states of the automaton. The relation is output as a
+	 * matrix, indexed from 0. The mapping of indices of columns and rows to the
+	 * states of the automaton is output by the @p transl translator.
 	 *
 	 * @param[in]  params  Parameters specifying which simulation is to be computed.
 	 *
-	 * @returns  The computed simulation relation
+	 * @returns  The computed simulation relation, as a matrix indexed from 0
 	 */
-	AutBase::StateBinaryRelation ComputeSimulation(
+	AutBase::StateDiscontBinaryRelation ComputeSimulation(
 		const VATA::SimParam&                  params) const;
 
 
-	template <class Dict>
-	ExplicitTreeAut Complement(
-		const Dict&                           /*alphabet*/) const
-	{
-		throw NotImplementedException(__func__);
-	}
+	/**
+	 * @brief  Computes the complement of the automaton
+	 *
+	 * This method computes the complement of the automaton with respect to the
+	 * alphabet associated with the automaton.
+	 *
+	 * @returns  The complement of the automaton
+	 */
+	ExplicitTreeAut Complement() const;
 
+
+	/**
+	 * @brief  Checks language emptiness
+	 *
+	 * Determines whether the language of the automaton is empty.
+	 *
+	 * @returns  @p true if the language of the automaton is empty, @p false
+	 *           otherwise
+	 */
+	bool IsLangEmpty() const;
 
 	/**
 	 * @brief  Translates all symbols according to a translator

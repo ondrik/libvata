@@ -14,8 +14,8 @@
 
 // VATA headers
 #include <vata/vata.hh>
-#include <vata/util/antichain2c_v2.hh>
 
+#include "antichain2c_v2.hh"
 #include "util/cache.hh"
 #include "util/cached_binary_op.hh"
 
@@ -94,7 +94,7 @@ public:   // data types
 				{
 					assert(s < ind_.size());
 
-					const auto& s1 = ind_[s];
+					const auto& s1 = ind_.at(s);
 					const auto& s2 = *y;
 
 					auto i1 = s1.begin(), i2 = s2.begin();
@@ -346,23 +346,23 @@ private:  // methods
 
 	inline bool isImpliedByChildren(const WorkSetElement& elem) const
 	{
-		return childrenCache_.contains(preorderBigger_[elem.first],
+		return childrenCache_.contains(preorderBigger_.at(elem.first),
 			elem.second, smallerComparer_);
 	}
 
 	inline bool isNoninclusionImplied(const WorkSetElement& elem) const
 	{
-		return nonIncl_.contains(preorderSmaller_[elem.first],
+		return nonIncl_.contains(preorderSmaller_.at(elem.first),
 			elem.second, biggerComparer_);
 	}
 
 	inline void processFoundInclusion(const StateType& smallerState,
 		const BiggerType& biggerStateSet)
 	{
-		if (!childrenCache_.contains(preorderBigger_[smallerState], biggerStateSet,
+		if (!childrenCache_.contains(preorderBigger_.at(smallerState), biggerStateSet,
 			smallerComparer_))
 		{	// if the element is not implied by the antichain
-			childrenCache_.refine(preorderSmaller_[smallerState], biggerStateSet,
+			childrenCache_.refine(preorderSmaller_.at(smallerState), biggerStateSet,
 				biggerComparer_);
 			childrenCache_.insert(smallerState, biggerStateSet);
 		}
@@ -371,10 +371,10 @@ private:  // methods
 	inline void processFoundNoninclusion(const StateType& smallerState,
 		const BiggerType& biggerStateSet)
 	{
-		if (!nonIncl_.contains(preorderSmaller_[smallerState], biggerStateSet,
+		if (!nonIncl_.contains(preorderSmaller_.at(smallerState), biggerStateSet,
 			biggerComparer_))
 		{	// if the element is not implied by the antichain
-			nonIncl_.refine(preorderBigger_[smallerState], biggerStateSet,
+			nonIncl_.refine(preorderBigger_.at(smallerState), biggerStateSet,
 				smallerComparer_);
 			nonIncl_.insert(smallerState, biggerStateSet);
 		}
@@ -382,15 +382,20 @@ private:  // methods
 
 public:   // methods
 
-	DownwardInclusionFunctor(const Aut& smaller, const Aut& bigger,
-		BiggerTypeCache& biggerTypeCache,
-		WorkSetType& workset, InclAntichainType& /* incl */,
-		NonInclAntichainType& nonIncl,
-		const Relation& preorder, const IndexType& preorderSmaller,
-		const IndexType& preorderBigger,
-		const SetComparerSmaller& smallerComparer,
-		const SetComparerBigger& biggerComparer,
-		InclAntichainType& /* ant */, ConsequentType& /* cons */) :
+	DownwardInclusionFunctor(
+		const Aut&                 smaller,
+		const Aut&                 bigger,
+		BiggerTypeCache&           biggerTypeCache,
+		WorkSetType&               workset,
+		InclAntichainType&         /* incl */,
+		NonInclAntichainType&      nonIncl,
+		const Relation&            preorder,
+		const IndexType&           preorderSmaller,
+		const IndexType&           preorderBigger,
+		const SetComparerSmaller&  smallerComparer,
+		const SetComparerBigger&   biggerComparer,
+		InclAntichainType&         /* ant */,
+		ConsequentType&            /* cons */) :
 		smaller_(smaller),
 		bigger_(bigger),
 		biggerTypeCache_(biggerTypeCache),
@@ -407,7 +412,7 @@ public:   // methods
 	{ }
 
 	DownwardInclusionFunctor(
-		DownwardInclusionFunctor& downFctor) :
+		DownwardInclusionFunctor&     downFctor) :
 		smaller_(downFctor.smaller_),
 		bigger_(downFctor.bigger_),
 		biggerTypeCache_(downFctor.biggerTypeCache_),

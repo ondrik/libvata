@@ -25,6 +25,7 @@ using VATA::BDDTDTreeAutCore;
 using VATA::Util::Convert;
 
 typedef VATA::AutBase::StateBinaryRelation StateBinaryRelation;
+typedef VATA::AutBase::StateDiscontBinaryRelation StateDiscontBinaryRelation;
 typedef VATA::AutBase::StateType StateType;
 typedef VATA::AutBase::StateToStateMap StateToStateMap;
 typedef VATA::AutBase::StateToStateTranslWeak StateToStateTranslWeak;
@@ -239,25 +240,25 @@ public:   // methods
 };
 } // namespace
 
-
-StateBinaryRelation BDDBUTreeAutCore::ComputeSimulation(
-	const VATA::SimParam&                  params) const
+StateDiscontBinaryRelation BDDBUTreeAutCore::ComputeSimulation(
+	const VATA::SimParam&                  /* params */) const
 {
-	switch (params.GetRelation())
-	{
-		case SimParam::e_sim_relation::TA_UPWARD:
-		{
-			return this->ComputeUpwardSimulation(params);
-		}
-		case SimParam::e_sim_relation::TA_DOWNWARD:
-		{
-			return this->ComputeDownwardSimulation(params);
-		}
-		default:
-		{
-			throw std::runtime_error("Unknown simulation parameters: " + params.toString());
-		}
-	}
+	assert(false);
+	// switch (params.GetRelation())
+	// {
+	// 	case SimParam::e_sim_relation::TA_UPWARD:
+	// 	{
+	// 		return this->ComputeUpwardSimulation(params);
+	// 	}
+	// 	case SimParam::e_sim_relation::TA_DOWNWARD:
+	// 	{
+	// 		return this->ComputeDownwardSimulation(params);
+	// 	}
+	// 	default:
+	// 	{
+	// 		throw std::runtime_error("Unknown simulation parameters: " + params.toString());
+	// 	}
+	// }
 }
 
 StateBinaryRelation BDDBUTreeAutCore::ComputeDownwardSimulation() const

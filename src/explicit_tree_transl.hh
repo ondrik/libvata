@@ -18,16 +18,15 @@
 #include <vata/vata.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
-#include <vata/util/convert.hh>
 #include <vata/explicit_lts.hh>
-
 
 #include "explicit_tree_aut_core.hh"
 
 
 template <class Index>
 VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateDownward(
-	const Index&        stateIndex) const
+	size_t        numStates,
+	Index&        stateIndex) const
 {
 	std::unordered_map<SymbolType, size_t> symbolMap;
 	std::unordered_map<const StateTuple*, size_t> lhsMap;
@@ -36,13 +35,19 @@ VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateDownward(
 	Util::TranslatorWeak2<std::unordered_map<SymbolType, size_t>>
 		symbolTranslator(symbolMap, [&symbolCnt](const SymbolType&){ return symbolCnt++; });
 
-	assert(nullptr !=transitions_);
+	assert(nullptr != transitions_);
 
-	size_t lhsCnt = transitions_->size();
+	size_t lhsCnt = numStates;
 	Util::TranslatorWeak2<std::unordered_map<const StateTuple*, size_t>>
 		lhsTranslator(lhsMap, [&lhsCnt](const StateTuple*){ return lhsCnt++; });
 
-	ExplicitLTS result;
+	ExplicitLTS result(numStates);
+
+	// start with getting tranlation for final states
+	for (const StateType finState : this->GetFinalStates())
+	{
+		stateIndex[finState];
+	}
 
 	/*
 	 * Iterate through all transitions and adds them
@@ -64,26 +69,34 @@ VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateDownward(
 			{
 				assert(nullptr != tuple);
 
-				if (1 == tuple->size()) { // a(p) -> q
-					// inline lhs of size 1 >:-)
-					result.addTransition(state, symbol, stateIndex[tuple->front()]);
+				size_t dest;
+				if (1 == tuple->size())
+				{ // a(p) -> q ... inline lhs of size 1 >:-)
+					dest = stateIndex[tuple->front()];
+					assert(dest < numStates);
 				}
 				else
 				{ // a(p,r) -> q
-					result.addTransition(state, symbol, lhsTranslator(tuple.get()));
+					dest = lhsTranslator(tuple.get());
 				}
+
+				result.addTransition(state, symbol, dest);
 			}
 		}
 	}
 
 	for (auto& tupleIndexPair : lhsMap)
-	{
+	{	// for n-ary transition (n > 1), decompose the hyperedge into n ordinary
+		// edges
 		assert(tupleIndexPair.first);
 
 		size_t i = 0;
 		for (auto& state : *tupleIndexPair.first)
 		{
-			result.addTransition(tupleIndexPair.second, symbolMap.size() + i, stateIndex[state]);
+			size_t dest = stateIndex[state];
+			assert(dest < numStates);
+
+			result.addTransition(tupleIndexPair.second, symbolMap.size() + i, dest);
 			++i;
 		}
 	}
@@ -101,7 +114,7 @@ VATA::ExplicitLTS VATA::ExplicitTreeAutCore::TranslateUpward(
 	std::vector<std::vector<size_t>>&       partition,
 	Util::BinaryRelation&                   relation,
 	const Rel&                              param,
-	const Index&                            stateIndex) const
+	Index&                                  stateIndex) const
 {
 	struct Env
 	{

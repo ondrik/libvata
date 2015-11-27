@@ -16,6 +16,7 @@
 #include <vata/util/convert.hh>
 
 // Standard library headers
+#include <algorithm>
 #include <ostream>
 #include <vector>
 

@@ -95,6 +95,11 @@ LogFixture::ConfFileContentType LogFixture::ParseTestFile(
 	ConfFileContentType result;
 	for (auto confLine : splitConfStr)
 	{
+		if ('#' == confLine[0])
+		{	// comment
+			continue;
+		}
+
 		std::vector<std::string> splitConfLine;
 		boost::algorithm::split(splitConfLine, confLine,
 			boost::algorithm::is_space(), boost::algorithm::token_compress_on);

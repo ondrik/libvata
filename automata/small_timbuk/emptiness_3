@@ -1,0 +1,17 @@
+Ops
+
+Automaton A6
+
+States
+
+Final States  q
+
+Transitions
+bot -> s
+f(s, s) -> r
+g(s, r) -> r
+f(r, p) -> q
+g(s, p) -> p
+f(q, p) -> q
+f(p, q) -> q
+g(q, q) -> q

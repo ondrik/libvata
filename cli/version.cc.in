@@ -1,0 +1,24 @@
+/*****************************************************************************
+ *  VATA Tree Automata Library
+ *
+ *  Copyright (c) 2015  Ondra Lengal <ilengal@fit.vutbr.cz>
+ *
+ *  Description:
+ *    The command-line interface to the VATA library - versions
+ *
+ *****************************************************************************/
+
+/**
+ * @brief  The version number
+ */
+const char* VATA_VERSION = "0.5";
+
+/**
+ * @brief  The git SHA of the commit
+ */
+const char* VATA_GIT_SHA = "@GIT_SHA1@";
+
+/**
+ * @brief  The git --describe output
+ */
+const char* VATA_GIT_DESCRIBE = "@GIT_DESCRIBE@";

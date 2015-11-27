@@ -1,5 +1,6 @@
 BUILD_DIR=build
-#MAKE_FLAGS=-j
+# MAKE_FLAGS=-j 8
+# TEST_FLAGS=-j 8
 
 .PHONY: all debug release doc clean test
 
@@ -16,7 +17,7 @@ doc:
 	cd $(BUILD_DIR) && $(MAKE) $(MAKE_FLAGS) doc
 
 test:
-	cd $(BUILD_DIR) && $(MAKE) test
+	cd $(BUILD_DIR) && ctest $(TEST_FLAGS)
 
 clean:
 	cd $(BUILD_DIR) && rm -rf *

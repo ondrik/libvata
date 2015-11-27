@@ -24,7 +24,6 @@
 
 // Utilities
 #include <vata/util/ord_vector.hh>
-#include <vata/util/vector_map.hh>
 #include <vata/util/util.hh>
 #include <vata/util/transl_strict.hh>
 #include <vata/util/transl_weak.hh>
@@ -49,11 +48,8 @@ namespace VATA
 
 // TODO: both BDDTopDownTreeAut and BDDTDTreeAutCore should not be derived from
 //SymbolicAutBase. And the same for BDDBottomUpTreeAut and BDDBUTreeAutCore.
-GCC_DIAG_OFF(effc++)
 class VATA::BDDTopDownTreeAut : public SymbolicTreeAutBase
 {
-GCC_DIAG_ON(effc++)
-
 	friend VATA::BDDBottomUpTreeAut;
 
 private:  // data types
@@ -179,7 +175,7 @@ public:   // public methods
 	}
 
 
-	AutBase::StateBinaryRelation ComputeSimulation(
+	StateDiscontBinaryRelation ComputeSimulation(
 		const SimParam&        params) const;
 
 
@@ -189,9 +185,7 @@ public:   // public methods
 	BDDTopDownTreeAut RemoveUselessStates() const;
 
 
-	template <class Dict>
-	BDDTopDownTreeAut Complement(
-		const Dict&                     /*alphabet*/) const
+	BDDTopDownTreeAut Complement() const
 	{
 		throw NotImplementedException(__func__);
 	}

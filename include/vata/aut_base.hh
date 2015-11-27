@@ -82,6 +82,7 @@ public:   // data types
 		std::unordered_map<StatePair, StateType, boost::hash<StatePair>>;
 
 	using StateBinaryRelation = Util::BinaryRelation;
+	using StateDiscontBinaryRelation = Util::DiscontBinaryRelation;
 
 protected:// methods
 
@@ -113,11 +114,8 @@ public:   // methods
 	}
 };
 
-GCC_DIAG_OFF(effc++)
 class VATA::TreeAutBase : public AutBase
 {
-GCC_DIAG_ON(effc++)
-
 protected:// methods
 
 	TreeAutBase() { }
@@ -159,9 +157,11 @@ protected:// data types
 			children_(children)
 		{ }
 
-		const StateType& GetParent()    const { return parent_;   }
-		const SymbolType& GetSymbol()   const { return symbol_;   }
-		const StateTuple& GetChildren() const { return children_; }
+		const StateType&  GetParent()           const { return parent_;   }
+		const SymbolType& GetSymbol()           const { return symbol_;   }
+		const StateTuple& GetChildren()         const { return children_; }
+        size_t            GetChildrenSize()     const { return children_.size();}
+        size_t            GetNthChildren(int n) const { return children_[n];}
 
 		bool operator<(const TTransition& rhs) const
 		{
@@ -256,13 +256,10 @@ protected:// data types
 };
 
 
-GCC_DIAG_OFF(effc++)
 class VATA::SymbolicTreeAutBase :
 	public TreeAutBase,
 	public Symbolic
 {
-GCC_DIAG_ON(effc++)
-
 public:   // data types
 
 	using StringSymbolType = std::string;
@@ -288,6 +285,9 @@ public:   // data types
 		virtual FwdTranslatorPtr GetSymbolTransl() = 0;
 		virtual BwdTranslatorPtr GetSymbolBackTransl() = 0;
 		virtual SymbolDict& GetSymbolDict() = 0;
+
+		virtual ~AbstractAlphabet()
+		{ }
 	};
 
 
@@ -320,6 +320,26 @@ public:   // data types
 		virtual SymbolDict& GetSymbolDict() override
 		{
 			return symbolDict_;
+		}
+	};
+
+	class DirectAlphabet : public AbstractAlphabet
+	{
+	public:
+
+		virtual FwdTranslatorPtr GetSymbolTransl() override
+		{
+			throw NotImplementedException(__func__);
+		}
+
+		virtual BwdTranslatorPtr GetSymbolBackTransl() override
+		{
+			throw NotImplementedException(__func__);
+		}
+
+		virtual SymbolDict& GetSymbolDict() override
+		{
+			throw NotImplementedException(__func__);
 		}
 	};
 

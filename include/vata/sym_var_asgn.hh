@@ -46,7 +46,7 @@ public:   // Public data types
 		DONT_CARE = 0x03
 	};
 
-	typedef std::vector<SymbolicVarAsgn> AssignmentList;
+	using AssignmentList = std::vector<SymbolicVarAsgn>;
 
 private:  // Private data types
 

@@ -146,9 +146,10 @@ ExplicitTreeAutCore ExplicitTreeAutCore::RemoveUselessStates(
 
 	for (auto& state : finalStates_) {
 
-		if (reachableStates.count(state))
+		if (reachableStates.cend() != reachableStates.find(state))
+		{
 			result.SetStateFinal(state);
-
+		}
 	}
 
 	if (!remaining) {

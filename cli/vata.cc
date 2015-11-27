@@ -53,83 +53,68 @@ using StateToStateTranslStrict = AutBase::StateToStateTranslStrict;
 const char VATA_USAGE_STRING[] =
 	"VATA: VATA Tree Automata library interface\n"
 	"usage: vata [-r <representation>] [(-I|-O|-F) <format>] [-h|--help] [-t] [-n]\n"
-	"            [(-p|-s)] [-o <options>] <command> [<args>]\n"
+	"            [-v|--version] [(-p|-s)] [-o <options>] <command> [<args>]\n"
 	;
 
 const char VATA_USAGE_COMMANDS[] =
 	"\nThe following commands are supported:\n"
 	"    help                    Display this message\n"
+	"    version                 Display version\n"
 	"    load    <file>          Load automaton from <file>\n"
-	"    witness <file>          Get a witness for automaton in <file>\n"
+	"    witness <file>          Get a string from the language of the automaton in <file>\n"
 	"    cmpl    <file>          Complement automaton from <file> [experimental]\n"
 	"    union <file1> <file2>   Compute union of automata from <file1> and <file2>\n"
-	"    isect <file1> <file2>   Compute intersection of automata from <file1> and\n"
-	"                            <file2>\n"
-	"    sim <file>              Computes a simulation relation for the automaton in\n"
-	"                            <file>. Options:\n"
-	"\n"
-	"          'dir=down' : downward simulation (default)\n"
-	"          'dir=up'   : upward simulation\n"
-	"\n"
-	"    red <file>              Reduces the automaton in <file> using simulation\n"
-	"                            relation. Options:\n"
-	"\n"
-	"          'dir=down' : downward simulation (default)\n"
-	"          'dir=up'   : upward simulation\n"
-	"\n"
-	"    equiv <file1> <file2>   Checks language equivalence of finite automata from <file1>\n"
-	"                            and <file2>, i.e., whether L(<file1>) is a equal\n"
-	"                            to L(<file2>). Options\n"
-	"          'order=depth': use depth-first search for congruence algorithm (default)\n"
-	"          'order=breadth': use breadth-first search for congruence algorithm\n"
-	"\n"
-	"    incl <file1> <file2>    Checks language inclusion of automata from <file1>\n"
-	"                            and <file2>, i.e., whether L(<file1>) is a subset\n"
-	"                            of L(<file2>). Options:\n"
-	"\n"
-	"          'alg=antichains' : use an antichain-based algorithm (default)\n"
-	"          'alg=congr'      : use a bisimulation up-to congruence algorithm\n"
-	"          'dir=down' : downward inclusion checking\n"
-	"          'dir=up'   : upward inclusion checking (default)\n"
-	"          'sim=yes'  : use corresponding simulation\n"
-	"          'sim=no'   : do not use simulation (default)\n"
-	"          'order=depth': use depth-first search for congruence algorithm (default)\n"
-	"          'order=breadth': use breadth-first search for congruence algorithm\n"
-	"          'optC=yes' : use optimised cache for downward direction\n"
-	"          'optC=no'  : without optimised cache (default)\n"
-	"          'rec=no'   : recursive version of the algorithm (default)\n"
-	"          'rec=yes'  : non-recursive version of the algorithm\n"
-	"          'timeS=yes': include time of simulation computation (default)\n"
-	"          'timeS=no' : do not include time of simulation computation\n"
+	"    isect <file1> <file2>   Compute intersection of automata from <file1> and <file2>\n"
+	"    sim <file>              Computes a simulation relation for the automaton in <file>\n"
+	"      Options: tree automata: 'dir=down' : downward simulation (default)\n"
+	"                              'dir=up'   : upward simulation\n"
+	"               finite automata: 'dir=fwd'  : forward simulation (default)\n"
+	"                                'dir=bwd'  : backward simulation\n"
+	"    red <file>   Reduces the automaton in <file> using simulation relation\n"
+	"      Options: 'dir=down' : downward simulation (default)\n"
+	"               'dir=up'   : upward simulation\n"
+	"    equiv <file1> <file2>   Checks whether L(<file1>) == L(<file2>)\n"
+	"      Options: 'order=depth': use depth-first search for congruence algorithm (default)\n"
+	"               'order=breadth': use breadth-first search for congruence algorithm\n"
+	"    incl <file1> <file2>    Checks whether L(<file1>) <= L(<file2>)\n"
+	"      Options: 'alg=antichains' : use an antichain-based algorithm (default)\n"
+	"               'alg=congr'      : use a bisimulation up-to congruence algorithm\n"
+	"               'dir=down' : downward inclusion checking\n"
+	"               'dir=up'   : upward inclusion checking (default)\n"
+	"               'sim=yes'  : use corresponding simulation\n"
+	"               'sim=no'   : do not use simulation (default)\n"
+	"               'order=depth': use depth-first search for congruence algorithm (default)\n"
+	"               'order=breadth': use breadth-first search for congruence algorithm\n"
+	"               'optC=yes' : use optimised cache for downward direction\n"
+	"               'optC=no'  : without optimised cache (default)\n"
+	"               'rec=no'   : recursive version of the algorithm (default)\n"
+	"               'rec=yes'  : non-recursive version of the algorithm\n"
+	"               'timeS=yes': include time of simulation computation (default)\n"
+	"               'timeS=no' : do not include time of simulation computation\n"
 	;
 
 const char VATA_USAGE_FLAGS[] =
 	"\nOptions:\n"
-	"    -h, --help              Display this message\n"
-	"    -r <representation>     Use <representation> for internal storage of\n"
-	"                            automata. The following representations are\n"
-	"                            supported:\n"
-	"                               'bdd-td'   : binary decision diagrams,\n"
-	"                                            top-down\n"
-	"                               'bdd-bu'   : binary decision diagrams,\n"
-	"                                            bottom-up\n"
-	"                               'expl'     : explicit (default)\n"
-	"                               'expl_fa'  : explicit finite automata\n"
-	"\n"
-	"    (-I|-O|-F) <format>     Specify format for input (-I), output (-O), or\n"
-	"                            both (-F). The following formats are supported:\n"
-	"                               'timbuk'  : Timbuk format (default)\n"
-	"\n"
-	"    -t                      Print the time the operation took to error output\n"
-	"                            stream\n"
+	"    -h, --help            Display this message\n"
+	"    -v, --version         Display version\n"
+	"    -r <representation>   Use <representation> for internal storage of automata\n"
+	"       Choices: 'expl'   : explicit (default)\n"
+	"                'bdd-td' : binary decision diagrams, top-down\n"
+	"                'bdd-bu' : binary decision diagrams, bottom-up\n"
+	"                'expl_fa': explicit finite automata\n"
+	"    (-I|-O|-F) <format>     Specify format for input (-I), output (-O), or both (-F)\n"
+	"       Formats: 'timbuk'  : Timbuk format (default)\n"
+	"    -t                      Print the time the operation took to error output stream\n"
 	"    -v                      Be verbose\n"
 	"    -n                      Do not output the result automaton\n"
 	"    -p                      Prune unreachable states first\n"
-	"    -s                      Prune useless states first (note that this is\n"
-	"                            stronger than -p)\n"
-	"    -o <opt>=<v>,<opt>=<v>  Options in the form of a comma-separated\n"
-	"                            <option>=<value> list\n"
+	"    -s                      Prune useless states first (stronger than -p)\n"
+	"    -o <opt>=<v>,<opt>=<v>  Options in the form of a comma-separated <option>=<value> list"
 	;
+
+extern const char* VATA_VERSION;
+extern const char* VATA_GIT_SHA;
+extern const char* VATA_GIT_DESCRIBE;
 
 const size_t BDD_SIZE = 16;
 
@@ -143,10 +128,19 @@ void printHelp(bool full = false)
 	{	// in case full help is wanted
 		std::cout << VATA_USAGE_COMMANDS;
 		std::cout << VATA_USAGE_FLAGS;
-		std::cout << "\n\n";
+		std::cout << "\n";
 	}
 }
 
+void printVersion()
+{
+	std::cout << "VATA version ";
+	// std::cout << VATA_VERSION;
+	// std::cout << "-";
+	// std::cout << VATA_GIT_SHA;
+	std::cout << VATA_GIT_DESCRIBE;
+	std::cout << "\n";
+}
 
 template <class Aut>
 int performOperation(
@@ -158,7 +152,7 @@ int performOperation(
 	Aut autInput2;
 	Aut autResult;
 	bool boolResult = false;
-	VATA::AutBase::StateBinaryRelation relResult;
+	VATA::AutBase::StateDiscontBinaryRelation relResult;
 
 	StateDict stateDict1;
 	StateDict stateDict2;
@@ -232,7 +226,7 @@ int performOperation(
 	}
 	else if (args.command == COMMAND_COMPLEMENT)
 	{
-		autResult = autInput1.Complement(autInput1.GetAlphabet());
+		autResult = autInput1.Complement();
 	}
 	else if (args.command == COMMAND_UNION)
 	{
@@ -396,7 +390,7 @@ int main(int argc, char* argv[])
 
 	if (argc == 1)
 	{	// in case no arguments were given
-		printHelp(true);
+		printHelp(false);
 		return EXIT_SUCCESS;
 	}
 
@@ -420,6 +414,11 @@ int main(int argc, char* argv[])
 	if (args.command == COMMAND_HELP)
 	{
 		printHelp(true);
+		return EXIT_SUCCESS;
+	}
+	else if (args.command == COMMAND_VERSION)
+	{
+		printVersion();
 		return EXIT_SUCCESS;
 	}
 

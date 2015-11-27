@@ -25,6 +25,7 @@ public:
 	using TupleList                = std::vector<const StateTuple*>;
 	using IndexedTupleList         = std::vector<TupleList>;
 	using DoubleIndexedTupleList   = std::vector<IndexedTupleList> ;
+	using StateDiscontBinaryRelation = ExplicitTreeAutCore::StateDiscontBinaryRelation;
 
 private:
 
@@ -94,7 +95,7 @@ public:
 		ExplicitDownwardInclusion::topDownIndex(smaller, smallerIndex, symbolTranslator);
 		ExplicitDownwardInclusion::topDownIndex(bigger, biggerIndex, symbolTranslator);
 
-		std::vector<std::vector<size_t>> ind, inv;
+		typename Rel::IndexType ind, inv;
 
 		preorder.buildIndex(ind, inv);
 
@@ -147,12 +148,12 @@ public:
 private:
 
 	static bool checkInternal(
-		const DoubleIndexedTupleList&                smallerIndex,
-		const ExplicitTreeAutCore::FinalStateSet&    smallerFinalStates,
-		const DoubleIndexedTupleList&                biggerIndex,
-		const ExplicitTreeAutCore::FinalStateSet&    biggerFinalStates,
-		const std::vector<std::vector<size_t>>&      ind,
-		const std::vector<std::vector<size_t>>&      inv
+		const DoubleIndexedTupleList&                  smallerIndex,
+		const ExplicitTreeAutCore::FinalStateSet&      smallerFinalStates,
+		const DoubleIndexedTupleList&                  biggerIndex,
+		const ExplicitTreeAutCore::FinalStateSet&      biggerFinalStates,
+		const StateDiscontBinaryRelation::IndexType&   ind,
+		const StateDiscontBinaryRelation::IndexType&   inv
 	);
 
 /*

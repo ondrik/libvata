@@ -25,7 +25,7 @@ using VATA::Parsing::AbstrParser;
 using VATA::Util::AutDescription;
 using VATA::Util::Convert;
 
-using StateBinaryRelation = VATA::BDDBottomUpTreeAut::StateBinaryRelation;
+using StateDiscontBinaryRelation = VATA::BDDBottomUpTreeAut::StateDiscontBinaryRelation;
 
 
 BDDBottomUpTreeAut::BDDBottomUpTreeAut() :
@@ -163,6 +163,16 @@ void BDDBottomUpTreeAut::LoadFromString(
 }
 
 
+uintptr_t BDDBottomUpTreeAut::GetTransMTBDDForTuple(
+	const StateTuple&        children) const
+{
+	assert(nullptr != core_);
+
+	const CoreAut::TransMTBDD& mtbdd = core_->GetMtbdd(children);
+	uintptr_t res = reinterpret_cast<uintptr_t>(&mtbdd);
+	return res;
+}
+
 void BDDBottomUpTreeAut::LoadFromAutDesc(
 	const AutDescription&         desc,
 	StateDict&                    stateDict,
@@ -212,7 +222,7 @@ BDDBottomUpTreeAut BDDBottomUpTreeAut::RemoveUnreachableStates(
 }
 
 
-StateBinaryRelation BDDBottomUpTreeAut::ComputeSimulation(
+StateDiscontBinaryRelation BDDBottomUpTreeAut::ComputeSimulation(
 	const SimParam&                 params) const
 {
 	assert(nullptr != core_);
@@ -303,4 +313,12 @@ BDDTopDownTreeAut BDDBottomUpTreeAut::GetTopDownAut() const
 BDDBottomUpTreeAut BDDBottomUpTreeAut::GetCandidateTree() const
 {
 	throw NotImplementedException(__func__);
+}
+
+
+std::string BDDBottomUpTreeAut::DumpToDot() const
+{
+	assert(nullptr != core_);
+
+	return core_->DumpToDot();
 }

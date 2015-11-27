@@ -35,16 +35,15 @@ namespace VATA
 	class ExplicitFiniteAutCore;
 }
 
-GCC_DIAG_OFF(effc++) // non virtual destructors warnings suppress
 class VATA::ExplicitFiniteAut : public AutBase
 {
-GCC_DIAG_ON(effc++)
-
 private: // private data types
+
 	using CoreAut = VATA::LoadableAut<ExplicitFiniteAutCore>;
 	std::unique_ptr<CoreAut> core_;
 
 public: // public data types
+
 	using SymbolType       = uintptr_t ;
 	using SymbolSet        = std::unordered_set<SymbolType>;
 	using StringSymbolType = std::string;
@@ -68,6 +67,9 @@ public: // public data types
 
 		virtual FwdTranslatorPtr GetSymbolTransl() = 0;
 		virtual BwdTranslatorPtr GetSymbolBackTransl() = 0;
+
+		virtual ~AbstractAlphabet()
+		{ }
 	};
 
 	class OnTheFlyAlphabet : public AbstractAlphabet
@@ -251,9 +253,7 @@ public: // public methods
 	ExplicitFiniteAut Reverse(
 			AutBase::StateToStateMap* pTranslMap = nullptr) const;
 
-	template <class Dict>
-	ExplicitFiniteAut Complement(
-			const Dict &)
+	ExplicitFiniteAut Complement()
 	{
 		throw NotImplementedException(__func__);
 	}
@@ -263,7 +263,7 @@ public: // public methods
 		throw NotImplementedException(__func__);
 	}
 
-	AutBase::StateBinaryRelation ComputeSimulation(
+	AutBase::StateDiscontBinaryRelation ComputeSimulation(
 		const SimParam&            params) const;
 };
 

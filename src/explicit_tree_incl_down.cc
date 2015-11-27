@@ -15,9 +15,9 @@
 // VATA headers
 #include <vata/vata.hh>
 #include <vata/explicit_tree_aut.hh>
-#include <vata/util/antichain1c.hh>
-#include <vata/util/antichain2c_v2.hh>
 
+#include "antichain1c.hh"
+#include "antichain2c_v2.hh"
 #include "explicit_tree_incl_down.hh"
 #include "util/cache.hh"
 #include "util/cached_binary_op.hh"
@@ -27,6 +27,9 @@
 
 namespace
 {	// anonymous namespace
+
+using StateDiscontBinaryRelation = VATA::ExplicitTreeAutCore::StateDiscontBinaryRelation;
+
 template <class T1, class T2>
 bool checkIntersection(const T1& s1, const T2& s2)
 {
@@ -285,8 +288,8 @@ inline bool expand(
 	const BiggerType&                               P_B,
 	const DoubleIndexedTupleList&                   smallerIndex,
 	const DoubleIndexedTupleList&                   biggerIndex,
-	const std::vector<std::vector<size_t>>&         ind,
-	const std::vector<std::vector<size_t>>&         inv)
+	const StateDiscontBinaryRelation::IndexType&    ind,
+	const StateDiscontBinaryRelation::IndexType&    inv)
 {
 	auto noncachedLte = [&ind](const StateSet* x, const StateSet* y) -> bool
 	{
@@ -296,7 +299,7 @@ inline bool expand(
 		{
 			assert(s1 < ind.size());
 
-			if (!checkIntersection(ind[s1], *y))
+			if (!checkIntersection(ind.at(s1), *y))
 				return false;
 		}
 
@@ -341,7 +344,7 @@ _call:
 		EXPAND_RETURN
 	}
 
-	if (checkIntersection(ind[r_i], *S))
+	if (checkIntersection(ind.at(r_i), *S))
 	{
 		found = true;
 
@@ -350,7 +353,7 @@ _call:
 
 	assert(r_i < ind.size());
 
-	if (workset.contains(ind[r_i], S, lte))
+	if (workset.contains(ind.at(r_i), S, lte))
 	{
 		found = true;
 
@@ -359,7 +362,7 @@ _call:
 
 	assert(r_i < inv.size());
 
-	if (nonincluded.contains(inv[r_i], S, gte))
+	if (nonincluded.contains(inv.at(r_i), S, gte))
 	{
 		found = false;
 
@@ -471,12 +474,12 @@ _simret:
 
 						assert(r_i < ind.size());
 
-						if (post.contains(ind[r_i]))
+						if (post.contains(ind.at(r_i)))
 							continue;
 
 						assert(r_i < inv.size());
 
-						post.refine(inv[r_i]);
+						post.refine(inv.at(r_i));
 						post.insert(r_i);
 					}
 
@@ -493,22 +496,22 @@ _simret:
 
 					S = biggerTypeCache.lookup(tmp);
 
-					if (top.childrenCache.contains(ind[r_i], S, lte))
+					if (top.childrenCache.contains(ind.at(r_i), S, lte))
 						goto _nextchoice;
 
 					EXPAND_CALL(1)
 _stdret:
 					if (found)
 					{
-						top.childrenCache.refine(inv[r_i], S, gte);
+						top.childrenCache.refine(inv.at(r_i), S, gte);
 						top.childrenCache.insert(r_i, S);
 
 						goto _nextchoice;
 					}
 
-					if (!nonincluded.contains(inv[r_i], S, gte))
+					if (!nonincluded.contains(inv.at(r_i), S, gte))
 					{
-						nonincluded.refine(ind[r_i], S, lte);
+						nonincluded.refine(ind.at(r_i), S, lte);
 						nonincluded.insert(r_i, S);
 					}
 				}
@@ -540,8 +543,8 @@ bool VATA::ExplicitDownwardInclusion::checkInternal(
 	const ExplicitTreeAutCore::FinalStateSet&     smallerFinalStates,
 	const DoubleIndexedTupleList&                 biggerIndex,
 	const ExplicitTreeAutCore::FinalStateSet&     biggerFinalStates,
-	const std::vector<std::vector<size_t>>&       ind,
-	const std::vector<std::vector<size_t>>&       inv)
+	const StateDiscontBinaryRelation::IndexType&  ind,
+	const StateDiscontBinaryRelation::IndexType&  inv)
 {
 	Util::CachedBinaryOp<const StateSet*, const StateSet*, bool> lteCache;
 

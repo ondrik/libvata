@@ -10,6 +10,7 @@
 
 %option noyywrap
 %option yylineno
+/* %option debug */
 
 %{
 
@@ -24,8 +25,8 @@ GCC_DIAG_OFF(unused-function)
 %}
 
 DIGIT        [0-9]
-IDENTCHAR    [a-zA-Z_\[\]\|]|{DIGIT}
-WHITE        [ \t\n]
+IDENTCHAR    [a-zA-Z_\[\]\|\{\}<=>+!@$%\^&*"';\.]|{DIGIT}
+WHITE        [ \t\n]|(#.*)
 
 NUMBER       {DIGIT}+
 IDENT        {IDENTCHAR}+
@@ -35,7 +36,7 @@ IDENT        {IDENTCHAR}+
 "Ops"           {return OPERATIONS;}
 "Automaton"     {return AUTOMATON;}
 "States"        {return STATES;}
-"Final States"  {return FINAL_STATES;}  
+"Final States"  {return FINAL_STATES;}
 "Transitions"   {return TRANSITIONS;}
 
 {NUMBER}        {yylval.svalue = strdup(yytext); return NUMBER;}

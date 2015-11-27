@@ -23,11 +23,8 @@ namespace VATA
 }
 
 
-GCC_DIAG_OFF(effc++)
 class VATA::Symbolic
 {
-GCC_DIAG_ON(effc++)
-
 public:   // data types
 
 	using SymbolType = VATA::SymbolicVarAsgn;

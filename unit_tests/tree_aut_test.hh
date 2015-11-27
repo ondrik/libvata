@@ -38,6 +38,9 @@ using VATA::Util::Convert;
 const fs::path LOAD_TIMBUK_FILE =
 	AUT_DIR / "load_timbuk.txt";
 
+const fs::path SMALL_TIMBUK_FILE =
+	AUT_DIR / "small_timbuk.txt";
+
 const fs::path USELESS_TIMBUK_FILE =
 	AUT_DIR / "useless_removal_timbuk.txt";
 
@@ -49,6 +52,9 @@ const fs::path UNION_TIMBUK_FILE =
 
 const fs::path INTERSECTION_TIMBUK_FILE =
 	AUT_DIR / "intersection_timbuk.txt";
+
+const fs::path EMPTINESS_TIMBUK_FILE =
+	AUT_DIR / "emptiness_timbuk.txt";
 
 const fs::path ADD_TRANS_TIMBUK_FILE =
 	AUT_DIR / "add_trans_timbuk.txt";
@@ -79,7 +85,7 @@ protected:// data types
 	using StateTuple             = AutType::StateTuple;
 	using SymbolType             = AutType::SymbolType;
 	using StringSymbolType       = AutType::StringSymbolType;
-	using StateBinaryRelation    = AutType::StateBinaryRelation;
+	using StateDiscontBinaryRelation= AutType::StateDiscontBinaryRelation;
 
 	using StringToStateTranslStrict  = AutType::StringToStateTranslStrict;
 	using StringToStateTranslWeak    = AutType::StringToStateTranslWeak;
@@ -167,7 +173,7 @@ protected:// methods
 				AutBase::SanitizeAutsForInclusion(autSmaller, autBigger);
 
 			// the simulation (if present)
-			StateBinaryRelation sim;
+			StateDiscontBinaryRelation sim;
 
 			if (ip.GetUseSimulation())
 			{	// if there is simulation, we need to compute it
@@ -218,31 +224,18 @@ protected:// methods
 			BOOST_MESSAGE("Computing downward simulation for " + inputFile + "...");
 
 			std::string autStr = VATA::Util::ReadFile(inputFile);
-			std::string correctSimStr = VATA::Util::ReadFile(resultFile);
 
 			StateDict stateDict;
 			AutType aut;
 			readAut(aut, stateDict, autStr);
 
-			StateType stateCnt = 0;
-			StateToStateMap stateMap;
-			StateToStateTranslWeak stateTrans(stateMap,
-				[&stateCnt](const StateType&){return stateCnt++;});
-
-			aut = aut.RemoveUselessStates();
-			AutType reindexedAut = aut.ReindexStates(stateTrans);
-
-			stateDict = RebindMap(stateDict, stateMap);
-
 			SimParam sp;
 			sp.SetRelation(VATA::SimParam::e_sim_relation::TA_DOWNWARD);
-			sp.SetNumStates(stateCnt);
-			StateBinaryRelation sim = reindexedAut.ComputeSimulation(sp);
+			sp.SetNumStates(stateDict.size());
+			StateDiscontBinaryRelation sim = aut.ComputeSimulation(sp);
 
 			auto simulationContent = ParseTestFile(resultFile);
-			StateBinaryRelation refSim(stateCnt);
-
-			StringToStateTranslStrict stateStrictTrans(stateDict);
+			StateDiscontBinaryRelation refSim(stateDict.size());
 
 			for (auto& simulationLine : simulationContent)
 			{	// load the reference relation
@@ -259,6 +252,15 @@ protected:// methods
 					((itDictSecond = stateDict.FindFwd(simulationLine[2]))
 					== stateDict.EndFwd()))
 				{
+					if (stateDict.EndFwd() == itDictFirst)
+					{
+						BOOST_ERROR("Unknown state " + simulationLine[0]);
+					}
+					else
+					{
+						BOOST_ERROR("Unknown state " + simulationLine[2]);
+					}
+
 					continue;
 				}
 
@@ -277,23 +279,41 @@ protected:// methods
 					const std::string& secondName = secondStringStatePair.first;
 					const StateType& secondState = secondStringStatePair.second;
 
-					BOOST_CHECK_MESSAGE(sim.get(firstState, secondState)
-						== refSim.get(firstState, secondState),
+					bool computedValue = sim.get(firstState, secondState);
+					bool referenceValue = refSim.get(firstState, secondState);
+					BOOST_CHECK_MESSAGE(computedValue == referenceValue,
 						"Invalid simulation value for (" + firstName + ", " + secondName +
-						"): got "
-						+ Convert::ToString(sim.get(firstState, secondState)) + ", expected " +
-						Convert::ToString(refSim.get(firstState, secondState)));
+						"): got " + Convert::ToString(computedValue) + ", expected " +
+						Convert::ToString(referenceValue));
 				}
 			}
 		}
 	}
+
 
 	template <
 		class AutProcFunc>
 	void runOnAutomataSet(
 		AutProcFunc           procFunc)
 	{
-		auto testfileContent = ParseTestFile(LOAD_TIMBUK_FILE.string());
+		this->runOnAutomataSetFromFile(procFunc, LOAD_TIMBUK_FILE.string());
+	}
+
+	template <
+		class AutProcFunc>
+	void runOnSmallAutomataSet(
+		AutProcFunc           procFunc)
+	{
+		this->runOnAutomataSetFromFile(procFunc, SMALL_TIMBUK_FILE.string());
+	}
+
+	template <
+		class AutProcFunc>
+	void runOnAutomataSetFromFile(
+		AutProcFunc           procFunc,
+		const std::string&    filename)
+	{
+		auto testfileContent = ParseTestFile(filename);
 		for (auto testcase : testfileContent)
 		{
 			BOOST_REQUIRE_MESSAGE(testcase.size() == 1, "Invalid format of a testcase: " +
@@ -698,7 +718,7 @@ BOOST_AUTO_TEST_CASE(aut_down_inclusion_opt_rec_nosim)
 BOOST_AUTO_TEST_CASE(final_states_test)
 {
 	this->runOnAutomataSet(
-		[](const AutType& aut, const StateDict& stateDict, const std::string& filename)
+		[](const AutType& aut, const StateDict& /* stateDict */, const std::string& filename)
 		{
 			BOOST_MESSAGE("Checking final states for " + filename + "...");
 			for (const StateType& state : aut.GetFinalStates())

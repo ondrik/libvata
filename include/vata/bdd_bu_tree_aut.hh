@@ -39,11 +39,8 @@ namespace VATA
 	class BDDBUTreeAutCore;
 }
 
-GCC_DIAG_OFF(effc++)
 class VATA::BDDBottomUpTreeAut : public SymbolicTreeAutBase
 {
-GCC_DIAG_ON(effc++)
-
 private:  // data types
 
 	using CoreAut        = VATA::LoadableAut<BDDBUTreeAutCore>;
@@ -162,6 +159,10 @@ public:   // methods
 	std::string DumpToDot() const;
 
 
+	uintptr_t GetTransMTBDDForTuple(
+		const StateTuple&        children) const;
+
+
 	/**
 	 * @brief  Checks inclusion using default parameters
 	 *
@@ -219,9 +220,7 @@ public:   // methods
 	BDDBottomUpTreeAut GetCandidateTree() const;
 
 
-	template <class Dict>
-	BDDBottomUpTreeAut Complement(
-		const Dict&                  /*alphabet*/) const
+	BDDBottomUpTreeAut Complement() const
 	{
 		throw NotImplementedException(__func__);
 	}
@@ -252,7 +251,7 @@ public:   // methods
 	}
 
 
-	StateBinaryRelation ComputeSimulation(
+	StateDiscontBinaryRelation ComputeSimulation(
 		const VATA::SimParam&              params) const;
 };
 

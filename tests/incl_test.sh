@@ -11,34 +11,35 @@ SCRIPT=`readlink -f $0`
 # Absolute path this script is in, thus /home/user/bin
 SCRIPTPATH=`dirname $SCRIPT`
 
-#METHODS=("symdown" "symdownX" "downT")
-#METHODS=("symdown" "symdown-ul" "olddown" "olddown-ul" "downT" "downSimT" "upT")
-#METHODS=("symdown" "symdown-ul" "expldown" "downT" "downSimT" "upT")
-#METHODS=("explup" "explup-sim" "expldown" "expldown-sim" "expldown-optC" "expldown-sim-optC" "symup" "symdown" "symdown-sim" "symdown-optC" "symdown-sim-optC")
-
 METHODS=( 
-#  "expldown-rec"
-#  "expldown-rec-optC"
-#  "expldown-nonrec"
+  "expldown-rec"
+  "old-expldown-rec"
+  "expldown-rec-optC"
+  "old-expldown-rec-optC"
+  "expldown-nonrec"
+  "old-expldown-nonrec"
 
-#  "expldown-rec-sim"
-#  "expldown-rec-sim-optC"
-#  "expldown-nonrec-sim"
+  "expldown-rec-sim"
+  "old-expldown-rec-sim"
+  "expldown-rec-sim-optC"
+  "old-expldown-rec-sim-optC"
+  "expldown-nonrec-sim"
+  "old-expldown-nonrec-sim"
 
-#  "expldown-rec-sim-nosimtime"
-#  "expldown-rec-sim-optC-nosimtime"
-#  "expldown-nonrec-sim-nosimtime"
+  "expldown-rec-sim-nosimtime"
+  "old-expldown-rec-sim-nosimtime"
+  "expldown-rec-sim-optC-nosimtime"
+  "old-expldown-rec-sim-optC-nosimtime"
+  "expldown-nonrec-sim-nosimtime"
+  "old-expldown-nonrec-sim-nosimtime"
 
   "explup"
+  "old-explup"
   "explup-sim"
-#  "explup-sim-nosimtime"
+  "old-explup-sim"
+  "explup-sim-nosimtime"
+  "old-explup-sim-nosimtime"
 
-#  "old-expldown"
-#  "old-expldown-sim"
-#  "old-expldown-sim-nosimtime"
-#  "old-expldown-optC"
-#  "old-expldown-sim-optC"
-#  "old-expldown-sim-optC-nosimtime"
 #  "symdown-rec"
 #  "symdown-rec-sim"
 #  "symdown-rec-sim-nosimtime"

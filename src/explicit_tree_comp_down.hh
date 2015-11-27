@@ -15,9 +15,10 @@
 #include <unordered_set>
 #include <unordered_map>
 
-#include <vata/ta_expl/explicit_tree_aut.hh>
-#include <vata/util/antichain1c.hh>
 #include <vata/util/transl_strict.hh>
+
+#include "antichain1c.hh"
+#include "explicit_tree_aut_core.hh"
 
 namespace VATA { class ExplicitDownwardComplementation; }
 
@@ -143,17 +144,16 @@ public:
 
 	template <
 		class Aut,
-		class Dict,
 		class Rel>
 	static void Compute(
-		Aut&                     dst,
-		const Aut&               src,
-		const Dict&              alphabet,
-		const Rel&               preorder)
+		Aut&                               dst,
+		const Aut&                         src,
+		const typename Aut::AlphabetType&  alphabet,
+		const Rel&                         preorder)
 	{
-		typedef std::vector<VATA::Explicit::StateType> StateSet;
-		typedef typename VATA::Util::Antichain1C<VATA::Explicit::StateType> Antichain1C;
-		typedef VATA::Explicit::StateTuple StateTuple;
+		typedef std::vector<VATA::ExplicitTreeAutCore::StateType> StateSet;
+		typedef typename VATA::Util::Antichain1C<VATA::ExplicitTreeAutCore::StateType> Antichain1C;
+		typedef VATA::ExplicitTreeAutCore::StateTuple StateTuple;
 		typedef std::unordered_map<StateSet, size_t, boost::hash<StateSet>> StateCache;
 		typedef const StateCache::value_type* StateCachePtr;
 
@@ -165,18 +165,25 @@ public:
 
 		size_t maxRank = 0;
 
-		for (auto& symbolRankPair : alphabet)
+		std::shared_ptr<VATA::ExplicitTreeAut::OnTheFlyAlphabet> otfAlpha = nullptr;
+		if (nullptr == (otfAlpha = std::dynamic_pointer_cast<VATA::ExplicitTreeAut::OnTheFlyAlphabet>(alphabet)))
+		{
+			throw NotImplementedException(
+				"Complement not implemented for the given alphabet type");
+		}
+
+		for (auto& stringSymbolPair : otfAlpha->GetSymbolDict())
 		{
 			// assert the symbol has not been processed
-			assert(symbolMap.end() == symbolMap.find(symbolRankPair.first));
+			assert(symbolMap.end() == symbolMap.find(stringSymbolPair.second));
 
-			symbolMap.insert(std::make_pair(symbolRankPair.first, ranks.size()));
+			symbolMap.insert(std::make_pair(stringSymbolPair.second, ranks.size()));
 
-			ranks.push_back(symbolRankPair.second);
+			ranks.push_back(stringSymbolPair.first.rank);
 
-			if (maxRank < symbolRankPair.second)
+			if (maxRank < stringSymbolPair.first.rank)
 			{
-				maxRank = symbolRankPair.second;
+				maxRank = stringSymbolPair.first.rank;
 			}
 		}
 
@@ -186,7 +193,7 @@ public:
 
 		ExplicitDownwardComplementation::topDownIndex(transitionIndex, symbolTranslator, src);
 
-		std::vector<std::vector<size_t>> ind, inv;
+		Util::Identity::IndexType ind, inv;
 
 		preorder.buildIndex(ind, inv);
 
@@ -352,44 +359,19 @@ public:
 
 
 template <
-	class Dict,
 	class Rel>
-ExplicitTreeAutCore ExplicitTreeAutCore::ComplementWithPreorder(
-	const Dict&                            alphabet,
+VATA::ExplicitTreeAutCore VATA::ExplicitTreeAutCore::ComplementWithPreorder(
 	const Rel&                             preorder) const
 {
 	ExplicitTreeAutCore res;
 
-	VATA::ExplicitDownwardComplementation::Compute(res, *this, alphabet, preorder);
+	VATA::ExplicitDownwardComplementation::Compute(
+		res,
+		*this,
+		this->GetAlphabet(),
+		preorder);
 
 	return res.RemoveUselessStates();
-}
-
-
-template <class Dict>
-ExplicitTreeAutCore ExplicitTreeAutCore::Complement(
-	const Dict&                           alphabet) const
-{
-	typedef AutBase::StateType StateType;
-	typedef std::unordered_map<StateType, StateType> StateDict;
-
-	StateDict stateDict;
-
-	size_t stateCnt = 0;
-	Util::TranslatorWeak<StateDict> stateTranslator(
-		stateDict, [&stateCnt](const StateType&){ return stateCnt++; }
-	);
-
-	aut.BuildStateIndex(stateTranslator);
-
-	return this->ComplementWithPreorder(
-		*this,
-		alphabet,
-		Util::Identity(stateCnt)
-		/* ComputeDownwardSimulation(
-			aut, stateDict.size(), Util::TranslatorStrict<StateDict>(stateDict)
-		)*/
-	);
 }
 
 

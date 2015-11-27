@@ -4,7 +4,12 @@ build/*
 **.swp
 # Doxygen generated documentation
 /html
+doxygen_sqlite3.db
 # ctags tags
 tags
 # YouCompleteMe dust
 .ycm_extra_conf.pyc
+# documentation
+doc/*
+# Python cache
+python_interface/__pycache__

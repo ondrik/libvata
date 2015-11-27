@@ -88,10 +88,50 @@ private:  // methods
 	template <
 		class StateBackTranslFunc>
 	AutDescription dumpToAutDescSymbolic(
-		StateBackTranslFunc     /* stateBackTransl */,
-		const AlphabetType&     /* alphabet */) const
+		StateBackTranslFunc     stateBackTransl,
+		const AlphabetType&     /*alphabet */) const
 	{
-		throw NotImplementedException(__func__);
+		AutDescription desc;
+
+		// copy final states
+		for (const StateType& fst : finalStates_)
+		{	// copy final states
+			desc.finalStates.insert(stateBackTransl(fst));
+			desc.states.insert(stateBackTransl(fst));
+		}
+
+		// copy states, transitions and symbols
+		for (auto tupleBddPair : this->GetTransTable())
+		{	// for all states
+			const StateTuple& children = tupleBddPair.first;
+
+			std::vector<std::string> tupleStr;
+
+			for (const StateType& state : children)
+			{
+				std::string stateStr = stateBackTransl(state);
+
+				tupleStr.push_back(stateStr);
+				desc.states.insert(stateStr);
+			}
+
+			const TransMTBDD& transMtbdd = tupleBddPair.second;
+			TransMTBDD::SymVarToValueList paths = transMtbdd.GetPaths();
+
+			for (const std::pair<SymbolicVarAsgn, TransMTBDD::DataType> path : paths)
+			{
+				for (const StateType& state : path.second)
+				{
+					std::string stateStr = stateBackTransl(state);
+					std::string symbolStr = path.first.ToString();
+
+					desc.transitions.insert(AutDescription::Transition(tupleStr,
+						symbolStr, stateStr));
+				}
+			}
+		}
+
+		return desc;
 	}
 
 
@@ -491,9 +531,8 @@ public:   // methods
 
 	BDDTDTreeAutCore GetTopDownAut() const;
 
-	StateBinaryRelation ComputeSimulation(
-		const SimParam&                 params) const;
-
+	StateDiscontBinaryRelation ComputeSimulation(
+		const SimParam&                 /* params */) const;
 
 	StateBinaryRelation ComputeDownwardSimulation() const;
 
