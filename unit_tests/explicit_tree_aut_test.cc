@@ -103,7 +103,7 @@ BOOST_AUTO_TEST_CASE(aut_up_inclusion_sim)
 BOOST_AUTO_TEST_CASE(iterators)
 {
 	this->runOnAutomataSet(
-		[](const AutType& aut, const StateDict& stateDict, const std::string& filename)
+		[](const AutType& aut, const StateDict& /* stateDict */, const std::string& filename)
 		{
 			BOOST_MESSAGE("Checking iterators for " + filename + "...");
 			for (const Transition& trans : aut)
@@ -627,7 +627,7 @@ BOOST_AUTO_TEST_CASE(emptiness)
 BOOST_AUTO_TEST_CASE(complement)
 {
 	this->runOnSmallAutomataSet(
-		[](const AutType& aut, const StateDict& stateDict, const std::string& filename)
+		[](const AutType& aut, const StateDict& /* stateDict */, const std::string& filename)
 		{
 			BOOST_MESSAGE("Checking complement for " + filename + "...");
 			AutType autCmpl = aut.Complement();
