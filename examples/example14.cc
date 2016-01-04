@@ -31,9 +31,11 @@ int main()
 	/* If I uncomment the following 3 lines (which just delete the
 	alpabet line from the input string), the error thrown below is No
 	translation for 0 instead of No translation for 2 */
-	// string prefix = "Ops\n";
-	// string rest = autStr.substr(autStr.find("Automaton"), autStr.length());
-	// autStr = prefix + rest;
+	#if 0
+	std::string prefix = "Ops\n";
+	std::string rest = autStr.substr(autStr.find("Automaton"), autStr.length());
+	autStr = prefix + rest;
+	#endif
 	Automaton aut;
 	Automaton::AlphabetType onTheFlyAlph(new Automaton::OnTheFlyAlphabet);
 	aut.SetAlphabet(onTheFlyAlph);
@@ -49,32 +51,7 @@ int main()
 	sp.SetNumStates(stateCnt);
 	Rel sim = aut.ComputeSimulation(sp);
 
-	/* And convert it to a matrix */
-	std::vector<bool> column(stateCnt, true);
-	std::vector<std::vector<bool>> W(stateCnt, column);
-	// VATA::Util::BinaryRelation matrix = sim.getMatrix();
-
-	for (size_t i = 0; i < stateCnt; ++i)
-	{
-		for (size_t j = 0; j < stateCnt; ++j)
-		{
-			W[i][j] = sim.get(i, j);
-		}
-	}
-
 	std::cout << "sim = " << sim << "\n";
-
-	std::cout << "W = " << "\n";
-	for (size_t i = 0; i < stateCnt; ++i)
-	{
-		std::cout << "[";
-		for (size_t j = 0; j < stateCnt; ++j)
-		{
-			std::cout << W[i][j] << ", ";
-		}
-		std::cout << "]";
-		std::cout << "\n";
-	}
 
 	/* Quotient aut with the sim. */
 	Automaton::StateToStateMap map;
@@ -82,7 +59,7 @@ int main()
 	{
 		for (size_t j = 0; j < stateCnt; ++j)
 		{
-			if (W[i][j] && W[j][i])
+			if (sim.get(i, j) && sim.get(j, i))
 			{
 				map.insert(std::make_pair(i, j));
 			}
