@@ -8,8 +8,8 @@
 const char* autStr =
 	"Ops\n"
 	"Automaton     aut\n"
-	"States        p q r z\n"
-	"Final States  z\n"
+	"States        \n"
+	"Final States  \n"
 	"Transitions\n"
 	"no(p,q)       -> r\n";
 
@@ -27,15 +27,7 @@ int main()
 	VATA::AutBase::StateDict sDict;
 
 	/* Parse aut */
-	std::string autStr = VATA::Util::ReadFile("./200.timbuk");
-	/* If I uncomment the following 3 lines (which just delete the
-	alpabet line from the input string), the error thrown below is No
-	translation for 0 instead of No translation for 2 */
-	#if 0
-	std::string prefix = "Ops\n";
-	std::string rest = autStr.substr(autStr.find("Automaton"), autStr.length());
-	autStr = prefix + rest;
-	#endif
+	// std::string autStr = VATA::Util::ReadFile("./200.timbuk");
 	Automaton aut;
 	Automaton::AlphabetType onTheFlyAlph(new Automaton::OnTheFlyAlphabet);
 	aut.SetAlphabet(onTheFlyAlph);
