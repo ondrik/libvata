@@ -854,6 +854,7 @@ public:   // methods
 	{
 		ExplicitTreeAutCore res;
 		this->ReindexStates(res, index, addFinalStates);
+		res.SetAlphabet(this->GetAlphabet());
 
 		return res;
 	}
