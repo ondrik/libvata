@@ -45,25 +45,11 @@ int main()
 		[&stateCnt](const std::string&){return stateCnt++;});
 	aut.LoadFromString(*parser, autStr, stateTr);
 
-	/* Compute dw simulation relation */
-	SimParam sp;
-	sp.SetRelation(SimParam::e_sim_relation::TA_DOWNWARD);
-	sp.SetNumStates(stateCnt);
-	Rel sim = aut.ComputeSimulation(sp);
-
-	std::cout << "sim = " << sim << "\n";
-
-	/* Quotient aut with the sim. */
+	/* Quotient aut with identity */
 	Automaton::StateToStateMap map;
 	for (size_t i = 0; i < stateCnt; ++i)
 	{
-		for (size_t j = 0; j < stateCnt; ++j)
-		{
-			if (sim.get(i, j) && sim.get(j, i))
-			{
-				map.insert(std::make_pair(i, j));
-			}
-		}
+		map.insert(std::make_pair(i, i));
 	}
 
 	aut = aut.CollapseStates(map);
