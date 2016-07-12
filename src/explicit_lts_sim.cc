@@ -9,6 +9,7 @@
  *****************************************************************************/
 
 // Standard library headers
+#include <cmath>
 #include <ostream>
 #include <vector>
 #include <list>
