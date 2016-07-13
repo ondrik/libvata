@@ -303,7 +303,8 @@ public:   // Public methods
 			size_t middle = first + (last - first) / 2;
 			if (vec_[middle] == key)
 			{	// in case we found x
-				return const_iterator(&vec_[middle]);
+//				return const_iterator(&vec_[middle]);
+				return vec_.cbegin() + middle;
 			}
 			else if (vec_[middle] < key)
 			{	// in case middle is less than x
