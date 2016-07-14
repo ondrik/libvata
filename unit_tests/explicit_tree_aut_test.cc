@@ -105,7 +105,7 @@ BOOST_AUTO_TEST_CASE(iterators)
 	this->runOnAutomataSet(
 		[](const AutType& aut, const StateDict& /* stateDict */, const std::string& filename)
 		{
-			BOOST_MESSAGE("Checking iterators for " + filename + "...");
+			BOOST_TEST_MESSAGE("Checking iterators for " + filename + "...");
 			for (const Transition& trans : aut)
 			{
 				BOOST_REQUIRE_MESSAGE(aut.ContainsTransition(trans),
@@ -120,7 +120,7 @@ BOOST_AUTO_TEST_CASE(iterators_dereference)
 	this->runOnAutomataSet(
 		[](const AutType& aut, const StateDict& /* stateDict */, const std::string& filename)
 		{
-			BOOST_MESSAGE("Checking iterators dereference for " + filename + "...");
+			BOOST_TEST_MESSAGE("Checking iterators dereference for " + filename + "...");
 			for (AutType::const_iterator it = aut.begin(); it != aut.end(); ++it)
 			{
 				BOOST_REQUIRE_MESSAGE(aut.ContainsTransition(*it),
@@ -135,7 +135,7 @@ BOOST_AUTO_TEST_CASE(accept_iterators)
 	this->runOnAutomataSet(
 		[](const AutType& aut, const StateDict& /* stateDict */, const std::string& filename)
 		{
-			BOOST_MESSAGE("Checking accepting transitions iterators for " + filename + "...");
+			BOOST_TEST_MESSAGE("Checking accepting transitions iterators for " + filename + "...");
 			for (const Transition& trans : aut.GetAcceptTrans())
 			{
 				BOOST_REQUIRE_MESSAGE(aut.ContainsTransition(trans),
@@ -257,7 +257,7 @@ BOOST_AUTO_TEST_CASE(accept_iterators_dereference)
 	this->runOnAutomataSet(
 		[](const AutType& aut, const StateDict& /* stateDict */, const std::string& filename)
 		{
-			BOOST_MESSAGE("Checking accepting transitions iterators dereference for " + filename + "...");
+			BOOST_TEST_MESSAGE("Checking accepting transitions iterators dereference for " + filename + "...");
 			for (AutType::AcceptTrans::const_iterator it = aut.GetAcceptTrans().begin();
 				it != aut.GetAcceptTrans().end(); ++it)
 			{
@@ -278,7 +278,7 @@ BOOST_AUTO_TEST_CASE(iterators_for_state)
 	this->runOnAutomataSet(
 		[](const AutType& aut, const StateDict& /* stateDict */, const std::string& filename)
 		{
-			BOOST_MESSAGE("Checking state iterators for " + filename + "...");
+			BOOST_TEST_MESSAGE("Checking state iterators for " + filename + "...");
 
 			std::set<Transition> accTransitions1;
 			std::set<Transition> accTransitions2;
@@ -337,7 +337,7 @@ BOOST_AUTO_TEST_CASE(reindex_states_functor)
 			Convert::ToString(testcase));
 
 		std::string filename = (AUT_DIR / testcase[0]).string();
-		BOOST_MESSAGE("Functor-reindexing of states of automaton " + filename + "...");
+		BOOST_TEST_MESSAGE("Functor-reindexing of states of automaton " + filename + "...");
 		std::string autStr = VATA::Util::ReadFile(filename);
 
 		StateType state(0);
@@ -375,7 +375,7 @@ BOOST_AUTO_TEST_CASE(inherited_alphabet_type)
 			Convert::ToString(testcase));
 
 		std::string filename = (AUT_DIR / testcase[0]).string();
-		BOOST_MESSAGE("Checking DirectAlphabet on automaton " + filename + "...");
+		BOOST_TEST_MESSAGE("Checking DirectAlphabet on automaton " + filename + "...");
 		std::string autStr = VATA::Util::ReadFile(filename);
 
 		StateDict stateDict;
@@ -441,7 +441,7 @@ BOOST_AUTO_TEST_CASE(translate_symbols)
 			Convert::ToString(testcase));
 
 		std::string filename = (AUT_DIR / testcase[0]).string();
-		BOOST_MESSAGE("Checking TranslateSymbols on automaton " + filename + "...");
+		BOOST_TEST_MESSAGE("Checking TranslateSymbols on automaton " + filename + "...");
 		std::string autStr = VATA::Util::ReadFile(filename);
 
 		StateDict stateDict;
@@ -499,7 +499,7 @@ BOOST_AUTO_TEST_CASE(collapsing_states)
 	this->runOnAutomataSet(
 		[](const AutType& aut, const StateDict& /* stateDict */, const std::string& filename)
 		{
-			BOOST_MESSAGE("Checking CollapseStates() for " + filename + "...");
+			BOOST_TEST_MESSAGE("Checking CollapseStates() for " + filename + "...");
 
 			AutType::StateToStateMap colMap;
 			for (size_t i = 0; i < 1000; ++i)
@@ -595,7 +595,7 @@ BOOST_AUTO_TEST_CASE(emptiness)
 		std::string inputAutFile = (AUT_DIR / testcase[0]).string();
 		std::string resultStr = testcase[1];
 
-		BOOST_MESSAGE("Testing emptiness of " + inputAutFile + "...");
+		BOOST_TEST_MESSAGE("Testing emptiness of " + inputAutFile + "...");
 
 		std::string autStr = VATA::Util::ReadFile(inputAutFile);
 		bool result;
@@ -629,7 +629,7 @@ BOOST_AUTO_TEST_CASE(complement)
 	this->runOnSmallAutomataSet(
 		[](const AutType& aut, const StateDict& /* stateDict */, const std::string& filename)
 		{
-			BOOST_MESSAGE("Checking complement for " + filename + "...");
+			BOOST_TEST_MESSAGE("Checking complement for " + filename + "...");
 			AutType autCmpl = aut.Complement();
 
 			// first, we check whether A \cap cA = \emptyset
@@ -642,7 +642,7 @@ BOOST_AUTO_TEST_CASE(complement)
 			// BOOST_REQUIRE_MESSAGE(isectAut.IsLangUniversal(),
 			// 	"The language of unionAut needs to be universal");
 
-			BOOST_MESSAGE("Warning: universality of union not tested.");
+			BOOST_TEST_MESSAGE("Warning: universality of union not tested.");
 		});
 }
 

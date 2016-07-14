@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(aut_inversion)
 			Convert::ToString(testcase));
 
 		std::string filename = (AUT_DIR / testcase[0]).string();
-		BOOST_MESSAGE("Inverting automaton " + filename + "...");
+		BOOST_TEST_MESSAGE("Inverting automaton " + filename + "...");
 		std::string autStr = VATA::Util::ReadFile(filename);
 
 		StateDict stateDict;
