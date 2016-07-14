@@ -156,7 +156,7 @@ protected:// methods
 			unsigned expectedResult = static_cast<bool>(
 				Convert::FromString<unsigned>(testcase[2]));
 
-			BOOST_MESSAGE("Testing inclusion " + inputSmallerFile + " <= " +
+			BOOST_TEST_MESSAGE("Testing inclusion " + inputSmallerFile + " <= " +
 				inputBiggerFile  + "...");
 
 			std::string autSmallerStr = VATA::Util::ReadFile(inputSmallerFile);
@@ -221,7 +221,7 @@ protected:// methods
 			std::string inputFile = (AUT_DIR / testcase[0]).string();
 			std::string resultFile = (AUT_DIR / testcase[1]).string();
 
-			BOOST_MESSAGE("Computing downward simulation for " + inputFile + "...");
+			BOOST_TEST_MESSAGE("Computing downward simulation for " + inputFile + "...");
 
 			std::string autStr = VATA::Util::ReadFile(inputFile);
 
@@ -348,7 +348,7 @@ BOOST_AUTO_TEST_CASE(timbuk_import_export)
 			Convert::ToString(testcase));
 
 		std::string filename = (AUT_DIR / testcase[0]).string();
-		BOOST_MESSAGE("Loading automaton " + filename + "...");
+		BOOST_TEST_MESSAGE("Loading automaton " + filename + "...");
 		std::string autStr = VATA::Util::ReadFile(filename);
 
 		StateDict stateDict;
@@ -380,7 +380,7 @@ BOOST_AUTO_TEST_CASE(adding_transitions)
 		std::string inputTransFile = (AUT_DIR / testcase[1]).string();
 		std::string resultFile = (AUT_DIR / testcase[2]).string();
 
-		BOOST_MESSAGE("Adding transitions from " + inputTransFile + " to " +
+		BOOST_TEST_MESSAGE("Adding transitions from " + inputTransFile + " to " +
 			inputAutFile + "...");
 
 		std::string autStr = VATA::Util::ReadFile(inputAutFile);
@@ -496,7 +496,7 @@ BOOST_AUTO_TEST_CASE(aut_union_simple)
 		std::string inputRhsFile = (AUT_DIR / testcase[1]).string();
 		std::string resultFile = (AUT_DIR / testcase[2]).string();
 
-		BOOST_MESSAGE("Performing union of " + inputLhsFile + " and " +
+		BOOST_TEST_MESSAGE("Performing union of " + inputLhsFile + " and " +
 			inputRhsFile + "...");
 
 		std::string autLhsStr = VATA::Util::ReadFile(inputLhsFile);
@@ -543,7 +543,7 @@ BOOST_AUTO_TEST_CASE(aut_union_trans_table_copy)
 		std::string inputRhsFile = (AUT_DIR / testcase[1]).string();
 		std::string resultFile = (AUT_DIR / testcase[2]).string();
 
-		BOOST_MESSAGE("Performing union of " + inputLhsFile + " and " +
+		BOOST_TEST_MESSAGE("Performing union of " + inputLhsFile + " and " +
 			inputRhsFile + "...");
 
 		std::string autLhsStr = VATA::Util::ReadFile(inputLhsFile);
@@ -593,7 +593,7 @@ BOOST_AUTO_TEST_CASE(aut_intersection)
 		std::string inputRhsFile = (AUT_DIR / testcase[1]).string();
 		std::string resultFile = (AUT_DIR / testcase[2]).string();
 
-		BOOST_MESSAGE("Performing intersection of " + inputLhsFile + " and "
+		BOOST_TEST_MESSAGE("Performing intersection of " + inputLhsFile + " and "
 			+ inputRhsFile + "...");
 
 		std::string autLhsStr = VATA::Util::ReadFile(inputLhsFile);
@@ -639,7 +639,7 @@ BOOST_AUTO_TEST_CASE(aut_remove_unreachable)
 		std::string inputFile = (AUT_DIR / testcase[0]).string();
 		std::string resultFile = (AUT_DIR / testcase[1]).string();
 
-		BOOST_MESSAGE("Removing unreachable states from " + inputFile + "...");
+		BOOST_TEST_MESSAGE("Removing unreachable states from " + inputFile + "...");
 
 		std::string autStr = VATA::Util::ReadFile(inputFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
@@ -675,7 +675,7 @@ BOOST_AUTO_TEST_CASE(aut_remove_useless)
 		std::string inputFile = (AUT_DIR / testcase[0]).string();
 		std::string resultFile = (AUT_DIR / testcase[1]).string();
 
-		BOOST_MESSAGE("Removing useless states from " + inputFile + "...");
+		BOOST_TEST_MESSAGE("Removing useless states from " + inputFile + "...");
 
 		std::string autStr = VATA::Util::ReadFile(inputFile);
 		std::string autCorrectStr = VATA::Util::ReadFile(resultFile);
@@ -720,7 +720,7 @@ BOOST_AUTO_TEST_CASE(final_states_test)
 	this->runOnAutomataSet(
 		[](const AutType& aut, const StateDict& /* stateDict */, const std::string& filename)
 		{
-			BOOST_MESSAGE("Checking final states for " + filename + "...");
+			BOOST_TEST_MESSAGE("Checking final states for " + filename + "...");
 			for (const StateType& state : aut.GetFinalStates())
 			{
 				BOOST_REQUIRE_MESSAGE(aut.IsStateFinal(state),

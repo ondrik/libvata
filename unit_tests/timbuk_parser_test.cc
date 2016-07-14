@@ -71,7 +71,7 @@ BOOST_AUTO_TEST_CASE(correct_format)
 	for (auto testcase : testfileContent)
 	{
 		std::string filename = (AUT_DIR / testcase[0]).string();
-		BOOST_MESSAGE("Parsing automaton " + filename + "...");
+		BOOST_TEST_MESSAGE("Parsing automaton " + filename + "...");
 		std::string autStr = VATA::Util::ReadFile(filename);
 
 		try
@@ -108,7 +108,7 @@ BOOST_AUTO_TEST_CASE(incorrect_format)
 		if (fs::is_regular_file(*dirEntryIt))
 		{	// if it is a file
 			std::string filename = dirEntryIt->path().string();
-			BOOST_MESSAGE("Parsing automaton " + filename + "...");
+			BOOST_TEST_MESSAGE("Parsing automaton " + filename + "...");
 			std::string autStr = VATA::Util::ReadFile(filename);
 
 			BOOST_CHECK_THROW(parser.ParseString(autStr), std::exception);
