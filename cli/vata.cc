@@ -211,9 +211,9 @@ int performOperation(
 	AutBase::StateToStateMap opTranslMap2;
 	AutBase::ProductTranslMap prodTranslMap;
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
+	// clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
 
-	timespec finishTime;
+	// timespec finishTime;
 
 	// process command
 	if (args.command == COMMAND_LOAD)
@@ -258,16 +258,17 @@ int performOperation(
 	}
 
 	// get the finish time
-	if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &finishTime))
-	{
-		throw std::runtime_error("Could not get the finish time");
-	}
-	double opTime = (finishTime.tv_sec - startTime.tv_sec)
-		+ 1e-9 * (finishTime.tv_nsec - startTime.tv_nsec);
+	// if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &finishTime))
+	// {
+	// 	throw std::runtime_error("Could not get the finish time");
+	// }
+	// double opTime = (finishTime.tv_sec - startTime.tv_sec)
+	// 	+ 1e-9 * (finishTime.tv_nsec - startTime.tv_nsec);
 
 	if (args.showTime)
 	{
-		std::cerr << opTime << "\n";
+		// std::cerr << opTime << "\n";
+		std::cerr << "Time measurement disabled" << "\n";
 	}
 
 	if (!args.dontOutputResult)

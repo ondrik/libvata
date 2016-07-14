@@ -130,7 +130,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	 ****************************************************************************/
 
 	// set the timer
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);
+	// clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);
 
 	AutBase::StateDiscontBinaryRelation sim;
 
@@ -174,7 +174,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	if (!incl_sim_time)
 	{	// if the simulation time is not to be included in the total time
 		// reset the timer
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);
+		//clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);
 	}
 
 	return Automaton::CheckInclusion(smaller, bigger, ip);
@@ -278,7 +278,7 @@ bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
 	std::runtime_error optErrorEx("Invalid options for equivalence: " +
 			Convert::ToString(options));
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime); // set the timer
+	//clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime); // set the timer
 
 	ip.SetEquivalence(true);
 	ip.SetAlgorithm(InclParam::e_algorithm::congruences);
