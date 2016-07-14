@@ -1,7 +1,8 @@
 language: cpp
 compiler:
   - gcc
-  - clang
+    # maybe try later, now segfaults
+    #  - clang
 
 before_install:
   - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
