@@ -12,6 +12,7 @@
 #include <ostream>
 #include <vector>
 #include <list>
+#include <cmath>
 #include <algorithm>
 #include <memory>
 #include <unordered_set>

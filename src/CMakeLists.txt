@@ -21,6 +21,7 @@ set(basic_cxx_compiler_add_flags_list
   -Wctor-dtor-privacy
   -Weffc++
   -fPIC
+  -O3
   -Woverloaded-virtual
 )
 
