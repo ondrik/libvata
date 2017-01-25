@@ -42,15 +42,17 @@ static std::string trim(const std::string& str)
 
 
 /**
- * @brief  Split a string at newlines
+ * @brief  Split a string at a delimiter
  */
-static std::vector<std::string> split_lines(const std::string& str)
+static std::vector<std::string> split_delim(
+	const std::string&   str,
+	char                 delim)
 {
 	std::vector<std::string> result;
 
 	std::string::size_type pos = 0;
 	std::string::size_type prev = 0;
-	while ((pos = str.find("\n", prev)) != std::string::npos)
+	while ((pos = str.find(delim, prev)) != std::string::npos)
 	{
 		result.push_back(str.substr(prev, pos - prev));
 		prev = pos + 1;
@@ -81,6 +83,15 @@ static std::string read_word(std::string& str)
 
 
 /**
+ * @brief  Does the string contain a whitespace?
+ */
+static bool contains_whitespace(const std::string& str)
+{
+	return str.end() != std::find_if(str.begin(), str.end(), std::ptr_fun<int, int>(std::isspace));
+}
+
+
+/**
  * @brief  Parse a token of the form <string>:<number> or <string>
  */
 static std::pair<std::string, int> parse_colonned_token(std::string str)
@@ -88,7 +99,7 @@ static std::pair<std::string, int> parse_colonned_token(std::string str)
 	str = trim(str);
 
 	// no space inside
-	assert(str.end() == std::find_if(str.begin(), str.end(), std::ptr_fun<int, int>(std::isspace)));
+	assert(!contains_whitespace(str));
 
 	size_t colon_pos = str.find(":");
 	if (std::string::npos == colon_pos)
@@ -114,7 +125,9 @@ static AutDescription parse_timbuk(const std::string& str)
 	bool aut_parsed = false;
 	bool ops_parsed = false;
 	bool states_parsed = false;
-	std::vector<std::string> lines = split_lines(str);
+	bool final_parsed = false;
+
+	std::vector<std::string> lines = split_delim(str, '\n');
 	for (const std::string& line : lines)
 	{
 		std::string str = trim(line);
@@ -141,7 +154,8 @@ static AutDescription parse_timbuk(const std::string& str)
 
 				if (!str.empty())
 				{
-					VATA_INFO("check the rest is empty ");
+					throw std::runtime_error(std::string(__FUNCTION__) + ": line \"" + line +
+						"\" has an unexpected string");
 				}
 			}
 			else if ("Ops" == first_word)
@@ -180,7 +194,26 @@ static AutDescription parse_timbuk(const std::string& str)
 			}
 			else if ("Final" == first_word)
 			{
-				VATA_INFO("fuk");
+				std::string str_states = read_word(str);
+				if ("States" != str_states)
+				{
+					throw std::runtime_error(std::string(__FUNCTION__) + ": line \"" + line +
+						"\" contains an unexpected string");
+				}
+
+				if (final_parsed)
+				{
+					throw std::runtime_error(std::string(__FUNCTION__) + "Final States already parsed!");
+				}
+
+				final_parsed = true;
+
+				while (!str.empty())
+				{
+					std::string state = read_word(str);
+					auto state_num = parse_colonned_token(state);
+					result.finalStates.insert(state_num.first);
+				}
 			}
 			else
 			{	// guard
@@ -190,7 +223,56 @@ static AutDescription parse_timbuk(const std::string& str)
 		}
 		else
 		{	// processing transitions
-			VATA_INFO("Process transitions too");
+			std::string invalid_trans_str = std::string(__FUNCTION__) +
+				": invalid transition \"" + line + "\"";
+
+			size_t arrow_pos = str.find("->");
+			if (std::string::npos == arrow_pos)
+			{
+				throw std::runtime_error(invalid_trans_str);
+			}
+
+			std::string lhs = trim(str.substr(0, arrow_pos));
+			std::string rhs = trim(str.substr(arrow_pos + 2));
+
+			size_t parens_begin_pos = lhs.find("(");
+			size_t parens_end_pos = lhs.find(")");
+			if (std::string::npos == parens_begin_pos)
+			{	// no tuple of states
+				if ((std::string::npos != parens_end_pos) ||
+					contains_whitespace(lhs))
+				{
+					throw std::runtime_error(invalid_trans_str);
+				}
+
+				result.transitions.insert(AutDescription::Transition({}, lhs, rhs));
+			}
+			else
+			{	// contains a tuple of states
+				if ((std::string::npos == parens_end_pos) ||
+					(parens_begin_pos > parens_end_pos) ||
+					(parens_end_pos != lhs.length() - 1))
+				{
+					throw std::runtime_error(invalid_trans_str);
+				}
+
+				std::string lab = trim(lhs.substr(0, parens_begin_pos));
+				std::string str_state_tuple = lhs.substr(parens_begin_pos + 1,
+					parens_end_pos - parens_begin_pos - 1);
+
+				std::vector<std::string> state_tuple = split_delim(str_state_tuple, ',');
+				for (std::string& state : state_tuple)
+				{
+					state = trim(state);
+
+					if (contains_whitespace(state))
+					{
+						throw std::runtime_error(invalid_trans_str);
+					}
+				}
+
+				result.transitions.insert(AutDescription::Transition(state_tuple, lab, rhs));
+			}
 		}
 	}
 

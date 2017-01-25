@@ -49,7 +49,7 @@ const std::string AUT_1 =
 	"Automaton AUT_1\n"
 	"\n"
 	"States q1 q_2 _q3 q4_ q5:0\n"
-	"Final States q_2 q5\n"
+	"Final States q_2:0 q5\n"
 	"Transitions        \n"
 	"f(q1,q1) -> q_2\n"
 	"g(q1,q_2) -> _q3\n"
@@ -70,7 +70,7 @@ static AutDesc create_AUT_1()
 	desc.finalStates.insert({"q_2", "q5"});
 	desc.transitions.insert({
 			AutDesc::Transition({"q1", "q1"}, "f", "q_2"),
-			AutDesc::Transition({"q1", "q_2"}, "f", "_q3"),
+			AutDesc::Transition({"q1", "q_2"}, "g", "_q3"),
 			AutDesc::Transition({}, "h", "q5"),
 		});
 
