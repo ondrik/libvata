@@ -5,6 +5,9 @@ set(CMAKE_COLOR_MAKEFILE ON)
 
 project(vata)
 
+# Export compile commands to be used with YouCompleteMe
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 # Flags for basic C files
 set(basic_c_compiler_flags_list
   -pedantic-errors
