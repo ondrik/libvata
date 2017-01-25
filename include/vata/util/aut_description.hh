@@ -27,7 +27,7 @@ struct VATA::Util::AutDescription
 {
 public:   // data types
 
-	typedef std::pair<std::string, unsigned> Symbol;
+	typedef std::pair<std::string, int> Symbol;
 	typedef std::string State;
 	typedef std::vector<State> StateTuple;
 	typedef VATA::Util::Triple<StateTuple, std::string, State> Transition;

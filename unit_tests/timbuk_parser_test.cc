@@ -50,10 +50,10 @@ const std::string AUT_1 =
 	"\n"
 	"States q1 q_2 _q3 q4_ q5:0\n"
 	"Final States q_2 q5\n"
-	"Transitions\n"
+	"Transitions        \n"
 	"f(q1,q1) -> q_2\n"
 	"g(q1,q_2) -> _q3\n"
-	"h -> q5\n"
+	"	h -> q5\n"
 	;
 
 static AutDesc create_AUT_1()
@@ -63,8 +63,8 @@ static AutDesc create_AUT_1()
 	desc.symbols.insert(
 		{
 			std::make_pair("f", 2),
-			std::make_pair("g", 0),
-			std::make_pair("h", 0),
+			std::make_pair("g", -1),
+			std::make_pair("h", -1),
 		});
 	desc.states.insert({"q1", "q_2", "_q3", "q4_", "q5"});
 	desc.finalStates.insert({"q_2", "q5"});
@@ -84,7 +84,7 @@ TestVector createTestVector()
 {
 	TestVector testVec =
 	{
-		std::make_tuple("AUT1", AUT_1, create_AUT_1()),
+		std::make_tuple("AUT_1", AUT_1, create_AUT_1()),
 	};
 
 	return testVec;
