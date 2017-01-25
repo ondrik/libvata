@@ -114,7 +114,7 @@ add_library(libvata STATIC
 	fmemopen.c
 	symbolic.cc
 	memstream.c
-	timbuk_parser.cc
+	timbuk_parser-nobison.cc
 	timbuk_serializer.cc
 	util.cc
 	sym_var_asgn.cc
