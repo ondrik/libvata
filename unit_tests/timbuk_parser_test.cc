@@ -64,11 +64,15 @@ static AutDesc create_AUT_1()
 		{
 			std::make_pair("f", 2),
 			std::make_pair("g", 0),
-			std::make_pair("h", 0)
+			std::make_pair("h", 0),
 		});
 	desc.states.insert({"q1", "q_2", "_q3", "q4_", "q5"});
 	desc.finalStates.insert({"q_2", "q5"});
-	desc.transitions.insert({});
+	desc.transitions.insert({
+			AutDesc::Transition({"q1", "q1"}, "f", "q_2"),
+			AutDesc::Transition({"q1", "q_2"}, "f", "_q3"),
+			AutDesc::Transition({}, "h", "q5"),
+		});
 
 	return desc;
 }
