@@ -9,23 +9,24 @@ project(vata)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # Flags for VATA
-set(vata_cxx_compiler_flags "\
-  -pedantic-errors \
-  -Wextra \
-  -Wall \
-  -Wfloat-equal \
-  -fdiagnostics-show-option \
-  -march=native \
-  -std=c++11 \
-  -Wctor-dtor-privacy \
-  -Weffc++ \
-  -fPIC \
-  -Woverloaded-virtual \
-  -Wold-style-cast \
-	"
+set(vata_cxx_compiler_flags
+  -pedantic-errors
+  -Wextra
+  -Wall
+  -Wfloat-equal
+  -fdiagnostics-show-option
+  -march=native
+  -std=c++11
+  -Wctor-dtor-privacy
+  -Weffc++
+  -fPIC
+  -Woverloaded-virtual
+  -Wold-style-cast
 )
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${vata_cxx_compiler_flags}")
+foreach(flag ${vata_cxx_compiler_flags})
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
+endforeach()
 
 # uncomment for profiling
 #add_definitions(-pg)
