@@ -8,63 +8,30 @@ project(vata)
 # Export compile commands to be used with YouCompleteMe
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Flags for basic C files
-set(basic_c_compiler_flags_list
-  -pedantic-errors
-  -Wextra
-  -Wall
-  -Wfloat-equal
-  -fdiagnostics-show-option
-  -march=native
+# Flags for VATA
+set(vata_cxx_compiler_flags "\
+  -pedantic-errors \
+  -Wextra \
+  -Wall \
+  -Wfloat-equal \
+  -fdiagnostics-show-option \
+  -march=native \
+  -std=c++11 \
+  -Wctor-dtor-privacy \
+  -Weffc++ \
+  -fPIC \
+  -Woverloaded-virtual \
+  -Wold-style-cast \
+	"
 )
 
-# Additional flags for basic C++ files
-set(basic_cxx_compiler_add_flags_list
-  -std=c++11
-  -Wctor-dtor-privacy
-  -Weffc++
-  -fPIC
-  -Woverloaded-virtual
-)
-
-# Additional flags for VATA C++ files
-set(vata_cxx_compiler_add_flags_list
-  -Wold-style-cast
-)
-
-# Setting GCC flags for C++ compilation of Bison & Flex outputs
-set(flex_bison_compiler_flags "")
-foreach(param ${basic_c_compiler_flags_list})
-  set(flex_bison_compiler_flags "${flex_bison_compiler_flags} ${param}")
-endforeach(param)
-foreach(param ${basic_cxx_compiler_add_flags_list})
-  set(flex_bison_compiler_flags "${flex_bison_compiler_flags} ${param}")
-endforeach(param)
-
-# Setting GCC flags for compilation of VATA C files
-set(vata_c_compiler_flags "")
-foreach(param ${basic_c_compiler_flags_list})
-  set(vata_c_compiler_flags "${vata_c_compiler_flags} ${param}")
-endforeach(param)
-
-# Setting GCC flags for compilation of VATA C++ files
-set(vata_cxx_compiler_flags ${vata_c_compiler_flags})
-foreach(param ${basic_cxx_compiler_add_flags_list})
-  set(vata_cxx_compiler_flags "${vata_cxx_compiler_flags} ${param}")
-endforeach(param)
-foreach(param ${vata_cxx_compiler_add_flags_list})
-  set(vata_cxx_compiler_flags "${vata_cxx_compiler_flags} ${param}")
-endforeach(param)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${vata_cxx_compiler_flags}")
 
 # uncomment for profiling
 #add_definitions(-pg)
 #set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 
 include_directories(../include)
-
-flex_target(timbuk_scanner timbuk.l ${CMAKE_CURRENT_BINARY_DIR}/timbuk.l.cc COMPILE_FLAGS "--header-file=${CMAKE_CURRENT_BINARY_DIR}/timbuk.l.hh")
-bison_target(timbuk_parser timbuk.y ${CMAKE_CURRENT_BINARY_DIR}/timbuk.y.cc)
-add_flex_bison_dependency(timbuk_scanner timbuk_parser)
 
 add_library(libvata STATIC
 	aut_base.cc
@@ -113,62 +80,15 @@ add_library(libvata STATIC
 	explicit_tree_sim.cc
 	convert.cc
 	incl_param.cc
-	fake_file.cc
-	fmemopen.c
 	symbolic.cc
-	memstream.c
 	timbuk_parser-nobison.cc
 	timbuk_serializer.cc
 	util.cc
 	sym_var_asgn.cc
 	symbolic_tree_aut_base_core.cc
-  ${FLEX_timbuk_scanner_OUTPUTS}
-  ${BISON_timbuk_parser_OUTPUTS}
 )
+
 set_target_properties(libvata PROPERTIES
   OUTPUT_NAME vata
   CLEAN_DIRECT_OUTPUT 1
 )
-
-
-set(scanner_parser_files
-  ${FLEX_timbuk_scanner_OUTPUTS}
-  ${BISON_timbuk_parser_OUTPUTS}
-)
-
-set(c_files
-	fmemopen.c
-	memstream.c
-)
-
-get_target_property(libvata_sources libvata SOURCES)
-
-foreach(src ${libvata_sources})
-
-  unset(is_scanner_parser_file)
-  foreach (checked_file ${scanner_parser_files})
-    if (${src} STREQUAL ${checked_file})
-      set(is_scanner_parser_file 1)
-    endif()
-  endforeach()
-
-	unset(is_c_file)
-  foreach (checked_file ${c_files})
-    if (${src} STREQUAL ${checked_file})
-      set(is_c_file 1)
-    endif()
-  endforeach()
-
-  if (is_scanner_parser_file)
-    set_source_files_properties(
-      ${src} PROPERTIES COMPILE_FLAGS ${flex_bison_compiler_flags})
-  else()
-		if (is_c_file)
-			set_source_files_properties(
-				${src} PROPERTIES COMPILE_FLAGS ${vata_c_compiler_flags})
-		else()
-			set_source_files_properties(
-				${src} PROPERTIES COMPILE_FLAGS ${vata_cxx_compiler_flags})
-		endif()
-  endif()
-endforeach()
