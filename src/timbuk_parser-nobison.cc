@@ -235,12 +235,19 @@ static AutDescription parse_timbuk(const std::string& str)
 			std::string lhs = trim(str.substr(0, arrow_pos));
 			std::string rhs = trim(str.substr(arrow_pos + 2));
 
+			if (rhs.empty() ||
+				contains_whitespace(rhs))
+			{
+				throw std::runtime_error(invalid_trans_str);
+			}
+
 			size_t parens_begin_pos = lhs.find("(");
 			size_t parens_end_pos = lhs.find(")");
 			if (std::string::npos == parens_begin_pos)
 			{	// no tuple of states
 				if ((std::string::npos != parens_end_pos) ||
-					contains_whitespace(lhs))
+					contains_whitespace(lhs) ||
+					lhs.empty())
 				{
 					throw std::runtime_error(invalid_trans_str);
 				}
@@ -257,6 +264,12 @@ static AutDescription parse_timbuk(const std::string& str)
 				}
 
 				std::string lab = trim(lhs.substr(0, parens_begin_pos));
+
+				if (lab.empty())
+				{
+					throw std::runtime_error(invalid_trans_str);
+				}
+
 				std::string str_state_tuple = lhs.substr(parens_begin_pos + 1,
 					parens_end_pos - parens_begin_pos - 1);
 
