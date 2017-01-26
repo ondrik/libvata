@@ -146,11 +146,6 @@ include(CTest)
 #                                DEPENDENCIES
 ##############################################################################
 
-# Necessary packages
-find_package(FLEX REQUIRED)
-find_package(BISON 3.0.0 REQUIRED)
-
-
 # Boost
 set(Boost_USE_MULTITHREADED OFF)
 find_package(Boost 1.54.0 COMPONENTS
