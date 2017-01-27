@@ -22,6 +22,7 @@
 #include <vata/util/util.hh>
 
 // standard library headers
+#include <chrono>
 #include <cstdlib>
 #include <fstream>
 
@@ -118,8 +119,6 @@ extern const char* VATA_GIT_DESCRIBE;
 
 const size_t BDD_SIZE = 16;
 
-timespec startTime;
-
 void printHelp(bool full = false)
 {
 	std::cout << VATA_USAGE_STRING;
@@ -211,9 +210,9 @@ int performOperation(
 	AutBase::StateToStateMap opTranslMap2;
 	AutBase::ProductTranslMap prodTranslMap;
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);     // set the timer
+	startTime = high_resolution_clock::now();
 
-	timespec finishTime;
+	TimePoint finishTime;
 
 	// process command
 	if (args.command == COMMAND_LOAD)
@@ -258,16 +257,12 @@ int performOperation(
 	}
 
 	// get the finish time
-	if (clock_gettime(CLOCK_THREAD_CPUTIME_ID, &finishTime))
-	{
-		throw std::runtime_error("Could not get the finish time");
-	}
-	double opTime = (finishTime.tv_sec - startTime.tv_sec)
-		+ 1e-9 * (finishTime.tv_nsec - startTime.tv_nsec);
+	finishTime = high_resolution_clock::now();
+  std::chrono::duration<double> opTime = finishTime - startTime;
 
 	if (args.showTime)
 	{
-		std::cerr << opTime << "\n";
+		std::cerr << std::chrono::duration_cast<std::chrono::nanoseconds>(opTime).count() * 1e-9 << "\n";
 	}
 
 	if (!args.dontOutputResult)

@@ -11,6 +11,9 @@
 #ifndef _OPERATIONS_HH_
 #define _OPERATIONS_HH_
 
+// standard library headers
+#include <chrono>
+
 // VATA headers
 #include <vata/vata.hh>
 
@@ -22,7 +25,10 @@ using VATA::AutBase;
 using VATA::InclParam;
 using VATA::SimParam;
 
-extern timespec startTime;
+using std::chrono::high_resolution_clock;
+using TimePoint = std::chrono::time_point<high_resolution_clock>;
+
+TimePoint startTime;
 
 template <class Automaton>
 bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
@@ -130,7 +136,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	 ****************************************************************************/
 
 	// set the timer
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);
+	startTime = high_resolution_clock::now();
 
 	AutBase::StateDiscontBinaryRelation sim;
 
@@ -174,7 +180,7 @@ bool CheckInclusion(Automaton smaller, Automaton bigger, const Arguments& args)
 	if (!incl_sim_time)
 	{	// if the simulation time is not to be included in the total time
 		// reset the timer
-		clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime);
+		startTime = high_resolution_clock::now();
 	}
 
 	return Automaton::CheckInclusion(smaller, bigger, ip);
@@ -278,7 +284,7 @@ bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
 	std::runtime_error optErrorEx("Invalid options for equivalence: " +
 			Convert::ToString(options));
 
-	clock_gettime(CLOCK_THREAD_CPUTIME_ID, &startTime); // set the timer
+	startTime = high_resolution_clock::now();
 
 	ip.SetEquivalence(true);
 	ip.SetAlgorithm(InclParam::e_algorithm::congruences);
