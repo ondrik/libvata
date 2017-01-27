@@ -25,6 +25,7 @@ before_install:
 
 script:
   - make debug
+  - make test
   - make release
   - make test
 
