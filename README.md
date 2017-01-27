@@ -25,7 +25,9 @@ the git version control system installed.
 
 To download the library, run
 
+```
   $ git clone git://github.com/ondrik/libvata.git
+```
 
 This creates a local independent copy of the source code repository.
 
@@ -34,12 +36,14 @@ This creates a local independent copy of the source code repository.
 In order to compile the library and the command-line interface to the library
 the following packages need to be installed on your system:
 
+```
   git (>= 1.6.0.0)
   cmake (>= 2.8.2)
   gcc (>= 4.8.0)
   libboost-filesystem-dev (>= 1.54.0)
   libboost-system-dev (>= 1.54.0)
   libboost-test-dev (>= 1.54.0)
+```
 
 
 ## Compiling
@@ -47,17 +51,23 @@ For compiling the source code of the library and the command-line
 interface with compiler optimisations turned on, issue the following command
 in the root directory of the library:
 
+```
   $ make release
+```
 
 In order to compile the library into a form suitable for debugging (i.e., with
 optimisations turned off and some additional runtime checks enabled, issue the
 following command:
 
+```
   $ make debug
+```
 
 It is recommended to run
 
+```
   $ make test
+```
 
 from the repository's root directory after compiling the code to run several
 unit tests and check that the compiled code passes them all.
@@ -65,20 +75,28 @@ unit tests and check that the compiled code passes them all.
 ## Compiling with LLVM (experimental)
 Run either
 
+```
   $ CXX=clang++ make release
+```
 
 or 
 
+```
   $ CXX=clang++ make debug
+```
 
 ## Command-Line Interface
 The compiled command-line interface is located in
 
+```
   build/cli/vata
+```
 
 The up-to-date list of supported operations and arguments is available through
 
+```
   $ ./vata help
+```
 
 
 ## Examples
@@ -87,14 +105,17 @@ The up-to-date list of supported operations and arguments is available through
 In order to load and dump (to, e.g., check that the format of an
 input file is correct) automaton in file 'aut_file', run
 
+```
   $ ./vata load aut_file
-
+```
 
 ### Union of automata
 To create an automaton that accepts a language which is the union of languages
 of automata from files 'aut_file1' and 'aut_file2', run
 
+```
   $ ./vata union 'aut_file1' 'aut_file2'
+```
 
 ## Using the VATA API
 See the 'examples/' directory for examples of using the library's API.
@@ -107,27 +128,28 @@ In order to run performance tests of various tree automata inclusion checking
 algorithms, there exists a bash script that executes them and collects the
 results. To run the standard set of experiments, execute
 
+```
   $ tests/incl_test.sh automata/artmc_timbuk 30
+```
 
 where
 
-  tests/incl_test.sh     ... path to the script executable, the script also
-                             contains the list of algorithms to evaluate; for
-                             list of all algorithms, see tests/incl_wrapper.sh
+  * tests/incl_test.sh     ... path to the script executable, the script also
+                               contains the list of algorithms to evaluate; for
+                               list of all algorithms, see tests/incl_wrapper.sh
 
-  automata/artmc_timbuk  ... path to the directory containing files with tree
-                             automata; the script runs the inclusion test for
-                             each pair of automata in the directory
+  * automata/artmc_timbuk  ... path to the directory containing files with tree
+                               automata; the script runs the inclusion test for
+                               each pair of automata in the directory
 
-  30                     ... timeout for each test (in seconds)
+  * 30                     ... timeout for each test (in seconds)
 
 
 ## Input Format
 libvata so far supports only the Timbuk format of tree automata. The format is
 specified by the following grammar with the start symbol <file>:
 
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+```
   <file>            : 'Ops' <label_list> <automaton>
 
   <label_list>      : <label_decl> <label_decl> ... // a list of label declarations
@@ -145,12 +167,11 @@ specified by the following grammar with the start symbol <file>:
   <transition>      : <label> '(' <state> ',' <state> ',' ... ')' '->' <state> // a transition
 
   <label>           : string // the name of a label
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+```
 
 An example could look like this:
 
-~~~~~~~~~~~~~~~~~~~~~
+```
 Ops a:0 b:1 c:2
 
 Automaton A
@@ -162,7 +183,7 @@ b(q0) -> q1
 c(q1, q1) -> q1
 c(q1, q1) -> q2
 c(q2, q2) -> q2
-~~~~~~~~~~~~~~~~~~~~~
+```
 
 
 ## Acknowledgement
