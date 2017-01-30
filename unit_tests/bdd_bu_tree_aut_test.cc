@@ -17,10 +17,6 @@
 // testing headers
 #include "log_fixture.hh"
 
-#if BOOST_VERSION > 105300
-	#define BOOST_MESSAGE(msg) BOOST_TEST_MESSAGE(msg)
-#endif
-
 /******************************************************************************
  *                                  Constants                                 *
  ******************************************************************************/
