@@ -170,7 +170,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 						std::vector<size_t> newTuple;
 						for (size_t tupleIndex = 0; tupleIndex < rhsTrans.children().size(); ++tupleIndex)
 						{
-							assert(lhsTrans.children().size() > 0 && rhsTrans.children().sze() > 0);
+							assert(lhsTrans.children().size() > 0 && rhsTrans.children().size() > 0);
 							const auto statePair = std::make_pair(lhsTrans.children().at(tupleIndex), rhsTrans.children().at(tupleIndex));
 							const auto findResult = pTranslMap->find(statePair);
 
