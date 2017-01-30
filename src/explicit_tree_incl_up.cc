@@ -332,27 +332,26 @@ bool VATA::ExplicitUpwardInclusion::checkInternal(
 		post.clear();
 		isAccepting = false;
 		
-		if (!biggerLeaves.count(symbol))
+		if (biggerLeaves.count(symbol))
 		{
-			continue;
-		}
-		for (auto& transition : biggerLeaves.at(symbol))
-		{
-			assert(transition);
-			assert(transition->children().empty());
-			assert(transition->state() < ind.size());
-
-			if (post.contains(ind.at(transition->state())))
+			for (auto& transition : biggerLeaves.at(symbol))
 			{
-				continue;
+				assert(transition);
+				assert(transition->children().empty());
+				assert(transition->state() < ind.size());
+
+				if (post.contains(ind.at(transition->state())))
+				{
+					continue;
+				}
+
+				assert(transition->state() < inv.size());
+
+				post.refine(inv.at(transition->state()));
+				post.insert(transition->state());
+
+				isAccepting = isAccepting || biggerFinalStates.count(transition->state());
 			}
-
-			assert(transition->state() < inv.size());
-
-			post.refine(inv.at(transition->state()));
-			post.insert(transition->state());
-
-			isAccepting = isAccepting || biggerFinalStates.count(transition->state());
 		}
 
 		StateSet tmp(post.data().begin(), post.data().end());

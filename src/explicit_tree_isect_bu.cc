@@ -125,6 +125,7 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 		}
 
 		assert(leftCluster);
+		assert(rightCluster);
 
 		const std::pair<size_t, size_t>& productState = p->first;
 		if (!lhsIndex.count(productState.first)
@@ -157,31 +158,48 @@ ExplicitTreeAutCore ExplicitTreeAutCore::IntersectionBU(
 					{
 						const BUIndexTransition& rhsTrans = *rhsTransPtr;
 						
-						const auto newProduct = pTranslMap->insert(
+						const auto productInsertResult = pTranslMap->insert(
 							std::make_pair(std::make_pair(lhsTrans.state(), rhsTrans.state()),
-								pTranslMap->size())).first; 
-						
+								pTranslMap->size()));
+						const auto newProduct = productInsertResult.first;
+						const auto isNewState = productInsertResult.second;
+
 						assert(rhsTrans.children().size() == lhsTrans.children().size());
 						
 						bool allTupleInProduct = true;
 						std::vector<size_t> newTuple;
 						for (size_t tupleIndex = 0; tupleIndex < rhsTrans.children().size(); ++tupleIndex)
 						{
+							assert(lhsTrans.children().size() > 0 && rhsTrans.children().sze() > 0);
 							const auto statePair = std::make_pair(lhsTrans.children().at(tupleIndex), rhsTrans.children().at(tupleIndex));
 							const auto findResult = pTranslMap->find(statePair);
+
+							const bool isSelfLoopToNewState =
+									findResult != pTranslMap->end() &&
+									isNewState && lhsTrans.children().at(tupleIndex) == lhsTrans.state()
+									&& rhsTrans.children().at(tupleIndex) == rhsTrans.state();
 							
-							if (findResult == pTranslMap->end() && lhsTrans.children().size() > 0)
+							if (findResult == pTranslMap->end() || isSelfLoopToNewState)
 							{
 								allTupleInProduct = false;
+								break;
 							}
 							else
 							{
 								newTuple.push_back(findResult->second);
 							}
+							assert(pTranslMap->at(statePair));
 						}
 
 						if (!allTupleInProduct)
 						{
+							if (isNewState)
+							{
+								pTranslMap->erase(
+										std::make_pair(
+												lhsTrans.state(),
+												rhsTrans.state()));
+							}
 							continue;
 						}
 

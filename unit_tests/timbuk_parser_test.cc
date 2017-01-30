@@ -29,6 +29,9 @@ using VATA::Util::Convert;
 #include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;
 
+#if BOOST_VERSION > 105300
+	#define BOOST_MESSAGE(msg) BOOST_TEST_MESSAGE(msg)
+#endif
 
 // testing headers
 #include "log_fixture.hh"
