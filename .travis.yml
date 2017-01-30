@@ -5,6 +5,8 @@ compiler:
     # maybe try later, now segfaults
     #  - clang
 
+sudo: false
+
 before_install:
   # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y ; fi
   # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then sudo apt-get update -qq ; fi
@@ -37,17 +39,13 @@ addons:
     packages:
       - g++-4.8
       - libstdc++-4.8-dev
-      - libboost-dev
-      - libboost-system-dev
-      - libboost-filesystem-dev
-      - libboost-test-dev
+      - libboost1.54-dev
+      - libboost1.54-system-dev
+      - libboost1.54-filesystem-dev
+      - libboost1.54-test-dev
 
 cache: ccache
 
 os:
   - linux
   - osx
-
-# dist:
-#   - trusty
-#   - precise
