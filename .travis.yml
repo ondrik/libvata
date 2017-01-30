@@ -36,3 +36,7 @@ addons:
       - flex
 
 cache: ccache
+
+os:
+  - linux
+  - osx
