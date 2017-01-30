@@ -44,9 +44,6 @@ public:   // methods
 
 	AlphabetType& GetAlphabet() const
 	{
-		// Assertions
-		assert(nullptr != alphabet_);
-
 		return alphabet_;
 	}
 
@@ -73,7 +70,7 @@ protected:// methods
 
 	SymbolicTreeAutBaseCore& operator=(const SymbolicTreeAutBaseCore& rhs)
 	{
-		if (nullptr != this)
+		if (&rhs != this)
 		{
 			alphabet_ = rhs.alphabet_;
 		}
@@ -83,8 +80,6 @@ protected:// methods
 
 	SymbolicTreeAutBaseCore& operator=(SymbolicTreeAutBaseCore&& rhs)
 	{
-		assert(nullptr != this);
-
 		alphabet_ = std::move(rhs.alphabet_);
 
 		return *this;
