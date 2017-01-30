@@ -62,7 +62,7 @@ struct SharedListInitF
 struct StateListElem
 {
 	size_t index_;
-	class Block* block_;
+	struct Block* block_;
 	StateListElem* next_;
 	StateListElem* prev_;
 
