@@ -48,6 +48,6 @@ os:
   - linux
   - osx
 
-dist:
-  - trusty
-  - precise
+# dist:
+#   - trusty
+#   - precise
