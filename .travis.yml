@@ -5,7 +5,7 @@ compiler:
     # maybe try later, now segfaults
     #  - clang
 
-# sudo: false
+sudo: false
 
 before_install:
   # install GCC-4.8
@@ -13,13 +13,13 @@ before_install:
   # - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$CXX" = "g++" ]; then sudo apt-get install -qq g++-4.8; fi
   # - if [ "$TRAVIS_OS_NAME" = "linux" ] && [ "$CXX" = "g++" ]; then export CXX="g++-4.8" CC="gcc-4.8"; fi
   # install Boost
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost1.54-dev_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost1.54-dev_1.54.0-4ubuntu3_amd64.deb" ; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost-system1.54.0_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost-system1.54.0_1.54.0-4ubuntu3_amd64.deb" ; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost-system1.54-dev_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost-system1.54-dev_1.54.0-4ubuntu3_amd64.deb" ; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost-filesystem1.54.0_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost-filesystem1.54.0_1.54.0-4ubuntu3_amd64.deb" ; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost-filesystem1.54-dev_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost-filesystem1.54-dev_1.54.0-4ubuntu3_amd64.deb" ; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost-test1.54.0_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost-test1.54.0_1.54.0-4ubuntu3_amd64.deb" ; fi
-  - if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost-test1.54-dev_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost-test1.54-dev_1.54.0-4ubuntu3_amd64.deb" ; fi
+  # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost1.54-dev_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost1.54-dev_1.54.0-4ubuntu3_amd64.deb" ; fi
+  # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost-system1.54.0_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost-system1.54.0_1.54.0-4ubuntu3_amd64.deb" ; fi
+  # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost-system1.54-dev_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost-system1.54-dev_1.54.0-4ubuntu3_amd64.deb" ; fi
+  # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost-filesystem1.54.0_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost-filesystem1.54.0_1.54.0-4ubuntu3_amd64.deb" ; fi
+  # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost-filesystem1.54-dev_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost-filesystem1.54-dev_1.54.0-4ubuntu3_amd64.deb" ; fi
+  # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost-test1.54.0_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost-test1.54.0_1.54.0-4ubuntu3_amd64.deb" ; fi
+  # - if [ "$TRAVIS_OS_NAME" = "linux" ]; then wget "http://cz.archive.ubuntu.com/ubuntu/pool/main/b/boost1.54/libboost-test1.54-dev_1.54.0-4ubuntu3_amd64.deb" && sudo dpkg --install "libboost-test1.54-dev_1.54.0-4ubuntu3_amd64.deb" ; fi
 
 script:
   - make debug
@@ -34,6 +34,10 @@ addons:
     packages:
       - g++-4.8
       - libstdc++-4.8-dev
+      - libboost1.54-dev
+      - libboost-system1.54-dev
+      - libboost-filesystem1.54-dev
+      - libboost-test1.54-dev
 
 cache: ccache
 
