@@ -20,7 +20,6 @@ set(vata_cxx_compiler_flags
   -Wctor-dtor-privacy
   -Weffc++
   -fPIC
-  -O3
   -Woverloaded-virtual
   -Wold-style-cast
 )
