@@ -38,9 +38,16 @@ addons:
       - g++-4.8
       - libstdc++-4.8-dev
       - libboost-dev
+      - libboost-system-dev
+      - libboost-filesystem-dev
+      - libboost-test-dev
 
 cache: ccache
 
 os:
   - linux
   - osx
+
+dist:
+  - trusty
+  - precise
