@@ -29,6 +29,7 @@ using VATA::Util::Convert;
 #include <boost/filesystem.hpp>
 namespace fs = boost::filesystem;
 
+
 // testing headers
 #include "log_fixture.hh"
 
