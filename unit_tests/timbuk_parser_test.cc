@@ -112,6 +112,26 @@ static AutDesc create_AUT_3()
 	return desc;
 }
 
+const std::string AUT_4 =
+	"Final States q1\n"
+	"Transitions\n"
+	"h() -> q1"
+	;
+
+static AutDesc create_AUT_4()
+{
+	AutDesc desc;
+	desc.name = "";
+	desc.symbols.insert({ });
+	desc.states.insert({ });
+	desc.finalStates.insert({"q1"});
+	desc.transitions.insert({
+			AutDesc::Transition({}, "h", "q1"),
+	});
+
+	return desc;
+}
+
 using TestVector = std::vector<std::tuple<std::string, std::string, AutDesc>>;
 
 TestVector createTestVector()
@@ -121,6 +141,7 @@ TestVector createTestVector()
 		std::make_tuple("AUT_1", AUT_1, create_AUT_1()),
 		std::make_tuple("AUT_2", AUT_2, create_AUT_2()),
 		std::make_tuple("AUT_3", AUT_3, create_AUT_3()),
+		std::make_tuple("AUT_4", AUT_4, create_AUT_4()),
 	};
 
 	return testVec;

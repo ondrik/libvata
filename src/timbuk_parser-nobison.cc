@@ -284,6 +284,11 @@ static AutDescription parse_timbuk(const std::string& str)
 					}
 				}
 
+				if ((state_tuple.size() == 1) && state_tuple[0] == "")
+				{
+					state_tuple = { };
+				}
+
 				result.transitions.insert(AutDescription::Transition(state_tuple, lab, rhs));
 			}
 		}
