@@ -200,3 +200,4 @@ If you have further questions, do not hesitate to contact the authors:
   * Jiri Simacek   <simacek@fit.vutbr.cz>
   * Tomas Vojnar   <vojnar@fit.vutbr.cz>
   * Martin Hruska  <ihruska@fit.vutbr.cz>
+  * Lukas Holik    <holik@fit.vutbr.cz>
