@@ -324,6 +324,13 @@ ExplicitFiniteAut ExplicitFiniteAut::Intersection(
 }
 
 bool ExplicitFiniteAut::CheckInclusion(
+    const ExplicitFiniteAut&    smaller,
+    const ExplicitFiniteAut&    bigger) {
+    return ExplicitFiniteAut::CheckInclusion(smaller, bigger, InclParam());
+}
+
+
+bool ExplicitFiniteAut::CheckInclusion(
 	const ExplicitFiniteAut&    smaller,
 	const ExplicitFiniteAut&    bigger,
 	const InclParam&						params)
