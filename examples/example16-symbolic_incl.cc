@@ -12,6 +12,19 @@ using SimParam      = VATA::SimParam;
 using InclParam     = VATA::InclParam;
 using Rel           = BDDBUAut::StateDiscontBinaryRelation;
 
+// example of an automaton
+// it assumes 16-bit symbols
+// to change the bit-width, modify the SYMBOL_SIZE constant in include/vata/symbolic.hh
+std::string EXAMPLE_AUT =
+	"Automaton A0053\n"
+	"\n"
+	"Final States q1 q2\n"
+	"\n"
+	"Transitions\n"
+	"XXXXXXXXXXXXXXXX -> q3\n"
+	"XXXXXXXXXXXXXXX1(q3) -> q1\n"
+	"XXXXXXXXXXXXXXXX(q3) -> q2\n";
+
 int main(int argc, char** argv)
 {
 	if (argc != 3)

@@ -104,7 +104,6 @@ private:  // methods
 
 			// translate the symbol
 			// SymbolType symbol = symbolTransl(symbolStr);
-			VATA_DEBUG("symbol = " + symbolStr);
 
 			if (symbolStr.size() != SYMBOL_SIZE)
 			{
