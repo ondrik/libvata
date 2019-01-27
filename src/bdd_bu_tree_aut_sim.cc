@@ -11,6 +11,7 @@
 
 // VATA headers
 #include <vata/vata.hh>
+#include <vata/serialization/timbuk_serializer.hh>
 
 // Standard library headers
 #include <stack>
@@ -241,24 +242,40 @@ public:   // methods
 } // namespace
 
 StateDiscontBinaryRelation BDDBUTreeAutCore::ComputeSimulation(
-	const VATA::SimParam&                  /* params */) const
+	const VATA::SimParam&                  params) const
 {
-	assert(false);
-	// switch (params.GetRelation())
-	// {
-	// 	case SimParam::e_sim_relation::TA_UPWARD:
-	// 	{
-	// 		return this->ComputeUpwardSimulation(params);
-	// 	}
-	// 	case SimParam::e_sim_relation::TA_DOWNWARD:
-	// 	{
-	// 		return this->ComputeDownwardSimulation(params);
-	// 	}
-	// 	default:
-	// 	{
-	// 		throw std::runtime_error("Unknown simulation parameters: " + params.toString());
-	// 	}
-	// }
+	// assert(false);
+	switch (params.GetRelation())
+	{
+		case SimParam::e_sim_relation::TA_UPWARD:
+		{
+			this->ComputeUpwardSimulation(params);
+			assert(false);
+			return StateDiscontBinaryRelation();
+		}
+		case SimParam::e_sim_relation::TA_DOWNWARD:
+		{
+			// AlphabetType alpha;
+			// auto f = [](size_t state) {  return Util::Convert::ToString(state); };
+			// AutDescription desc = this->dumpToAutDescSymbolic(f, alpha);
+			// std::string str = desc.ToString();
+			// VATA_DEBUG("aut = \n" + str);
+			Util::BinaryRelation rel = this->ComputeDownwardSimulation(params);
+			// VATA_DEBUG("rel = \n" + Convert::ToString(rel));
+
+			// create translator
+			VATA::Util::DiscontBinaryRelation::DictType dict;
+			for (size_t i = 0; i < rel.size(); ++i) {
+				dict.insert({i, i});
+			}
+
+			return StateDiscontBinaryRelation(rel, dict);
+		}
+		default:
+		{
+			throw std::runtime_error("Unknown simulation parameters: " + params.toString());
+		}
+	}
 }
 
 StateBinaryRelation BDDBUTreeAutCore::ComputeDownwardSimulation() const
