@@ -71,6 +71,7 @@ int main(int argc, char** argv)
 	ip.SetDirection(InclParam::e_direction::downward);
 	ip.SetUseRecursion(true);
 	ip.SetUseSimulation(true);
+	ip.SetUseDownwardCacheImpl(false);    // CAN ALSO TRY TRUE
 	ip.SetSimulation(&sim);
 
 	// do the test
