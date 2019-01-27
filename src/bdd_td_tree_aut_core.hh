@@ -169,10 +169,6 @@ private:  // methods
 				children.push_back(stateTransl(tupSt));
 			}
 
-			// translate the symbol
-			// SymbolType symbol = symbolTransl(symbolStr);
-			VATA_DEBUG("symbol = " + symbolStr);
-
 			if (symbolStr.size() != SYMBOL_SIZE)
 			{
 				throw std::runtime_error("Invalid symbols size (symbol = " + symbolStr +
