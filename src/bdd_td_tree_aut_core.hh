@@ -144,11 +144,45 @@ private:  // methods
 		class StateTranslFunc,
 		class SymbolTranslFunc>
 	void loadFromAutDescSymbolic(
-		const AutDescription&      /* desc */,
-		StateTranslFunc&           /* stateTransl */,
+		const AutDescription&      desc,
+		StateTranslFunc&           stateTransl,
 		SymbolTranslFunc&          /* symbolTransl */)
 	{
-		assert(false);
+		for (const AutDescription::State& fst : desc.finalStates)
+		{	// traverse final states
+			finalStates_.insert(stateTransl(fst));
+		}
+
+		for (auto tr : desc.transitions)
+		{	// traverse the transitions
+			const AutDescription::StateTuple& childrenStr = tr.first;
+			const std::string& symbolStr = tr.second;
+			const AutDescription::State& parentStr = tr.third;
+
+			// translate the parent state
+			StateType parent = stateTransl(parentStr);
+
+			// translate children
+			StateTuple children;
+			for (const AutDescription::State& tupSt : childrenStr)
+			{	// for all children states
+				children.push_back(stateTransl(tupSt));
+			}
+
+			// translate the symbol
+			// SymbolType symbol = symbolTransl(symbolStr);
+			VATA_DEBUG("symbol = " + symbolStr);
+
+			if (symbolStr.size() != SYMBOL_SIZE)
+			{
+				throw std::runtime_error("Invalid symbols size (symbol = " + symbolStr +
+					").  The symbol size needs to be " +
+					Util::Convert::ToString(SYMBOL_SIZE) + ".");
+			}
+			SymbolType symbol(symbolStr);
+
+			AddTransition(children, symbol, parent);
+		}
 	}
 
 

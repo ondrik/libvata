@@ -153,6 +153,14 @@ int performOperation(
 	bool boolResult = false;
 	VATA::AutBase::StateDiscontBinaryRelation relResult;
 
+	std::string params;
+	if (args.options.end() != args.options.find("symbolic"))
+	{
+		params = "symbolic";
+	}
+
+	std::cout << "VATA " << params << "\n";
+
 	StateDict stateDict1;
 	StateDict stateDict2;
 
@@ -163,7 +171,8 @@ int performOperation(
 		autInput1.LoadFromString(
 			parser,
 			VATA::Util::ReadFile(args.fileName1),
-			stateDict1);
+			stateDict1,
+			params);
 	}
 
 	if (args.operands >= 2)
@@ -171,7 +180,8 @@ int performOperation(
 		autInput2.LoadFromString(
 			parser,
 			VATA::Util::ReadFile(args.fileName2),
-			stateDict2);
+			stateDict2,
+			params);
 	}
 
 	if ((args.command == COMMAND_LOAD) ||
