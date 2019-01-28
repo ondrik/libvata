@@ -5,12 +5,13 @@
 #include <vata/parsing/timbuk_parser.hh>
 #include <vata/serialization/timbuk_serializer.hh>
 
-using BDDBUAut      = VATA::BDDBottomUpTreeAut;
-using BDDTDAut      = VATA::BDDTopDownTreeAut;
-using Convert       = VATA::Util::Convert;
-using SimParam      = VATA::SimParam;
-using InclParam     = VATA::InclParam;
-using Rel           = BDDBUAut::StateDiscontBinaryRelation;
+using BDDBUAut          = VATA::BDDBottomUpTreeAut;
+using BDDTDAut          = VATA::BDDTopDownTreeAut;
+using Convert           = VATA::Util::Convert;
+using SimParam          = VATA::SimParam;
+using InclParam         = VATA::InclParam;
+using Rel               = BDDBUAut::StateDiscontBinaryRelation;
+using TimbukSerializer  = VATA::Serialization::TimbukSerializer;
 
 // example of an automaton
 // it assumes 16-bit symbols
@@ -42,17 +43,24 @@ int main(int argc, char** argv)
 	std::unique_ptr<VATA::Parsing::AbstrParser> parser(
 		new VATA::Parsing::TimbukParser());
 
-	VATA::AutBase::StateDict sDict;
+	VATA::AutBase::StateDict sDict1;
+	VATA::AutBase::StateDict sDict2;
 
 	BDDBUAut aut1;
 	BDDBUAut aut2;
 
 	size_t stateCnt = 0;
-	BDDBUAut::StringToStateTranslWeak stateTr(sDict,
+	BDDBUAut::StringToStateTranslWeak stateTr1(sDict1,
+		[&stateCnt](const std::string&){return stateCnt++;});
+	BDDBUAut::StringToStateTranslWeak stateTr2(sDict2,
 		[&stateCnt](const std::string&){return stateCnt++;});
 	std::string params = "symbolic";
-	aut1.LoadFromString(*parser, aut1Str, stateTr, params);
-	aut2.LoadFromString(*parser, aut2Str, stateTr, params);
+	aut1.LoadFromString(*parser, aut1Str, stateTr1, params);
+	aut2.LoadFromString(*parser, aut2Str, stateTr2, params);
+
+	TimbukSerializer ts;
+	std::cerr << "aut1 = \n" << aut1.DumpToString(ts, "symbolic") << "\n";
+	std::cerr << "aut2 = \n" << aut2.DumpToString(ts, "symbolic") << "\n";
 
 	// make a union and compute downward simulation (doable on bottom-up aut)
 	BDDBUAut unionAut = BDDBUAut::UnionDisjointStates(aut1, aut2);
