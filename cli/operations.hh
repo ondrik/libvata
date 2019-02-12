@@ -300,7 +300,8 @@ bool CheckEquiv(Automaton smaller, Automaton bigger, const Arguments& args)
 	else { throw optErrorEx; }
 
 	// TODO: change
-	assert(false);
-	return Automaton::CheckInclusion(smaller, bigger, ip);
+	throw std::runtime_error("Equivalence not implemented");
+	// assert(false);
+	// return Automaton::CheckInclusion(smaller, bigger, ip);
 }
 #endif
