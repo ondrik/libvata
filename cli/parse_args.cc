@@ -429,6 +429,3 @@ Arguments parseArguments(int argc, char* argv[])
 
 	return args;
 }
-
-
-

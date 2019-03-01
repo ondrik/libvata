@@ -92,6 +92,9 @@ const char VATA_USAGE_COMMANDS[] =
 	"               'rec=yes'  : non-recursive version of the algorithm\n"
 	"               'timeS=yes': include time of simulation computation (default)\n"
 	"               'timeS=no' : do not include time of simulation computation\n"
+	"\nGeneral options:\n"
+	"               'symbolic=no'  : use explicit encoding of input file\n"
+	"               'symbolic=yes' : use symbolic encoding of input file\n"
 	;
 
 const char VATA_USAGE_FLAGS[] =
@@ -153,13 +156,21 @@ int performOperation(
 	bool boolResult = false;
 	VATA::AutBase::StateDiscontBinaryRelation relResult;
 
+
+	Options options = args.options;
+	options.insert(std::make_pair("symbolic", "no"));
+	std::runtime_error optErrorEx("Invalid options: " +
+			Convert::ToString(options));
+
 	std::string params;
-	if (args.options.end() != args.options.find("symbolic"))
+	if (options["symbolic"] == "yes")
 	{
 		params = "symbolic";
 	}
-
-	std::cout << "VATA " << params << "\n";
+	else if (options["symbolic"] == "no")
+	{ }
+	else
+	{ throw optErrorEx; }
 
 	StateDict stateDict1;
 	StateDict stateDict2;

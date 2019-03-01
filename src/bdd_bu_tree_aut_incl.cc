@@ -34,10 +34,10 @@ bool BDDBUTreeAutCore::CheckInclusion(
 	BDDBUTreeAutCore newBigger;
 	typename AutBase::StateType states = static_cast<typename AutBase::StateType>(-1);
 
-	if (InclParam::e_direction::downward == params.GetDirection())
-	{	// for the other direction translate the automaton to the top-down encoding
-		return BDDTDTreeAutCore::CheckInclusion(smaller.GetTopDownAut(), bigger.GetTopDownAut(), params);
-	}
+	// if (InclParam::e_direction::downward == params.GetDirection())
+	// {	// for the other direction translate the automaton to the top-down encoding
+	// 	return BDDTDTreeAutCore::CheckInclusion(smaller.GetTopDownAut(), bigger.GetTopDownAut(), params);
+	// }
 
 	if (!params.GetUseSimulation())
 	{
@@ -65,6 +65,37 @@ bool BDDBUTreeAutCore::CheckInclusion(
 			return CheckUpwardTreeInclusion<BDDBUTreeAutCore,
 				VATA::UpwardInclusionFunctor>(smaller, bigger,
 					params.GetSimulation());
+		}
+
+		case InclParam::ANTICHAINS_DOWN_REC_SIM:
+		{
+			newSmaller = smaller;
+			newBigger = bigger;
+			states = AutBase::SanitizeAutsForInclusion(newSmaller, newBigger);
+
+			// make a union and compute downward simulation (doable on bottom-up aut)
+			BDDBUTreeAutCore unionAut = BDDBUTreeAutCore::UnionDisjointStates(newSmaller, newBigger);
+			SimParam sp;
+			sp.SetRelation(SimParam::e_sim_relation::TA_DOWNWARD);
+			sp.SetNumStates(states);
+			AutBase::StateDiscontBinaryRelation sim = unionAut.ComputeSimulation(sp);
+
+			// invert the automata (we need top-down auts for the inclusion check)
+			BDDTDTreeAutCore smallertd = newSmaller.GetTopDownAut();
+			BDDTDTreeAutCore biggertd = newBigger.GetTopDownAut();
+
+			// set up params for inclusion testing
+			InclParam ip;
+			ip.SetAlgorithm(InclParam::e_algorithm::antichains);
+			ip.SetDirection(InclParam::e_direction::downward);
+			ip.SetUseRecursion(true);
+			ip.SetUseSimulation(true);
+			ip.SetUseDownwardCacheImpl(false);    // CAN ALSO TRY TRUE
+			ip.SetSimulation(&sim);
+
+			// do the test
+			bool result = BDDTDTreeAutCore::CheckInclusion(smallertd, biggertd, ip);
+			return result;
 		}
 
 		default:
