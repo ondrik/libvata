@@ -127,11 +127,11 @@ Arguments parseArguments(int argc, char* argv[])
 				parsedShowTime = true;
 				args.showTime = true;
 			}
-			else if (currentArg == "-v")
+			else if (currentArg == "-V")
 			{
 				if (parsedVerbose)
 				{
-					throw std::runtime_error("The \'-v\' flag specified more times.");
+					throw std::runtime_error("The \'-V\' flag specified more times.");
 				}
 
 				parsedVerbose = true;

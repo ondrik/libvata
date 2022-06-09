@@ -54,7 +54,7 @@ using StateToStateTranslStrict = AutBase::StateToStateTranslStrict;
 const char VATA_USAGE_STRING[] =
 	"VATA: VATA Tree Automata library interface\n"
 	"usage: vata [-r <representation>] [(-I|-O|-F) <format>] [-h|--help] [-t] [-n]\n"
-	"            [-v|--version] [(-p|-s)] [-o <options>] <command> [<args>]\n"
+	"            [-v|--version] [(-p|-s)] [-V] [-o <options>] <command> [<args>]\n"
 	;
 
 const char VATA_USAGE_COMMANDS[] =
@@ -109,7 +109,7 @@ const char VATA_USAGE_FLAGS[] =
 	"    (-I|-O|-F) <format>     Specify format for input (-I), output (-O), or both (-F)\n"
 	"       Formats: 'timbuk'  : Timbuk format (default)\n"
 	"    -t                      Print the time the operation took to error output stream\n"
-	"    -v                      Be verbose\n"
+	"    -V                      Be verbose\n"
 	"    -n                      Do not output the result automaton\n"
 	"    -p                      Prune unreachable states first\n"
 	"    -s                      Prune useless states first (stronger than -p)\n"

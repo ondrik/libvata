@@ -141,15 +141,18 @@ protected:  // data members
 	TransitionCluster::const_iterator symbolSetIterator_;
 	TuplePtrSet::const_iterator tupleIterator_;
 
+	bool end_;     // distinguish end iterator
+
 protected:// methods
 
 	BaseTransIterator(
-		int                          /* FILL (only to distinguish signature?) */,
+		int                          /* (only to distinguish signature) */,
 		const ExplicitTreeAutCore&   aut) :
 		aut_(aut),
 		stateClusterIterator_(),
 		symbolSetIterator_(),
-		tupleIterator_()
+		tupleIterator_(),
+		end_(true)
 	{ }
 
 	BaseTransIterator(
@@ -160,7 +163,8 @@ protected:// methods
 		aut_(baseTransIter.aut_),
 		stateClusterIterator_(baseTransIter.stateClusterIterator_),
 		symbolSetIterator_(baseTransIter.symbolSetIterator_),
-		tupleIterator_(baseTransIter.tupleIterator_)
+		tupleIterator_(baseTransIter.tupleIterator_),
+		end_(baseTransIter.end_)
 	{ }
 
 	Transition getTrans() const
@@ -185,13 +189,17 @@ public:   // methods
 
 	bool operator==(const BaseTransIterator& rhs) const
 	{
-		return tupleIterator_ == rhs.tupleIterator_;
+		if (this->end_ && rhs.end_) {
+			return true;
+		} else {
+			return tupleIterator_ == rhs.tupleIterator_;
+		}
 	}
 
 
 	bool operator!=(const BaseTransIterator& rhs) const
 	{
-		return tupleIterator_ != rhs.tupleIterator_;
+		return !this->operator==(rhs);
 	}
 };
 
@@ -1164,6 +1172,8 @@ public:   // methods
 
 	std::string ToString(
 		const Transition&                   trans) const;
+
+	std::string ToString() const;
 };
 
 #endif

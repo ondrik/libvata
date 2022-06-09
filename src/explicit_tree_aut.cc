@@ -781,6 +781,13 @@ std::string ExplicitTreeAut::ToString(const Transition& trans) const
 	return core_->ToString(trans);
 }
 
+std::string ExplicitTreeAut::ToString() const
+{
+	assert(nullptr != core_);
+
+	return core_->ToString();
+}
+
 
 ExplicitTreeAut ExplicitTreeAut::Complement() const
 {

@@ -54,14 +54,17 @@ std::unordered_set<size_t> ExplicitTreeAutCore::GetUsedStates() const
 BaseTransIterator::BaseTransIterator(
 	const ExplicitTreeAutCore&        aut) :
 	aut_(aut),
-	stateClusterIterator_(aut.transitions_->begin()),
+	stateClusterIterator_(),
 	symbolSetIterator_(),
-	tupleIterator_()
+	tupleIterator_(),
+	end_(false)
 {
-	if (aut.transitions_->end() == stateClusterIterator_)
-	{
+	if (aut.transitions_->begin() == aut.transitions_->end()) {
+		end_ = true;
 		return;
 	}
+
+	stateClusterIterator_ = aut.transitions_->begin();
 
 	symbolSetIterator_ = stateClusterIterator_->second->begin();
 	assert(stateClusterIterator_->second->end() != symbolSetIterator_);
@@ -91,6 +94,7 @@ Iterator& Iterator::operator++()
 		return *this;
 	}
 
+	end_ = true;
 	tupleIterator_ = TuplePtrSet::const_iterator();
 
 	return *this;
@@ -301,16 +305,16 @@ ExplicitTreeAutCore ExplicitTreeAutCore::Reduce(
 	 	std::unordered_map<StateType, StateType>
 	 > StateMap;
      */
-  
+
 	 using StateMap = std::unordered_map<StateType, StateType>;
-  
+
 	 size_t stateCnt = 0;
-  
+
 	StateMap stateMap;
 	 Util::TranslatorWeak<StateMap> stateTranslator(
 	 	stateMap, [&stateCnt](const StateType&){ return stateCnt++; }
 	);
-  
+
 	 this->BuildStateIndex(stateTranslator);
 
 	SimParam simParam;
@@ -383,4 +387,38 @@ std::string ExplicitTreeAutCore::ToString(const Transition& trans) const
 	os << trans.GetParent();
 
 	return os.str();
+}
+
+std::string ExplicitTreeAutCore::ToString() const
+{
+	std::string result;
+
+	result += "Root states: ";
+	for (auto state : this->finalStates_) {
+		result += Convert::ToString(state) + " ";
+	}
+	result += "\n";
+	result += "Transitions\n";
+
+	for (const auto& stClusterPair: *this->transitions_) {
+		const StateType& parent = stClusterPair.first;
+		std::string parentStr = "q" + Convert::ToString(parent);
+
+		for (const auto& symTuplesetPair: *(stClusterPair.second)) {
+			const SymbolType& symbol = symTuplesetPair.first;
+			std::string symStr = "a" + Convert::ToString(symbol);
+
+			for (const auto& tuplePtr : *(symTuplesetPair.second)) {
+				result += parentStr + " -[" + symStr + "]-> (";
+				for (size_t i = 0; i < tuplePtr->size(); ++i) {
+					if (i > 0) { result += ", "; }
+					std::string childStr = "q" + Convert::ToString((*tuplePtr)[i]);
+					result += childStr;
+				}
+				result += ")\n";
+			}
+		}
+	}
+
+	return result;
 }

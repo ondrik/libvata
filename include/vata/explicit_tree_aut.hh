@@ -872,6 +872,8 @@ public:   // methods
 		AbstractSymbolTranslateF&       transl) const;
 
 	std::string ToString(const Transition& trans) const;
+
+	std::string ToString() const;
 };
 
 #endif

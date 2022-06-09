@@ -15,11 +15,11 @@ set(vata_cxx_compiler_flags
   -Wall
   -Wfloat-equal
   -fdiagnostics-show-option
-  -march=native
   -std=c++11
   -Wctor-dtor-privacy
   -Weffc++
   -fPIC
+	-fno-strict-aliasing
   -Woverloaded-virtual
   -Wold-style-cast
 )

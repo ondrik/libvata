@@ -21,7 +21,6 @@ set(vata_compiler_add_flags_list
   -Woverloaded-virtual
   -Wold-style-cast
   -fdiagnostics-show-option
-  -march=native
 )
 
 foreach(param ${vata_compiler_add_flags_list})

@@ -14,7 +14,6 @@ set(compiler_flags_list
   -Woverloaded-virtual
   -Wold-style-cast
   -fdiagnostics-show-option
-  -march=native
 )
 
 set(compiler_flags "")
