@@ -13,32 +13,32 @@ SCRIPTPATH=`dirname $SCRIPT`
 
 METHODS=( 
   "expldown-rec"
-  "old-expldown-rec"
+#  "old-expldown-rec"
   "expldown-rec-optC"
-  "old-expldown-rec-optC"
+  # "old-expldown-rec-optC"
   "expldown-nonrec"
-  "old-expldown-nonrec"
+  # "old-expldown-nonrec"
 
   "expldown-rec-sim"
-  "old-expldown-rec-sim"
+  # "old-expldown-rec-sim"
   "expldown-rec-sim-optC"
-  "old-expldown-rec-sim-optC"
+  # "old-expldown-rec-sim-optC"
   "expldown-nonrec-sim"
-  "old-expldown-nonrec-sim"
+  # "old-expldown-nonrec-sim"
 
   "expldown-rec-sim-nosimtime"
-  "old-expldown-rec-sim-nosimtime"
+  # "old-expldown-rec-sim-nosimtime"
   "expldown-rec-sim-optC-nosimtime"
-  "old-expldown-rec-sim-optC-nosimtime"
+  # "old-expldown-rec-sim-optC-nosimtime"
   "expldown-nonrec-sim-nosimtime"
-  "old-expldown-nonrec-sim-nosimtime"
+  # "old-expldown-nonrec-sim-nosimtime"
 
   "explup"
-  "old-explup"
+  # "old-explup"
   "explup-sim"
-  "old-explup-sim"
+  # "old-explup-sim"
   "explup-sim-nosimtime"
-  "old-explup-sim-nosimtime"
+  # "old-explup-sim-nosimtime"
 
 #  "symdown-rec"
 #  "symdown-rec-sim"
@@ -50,8 +50,8 @@ METHODS=(
 
 #  "explfa-ac"
 #  "explfa-ac-sim"
-  "explfa-congr"
-  "explfa-congr-sim"
+  # "explfa-congr"
+  # "explfa-congr-sim"
 )
 
 ################################# FUNCTIONS ##################################
