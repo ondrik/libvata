@@ -53,4 +53,21 @@ protected:// methods
 
 #include "tree_aut_test.hh"
 
+BOOST_AUTO_TEST_CASE(aut_down_inclusion_rec_nosim)
+{
+	VATA::InclParam ip;
+	ip.SetDirection(InclParam::e_direction::downward);
+	ip.SetUseRecursion(true);
+	testInclusion(ip);
+}
+
+BOOST_AUTO_TEST_CASE(aut_down_inclusion_opt_rec_nosim)
+{
+	VATA::InclParam ip;
+	ip.SetDirection(InclParam::e_direction::downward);
+	ip.SetUseDownwardCacheImpl(true);
+	ip.SetUseRecursion(true);
+	testInclusion(ip);
+}
+
 BOOST_AUTO_TEST_SUITE_END()
