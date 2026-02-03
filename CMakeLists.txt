@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.2)
+cmake_minimum_required(VERSION 4.0)
 
 
 # 3rd party modules
@@ -32,6 +32,12 @@ option(BUILD_32B_MEM_MODEL "build with 32-bit memory model" OFF)
 option(DEBUG_INFO_FOR_RELEASE "build with debug info even in release builds" OFF)
 
 ##############################################################################
+#                                 PROJECT
+##############################################################################
+
+project(libvata)
+
+##############################################################################
 #                               COMPILER FUN
 ##############################################################################
 
@@ -57,6 +63,9 @@ if ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
 	set(COMPILER_FAMILY "gcc")
 elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
 	message("-- Assuming the Clang compiler family")
+	set(COMPILER_FAMILY "clang")
+elseif ("${CMAKE_CXX_COMPILER_ID}" STREQUAL "AppleClang")
+	message("-- Assuming the Apple Clang compiler family")
 	set(COMPILER_FAMILY "clang")
 else()
 	message(FATAL_ERROR "Unsupported compiler family: ${CMAKE_CXX_COMPILER_ID}")
@@ -132,11 +141,6 @@ if (DEBUG_INFO_FOR_RELEASE)
 	message("-- Enabling debug information for RELEASE builds")
 endif()
 
-##############################################################################
-#                                 PROJECT
-##############################################################################
-
-project(libvata)
 
 # Include CTest so that sophisticated testing can be done now
 include(CTest)
@@ -150,7 +154,7 @@ include(CTest)
 set(Boost_USE_MULTITHREADED OFF)
 find_package(Boost 1.54.0 COMPONENTS
   filesystem
-  system
+  # system
   unit_test_framework
   REQUIRED)
 include_directories(${Boost_INCLUDE_DIRS})

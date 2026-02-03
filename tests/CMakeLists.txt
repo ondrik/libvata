@@ -22,7 +22,7 @@ set(incl_test_file "${CMAKE_CURRENT_SOURCE_DIR}/aut_timbuk_smaller_incl_td.txt")
 # where 0 means that the inclusion L(aut1) <= L(aut2) DOES NOT HOLD and
 # 1 means that the inclusion L(aut3) <= L(aut4) HOLDS, where aut{1,2,3,4} are
 # files containing respective automata
-exec_program(${cat_prog} ARGS "${incl_test_file}" OUTPUT_VARIABLE file_content)
+execute_process(COMMAND ${cat_prog} "${incl_test_file}" OUTPUT_VARIABLE file_content)
 
 string(REPLACE "\n" ";" file_lines ${file_content})
 
